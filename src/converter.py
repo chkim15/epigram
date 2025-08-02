@@ -854,54 +854,99 @@ class SinglePDFConverter:
             print(f"⚠️ Could not clean up temp files: {e}")
     
     def _extract_subproblems(self, content):
-        """Extract subproblems from a single problem's content."""
+        """Extract subproblems from a single problem's content.
+        
+        Handles multiple formats:
+        - a) or b) or c)
+        - a. or b. or c.
+        - (a) or (b) or (c)
+        
+        Considers markers at line beginnings OR preceded by whitespace/punctuation.
+        """
         subproblems = {}
         
-        # Use a more sophisticated approach to handle complex LaTeX expressions
-        # Look for patterns like "a)", "b)", etc. and extract the full content
-        
-        # Find all subproblem markers, but be careful not to match within LaTeX expressions
+        # Find all potential subproblem markers
         subproblem_markers = []
         
-        # Split content by potential subproblem markers
-        parts = re.split(r'([a-zA-Z])\)', content)
+        # Pattern to match subproblem markers with context
+        patterns = [
+            # a) format - look for letter followed by closing parenthesis
+            r'([a-zA-Z])\)',
+            # a. format - look for letter followed by period  
+            r'([a-zA-Z])\.',
+            # (a) format - look for letter inside parentheses
+            r'\(([a-zA-Z])\)'
+        ]
         
-        # Reconstruct the content with markers
-        current_pos = 0
-        for i in range(1, len(parts), 2):  # Skip every other part (the content)
-            if i < len(parts):
-                marker = parts[i-1] if i > 0 else ""
-                key = parts[i] if i < len(parts) else ""
+        for pattern_idx, pattern in enumerate(patterns):
+            pattern_name = ['a)', 'a.', '(a)'][pattern_idx]
+            
+            for match in re.finditer(pattern, content, re.MULTILINE):
+                key = match.group(1).lower()
+                marker_text = match.group(0)  # Full matched text (e.g., "a)", "b.", "(c)")
                 
-                # Only consider this a subproblem marker if it's not within LaTeX
-                # Check if the marker is preceded by whitespace or start of string
-                if key and re.match(r'^[a-zA-Z]$', key):
-                    # Check if this is a real subproblem marker (not within LaTeX)
-                    marker_start = current_pos + len(marker)
-                    
-                    # Look backwards to see if we're in a LaTeX expression
-                    before_marker = content[:marker_start]
-                    
-                    # Count unclosed LaTeX delimiters
-                    open_parens = before_marker.count('\\(') - before_marker.count('\\)')
-                    open_brackets = before_marker.count('\\[') - before_marker.count('\\]')
-                    
-                    # If we're not in a LaTeX expression, this is a valid marker
-                    if open_parens == 0 and open_brackets == 0:
-                        subproblem_markers.append({
-                            'key': key.lower(),
-                            'start': marker_start,
-                            'end': marker_start + len(key) + 1  # +1 for the closing )
-                        })
+                # Get the actual marker position
+                marker_start = match.start()
+                marker_end = match.end()
                 
-                current_pos += len(marker) + len(key) + 1  # +1 for the closing )
+                # Check if this marker is inside a LaTeX expression
+                before_marker = content[:marker_start]
+                
+                # Count unclosed LaTeX delimiters before this position
+                open_inline = before_marker.count('\\(') - before_marker.count('\\)')
+                open_display = before_marker.count('\\[') - before_marker.count('\\]')
+                open_dollar = before_marker.count('$') % 2  # Odd means we're inside $ $
+                
+                # Skip if we're inside any LaTeX expression
+                if open_inline > 0 or open_display > 0 or open_dollar == 1:
+                    continue
+                
+                # Check if marker is in proper context
+                # Look for ". " (dot followed by space) before the marker
+                if marker_start >= 2:
+                    two_chars_before = content[marker_start - 2:marker_start]
+                    dot_space_before = two_chars_before == '. '
+                else:
+                    dot_space_before = False
+                
+                char_before = content[marker_start - 1] if marker_start > 0 else '\n'
+                is_valid_context = (
+                    dot_space_before or  # After ". " (dot followed by space)
+                    char_before in ['\n', ' ', '\t'] or  # After newline or whitespace
+                    char_before in ['.', '!', '?', ':'] or  # After punctuation
+                    marker_start == 0  # At very beginning
+                )
+                
+                if not is_valid_context:
+                    continue
+                
+                # Use the exact match positions 
+                actual_start = marker_start
+                
+                # Avoid duplicates - check if we already found this position
+                duplicate = False
+                for existing in subproblem_markers:
+                    if abs(existing['start'] - actual_start) < 3:  # Within 3 characters
+                        duplicate = True
+                        break
+                
+                if not duplicate:
+                    subproblem_markers.append({
+                        'key': key,
+                        'start': actual_start,
+                        'end': marker_end,
+                        'marker_text': marker_text,
+                        'pattern': pattern_name
+                    })
+                    
+                    pass
         
-        # Sort by position
+        # Sort markers by position
         subproblem_markers.sort(key=lambda x: x['start'])
         
-        # Extract subproblem content
+        # Extract subproblem content between markers
         for i, marker in enumerate(subproblem_markers):
-            start_pos = marker['end']  # Start after the "a)" part
+            start_pos = marker['end']  # Start after the marker (e.g., after "a)")
             
             # Find the end of this subproblem
             if i + 1 < len(subproblem_markers):
@@ -914,8 +959,9 @@ class SinglePDFConverter:
             # Extract the subproblem content
             subproblem_content = content[start_pos:end_pos].strip()
             
-            # Clean up the content by removing trailing whitespace and common endings
-            subproblem_content = re.sub(r'\s+$', '', subproblem_content)
+            # Remove any trailing newlines and clean up
+            subproblem_content = re.sub(r'\n\s*$', '', subproblem_content)
+            subproblem_content = subproblem_content.strip()
             
             # Basic validation for subproblem content
             if self._is_valid_problem_content(subproblem_content):
@@ -1047,14 +1093,27 @@ class SinglePDFConverter:
             first_marker_pos = len(cleaned_text)  # Start with end of content
             
             for subproblem_key in subproblems.keys():
-                # Look for patterns like "a)", "b)", etc.
-                marker_pattern = rf'\b{re.escape(subproblem_key)}\)'
-                match = re.search(marker_pattern, cleaned_text, re.IGNORECASE)
+                # Look for different subproblem marker patterns:
+                # 1. a) format
+                pattern1 = rf'(^|\s){re.escape(subproblem_key)}\)'
+                # 2. a. format  
+                pattern2 = rf'(^|\s){re.escape(subproblem_key)}\.'
+                # 3. (a) format
+                pattern3 = rf'(^|\s)\({re.escape(subproblem_key)}\)'
                 
-                if match:
-                    marker_pos = match.start()
-                    if marker_pos < first_marker_pos:
-                        first_marker_pos = marker_pos
+                # Try each pattern
+                for pattern in [pattern1, pattern2, pattern3]:
+                    match = re.search(pattern, cleaned_text, re.IGNORECASE | re.MULTILINE)
+                    
+                    if match:
+                        # Get the position of the actual marker (not the leading whitespace)
+                        marker_pos = match.start()
+                        if match.group(1):  # If there was leading whitespace/newline
+                            marker_pos = match.start() + len(match.group(1))
+                        
+                        if marker_pos < first_marker_pos:
+                            first_marker_pos = marker_pos
+                        break  # Found a match, no need to try other patterns for this key
             
             # If we found any subproblem markers, cut the text before the first one
             if first_marker_pos < len(cleaned_text):
