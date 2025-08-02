@@ -78,7 +78,8 @@ class SinglePDFConverter:
         combined_problems = self._combine_page_results(all_problems, all_images, id_prefix)
         
         # Step 4: Save to JSON
-        json_file = output_path / "problems.json"
+        json_filename = f"{id_prefix}.json" if id_prefix else "problems.json"
+        json_file = output_path / json_filename
         final_data = {
             "metadata": {
                 "total_problems": len(combined_problems),
@@ -242,6 +243,7 @@ class SinglePDFConverter:
         # Save any images found from Mathpix and track their positions
         if 'images' in page_results:
             for img_idx, image_info in enumerate(page_results['images']):
+                # Extract Mathpix images (they're less likely to be headers)
                 img_filename = self._save_image_from_results(
                     image_info, images_path, page_num, img_idx + 1
                 )
@@ -414,6 +416,12 @@ class SinglePDFConverter:
                 for img_idx, img in enumerate(image_list):
                     try:
                         xref = img[0]
+                        
+                        # Check if this is a header image BEFORE processing
+                        if self._is_header_image(pdf_doc, page_num, xref):
+                            print(f"   ⏭️ Skipped header image: {img_idx + 1}")
+                            continue
+                        
                         pix = fitz.Pixmap(pdf_doc, xref)
                         
                         # Only process color images (skip alpha channel)
@@ -754,11 +762,11 @@ class SinglePDFConverter:
             # Use content only from the primary page
             combined_content = primary_problem['content']
             
-            # Extract multiple choice options and clean problem text
-            answer_options, cleaned_content = self._extract_and_clean_multiple_choice(combined_content)
+            # Extract subproblems from the content
+            subproblems = self._extract_subproblems(combined_content)
             
-            # Extract correct answer
-            correct_answer = self._find_correct_answer(combined_content)
+            # Clean the problem text by removing subproblem parts
+            cleaned_problem_text = self._clean_problem_text(combined_content, subproblems)
             
             # Find images for this problem based on page numbers
             problem_images = self._find_problem_images(problem_num, problem_pages, all_images)
@@ -772,21 +780,22 @@ class SinglePDFConverter:
             
             final_problem = {
                 "id": problem_id,
-                "problem_text": self._clean_text(cleaned_content),
-                "answer_options": answer_options,
-                "correct_answer": correct_answer,
+                "problem_text": self._clean_text(cleaned_problem_text),
+                "subproblems": subproblems,
+                "correct_answer": None,
                 "solution": None,
                 "images": problem_images,
                 "difficulty": None,
-                "topics": []
+                "domain": [],
+                "topics": [],
+                "math_approach": [],
+                "reasoning_type": []
             }
             
             combined_problems.append(final_problem)
         
         return combined_problems
         
-        return combined_problems
-    
     def _save_image_from_results(self, image_info, images_path, page_num, img_num):
         """Save image from Mathpix results"""
         
@@ -823,86 +832,78 @@ class SinglePDFConverter:
         except Exception as e:
             print(f"⚠️ Could not clean up temp files: {e}")
     
-    def _extract_multiple_choice(self, content):
-        """Extract multiple choice options as dictionary"""
+    def _extract_subproblems(self, content):
+        """Extract subproblems from a single problem's content."""
+        subproblems = {}
         
-        # Patterns for multiple choice
-        patterns = [
-            r'([A-H])\)\s*([^A-H\)]+?)(?=[A-H]\)|$)',  # A) option B) option
-            r'([a-h])\)\s*([^a-h\)]+?)(?=[a-h]\)|$)',  # a) option b) option
-        ]
+        # Use a more sophisticated approach to handle complex LaTeX expressions
+        # Look for patterns like "a)", "b)", etc. and extract the full content
         
-        for pattern in patterns:
-            matches = re.findall(pattern, content, re.DOTALL)
-            
-            if len(matches) >= 2:  # Need at least 2 options
-                options = {}
-                for letter, text in matches:
-                    clean_text = re.sub(r'\s+', ' ', text.strip())
-                    if clean_text and len(clean_text) > 1:  # Skip empty or single char
-                        options[letter.upper()] = clean_text
+        # Find all subproblem markers, but be careful not to match within LaTeX expressions
+        subproblem_markers = []
+        
+        # Split content by potential subproblem markers
+        parts = re.split(r'([a-zA-Z])\)', content)
+        
+        # Reconstruct the content with markers
+        current_pos = 0
+        for i in range(1, len(parts), 2):  # Skip every other part (the content)
+            if i < len(parts):
+                marker = parts[i-1] if i > 0 else ""
+                key = parts[i] if i < len(parts) else ""
                 
-                if len(options) >= 2:
-                    return options
-        
-        return None  # Not multiple choice
-    
-    def _extract_and_clean_multiple_choice(self, content):
-        """Extract multiple choice options and remove them from problem text"""
-        
-        # Split the content into words and look for option patterns
-        words = content.split()
-        options = {}
-        option_texts = []
-        cleaned_words = []
-        
-        i = 0
-        while i < len(words):
-            word = words[i]
-            
-            # Check if this word looks like an option (e.g., "A)", "b)", etc.)
-            option_match = re.match(r'([A-Ha-h])\)', word)
-            
-            if option_match:
-                # Found an option, collect all words until the next option or end
-                letter = option_match.group(1).upper()
-                option_words = []
-                
-                # Skip the option letter and collect the option text
-                i += 1  # Skip the "A)" part
-                
-                # Collect words until we hit another option or end
-                while i < len(words):
-                    next_word = words[i]
+                # Only consider this a subproblem marker if it's not within LaTeX
+                # Check if the marker is preceded by whitespace or start of string
+                if key and re.match(r'^[a-zA-Z]$', key):
+                    # Check if this is a real subproblem marker (not within LaTeX)
+                    marker_start = current_pos + len(marker)
                     
-                    # Check if next word is another option
-                    if re.match(r'([A-Ha-h])\)', next_word):
-                        break
+                    # Look backwards to see if we're in a LaTeX expression
+                    before_marker = content[:marker_start]
                     
-                    option_words.append(next_word)
-                    i += 1
+                    # Count unclosed LaTeX delimiters
+                    open_parens = before_marker.count('\\(') - before_marker.count('\\)')
+                    open_brackets = before_marker.count('\\[') - before_marker.count('\\]')
+                    
+                    # If we're not in a LaTeX expression, this is a valid marker
+                    if open_parens == 0 and open_brackets == 0:
+                        subproblem_markers.append({
+                            'key': key.lower(),
+                            'start': marker_start,
+                            'end': marker_start + len(key) + 1  # +1 for the closing )
+                        })
                 
-                # Join the option words
-                option_text = ' '.join(option_words).strip()
-                if option_text:
-                    options[letter] = option_text
-                    option_texts.append(f"{letter}) {option_text}")
-                
+                current_pos += len(marker) + len(key) + 1  # +1 for the closing )
+        
+        # Sort by position
+        subproblem_markers.sort(key=lambda x: x['start'])
+        
+        # Extract subproblem content
+        for i, marker in enumerate(subproblem_markers):
+            start_pos = marker['end']  # Start after the "a)" part
+            
+            # Find the end of this subproblem
+            if i + 1 < len(subproblem_markers):
+                # End at the next subproblem marker
+                end_pos = subproblem_markers[i + 1]['start']
             else:
-                # Not an option, keep this word
-                cleaned_words.append(word)
-                i += 1
-        
-        if len(options) >= 2:
-            # Sort options alphabetically by letter
-            sorted_options = dict(sorted(options.items()))
+                # End at the end of the content
+                end_pos = len(content)
             
-            # Join the cleaned words back together
-            cleaned_content = ' '.join(cleaned_words)
-            cleaned_content = re.sub(r'\s+', ' ', cleaned_content)
-            return sorted_options, cleaned_content.strip()
+            # Extract the subproblem content
+            subproblem_content = content[start_pos:end_pos].strip()
+            
+            # Clean up the content by removing trailing whitespace and common endings
+            subproblem_content = re.sub(r'\s+$', '', subproblem_content)
+            
+            # Basic validation for subproblem content
+            if self._is_valid_problem_content(subproblem_content):
+                subproblems[marker['key']] = self._clean_text(subproblem_content)
+                print(f"   ✅ Extracted subproblem {marker['key']}")
+            else:
+                print(f"   ⚠️ Subproblem {marker['key']} failed validation")
         
-        return None, content
+        return subproblems
     
     def _find_problem_images(self, problem_num, problem_pages, all_images):
         """Find images that are associated with a specific problem based on content analysis"""
@@ -947,22 +948,6 @@ class SinglePDFConverter:
         descriptive_id = f"{clean_name}_problem_{problem_num}"
         
         return descriptive_id
-    
-    def _find_correct_answer(self, content):
-        """Find the correct answer letter"""
-        
-        patterns = [
-            r'Answer[:\s]*([A-H])',
-            r'Correct[:\s]*([A-H])',
-            r'\b([A-H])\s*is\s*(correct|right)',
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, content, re.IGNORECASE)
-            if match:
-                return match.group(1).upper()
-        
-        return None
     
     def _clean_text(self, text):
         """Clean up extracted text"""
@@ -1030,6 +1015,97 @@ class SinglePDFConverter:
         text = re.sub(r'^\s*\d+\.\s*', '', text)  # Remove leading "1. "
         
         return text.strip()
+
+    def _clean_problem_text(self, content, subproblems):
+        """Clean up the problem text by removing subproblem parts."""
+        cleaned_text = content
+        
+        # Remove subproblem parts if they are directly embedded in the main problem text
+        for subproblem_key, subproblem_content in subproblems.items():
+            # Look for the subproblem content within the main problem text
+            # This is a simplified approach; a more robust solution might involve
+            # more sophisticated text matching or a separate subproblem extraction.
+            # For now, we'll try to remove the subproblem content if it's directly
+            # followed by a new problem number or if it's at the end of the text.
+            
+            # Find the start of the subproblem content
+            subproblem_start = cleaned_text.find(subproblem_content)
+            
+            if subproblem_start != -1:
+                # Find the end of the subproblem content
+                # This is tricky because subproblems can be multi-line or have
+                # different delimiters. A more robust approach would involve
+                # a more sophisticated regex or a separate subproblem extraction.
+                # For now, we'll assume a simple removal if it's followed by a new number.
+                
+                # Find the next problem number
+                next_problem_num_match = re.search(r'\b\d+\.\s', cleaned_text[subproblem_start + len(subproblem_content):])
+                
+                if next_problem_num_match:
+                    # Remove the subproblem content if it's followed by a new problem number
+                    cleaned_text = cleaned_text[:subproblem_start] + cleaned_text[subproblem_start + len(subproblem_content):]
+                else:
+                    # If no new problem number, remove the subproblem content
+                    cleaned_text = cleaned_text[:subproblem_start]
+        
+        return cleaned_text.strip()
+
+    def _is_header_image(self, pdf_doc, page_num, xref):
+        """Check if an image is likely a header image based on position and size"""
+        
+        try:
+            page = pdf_doc[page_num - 1]  # Convert to 0-based index
+            
+            # Get page dimensions
+            page_rect = page.rect
+            page_width = page_rect.width
+            page_height = page_rect.height
+            
+            # Get all image instances on the page
+            img_list = page.get_images()
+            
+            # Find the specific image
+            for img in img_list:
+                if img[0] == xref:
+                    # Get image position on page
+                    img_rects = page.get_image_rects(xref)
+                    
+                    if img_rects:
+                        for rect in img_rects:
+                            # Check if image is in the top portion of the page
+                            img_top = rect.y0
+                            img_height = rect.height
+                            img_width = rect.width
+                            img_center_x = (rect.x0 + rect.x1) / 2
+                            
+                            # Header criteria:
+                            # 1. Located in top 15% of page
+                            # 2. Small height (less than 10% of page height)
+                            # 3. Located in the right half of the page (for PENN ID box)
+                            is_top_region = img_top < (page_height * 0.15)
+                            is_small_height = img_height < (page_height * 0.10)
+                            is_right_side = img_center_x > (page_width * 0.5)
+                            
+                            if is_top_region and (is_small_height or is_right_side):
+                                print(f"   🎯 Detected header image at top of page (y={img_top:.1f}, height={img_height:.1f})")
+                                return True
+                            
+                            # Also check if it's a small rectangular image (like PENN ID box)
+                            aspect_ratio = img_width / img_height if img_height > 0 else 0
+                            is_rectangular = 1.5 < aspect_ratio < 4.0  # Wider than tall
+                            is_small = img_height < 50 or img_width < 150
+                            
+                            if is_top_region and is_rectangular and is_small:
+                                print(f"   🎯 Detected small rectangular header image (aspect ratio={aspect_ratio:.2f})")
+                                return True
+            
+            return False
+            
+        except Exception as e:
+            print(f"   ⚠️ Error checking if image is header: {e}")
+            return False
+
+
 
 def main():
     """Example usage"""
