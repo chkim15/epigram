@@ -29,8 +29,16 @@ class SinglePDFConverter:
         # Store PDF path for image extraction
         self.pdf_path = pdf_path
         
-        # Create output directory
-        output_path = Path(output_dir)
+        # Create output directory structure
+        base_output_path = Path(output_dir)
+        base_output_path.mkdir(exist_ok=True)
+        
+        # Create a subfolder for this specific PDF using the prefix
+        if id_prefix:
+            output_path = base_output_path / id_prefix
+        else:
+            output_path = base_output_path / "unknown"
+        
         output_path.mkdir(exist_ok=True)
         images_path = output_path / "images"
         images_path.mkdir(exist_ok=True)
@@ -80,13 +88,22 @@ class SinglePDFConverter:
         # Step 4: Save to JSON
         json_filename = f"{id_prefix}.json" if id_prefix else "problems.json"
         json_file = output_path / json_filename
+        
+        # Parse prefix metadata
+        prefix_metadata = self._parse_prefix_metadata(id_prefix)
+        
+        # Create metadata with parsed prefix information
+        metadata = {
+            **prefix_metadata,  # Include all parsed prefix fields at the beginning
+            "total_problems": len(combined_problems),
+            "total_images": len(all_images),
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "updated_at": None,
+            "version": "raw"
+        }
+        
         final_data = {
-            "metadata": {
-                "total_problems": len(combined_problems),
-                "total_images": len(all_images),
-                "processed_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "pages_processed": len(page_images)
-            },
+            "doc": metadata,
             "problems": combined_problems
         }
         
@@ -242,23 +259,27 @@ class SinglePDFConverter:
         
         # Save any images found from Mathpix and track their positions
         if 'images' in page_results:
-            for img_idx, image_info in enumerate(page_results['images']):
-                # Extract Mathpix images (they're less likely to be headers)
-                img_filename = self._save_image_from_results(
-                    image_info, images_path, page_num, img_idx + 1
-                )
-                if img_filename:
-                    # Try to determine which problem this image belongs to
-                    associated_problem = self._find_image_problem_association(
-                        img_idx, page_results, problem_boundaries
+            # Skip Mathpix images if there are no problems on this page
+            if not problem_boundaries or len(problem_boundaries) == 0:
+                print(f"   ⏭️ Page {page_num}: No problems found, skipping Mathpix images")
+            else:
+                for img_idx, image_info in enumerate(page_results['images']):
+                    # Extract Mathpix images (they're less likely to be headers)
+                    img_filename = self._save_image_from_results(
+                        image_info, images_path, page_num, img_idx + 1
                     )
-                    images_saved.append({
-                        'filename': img_filename,
-                        'page': page_num,
-                        'full_path': str(images_path / img_filename),
-                        'source': 'mathpix',
-                        'associated_problem': associated_problem
-                    })
+                    if img_filename:
+                        # Try to determine which problem this image belongs to
+                        associated_problem = self._find_image_problem_association(
+                            img_idx, page_results, problem_boundaries
+                        )
+                        images_saved.append({
+                            'filename': img_filename,
+                            'page': page_num,
+                            'full_path': str(images_path / img_filename),
+                            'source': 'mathpix',
+                            'associated_problem': associated_problem
+                        })
         
         # Also extract images directly from the PDF page for better graph detection
         pdf_images = self._extract_images_from_pdf_page(page_num, images_path, problem_boundaries)
@@ -400,6 +421,11 @@ class SinglePDFConverter:
         images_saved = []
         
         try:
+            # Skip images if there are no problems on this page
+            if not problem_boundaries or len(problem_boundaries) == 0:
+                print(f"   ⏭️ Page {page_num}: No problems found, skipping all images")
+                return images_saved
+            
             # Open the original PDF
             pdf_doc = fitz.open(self.pdf_path)  # We need to store pdf_path in the class
             
@@ -555,15 +581,9 @@ class SinglePDFConverter:
             if matches:  # If we found problems with this pattern, stop trying others
                 break
         
-        # If no problems found, check if page has substantial math content
-        if not problems and self._has_math_content(filtered_content):
-            problems.append({
-                'page': page_num,
-                'number': page_num,  # Use page number as problem number
-                'content': filtered_content,
-                'full_text': self._clean_text(filtered_content)
-            })
-            print(f"   📄 Page {page_num}: Added page-level problem")
+        # Don't create page-level problems - only extract actual numbered problems
+        if not problems:
+            print(f"   📄 Page {page_num}: No numbered problems found, skipping page")
         
         print(f"   📊 Page {page_num}: Returning {len(problems)} problems")
         return problems
@@ -780,6 +800,7 @@ class SinglePDFConverter:
             
             final_problem = {
                 "id": problem_id,
+                "doc_id": id_prefix if id_prefix else "unknown",
                 "problem_text": self._clean_text(cleaned_problem_text),
                 "subproblems": subproblems,
                 "correct_answer": None,
@@ -1020,35 +1041,53 @@ class SinglePDFConverter:
         """Clean up the problem text by removing subproblem parts."""
         cleaned_text = content
         
-        # Remove subproblem parts if they are directly embedded in the main problem text
-        for subproblem_key, subproblem_content in subproblems.items():
-            # Look for the subproblem content within the main problem text
-            # This is a simplified approach; a more robust solution might involve
-            # more sophisticated text matching or a separate subproblem extraction.
-            # For now, we'll try to remove the subproblem content if it's directly
-            # followed by a new problem number or if it's at the end of the text.
+        # Remove subproblem markers and content from the main problem text
+        if subproblems:
+            # Find the first subproblem marker in the content
+            first_marker_pos = len(cleaned_text)  # Start with end of content
             
-            # Find the start of the subproblem content
-            subproblem_start = cleaned_text.find(subproblem_content)
+            for subproblem_key in subproblems.keys():
+                # Look for patterns like "a)", "b)", etc.
+                marker_pattern = rf'\b{re.escape(subproblem_key)}\)'
+                match = re.search(marker_pattern, cleaned_text, re.IGNORECASE)
+                
+                if match:
+                    marker_pos = match.start()
+                    if marker_pos < first_marker_pos:
+                        first_marker_pos = marker_pos
             
-            if subproblem_start != -1:
-                # Find the end of the subproblem content
-                # This is tricky because subproblems can be multi-line or have
-                # different delimiters. A more robust approach would involve
-                # a more sophisticated regex or a separate subproblem extraction.
-                # For now, we'll assume a simple removal if it's followed by a new number.
-                
-                # Find the next problem number
-                next_problem_num_match = re.search(r'\b\d+\.\s', cleaned_text[subproblem_start + len(subproblem_content):])
-                
-                if next_problem_num_match:
-                    # Remove the subproblem content if it's followed by a new problem number
-                    cleaned_text = cleaned_text[:subproblem_start] + cleaned_text[subproblem_start + len(subproblem_content):]
-                else:
-                    # If no new problem number, remove the subproblem content
-                    cleaned_text = cleaned_text[:subproblem_start]
+            # If we found any subproblem markers, cut the text before the first one
+            if first_marker_pos < len(cleaned_text):
+                cleaned_text = cleaned_text[:first_marker_pos]
         
         return cleaned_text.strip()
+
+    def _parse_prefix_metadata(self, id_prefix):
+        """Parse the prefix to extract metadata fields"""
+        if not id_prefix:
+            return {
+                "id": "unknown",
+                "school": "unknown",
+                "course": "unknown", 
+                "problem_type": "unknown",
+                "term": "unknown",
+                "year": "unknown"
+            }
+        
+        # Split by underscores
+        parts = id_prefix.split('_')
+        
+        # Extract each field, defaulting to "unknown" if not available
+        metadata = {
+            "id": id_prefix,
+            "school": parts[0] if len(parts) > 0 else "unknown",
+            "course": parts[1] if len(parts) > 1 else "unknown",
+            "problem_type": parts[2] if len(parts) > 2 else "unknown", 
+            "term": parts[3] if len(parts) > 3 else "unknown",
+            "year": parts[4] if len(parts) > 4 else "unknown"
+        }
+        
+        return metadata
 
     def _is_header_image(self, pdf_doc, page_num, xref):
         """Check if an image is likely a header image based on position and size"""
@@ -1152,7 +1191,9 @@ def main():
     if json_output:
         print(f"\n🎉 Success! Check the output:")
         print(f"📄 JSON file: {json_output}")
-        print(f"🖼️  Images folder: {args.output}/images/")
+        # Extract the folder path from json_output and add images subfolder
+        output_folder = str(Path(json_output).parent)
+        print(f"🖼️  Images folder: {output_folder}/images/")
     else:
         print("\n❌ Conversion failed")
 
