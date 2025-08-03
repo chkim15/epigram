@@ -44,7 +44,7 @@ The project uses a standardized JSON format:
     "year": "academic_year",
     "total_problems": 15,
     "total_images": 2,
-    "created_at": "timestamp"
+    "created_at": "timestamp (Eastern Time, YYYY-MM-DD HH:MM:SS format)"
   },
   "problems": [
     {
@@ -69,8 +69,8 @@ The project uses a standardized JSON format:
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies (create requirements.txt as needed)
-pip install requests python-dotenv PyMuPDF Pillow
+# Install dependencies
+pip install -r requirements.txt
 ```
 
 ### Running the Converter

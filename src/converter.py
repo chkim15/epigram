@@ -11,6 +11,8 @@ import fitz  # PyMuPDF
 from PIL import Image
 import io
 from dotenv import load_dotenv
+import datetime
+import pytz
 
 # Load environment variables from .env file
 load_dotenv()
@@ -93,11 +95,15 @@ class SinglePDFConverter:
         prefix_metadata = self._parse_prefix_metadata(id_prefix)
         
         # Create metadata with parsed prefix information
+        # Get current time in Eastern Time
+        eastern_tz = pytz.timezone('America/New_York')
+        eastern_time = datetime.datetime.now(eastern_tz)
+        
         metadata = {
             **prefix_metadata,  # Include all parsed prefix fields at the beginning
             "total_problems": len(combined_problems),
             "total_images": len(all_images),
-            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "created_at": eastern_time.strftime("%Y-%m-%d %H:%M:%S"),
             "updated_at": None,
             "version": "raw"
         }
@@ -264,15 +270,21 @@ class SinglePDFConverter:
                 print(f"   ⏭️ Page {page_num}: No problems found, skipping Mathpix images")
             else:
                 for img_idx, image_info in enumerate(page_results['images']):
+                    # Try to determine which problem this image belongs to
+                    associated_problem = self._find_image_problem_association(
+                        img_idx, page_results, problem_boundaries
+                    )
+                    # Try to detect subproblem if we found a problem
+                    associated_subproblem = None
+                    if associated_problem:
+                        associated_subproblem = self._detect_subproblem_for_image(
+                            page_num, associated_problem, img_idx
+                        )
                     # Extract Mathpix images (they're less likely to be headers)
                     img_filename = self._save_image_from_results(
-                        image_info, images_path, page_num, img_idx + 1
+                        image_info, images_path, page_num, img_idx + 1, associated_problem, associated_subproblem
                     )
                     if img_filename:
-                        # Try to determine which problem this image belongs to
-                        associated_problem = self._find_image_problem_association(
-                            img_idx, page_results, problem_boundaries
-                        )
                         images_saved.append({
                             'filename': img_filename,
                             'page': page_num,
@@ -452,20 +464,28 @@ class SinglePDFConverter:
                         
                         # Only process color images (skip alpha channel)
                         if pix.n - pix.alpha < 4:  # GRAY or RGB
-                            # Create filename
-                            filename = f"page_{page_num}_pdf_img_{img_idx + 1}.png"
-                            file_path = images_path / filename
-                            
-                            # Save the image
-                            pix.save(str(file_path))
-                            
                             # Try to associate with a problem based on boundaries
                             associated_problem = None
+                            associated_subproblem = None
                             if problem_boundaries and len(problem_boundaries) > 0:
                                 # Use content-based association for better accuracy
                                 associated_problem = self._find_best_problem_for_image(
                                     page_num, problem_boundaries, img_idx
                                 )
+                                # Try to detect subproblem if we found a problem
+                                if associated_problem:
+                                    associated_subproblem = self._detect_subproblem_for_image(
+                                        page_num, associated_problem, img_idx
+                                    )
+                            
+                            # Create filename based on associated problem and subproblem
+                            filename = self._generate_problem_based_filename(
+                                associated_problem, img_idx + 1, page_num, associated_subproblem
+                            )
+                            file_path = images_path / filename
+                            
+                            # Save the image
+                            pix.save(str(file_path))
                             
                             images_saved.append({
                                 'filename': filename,
@@ -817,7 +837,7 @@ class SinglePDFConverter:
         
         return combined_problems
         
-    def _save_image_from_results(self, image_info, images_path, page_num, img_num):
+    def _save_image_from_results(self, image_info, images_path, page_num, img_num, associated_problem=None, associated_subproblem=None):
         """Save image from Mathpix results"""
         
         try:
@@ -830,7 +850,9 @@ class SinglePDFConverter:
             
             image_bytes = base64.b64decode(image_b64)
             
-            filename = f"page_{page_num}_img_{img_num}.png"
+            filename = self._generate_problem_based_filename(
+                associated_problem, img_num, page_num, associated_subproblem
+            )
             file_path = images_path / filename
             
             with open(file_path, 'wb') as f:
@@ -1147,6 +1169,57 @@ class SinglePDFConverter:
         }
         
         return metadata
+
+    def _generate_problem_based_filename(self, associated_problem, img_num, page_num, subproblem=None):
+        """Generate filename based on problem number, with optional subproblem, fallback to page-based naming"""
+        
+        if associated_problem:
+            if subproblem:
+                # Use problem + subproblem naming: p{problem_num}_{img_num}_{subproblem}.png
+                filename = f"p{associated_problem}_{img_num}_{subproblem}.png"
+                print(f"   📝 Generated problem+subproblem filename: {filename}")
+            else:
+                # Use problem-based naming: p{problem_num}_{img_num}.png
+                filename = f"p{associated_problem}_{img_num}.png"
+                print(f"   📝 Generated problem-based filename: {filename}")
+        else:
+            # Fallback to page-based naming for unassociated images
+            filename = f"page_{page_num}_img_{img_num}.png"
+            print(f"   📝 Generated page-based filename (fallback): {filename}")
+        
+        return filename
+
+    def _detect_subproblem_for_image(self, page_num, problem_num, img_idx):
+        """Detect which subproblem an image belongs to based on content analysis"""
+        
+        try:
+            # This is a simplified implementation that could be enhanced
+            # For now, we'll use heuristics based on known patterns
+            
+            # Check if we have content analysis available for this page
+            # In a more sophisticated implementation, we would analyze the actual
+            # problem text around the image position to detect subproblem markers
+            
+            print(f"   🔍 Attempting subproblem detection for problem {problem_num}, image {img_idx}")
+            
+            # For demonstration, we can use some basic heuristics:
+            # - If there are multiple images for the same problem, they might be for different subproblems
+            # - We could analyze the problem text that was extracted to find subproblem markers
+            
+            # This is a placeholder implementation
+            # In practice, you would want to:
+            # 1. Get the extracted text for this problem
+            # 2. Find subproblem markers (a), b), c), etc.
+            # 3. Determine which subproblem the image is closest to based on position
+            
+            # For now, return None (no subproblem detected)
+            # This can be enhanced with actual content analysis
+            
+            return None
+            
+        except Exception as e:
+            print(f"   ⚠️ Error detecting subproblem for image: {e}")
+            return None
 
     def _is_header_image(self, pdf_doc, page_num, xref):
         """Check if an image is likely a header image based on position and size"""

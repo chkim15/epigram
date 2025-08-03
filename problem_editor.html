@@ -911,11 +911,12 @@
                     </div>
                 </div>
 
-                ${problem.images && problem.images.length > 0 ? `
+                <div class="form-group">
+                    <label class="form-label">Images</label>
                     <div class="problem-image" id="problemImage">
                         ${generateProblemImage(problem.images)}
                     </div>
-                ` : ''}
+                </div>
 
                 ${generateSubproblemsSection(problem.subproblems)}
 
@@ -1163,15 +1164,43 @@
         }
 
         function generateProblemImage(images) {
-            if (!images || images.length === 0) {
-                return '';
-            }
+            return generateImageSection(images);
+        }
 
-            return images.map(image => {
-                const imagePath = `output/${currentFileName}/images/${image}`;
-                return `<img src="${imagePath}" alt="Problem image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                         <div class="no-image" style="display: none;">Image not found: ${image}</div>`;
-            }).join('');
+        function generateImageSection(images) {
+            const hasImages = images && images.length > 0;
+            const imageCount = hasImages ? images.length : 0;
+            
+            let imageContent = '';
+            
+            if (hasImages) {
+                imageContent = images.map((image, index) => {
+                    const imagePath = `output/${currentFileName}/images/${image}`;
+                    return `
+                        <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
+                            <img src="${imagePath}" alt="Problem image" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="no-image" style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${image}</div>
+                            <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6c757d;">${image}</div>
+                            <button class="remove-image-btn" onclick="removeImage('${image}')" style="position: absolute; top: 5px; right: 5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center;" title="Remove image">×</button>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                imageContent = `
+                    <div class="no-images" style="color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6; text-align: center;">
+                        No images for this problem
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="images-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #e9ecef; border-radius: 6px;">
+                    <span style="font-weight: 600; color: #495057;">Images (${imageCount})</span>
+                </div>
+                <div class="images-content">
+                    ${imageContent}
+                </div>
+            `;
         }
 
         function generateAnswerOptions(answerOptions) {
@@ -1249,7 +1278,7 @@
             
             const subproblemItems = hasSubproblems ? Object.entries(subproblems).sort().map(([key, value]) => `
                 <div class="subproblem-item" id="subproblemItem_${key}">
-                    <div class="subproblem-label">${key.toUpperCase()}:
+                    <div class="subproblem-label">${key}:
                         <button class="subproblem-remove" onclick="removeSubproblem('${key}')">Remove</button>
                     </div>
                     <div class="problem-text-display" onclick="toggleSubproblemEdit('${key}')" id="subproblemDisplay_${key}">
@@ -1611,7 +1640,7 @@
                 }
                 
                 if (problemsData.problems[currentProblemIndex].subproblems[key]) {
-                    alert(`Subproblem ${key.toUpperCase()} already exists.`);
+                    alert(`Subproblem ${key} already exists.`);
                     return;
                 }
                 
@@ -1661,6 +1690,36 @@
                 }
             }
         }
+
+        function removeImage(filename) {
+            if (!confirm(`Are you sure you want to remove the image "${filename}"?`)) {
+                return;
+            }
+
+            if (currentProblemIndex >= 0) {
+                const problem = problemsData.problems[currentProblemIndex];
+                
+                if (problem.images && problem.images.includes(filename)) {
+                    // Remove the image from the array
+                    const imageIndex = problem.images.indexOf(filename);
+                    problem.images.splice(imageIndex, 1);
+                    
+                    // Refresh the image section
+                    refreshImageSection();
+                    
+                    showSuccess(`Image "${filename}" removed from problem data.`);
+                }
+            }
+        }
+
+        function refreshImageSection() {
+            const problem = problemsData.problems[currentProblemIndex];
+            const imageContainer = document.getElementById('problemImage');
+            if (imageContainer) {
+                imageContainer.innerHTML = generateImageSection(problem.images);
+            }
+        }
+
 
         function saveCurrentProblem() {
             if (currentProblemIndex >= 0) {
@@ -1755,7 +1814,11 @@
                     exportData.doc.version = 'v1';
                 } else if (exportData.doc.version && exportData.doc.version.startsWith('v')) {
                     const currentVersion = parseInt(exportData.doc.version.substring(1));
-                    exportData.doc.version = `v${currentVersion + 1}`;
+                    if (!isNaN(currentVersion)) {
+                        exportData.doc.version = `v${currentVersion + 1}`;
+                    } else {
+                        exportData.doc.version = 'v1';
+                    }
                 } else {
                     exportData.doc.version = 'v1';
                 }
@@ -1765,9 +1828,10 @@
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(dataBlob);
             
-            // Create filename with _edited suffix using the input file name
+            // Create filename with version suffix using the input file name
             const baseFileName = originalFileName ? originalFileName.replace('.json', '') : 'problems';
-            const exportFileName = `${baseFileName}_edited.json`;
+            const version = exportData.doc && exportData.doc.version ? exportData.doc.version : 'v1';
+            const exportFileName = `${baseFileName}_${version}.json`;
             
             const link = document.createElement('a');
             link.href = url;
