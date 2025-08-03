@@ -431,14 +431,44 @@
             margin-top: 10px;
         }
 
-        .topics-input {
-            display: flex;
-            gap: 10px;
+        .topics-search-container {
+            position: relative;
             margin-bottom: 15px;
         }
 
-        .topics-input input {
-            flex: 1;
+        .topics-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #007bff;
+            border-top: 1px solid #007bff;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 9999;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .topics-dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+
+        .topics-dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .topics-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .topics-dropdown-item.selected {
+            background-color: #e3f2fd;
+            color: #1976d2;
         }
 
         .topics-list {
@@ -560,20 +590,11 @@
             margin-top: 10px;
         }
 
-        .approach-input {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .approach-input input {
-            flex: 1;
-        }
-
-        .approach-list {
+        .approach-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+            margin-top: 10px;
         }
 
         .reasoning-container {
@@ -816,6 +837,57 @@
         let imageBasePath = '';
         let currentFileName = '';
         let originalFileName = '';
+        let availableTopics = [];
+
+        // Load topics data - embedded to avoid fetch issues
+        function loadTopics() {
+            availableTopics = [
+                {"id": 1, "name": "Variables, Functions and Graphs"},
+                {"id": 2, "name": "Limits of Functions"},
+                {"id": 3, "name": "Intermediate Form Limits"},
+                {"id": 4, "name": "Continuity"},
+                {"id": 5, "name": "Limits at Infinity and Asymptotes"},
+                {"id": 6, "name": "Derivatives"},
+                {"id": 7, "name": "Differentiation Rules (Chain, Product and Quotient Rules)"},
+                {"id": 8, "name": "Implicit Differentiation and Inverse Derivatives"},
+                {"id": 9, "name": "Approximation via Differentiation"},
+                {"id": 10, "name": "Logarithmic Differentiation"},
+                {"id": 11, "name": "Inverse Trigonometric Functions"},
+                {"id": 12, "name": "Hyperbolic Functions"},
+                {"id": 13, "name": "Indeterminate Forms and L'Hospital Rule"},
+                {"id": 14, "name": "Order of Growth"},
+                {"id": 15, "name": "Mean Value Theorem"},
+                {"id": 16, "name": "Monotonicity and Concavity"},
+                {"id": 17, "name": "Applied Optimization"},
+                {"id": 18, "name": "Antiderivatives"},
+                {"id": 19, "name": "Riemann Sum and Definite Integral"},
+                {"id": 20, "name": "Fundamental Theorem of Calculus"},
+                {"id": 21, "name": "Substitution Rules"},
+                {"id": 22, "name": "Area Between Curves"},
+                {"id": 23, "name": "Volume by Slicing"},
+                {"id": 24, "name": "Volume by Cylindrical Shells"},
+                {"id": 25, "name": "Integration by Parts"},
+                {"id": 26, "name": "Partial Fractions"},
+                {"id": 27, "name": "Improper Integrals"},
+                {"id": 28, "name": "Arc Length"},
+                {"id": 29, "name": "Surface Area"},
+                {"id": 30, "name": "Sequences"},
+                {"id": 31, "name": "Series"},
+                {"id": 32, "name": "Integral Tests"},
+                {"id": 33, "name": "Comparison Tests"},
+                {"id": 34, "name": "Alternating Series"},
+                {"id": 35, "name": "Absolute Convergence, Ratio and Root Test"},
+                {"id": 36, "name": "Power Series"},
+                {"id": 37, "name": "Taylor and MacLaurin Series"},
+                {"id": 38, "name": "Applications of Taylor Polynomials"},
+                {"id": 39, "name": "Separable and Homogeneous ODE"},
+                {"id": 40, "name": "First Order Linear ODE"},
+                {"id": 41, "name": "Second Order Linear ODE"},
+                {"id": 42, "name": "Nonhomogeneous Linear ODE"},
+                {"id": 43, "name": "Series Solutions of ODE"}
+            ];
+            console.log('Topics loaded:', availableTopics.length);
+        }
 
         // File input handling
         document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -848,6 +920,23 @@
             problemList.innerHTML = '';
 
             problemsData.problems.forEach((problem, index) => {
+                // Set calculus as default domain if no domain is set
+                if (!problem.domain || problem.domain.length === 0) {
+                    problem.domain = ['calculus'];
+                }
+                
+                // Convert topic names to IDs if needed
+                if (problem.topics && Array.isArray(problem.topics)) {
+                    problem.topics = problem.topics.map(topic => {
+                        if (typeof topic === 'string') {
+                            // Find topic by name and convert to ID
+                            const foundTopic = availableTopics.find(t => t.name === topic);
+                            return foundTopic ? foundTopic.id : topic;
+                        }
+                        return topic; // Already an ID
+                    });
+                }
+                
                 const isComplete = problem.manually_saved && isProblemComplete(problem);
                 const listItem = document.createElement('div');
                 listItem.className = 'problem-item';
@@ -979,9 +1068,12 @@
                 <div class="form-group">
                     <label class="form-label">Topics</label>
                     <div class="topics-container">
-                        <div class="topics-input">
-                            <input type="text" class="form-control" id="topicInput" placeholder="Type topic and press Enter..." onkeypress="addTopic(event)">
-                            <button class="btn btn-primary" onclick="addTopicFromButton()">Add</button>
+                        <div class="topics-search-container" style="position: relative;">
+                            <input type="text" class="form-control" id="topicSearchInput" placeholder="Search topics..." oninput="handleTopicInput()" onfocus="showTopicsDropdown()" onblur="hideTopicsDropdown()">
+                            <button type="button" style="position: absolute; right: 5px; top: 5px; background: #007bff; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; z-index: 10;" onclick="testTopicsDropdown()">▼</button>
+                            <div id="topicsDropdown" class="topics-dropdown" style="display: none;">
+                                <!-- Topics will be populated here -->
+                            </div>
                         </div>
                         <div class="topics-list" id="topicsList">
                             ${generateTopicsList(problem.topics || [])}
@@ -992,26 +1084,16 @@
                 <div class="form-group">
                     <label class="form-label">Mathematical Approach</label>
                     <div class="approach-container">
-                        <div class="approach-input">
-                            <input type="text" class="form-control" id="approachInput" placeholder="Type approach and press Enter..." onkeypress="addApproach(event)">
-                            <button class="btn btn-primary" onclick="addApproachFromButton()">Add</button>
-                        </div>
-                        <div class="approach-list" id="approachList">
-                            ${generateApproachList(problem.math_approach || [])}
+                        <div class="approach-buttons" id="approachButtons">
+                            ${generateApproachButtons(problem.math_approach || [])}
                         </div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Type of Reasoning</label>
-                    <div class="reasoning-container">
-                        <div class="reasoning-input">
-                            <input type="text" class="form-control" id="reasoningInput" placeholder="Type reasoning and press Enter..." onkeypress="addReasoning(event)">
-                            <button class="btn btn-primary" onclick="addReasoningFromButton()">Add</button>
-                        </div>
-                        <div class="reasoning-list" id="reasoningList">
-                            ${generateReasoningList(problem.reasoning_type || [])}
-                        </div>
+                    <div class="reasoning-buttons">
+                        ${generateReasoningButtons(problem.reasoning_type || [])}
                     </div>
                 </div>
 
@@ -1263,17 +1345,21 @@
             ).join('');
         }
 
-        function generateTopicsList(topics) {
-            if (topics.length === 0) {
+        function generateTopicsList(topicIds) {
+            if (!topicIds || topicIds.length === 0) {
                 return '<p style="color: #6c757d; font-style: italic;">No topics added</p>';
             }
 
-            return topics.map(topic => `
-                <div class="topic-tag" onclick="removeTopic('${topic}')">
-                    ${topic}
-                    <span class="remove">×</span>
-                </div>
-            `).join('');
+            return topicIds.map(topicId => {
+                const topic = availableTopics.find(t => t.id === topicId);
+                const displayName = topic ? topic.name : `Topic ${topicId}`;
+                return `
+                    <div class="topic-tag" onclick="removeTopic(${topicId})">
+                        ${displayName}
+                        <span class="remove">×</span>
+                    </div>
+                `;
+            }).join('');
         }
 
         function generateSubproblemsSection(subproblems) {
@@ -1315,7 +1401,7 @@
         }
 
         function generateDomainButtons(domains) {
-            const availableDomains = ['Algebra', 'Calculus', 'Geometry', 'Statistics', 'Probability', 'Linear Algebra', 'Discrete Math', 'Number Theory', 'Trigonometry', 'Analysis'];
+            const availableDomains = ['Calculus'];
             
             return availableDomains.map(domain => `
                 <button class="domain-btn ${domains.includes(domain.toLowerCase()) ? 'selected' : ''}" onclick="toggleDomain('${domain}')">
@@ -1324,29 +1410,23 @@
             `).join('');
         }
 
-        function generateApproachList(approaches) {
-            if (approaches.length === 0) {
-                return '<p style="color: #6c757d; font-style: italic;">No approaches added</p>';
-            }
-
-            return approaches.map(approach => `
-                <div class="topic-tag" onclick="removeApproach('${approach}')">
+        function generateApproachButtons(approaches) {
+            const availableApproaches = ['Algebraic', 'Geometric', 'Combinatorial', 'Approximation', 'Intuitive', 'Algorithmic', 'Logical', 'Symmetric', 'Statistical', 'Nontraditional'];
+            
+            return availableApproaches.map(approach => `
+                <button class="domain-btn ${approaches.includes(approach.toLowerCase()) ? 'selected' : ''}" onclick="toggleApproach('${approach}')">
                     ${approach}
-                    <span class="remove">×</span>
-                </div>
+                </button>
             `).join('');
         }
 
-        function generateReasoningList(reasonings) {
-            if (reasonings.length === 0) {
-                return '<p style="color: #6c757d; font-style: italic;">No reasoning types added</p>';
-            }
-
-            return reasonings.map(reasoning => `
-                <div class="topic-tag" onclick="removeReasoning('${reasoning}')">
+        function generateReasoningButtons(reasonings) {
+            const availableReasonings = ['Proof-based', 'Example Construction', 'Counterexample Construction', 'Computational', 'Conceptual', 'Application-based'];
+            
+            return availableReasonings.map(reasoning => `
+                <button class="domain-btn ${reasonings.includes(reasoning.toLowerCase()) ? 'selected' : ''}" onclick="toggleReasoning('${reasoning}')">
                     ${reasoning}
-                    <span class="remove">×</span>
-                </div>
+                </button>
             `).join('');
         }
 
@@ -1379,33 +1459,131 @@
             event.target.classList.add('selected');
         }
 
-        function addTopic(event) {
-            if (event.key === 'Enter') {
-                addTopicFromButton();
+        function filterTopics() {
+            console.log('filterTopics called');
+            const searchInput = document.getElementById('topicSearchInput');
+            const dropdown = document.getElementById('topicsDropdown');
+            
+            if (!searchInput) {
+                console.log('searchInput not found');
+                return;
+            }
+            
+            if (!dropdown) {
+                console.log('dropdown not found');
+                return;
+            }
+            
+            const searchTerm = searchInput.value.toLowerCase();
+            console.log('Search term:', searchTerm);
+            console.log('Available topics:', availableTopics.length);
+            
+            // Get current topic IDs, default to empty array if no problem selected
+            const currentTopicIds = (currentProblemIndex >= 0 && problemsData && problemsData.problems) 
+                ? (problemsData.problems[currentProblemIndex].topics || [])
+                : [];
+            
+            console.log('Current topic IDs:', currentTopicIds);
+            
+            let filteredTopics;
+            if (!searchTerm) {
+                // Show all topics if no search term
+                filteredTopics = availableTopics.filter(topic => !currentTopicIds.includes(topic.id));
+            } else {
+                // Filter by search term
+                filteredTopics = availableTopics.filter(topic => 
+                    topic.name.toLowerCase().includes(searchTerm) && 
+                    !currentTopicIds.includes(topic.id)
+                );
+            }
+            
+            console.log('Filtered topics:', filteredTopics.length);
+            
+            dropdown.innerHTML = filteredTopics.slice(0, 10).map(topic => `
+                <div class="topics-dropdown-item" onmousedown="addTopicById(${topic.id})">
+                    ${topic.name}
+                </div>
+            `).join('');
+            
+            if (filteredTopics.length === 0 && searchTerm) {
+                dropdown.innerHTML = '<div class="topics-dropdown-item" style="color: #6c757d; font-style: italic;">No topics found</div>';
             }
         }
 
-        function addTopicFromButton() {
-            const input = document.getElementById('topicInput');
-            const topic = input.value.trim();
+        function showTopicsDropdown() {
+            console.log('showTopicsDropdown called');
+            const dropdown = document.getElementById('topicsDropdown');
+            if (!dropdown) {
+                console.log('dropdown element not found');
+                return;
+            }
+            dropdown.style.display = 'block';
+            console.log('dropdown display set to block');
+            filterTopics(); // Show filtered results
+        }
+
+        function handleTopicInput() {
+            console.log('handleTopicInput called');
+            showTopicsDropdown();
+            filterTopics();
+        }
+
+        function testTopicsDropdown() {
+            console.log('Test button clicked');
+            console.log('Available topics:', availableTopics.length);
+            const dropdown = document.getElementById('topicsDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                if (dropdown.style.display === 'block') {
+                    filterTopics();
+                }
+            }
+        }
+
+        function hideTopicsDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('topicsDropdown');
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                }
+                const searchInput = document.getElementById('topicSearchInput');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+            }, 300); // Longer delay to allow click events to fire
+        }
+
+        function addTopicById(topicId) {
+            console.log('addTopicById called with ID:', topicId);
             
-            if (topic && currentProblemIndex >= 0) {
+            if (currentProblemIndex >= 0 && problemsData && problemsData.problems) {
                 if (!problemsData.problems[currentProblemIndex].topics) {
                     problemsData.problems[currentProblemIndex].topics = [];
                 }
                 
-                if (!problemsData.problems[currentProblemIndex].topics.includes(topic)) {
-                    problemsData.problems[currentProblemIndex].topics.push(topic);
-                    input.value = '';
+                if (!problemsData.problems[currentProblemIndex].topics.includes(topicId)) {
+                    problemsData.problems[currentProblemIndex].topics.push(topicId);
+                    console.log('Topic added:', topicId);
                     updateTopicsList();
+                    
+                    // Clear search and hide dropdown
+                    const searchInput = document.getElementById('topicSearchInput');
+                    const dropdown = document.getElementById('topicsDropdown');
+                    if (searchInput) searchInput.value = '';
+                    if (dropdown) dropdown.style.display = 'none';
+                } else {
+                    console.log('Topic already exists');
                 }
+            } else {
+                console.log('No problem selected or problemsData not available');
+                alert('Please load a JSON file and select a problem first');
             }
         }
 
-        function removeTopic(topic) {
+        function removeTopic(topicId) {
             if (currentProblemIndex >= 0) {
                 const topics = problemsData.problems[currentProblemIndex].topics;
-                const index = topics.indexOf(topic);
+                const index = topics.indexOf(topicId);
                 if (index > -1) {
                     topics.splice(index, 1);
                     updateTopicsList();
@@ -1502,85 +1680,62 @@
             domainButtons.innerHTML = generateDomainButtons(domains);
         }
 
-        function addApproach(event) {
-            if (event.key === 'Enter') {
-                addApproachFromButton();
-            }
-        }
-
-        function addApproachFromButton() {
-            const input = document.getElementById('approachInput');
-            const approach = input.value.trim();
-            
-            if (approach && currentProblemIndex >= 0) {
+        function toggleApproach(approach) {
+            if (currentProblemIndex >= 0) {
                 if (!problemsData.problems[currentProblemIndex].math_approach) {
                     problemsData.problems[currentProblemIndex].math_approach = [];
                 }
                 
-                if (!problemsData.problems[currentProblemIndex].math_approach.includes(approach)) {
-                    problemsData.problems[currentProblemIndex].math_approach.push(approach);
-                    input.value = '';
-                    updateApproachList();
-                }
-            }
-        }
-
-        function removeApproach(approach) {
-            if (currentProblemIndex >= 0) {
                 const approaches = problemsData.problems[currentProblemIndex].math_approach;
-                const index = approaches.indexOf(approach);
+                const approachLower = approach.toLowerCase();
+                const index = approaches.indexOf(approachLower);
+                
                 if (index > -1) {
+                    // Remove approach
                     approaches.splice(index, 1);
-                    updateApproachList();
+                } else {
+                    // Add approach in lowercase
+                    approaches.push(approachLower);
                 }
+                
+                updateApproachButtons();
             }
         }
 
-        function updateApproachList() {
-            const approachList = document.getElementById('approachList');
+        function updateApproachButtons() {
+            const approachButtons = document.getElementById('approachButtons');
             const approaches = problemsData.problems[currentProblemIndex].math_approach || [];
-            approachList.innerHTML = generateApproachList(approaches);
+            approachButtons.innerHTML = generateApproachButtons(approaches);
         }
 
-        function addReasoning(event) {
-            if (event.key === 'Enter') {
-                addReasoningFromButton();
-            }
-        }
-
-        function addReasoningFromButton() {
-            const input = document.getElementById('reasoningInput');
-            const reasoning = input.value.trim();
-            
-            if (reasoning && currentProblemIndex >= 0) {
+        function toggleReasoning(reasoning) {
+            if (currentProblemIndex >= 0) {
                 if (!problemsData.problems[currentProblemIndex].reasoning_type) {
                     problemsData.problems[currentProblemIndex].reasoning_type = [];
                 }
                 
-                if (!problemsData.problems[currentProblemIndex].reasoning_type.includes(reasoning)) {
-                    problemsData.problems[currentProblemIndex].reasoning_type.push(reasoning);
-                    input.value = '';
-                    updateReasoningList();
-                }
-            }
-        }
-
-        function removeReasoning(reasoning) {
-            if (currentProblemIndex >= 0) {
                 const reasonings = problemsData.problems[currentProblemIndex].reasoning_type;
-                const index = reasonings.indexOf(reasoning);
+                const reasoningLower = reasoning.toLowerCase();
+                const index = reasonings.indexOf(reasoningLower);
+                
                 if (index > -1) {
+                    // Remove reasoning
                     reasonings.splice(index, 1);
-                    updateReasoningList();
+                } else {
+                    // Add reasoning in lowercase
+                    reasonings.push(reasoningLower);
                 }
+                
+                updateReasoningButtons();
             }
         }
 
-        function updateReasoningList() {
-            const reasoningList = document.getElementById('reasoningList');
+        function updateReasoningButtons() {
+            const reasoningButtons = document.querySelector('.reasoning-buttons');
             const reasonings = problemsData.problems[currentProblemIndex].reasoning_type || [];
-            reasoningList.innerHTML = generateReasoningList(reasonings);
+            reasoningButtons.innerHTML = generateReasoningButtons(reasonings);
         }
+
 
         function removeProblem() {
             if (currentProblemIndex >= 0 && confirm('Are you sure you want to remove this entire problem? This action cannot be undone.')) {
@@ -1770,11 +1925,8 @@
                    problem.topics && 
                    problem.topics.length > 0 &&
                    problem.domain &&
-                   problem.domain.length > 0 &&
-                   problem.math_approach &&
-                   problem.math_approach.length > 0 &&
-                   problem.reasoning_type &&
-                   problem.reasoning_type.length > 0;
+                   problem.domain.length > 0;
+                   // Note: math_approach and reasoning_type are now optional
         }
 
         function updateStats() {
@@ -1872,6 +2024,8 @@
         // Don't auto-load previous session data on initial page load
         // Show clean boilerplate page instead
         window.addEventListener('load', function() {
+            // Load topics data first
+            loadTopics();
             // Clean start - no auto-loading of previous session
             console.log('Editor loaded - ready for new file upload');
         });
