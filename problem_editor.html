@@ -1000,12 +1000,14 @@
                     </div>
                 </div>
 
+                ${problem.images && problem.images.length > 0 ? `
                 <div class="form-group">
                     <label class="form-label">Images</label>
                     <div class="problem-image" id="problemImage">
                         ${generateProblemImage(problem.images)}
                     </div>
                 </div>
+                ` : ''}
 
                 ${generateSubproblemsSection(problem.subproblems)}
 
@@ -1135,8 +1137,16 @@
                 if (problem.subproblems) {
                     Object.keys(problem.subproblems).forEach(key => {
                         const subproblemElement = document.getElementById(`subproblemRendered_${key}`);
+                        const subproblemAnswerElement = document.getElementById(`subproblemAnswerRendered_${key}`);
+                        const subproblemSolutionElement = document.getElementById(`subproblemSolutionRendered_${key}`);
                         if (subproblemElement) {
                             elementsToRender.push(subproblemElement);
+                        }
+                        if (subproblemAnswerElement) {
+                            elementsToRender.push(subproblemAnswerElement);
+                        }
+                        if (subproblemSolutionElement) {
+                            elementsToRender.push(subproblemSolutionElement);
                         }
                     });
                 }
@@ -1251,32 +1261,26 @@
 
         function generateImageSection(images) {
             const hasImages = images && images.length > 0;
-            const imageCount = hasImages ? images.length : 0;
             
-            let imageContent = '';
+            if (!hasImages) {
+                return '';
+            }
             
-            if (hasImages) {
-                imageContent = images.map((image, index) => {
-                    // Detect if running on GitHub Pages and use appropriate path
-                    const isGitHubPages = window.location.hostname.includes('github.io');
-                    const basePath = isGitHubPages ? '/math-problem-converter' : '';
-                    const imagePath = `${basePath}/output/${currentFileName}/images/${image}`;
-                    return `
-                        <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
-                            <img src="${imagePath}" alt="Problem image" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                            <div class="no-image" style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${image}</div>
-                            <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6c757d;">${image}</div>
-                            <button class="remove-image-btn" onclick="removeImage('${image}')" style="position: absolute; top: 5px; right: 5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center;" title="Remove image">×</button>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                imageContent = `
-                    <div class="no-images" style="color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6; text-align: center;">
-                        No images for this problem
+            const imageCount = images.length;
+            
+            const imageContent = images.map((image, index) => {
+                // Detect if running on GitHub Pages and use appropriate path
+                const isGitHubPages = window.location.hostname.includes('github.io');
+                const basePath = isGitHubPages ? '/math-problem-converter' : '';
+                const imagePath = `${basePath}/output/${currentFileName}/images/${image}`;
+                return `
+                    <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
+                        <img src="${imagePath}" alt="Problem image" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="no-image" style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${image}</div>
+                        <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6c757d;">${image}</div>
                     </div>
                 `;
-            }
+            }).join('');
             
             return `
                 <div class="images-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #e9ecef; border-radius: 6px;">
@@ -1286,6 +1290,28 @@
                     ${imageContent}
                 </div>
             `;
+        }
+
+        function generateSubproblemImageSection(images) {
+            const hasImages = images && images.length > 0;
+            
+            if (!hasImages) {
+                return '';
+            }
+            
+            return images.map((image, index) => {
+                // Detect if running on GitHub Pages and use appropriate path
+                const isGitHubPages = window.location.hostname.includes('github.io');
+                const basePath = isGitHubPages ? '/math-problem-converter' : '';
+                const imagePath = `${basePath}/output/${currentFileName}/images/${image}`;
+                return `
+                    <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
+                        <img src="${imagePath}" alt="Subproblem image" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="no-image" style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${image}</div>
+                        <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6c757d;">${image}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function generateAnswerOptions(answerOptions) {
@@ -1370,6 +1396,7 @@
                 const problemText = typeof subproblemData === 'string' ? subproblemData : (subproblemData.problem_text || '');
                 const correctAnswer = typeof subproblemData === 'object' ? (subproblemData.correct_answer || '') : '';
                 const solution = typeof subproblemData === 'object' ? (subproblemData.solution || '') : '';
+                const images = typeof subproblemData === 'object' ? (subproblemData.images || []) : [];
                 
                 return `
                 <div class="subproblem-item" id="subproblemItem_${key}">
@@ -1382,13 +1409,31 @@
                     <div class="answer-option" id="subproblemEdit_${key}" style="display: none;">
                         <textarea onchange="updateSubproblemText('${key}', this.value)" onblur="saveSubproblem('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter subproblem text...">${problemText}</textarea>
                     </div>
+                    ${images.length > 0 ? `
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="form-label" style="font-size: 12px;">Images (${key})</label>
+                        <div class="problem-image">
+                            ${generateSubproblemImageSection(images)}
+                        </div>
+                    </div>
+                    ` : ''}
                     <div class="form-group" style="margin-top: 10px;">
                         <label class="form-label" style="font-size: 12px;">Correct Answer (${key})</label>
-                        <input type="text" class="form-control" value="${correctAnswer}" onchange="updateSubproblemAnswer('${key}', this.value)" placeholder="Enter correct answer...">
+                        <div class="problem-text-display" onclick="toggleSubproblemAnswerEdit('${key}')" id="subproblemAnswerDisplay_${key}">
+                            <div id="subproblemAnswerRendered_${key}">${correctAnswer}</div>
+                        </div>
+                        <div class="answer-option" id="subproblemAnswerEdit_${key}" style="display: none;">
+                            <textarea onchange="updateSubproblemAnswer('${key}', this.value)" onblur="saveSubproblemAnswer('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter correct answer...">${correctAnswer}</textarea>
+                        </div>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
                         <label class="form-label" style="font-size: 12px;">Solution (${key})</label>
-                        <textarea class="form-control" onchange="updateSubproblemSolution('${key}', this.value)" placeholder="Enter solution..." style="min-height: 60px;">${solution}</textarea>
+                        <div class="problem-text-display" onclick="toggleSubproblemSolutionEdit('${key}')" id="subproblemSolutionDisplay_${key}">
+                            <div id="subproblemSolutionRendered_${key}">${solution}</div>
+                        </div>
+                        <div class="answer-option" id="subproblemSolutionEdit_${key}" style="display: none;">
+                            <textarea onchange="updateSubproblemSolution('${key}', this.value)" onblur="saveSubproblemSolution('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution..." style="min-height: 60px;">${solution}</textarea>
+                        </div>
                     </div>
                 </div>
                 `;
@@ -1514,7 +1559,7 @@
             
             console.log('Filtered topics:', filteredTopics.length);
             
-            dropdown.innerHTML = filteredTopics.slice(0, 10).map(topic => `
+            dropdown.innerHTML = filteredTopics.map(topic => `
                 <div class="topics-dropdown-item" onmousedown="addTopicById(${topic.id})">
                     ${topic.name}
                 </div>
@@ -1658,6 +1703,68 @@
             toggleSubproblemEdit(key);
         }
 
+        function toggleSubproblemAnswerEdit(key) {
+            const display = document.getElementById(`subproblemAnswerDisplay_${key}`);
+            const rendered = document.getElementById(`subproblemAnswerRendered_${key}`);
+            const edit = document.getElementById(`subproblemAnswerEdit_${key}`);
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newText = edit.querySelector('textarea').value;
+                rendered.innerHTML = newText;
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateSubproblemAnswer(key, newText);
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = edit.querySelector('textarea');
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveSubproblemAnswer(key) {
+            toggleSubproblemAnswerEdit(key);
+        }
+
+        function toggleSubproblemSolutionEdit(key) {
+            const display = document.getElementById(`subproblemSolutionDisplay_${key}`);
+            const rendered = document.getElementById(`subproblemSolutionRendered_${key}`);
+            const edit = document.getElementById(`subproblemSolutionEdit_${key}`);
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newText = edit.querySelector('textarea').value;
+                rendered.innerHTML = newText;
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateSubproblemSolution(key, newText);
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = edit.querySelector('textarea');
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveSubproblemSolution(key) {
+            toggleSubproblemSolutionEdit(key);
+        }
+
         function updateSubproblemText(key, value) {
             if (currentProblemIndex >= 0) {
                 if (!problemsData.problems[currentProblemIndex].subproblems) {
@@ -1667,7 +1774,8 @@
                     problemsData.problems[currentProblemIndex].subproblems[key] = {
                         problem_text: null,
                         correct_answer: null,
-                        solution: null
+                        solution: null,
+                        images: []
                     };
                 }
                 problemsData.problems[currentProblemIndex].subproblems[key].problem_text = value;
@@ -1683,7 +1791,8 @@
                     problemsData.problems[currentProblemIndex].subproblems[key] = {
                         problem_text: null,
                         correct_answer: null,
-                        solution: null
+                        solution: null,
+                        images: []
                     };
                 }
                 problemsData.problems[currentProblemIndex].subproblems[key].correct_answer = value;
@@ -1699,7 +1808,8 @@
                     problemsData.problems[currentProblemIndex].subproblems[key] = {
                         problem_text: null,
                         correct_answer: null,
-                        solution: null
+                        solution: null,
+                        images: []
                     };
                 }
                 problemsData.problems[currentProblemIndex].subproblems[key].solution = value;
@@ -1896,34 +2006,21 @@
                     const elementsToRender = [];
                     Object.keys(problem.subproblems).forEach(key => {
                         const subproblemElement = document.getElementById(`subproblemRendered_${key}`);
+                        const subproblemAnswerElement = document.getElementById(`subproblemAnswerRendered_${key}`);
+                        const subproblemSolutionElement = document.getElementById(`subproblemSolutionRendered_${key}`);
                         if (subproblemElement) {
                             elementsToRender.push(subproblemElement);
+                        }
+                        if (subproblemAnswerElement) {
+                            elementsToRender.push(subproblemAnswerElement);
+                        }
+                        if (subproblemSolutionElement) {
+                            elementsToRender.push(subproblemSolutionElement);
                         }
                     });
                     if (elementsToRender.length > 0) {
                         MathJax.typesetPromise(elementsToRender);
                     }
-                }
-            }
-        }
-
-        function removeImage(filename) {
-            if (!confirm(`Are you sure you want to remove the image "${filename}"?`)) {
-                return;
-            }
-
-            if (currentProblemIndex >= 0) {
-                const problem = problemsData.problems[currentProblemIndex];
-                
-                if (problem.images && problem.images.includes(filename)) {
-                    // Remove the image from the array
-                    const imageIndex = problem.images.indexOf(filename);
-                    problem.images.splice(imageIndex, 1);
-                    
-                    // Refresh the image section
-                    refreshImageSection();
-                    
-                    showSuccess(`Image "${filename}" removed from problem data.`);
                 }
             }
         }
