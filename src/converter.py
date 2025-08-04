@@ -695,10 +695,7 @@ class SinglePDFConverter:
                 print(f"      ✅ Found math indicator: {pattern}")
                 return True
         
-        # Check for multiple choice options
-        if re.search(r'[A-H]\)', content):
-            print(f"      ✅ Found multiple choice options")
-            return True
+        # Removed multiple choice validation - these should not be valid subproblem content
         
         # Check for problem-solving keywords
         problem_keywords = [
@@ -742,6 +739,46 @@ class SinglePDFConverter:
                 return True
         
         print(f"      ❌ No math indicators found. Content preview: {content[:100]}...")
+        return False
+    
+    def _is_valid_subproblem_content(self, content):
+        """Check if content represents a valid subproblem (more lenient than main problems)"""
+        
+        # Must have minimum length (more lenient for subproblems)
+        if len(content.strip()) < 8:
+            print(f"      ❌ Subproblem content too short: {len(content.strip())} chars")
+            return False
+        
+        # Must contain math-related content or problem-solving keywords
+        math_indicators = [
+            r'\b(derivative|integral|limit|function|equation|solve|find|calculate|compute|evaluate)\b',
+            r'[a-zA-Z]\([a-zA-Z]\)',  # f(x), g(y), etc.
+            r'[0-9]+\s*[+\-*/]\s*[0-9]+',  # Basic arithmetic
+            r'[a-zA-Z]\s*=\s*[a-zA-Z0-9+\-*/()]+',  # Variable assignments
+            r'[a-zA-Z]\^[0-9]+',  # x^2, y^3, etc.
+            r'\\frac\{.*?\}\{.*?\}',  # LaTeX fractions
+            r'\\sqrt\{.*?\}',  # LaTeX square roots
+            r'\\int',  # LaTeX integrals
+            r'\\lim',  # LaTeX limits
+        ]
+        
+        for pattern in math_indicators:
+            if re.search(pattern, content, re.IGNORECASE):
+                print(f"      ✅ Found math indicator: {pattern}")
+                return True
+        
+        # Check for problem-solving keywords
+        problem_keywords = [
+            'find', 'solve', 'calculate', 'compute', 'determine', 'evaluate',
+            'prove', 'show', 'derive', 'integrate', 'differentiate'
+        ]
+        
+        for keyword in problem_keywords:
+            if keyword.lower() in content.lower():
+                print(f"      ✅ Found problem keyword: {keyword}")
+                return True
+        
+        print(f"      ❌ No math indicators or keywords found in subproblem")
         return False
     
     def _has_math_content(self, content):
@@ -807,6 +844,9 @@ class SinglePDFConverter:
             
             # Clean the problem text by removing subproblem parts
             cleaned_problem_text = self._clean_problem_text(combined_content, subproblems)
+            
+            # Remove multiple choice options from problem text
+            cleaned_problem_text = self._remove_multiple_choice_options(cleaned_problem_text)
             
             # Find images for this problem based on page numbers
             problem_images = self._find_problem_images(problem_num, problem_pages, all_images)
@@ -966,6 +1006,11 @@ class SinglePDFConverter:
         # Sort markers by position
         subproblem_markers.sort(key=lambda x: x['start'])
         
+        # Check if this looks like multiple choice options (exclude them completely)
+        if self._is_multiple_choice_sequence(subproblem_markers):
+            print(f"   🚫 Detected multiple choice options - excluding from subproblems")
+            return {}
+        
         # Extract subproblem content between markers
         for i, marker in enumerate(subproblem_markers):
             start_pos = marker['end']  # Start after the marker (e.g., after "a)")
@@ -985,14 +1030,48 @@ class SinglePDFConverter:
             subproblem_content = re.sub(r'\n\s*$', '', subproblem_content)
             subproblem_content = subproblem_content.strip()
             
-            # Basic validation for subproblem content
-            if self._is_valid_problem_content(subproblem_content):
-                subproblems[marker['key']] = self._clean_text(subproblem_content)
+            # Basic validation for subproblem content (more lenient than main problems)
+            if self._is_valid_subproblem_content(subproblem_content):
+                subproblems[marker['key']] = {
+                    "problem_text": self._clean_text(subproblem_content),
+                    "correct_answer": None,
+                    "solution": None
+                }
                 print(f"   ✅ Extracted subproblem {marker['key']}")
             else:
                 print(f"   ⚠️ Subproblem {marker['key']} failed validation")
         
         return subproblems
+    
+    def _is_multiple_choice_sequence(self, markers):
+        """Detect if markers represent multiple choice options rather than real subproblems"""
+        if len(markers) < 4:  # Multiple choice typically has 4+ options
+            return False
+        
+        # Get the keys (letters) from markers
+        keys = [marker['key'] for marker in markers]
+        
+        # Check if we have sequential letters starting from 'a'
+        expected_sequence = [chr(ord('a') + i) for i in range(len(keys))]
+        
+        # If we have 4+ sequential letters starting from 'a', it's likely multiple choice
+        if keys == expected_sequence:
+            print(f"   🔍 Sequential pattern detected: {keys}")
+            return True
+        
+        # Also check if we have 4+ letters that are mostly sequential (allowing some gaps)
+        # This handles cases like a, c, e, g (where b, d, f might be missing)
+        if len(keys) >= 4:
+            # Convert letters to numbers for easier analysis
+            letter_nums = [ord(k) - ord('a') for k in keys]
+            letter_nums.sort()
+            
+            # If the range spans 4+ positions and we have 4+ items, likely multiple choice
+            if letter_nums[-1] - letter_nums[0] >= 3 and len(letter_nums) >= 4:
+                print(f"   🔍 Multiple choice pattern detected: {keys}")
+                return True
+        
+        return False
     
     def _find_problem_images(self, problem_num, problem_pages, all_images):
         """Find images that are associated with a specific problem based on content analysis"""
@@ -1142,6 +1221,72 @@ class SinglePDFConverter:
                 cleaned_text = cleaned_text[:first_marker_pos]
         
         return cleaned_text.strip()
+
+    def _remove_multiple_choice_options(self, content):
+        """Remove multiple choice options (a), b), c), etc.) from problem text"""
+        
+        # Find all potential multiple choice markers
+        mc_markers = []
+        
+        # Pattern to match multiple choice markers
+        patterns = [
+            r'([a-zA-Z])\)',  # a), b), c)
+            r'([a-zA-Z])\.',  # a., b., c.
+            r'\(([a-zA-Z])\)' # (a), (b), (c)
+        ]
+        
+        for pattern in patterns:
+            for match in re.finditer(pattern, content, re.MULTILINE):
+                key = match.group(1).lower()
+                marker_start = match.start()
+                
+                # Skip if inside LaTeX
+                before_marker = content[:marker_start]
+                open_inline = before_marker.count('\\(') - before_marker.count('\\)')
+                open_display = before_marker.count('\\[') - before_marker.count('\\]')
+                open_dollar = before_marker.count('$') % 2
+                
+                if open_inline > 0 or open_display > 0 or open_dollar == 1:
+                    continue
+                
+                # Check context - should be preceded by whitespace/punctuation
+                char_before = content[marker_start - 1] if marker_start > 0 else '\n'
+                if char_before in ['\n', ' ', '\t', '.', '!', '?', ':'] or marker_start == 0:
+                    mc_markers.append({
+                        'key': key,
+                        'start': marker_start,
+                        'marker_text': match.group(0)
+                    })
+        
+        # Sort by position
+        mc_markers.sort(key=lambda x: x['start'])
+        
+        # Check if this looks like multiple choice (4+ options)
+        if len(mc_markers) >= 4:
+            keys = [marker['key'] for marker in mc_markers]
+            
+            # Check for sequential pattern
+            expected_sequence = [chr(ord('a') + i) for i in range(len(keys))]
+            is_sequential = keys == expected_sequence
+            
+            # Or check for mostly sequential pattern
+            if not is_sequential and len(keys) >= 4:
+                letter_nums = [ord(k) - ord('a') for k in keys]
+                letter_nums.sort()
+                is_sequential = letter_nums[-1] - letter_nums[0] >= 3
+            
+            if is_sequential:
+                # Remove everything from the first multiple choice marker onward
+                first_mc_pos = mc_markers[0]['start']
+                cleaned_text = content[:first_mc_pos]
+                
+                # Clean up trailing whitespace and punctuation
+                cleaned_text = cleaned_text.rstrip(' \t\n?:')
+                
+                print(f"   🧹 Removed multiple choice options from problem text")
+                return cleaned_text.strip()
+        
+        return content
 
     def _parse_prefix_metadata(self, id_prefix):
         """Parse the prefix to extract metadata fields"""

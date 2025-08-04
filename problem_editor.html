@@ -1365,19 +1365,34 @@
         function generateSubproblemsSection(subproblems) {
             const hasSubproblems = subproblems && Object.keys(subproblems).length > 0;
             
-            const subproblemItems = hasSubproblems ? Object.entries(subproblems).sort().map(([key, value]) => `
+            const subproblemItems = hasSubproblems ? Object.entries(subproblems).sort().map(([key, subproblemData]) => {
+                // Handle both old format (string) and new format (object)
+                const problemText = typeof subproblemData === 'string' ? subproblemData : (subproblemData.problem_text || '');
+                const correctAnswer = typeof subproblemData === 'object' ? (subproblemData.correct_answer || '') : '';
+                const solution = typeof subproblemData === 'object' ? (subproblemData.solution || '') : '';
+                
+                return `
                 <div class="subproblem-item" id="subproblemItem_${key}">
                     <div class="subproblem-label">${key}:
                         <button class="subproblem-remove" onclick="removeSubproblem('${key}')">Remove</button>
                     </div>
                     <div class="problem-text-display" onclick="toggleSubproblemEdit('${key}')" id="subproblemDisplay_${key}">
-                        <div id="subproblemRendered_${key}">${value}</div>
+                        <div id="subproblemRendered_${key}">${problemText}</div>
                     </div>
                     <div class="answer-option" id="subproblemEdit_${key}" style="display: none;">
-                        <textarea onchange="updateSubproblem('${key}', this.value)" onblur="saveSubproblem('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter subproblem text...">${value}</textarea>
+                        <textarea onchange="updateSubproblemText('${key}', this.value)" onblur="saveSubproblem('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter subproblem text...">${problemText}</textarea>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="form-label" style="font-size: 12px;">Correct Answer (${key})</label>
+                        <input type="text" class="form-control" value="${correctAnswer}" onchange="updateSubproblemAnswer('${key}', this.value)" placeholder="Enter correct answer...">
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="form-label" style="font-size: 12px;">Solution (${key})</label>
+                        <textarea class="form-control" onchange="updateSubproblemSolution('${key}', this.value)" placeholder="Enter solution..." style="min-height: 60px;">${solution}</textarea>
                     </div>
                 </div>
-            `).join('') : '';
+                `;
+            }).join('') : '';
 
             const expandedClass = hasSubproblems ? 'expanded' : '';
             const toggleSymbol = hasSubproblems ? '▼' : '▶';
@@ -1623,7 +1638,7 @@
                 rendered.innerHTML = newText;
                 display.style.display = 'block';
                 edit.style.display = 'none';
-                updateSubproblem(key, newText);
+                updateSubproblemText(key, newText);
                 
                 // Re-render LaTeX
                 if (window.MathJax) {
@@ -1643,12 +1658,51 @@
             toggleSubproblemEdit(key);
         }
 
-        function updateSubproblem(key, value) {
+        function updateSubproblemText(key, value) {
             if (currentProblemIndex >= 0) {
                 if (!problemsData.problems[currentProblemIndex].subproblems) {
                     problemsData.problems[currentProblemIndex].subproblems = {};
                 }
-                problemsData.problems[currentProblemIndex].subproblems[key] = value;
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: null,
+                        correct_answer: null,
+                        solution: null
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].problem_text = value;
+            }
+        }
+
+        function updateSubproblemAnswer(key, value) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: null,
+                        correct_answer: null,
+                        solution: null
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].correct_answer = value;
+            }
+        }
+
+        function updateSubproblemSolution(key, value) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: null,
+                        correct_answer: null,
+                        solution: null
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].solution = value;
             }
         }
 
@@ -1802,8 +1856,12 @@
                     return;
                 }
                 
-                // Add new subproblem
-                problemsData.problems[currentProblemIndex].subproblems[key] = '';
+                // Add new subproblem with new structure
+                problemsData.problems[currentProblemIndex].subproblems[key] = {
+                    problem_text: '',
+                    correct_answer: null,
+                    solution: null
+                };
                 
                 // Clear input
                 keyInput.value = '';
