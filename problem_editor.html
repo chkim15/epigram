@@ -1041,10 +1041,10 @@
                 <div class="form-group">
                     <label class="form-label">Solution</label>
                     <div class="problem-text-display" onclick="toggleSolutionEdit()" id="solutionDisplay">
-                        <div id="solutionRendered">${problem.solution || ''}</div>
+                        <div id="solutionRendered">${problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '')}</div>
                     </div>
                     <div class="answer-option" id="solutionEdit" style="display: none;">
-                        <textarea onchange="updateProblem('solution', this.value)" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution...">${problem.solution || ''}</textarea>
+                        <textarea onchange="updateSolution(this.value)" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution...">${problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '')}</textarea>
                     </div>
                 </div>
 
@@ -1235,7 +1235,7 @@
                 rendered.innerHTML = newText;
                 display.style.display = 'block';
                 edit.style.display = 'none';
-                updateProblem('solution', newText);
+                updateSolution(newText);
                 
                 // Re-render LaTeX
                 if (window.MathJax) {
@@ -1395,7 +1395,17 @@
                 // Handle both old format (string) and new format (object)
                 const problemText = typeof subproblemData === 'string' ? subproblemData : (subproblemData.problem_text || '');
                 const correctAnswer = typeof subproblemData === 'object' ? (subproblemData.correct_answer || '') : '';
-                const solution = typeof subproblemData === 'object' ? (subproblemData.solution || '') : '';
+                // Handle solution object format
+                let solution = '';
+                if (typeof subproblemData === 'object') {
+                    if (subproblemData.solution) {
+                        if (typeof subproblemData.solution === 'string') {
+                            solution = subproblemData.solution;
+                        } else if (subproblemData.solution.text) {
+                            solution = subproblemData.solution.text;
+                        }
+                    }
+                }
                 const images = typeof subproblemData === 'object' ? (subproblemData.images || []) : [];
                 
                 return `
@@ -1494,6 +1504,27 @@
             if (currentProblemIndex >= 0) {
                 problemsData.problems[currentProblemIndex][field] = value;
                 // Don't auto-update completion status here
+            }
+        }
+
+        function updateSolution(value) {
+            if (currentProblemIndex >= 0) {
+                // Handle both old format (string) and new format (object)
+                if (!problemsData.problems[currentProblemIndex].solution) {
+                    problemsData.problems[currentProblemIndex].solution = {
+                        text: value,
+                        images: []
+                    };
+                } else if (typeof problemsData.problems[currentProblemIndex].solution === 'string') {
+                    // Convert old format to new format
+                    problemsData.problems[currentProblemIndex].solution = {
+                        text: value,
+                        images: []
+                    };
+                } else {
+                    // Update existing object format
+                    problemsData.problems[currentProblemIndex].solution.text = value;
+                }
             }
         }
 
@@ -1812,7 +1843,12 @@
                         images: []
                     };
                 }
-                problemsData.problems[currentProblemIndex].subproblems[key].solution = value;
+                
+                // Update solution with new object format
+                problemsData.problems[currentProblemIndex].subproblems[key].solution = {
+                    text: value,
+                    images: []
+                };
             }
         }
 
@@ -2073,9 +2109,13 @@
                               (problem.subproblems && Object.keys(problem.subproblems).length > 0 && 
                                Object.values(problem.subproblems).some(sp => sp && sp.trim()));
             
+            // Handle solution object format
+            const hasSolution = problem.solution && 
+                               (typeof problem.solution === 'string' ? problem.solution : problem.solution.text);
+            
             return hasContent &&
                    problem.correct_answer && 
-                   problem.solution && 
+                   hasSolution && 
                    problem.difficulty && 
                    problem.topics && 
                    problem.topics.length > 0 &&

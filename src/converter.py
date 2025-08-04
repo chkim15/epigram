@@ -547,9 +547,17 @@ class SinglePDFConverter:
                 print(f"   ✅ Page 7: Associated image with problem 15 (shaded region)")
                 return associated_problem
             else:
-                # Fallback to first problem
-                associated_problem = problem_boundaries[0]['problem_num']
-                print(f"   ⚠️ Fallback: Associated with first problem {associated_problem}")
+                # Better heuristic: associate with the middle problem or second problem
+                # This works better for cases like calculus-solutions.pdf where the image
+                # belongs to problem 2 out of problems 1, 2, 3 on the same page
+                if len(problem_boundaries) >= 2:
+                    # Choose the second problem (index 1) as it's often the main problem with images
+                    associated_problem = problem_boundaries[1]['problem_num']
+                    print(f"   🎯 Multiple problems: Associated with second problem {associated_problem}")
+                else:
+                    # Fallback to first problem if there's only one
+                    associated_problem = problem_boundaries[0]['problem_num']
+                    print(f"   ⚠️ Fallback: Associated with first problem {associated_problem}")
                 return associated_problem
         
         return None
@@ -568,24 +576,44 @@ class SinglePDFConverter:
         
         print(f"   📄 Page {page_num}: Processing filtered content (length: {len(filtered_content)})")
         
-        # Look for problem patterns
+        # Look for problem patterns with improved detection
         patterns = [
-            r'(\d+)\.\s*(.+?)(?=\d+\.\s|$)',  # "1. problem text"
-            r'Problem\s+(\d+)[:\.]?\s*(.+?)(?=Problem\s+\d+|$)',  # "Problem 1: text"
+            r'(?:^|\n)\s*(\d+)\.\s*(.+?)(?=(?:^|\n)\s*\d+\.\s|\Z)',  # "1. problem text" - more strict about line boundaries
+            r'(?:^|\n)\s*Problem\s+(\d+)[:\.]?\s*(.+?)(?=(?:^|\n)\s*Problem\s+\d+|\Z)',  # "Problem 1: text"
+            r'(?:^\d+\s+)?(\d+)\s+([A-Z][a-z]*(?:\s+[a-z]+)*?)\s+([a-z]\.\s+.*|Let\s+.*)',  # MIT format: "1 Title" + content, handles page numbers
+            r'(\d+)\.\s*(.+?)(?=\d+\.\s|\Z)',  # Simple: "1. text" without strict line boundaries
+            r'(\d+)\)\s*(.+?)(?=\d+\)\s|\Z)',  # "1) problem text"
+            r'(\d+)\s*[-–—]\s*(.+?)(?=\d+\s*[-–—]|\Z)',  # "1 - problem text" or "1 – problem text"
         ]
         
-        for pattern in patterns:
-            matches = list(re.finditer(pattern, filtered_content, re.DOTALL | re.IGNORECASE))
+        best_problems = []
+        best_pattern_idx = -1
+        
+        for pattern_idx, pattern in enumerate(patterns):
+            matches = list(re.finditer(pattern, filtered_content, re.DOTALL | re.IGNORECASE | re.MULTILINE))
             
-            print(f"   🔍 Page {page_num}: Found {len(matches)} matches with pattern")
+            print(f"   🔍 Page {page_num}: Pattern {pattern_idx + 1} found {len(matches)} matches")
             
+            current_problems = []
             for match in matches:
                 problem_num = int(match.group(1))
-                problem_content = match.group(2).strip()
                 
-                print(f"   📝 Page {page_num}: Found problem {problem_num}, content length: {len(problem_content)}")
+                # Handle MIT format pattern (3 groups: number, title, optional content)
+                if pattern_idx == 2 and len(match.groups()) >= 3:  # MIT format pattern
+                    title = match.group(2).strip()
+                    content = match.group(3).strip() if match.group(3) else ""
+                    problem_content = f"{title}\n{content}".strip()
+                else:
+                    problem_content = match.group(2).strip()
                 
-                # Additional validation for problem content
+                print(f"   📝 Page {page_num}: Pattern {pattern_idx + 1} found problem {problem_num}, content length: {len(problem_content)}")
+                
+                # Validate problem number range (should be reasonable for exam problems)
+                if not self._is_valid_problem_number(problem_num):
+                    print(f"   ❌ Page {page_num}: Problem number {problem_num} out of valid range")
+                    continue
+                
+                # Validate problem content
                 if self._is_valid_problem_content(problem_content):
                     problem = {
                         'page': page_num,
@@ -593,19 +621,26 @@ class SinglePDFConverter:
                         'content': problem_content,
                         'full_text': self._clean_text(problem_content)
                     }
-                    problems.append(problem)
+                    current_problems.append(problem)
                     print(f"   ✅ Page {page_num}: Added problem {problem_num}")
                 else:
-                    print(f"   ❌ Page {page_num}: Problem {problem_num} failed validation")
+                    print(f"   ❌ Page {page_num}: Problem {problem_num} failed content validation")
             
-            if matches:  # If we found problems with this pattern, stop trying others
-                break
+            # Validate the sequence of problems found
+            if current_problems and self._is_valid_problem_sequence(current_problems):
+                if len(current_problems) > len(best_problems):
+                    best_problems = current_problems
+                    best_pattern_idx = pattern_idx
+                    print(f"   ✅ Page {page_num}: Pattern {pattern_idx + 1} gave better results ({len(current_problems)} problems)")
+        
+        problems = best_problems
         
         # Don't create page-level problems - only extract actual numbered problems
         if not problems:
-            print(f"   📄 Page {page_num}: No numbered problems found, skipping page")
+            print(f"   📄 Page {page_num}: No valid numbered problems found, skipping page")
+        else:
+            print(f"   📊 Page {page_num}: Using pattern {best_pattern_idx + 1}, returning {len(problems)} problems")
         
-        print(f"   📊 Page {page_num}: Returning {len(problems)} problems")
         return problems
     
     def _filter_page_content(self, content, page_num):
@@ -781,6 +816,48 @@ class SinglePDFConverter:
         print(f"      ❌ No math indicators or keywords found in subproblem")
         return False
     
+    def _is_valid_problem_number(self, problem_num):
+        """Check if a problem number is in a valid range for exam problems"""
+        # Most exams have problems numbered 1-30, but allow wider range for flexibility
+        # Filter out common false positives from mathematical expressions
+        invalid_numbers = {0, 100, 1000, 10000}  # Common math constants that get misidentified
+        if problem_num in invalid_numbers:
+            return False
+        return 1 <= problem_num <= 50
+    
+    def _is_valid_problem_sequence(self, problems):
+        """Check if the sequence of problems makes sense"""
+        if not problems:
+            return False
+        
+        # Extract problem numbers and sort them
+        problem_numbers = sorted([p['number'] for p in problems])
+        
+        # Check for reasonable sequential patterns
+        # Allow for some gaps but not too many random numbers
+        if len(problem_numbers) == 1:
+            return True  # Single problem is always valid
+        
+        # Check if numbers are somewhat sequential (allow gaps of 1-3)
+        gaps = []
+        for i in range(1, len(problem_numbers)):
+            gap = problem_numbers[i] - problem_numbers[i-1]
+            gaps.append(gap)
+        
+        # Most gaps should be reasonable (1-3), with maybe one larger gap
+        reasonable_gaps = [g for g in gaps if 1 <= g <= 3]
+        large_gaps = [g for g in gaps if g > 3]
+        
+        # Accept if most gaps are reasonable
+        if len(reasonable_gaps) >= len(gaps) * 0.7:
+            return True
+        
+        # Reject sequences with too many large gaps or invalid numbers
+        if len(large_gaps) > 1 or any(g > 10 for g in gaps):
+            return False
+        
+        return True
+    
     def _has_math_content(self, content):
         """Check if page has substantial math content"""
         
@@ -832,12 +909,14 @@ class SinglePDFConverter:
             
             # If there are multiple pages, try to identify which one is the actual problem
             if len(problem_parts) > 1:
-                # Look for the page with the longest content (actual problem vs short answer)
-                primary_problem = max(problem_parts, key=lambda p: len(p['content']))
-                print(f"   🔍 Problem {problem_num}: Using content from page {primary_problem['page']} (length: {len(primary_problem['content'])})")
+                # Choose the earliest page (problem statement usually comes first, not last)
+                primary_problem = min(problem_parts, key=lambda p: p['page'])
+                print(f"   🔍 Problem {problem_num}: Using content from page {primary_problem['page']} (earliest page, length: {len(primary_problem['content'])})")
             
-            # Use content only from the primary page
-            combined_content = primary_problem['content']
+            # Combine content from all pages in order (to handle multi-page problems/solutions)
+            problem_parts_sorted = sorted(problem_parts, key=lambda p: p['page'])
+            combined_content = ' '.join([part['content'] for part in problem_parts_sorted])
+            print(f"   📄 Problem {problem_num}: Combined content from {len(problem_parts)} page(s), total length: {len(combined_content)}")
             
             # Extract subproblems from the content
             subproblems = self._extract_subproblems(combined_content)
@@ -848,12 +927,15 @@ class SinglePDFConverter:
             # Remove multiple choice options from problem text
             cleaned_problem_text = self._remove_multiple_choice_options(cleaned_problem_text)
             
+            # Extract solution from main problem text if present
+            main_problem_text, main_solution = self._extract_solution(cleaned_problem_text)
+            
             # Find images for this problem based on page numbers
             problem_images = self._find_problem_images(problem_num, problem_pages, all_images)
             
             # Distribute images between main problem and subproblems
             main_images, subproblems_with_images = self._distribute_images_to_subproblems(
-                cleaned_problem_text, subproblems, problem_images)
+                main_problem_text, subproblems, problem_images)
             
             # Create ID with manual prefix
             if id_prefix:
@@ -865,10 +947,13 @@ class SinglePDFConverter:
             final_problem = {
                 "id": problem_id,
                 "doc_id": id_prefix if id_prefix else "unknown",
-                "problem_text": self._clean_text(cleaned_problem_text),
+                "problem_text": self._clean_text(main_problem_text),
                 "subproblems": subproblems_with_images,
                 "correct_answer": None,
-                "solution": None,
+                "solution": {
+                    "text": self._clean_text(main_solution) if main_solution else None,
+                    "images": []  # For solution-specific images
+                } if main_solution else None,
                 "images": main_images,
                 "difficulty": None,
                 "domain": [],
@@ -1036,13 +1121,22 @@ class SinglePDFConverter:
             
             # Basic validation for subproblem content (more lenient than main problems)
             if self._is_valid_subproblem_content(subproblem_content):
+                # Extract solution if present
+                problem_text, solution = self._extract_solution(subproblem_content)
+                
                 subproblems[marker['key']] = {
-                    "problem_text": self._clean_text(subproblem_content),
+                    "problem_text": self._clean_text(problem_text),
                     "correct_answer": None,
-                    "solution": None,
+                    "solution": {
+                        "text": self._clean_text(solution) if solution else None,
+                        "images": []  # For solution-specific images
+                    } if solution else None,
                     "images": []
                 }
-                print(f"   ✅ Extracted subproblem {marker['key']}")
+                if solution:
+                    print(f"   ✅ Extracted subproblem {marker['key']} with solution")
+                else:
+                    print(f"   ✅ Extracted subproblem {marker['key']}")
             else:
                 print(f"   ⚠️ Subproblem {marker['key']} failed validation")
         
@@ -1358,6 +1452,45 @@ class SinglePDFConverter:
             return list(subproblems.keys())[0]
         
         return best_match if max_matches > 0 else None
+
+    def _extract_solution(self, content):
+        """Extract solution from content, separating problem text from solution.
+        
+        Returns:
+            tuple: (problem_text, solution) where solution is None if not found
+        """
+        
+        # Look for solution markers
+        solution_patterns = [
+            r'Solution\.',      # "Solution."
+            r'Solution:',       # "Solution:"
+            r'Answer\.',        # "Answer."
+            r'Answer:',         # "Answer:"
+            r'Sol\.',          # "Sol."
+            r'Sol:',           # "Sol:"
+        ]
+        
+        for pattern in solution_patterns:
+            # Use case-insensitive search to find solution marker
+            match = re.search(pattern, content, re.IGNORECASE)
+            
+            if match:
+                # Split content at the solution marker
+                problem_text = content[:match.start()].strip()
+                solution_text = content[match.end():].strip()
+                
+                # Clean up the problem text (remove trailing punctuation if needed)
+                problem_text = problem_text.rstrip(' .?:')
+                
+                if solution_text:
+                    print(f"   📝 Found solution (length: {len(solution_text)} chars)")
+                    return problem_text, solution_text
+                else:
+                    print(f"   ⚠️ Solution marker found but no solution content")
+                    return problem_text, None
+        
+        # No solution found
+        return content, None
 
     def _parse_prefix_metadata(self, id_prefix):
         """Parse the prefix to extract metadata fields"""
