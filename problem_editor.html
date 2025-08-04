@@ -758,6 +758,40 @@
             border: 1px solid #c3e6cb;
         }
 
+        .image-remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .image-remove-btn:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+
+        .image-item {
+            position: relative;
+        }
+
+        .image-item:hover .image-remove-btn {
+            opacity: 1;
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 flex-direction: column;
@@ -1050,7 +1084,7 @@
                     <div class="form-group" style="margin-top: 15px;">
                         <label class="form-label" style="font-size: 12px;">Solution Images</label>
                         <div class="problem-image">
-                            ${generateImageSection(problem.solution.images)}
+                            ${generateImageSection(problem.solution.images, 'solution')}
                         </div>
                     </div>
                     ` : ''}
@@ -1330,7 +1364,7 @@
             return generateImageSection(images);
         }
 
-        function generateImageSection(images) {
+        function generateImageSection(images, context = 'main') {
             const hasImages = images && images.length > 0;
             
             if (!hasImages) {
@@ -1346,6 +1380,7 @@
                 const imagePath = `${basePath}/output/${currentFileName}/images/${image}`;
                 return `
                     <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
+                        <button class="image-remove-btn" onclick="removeImageFromContext('${context}', ${index})" title="Remove image">×</button>
                         <img src="${imagePath}" alt="Problem image" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <div class="no-image" style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${image}</div>
                         <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6c757d;">${image}</div>
@@ -1363,7 +1398,7 @@
             `;
         }
 
-        function generateSubproblemImageSection(images) {
+        function generateSubproblemImageSection(images, subproblemKey) {
             const hasImages = images && images.length > 0;
             
             if (!hasImages) {
@@ -1377,6 +1412,7 @@
                 const imagePath = `${basePath}/output/${currentFileName}/images/${image}`;
                 return `
                     <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
+                        <button class="image-remove-btn" onclick="removeImageFromSubproblem('${subproblemKey}', ${index})" title="Remove image">×</button>
                         <img src="${imagePath}" alt="Subproblem image" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <div class="no-image" style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${image}</div>
                         <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6c757d;">${image}</div>
@@ -1505,7 +1541,7 @@
                     <div class="form-group" style="margin-top: 10px;">
                         <label class="form-label" style="font-size: 12px;">Images (${key})</label>
                         <div class="problem-image">
-                            ${generateSubproblemImageSection(images)}
+                            ${generateSubproblemImageSection(images, key)}
                         </div>
                     </div>
                     ` : ''}
@@ -2470,6 +2506,129 @@
                 } else if (context === 'subproblemSolution') {
                     updateSubproblemSolution(key, textarea.value);
                 }
+            }
+        }
+
+        // Image removal functions
+        function removeImageFromContext(context, imageIndex) {
+            if (currentProblemIndex < 0) {
+                alert('No problem selected');
+                return;
+            }
+            
+            const problem = problemsData.problems[currentProblemIndex];
+            let imageArray;
+            let imageFileName;
+            
+            // Determine which image array to modify based on context
+            switch (context) {
+                case 'main':
+                    imageArray = problem.images;
+                    break;
+                case 'solution':
+                    if (problem.solution && problem.solution.images) {
+                        imageArray = problem.solution.images;
+                    }
+                    break;
+                default:
+                    console.error('Unknown context:', context);
+                    return;
+            }
+            
+            if (!imageArray || imageIndex < 0 || imageIndex >= imageArray.length) {
+                alert('Invalid image index');
+                return;
+            }
+            
+            imageFileName = imageArray[imageIndex];
+            
+            // Show confirmation dialog
+            if (confirm(`Remove image "${imageFileName}" from the JSON?\n\nNote: This only removes the reference from the JSON file. You will need to manually delete the actual image file.`)) {
+                // Remove image from array
+                imageArray.splice(imageIndex, 1);
+                
+                // Refresh the display
+                refreshImageDisplay(context);
+                
+                showSuccess(`Image "${imageFileName}" removed from JSON successfully!`);
+            }
+        }
+
+        function removeImageFromSubproblem(subproblemKey, imageIndex) {
+            if (currentProblemIndex < 0) {
+                alert('No problem selected');
+                return;
+            }
+            
+            const problem = problemsData.problems[currentProblemIndex];
+            
+            if (!problem.subproblems || !problem.subproblems[subproblemKey] || !problem.subproblems[subproblemKey].images) {
+                alert('No images found for this subproblem');
+                return;
+            }
+            
+            const imageArray = problem.subproblems[subproblemKey].images;
+            
+            if (imageIndex < 0 || imageIndex >= imageArray.length) {
+                alert('Invalid image index');
+                return;
+            }
+            
+            const imageFileName = imageArray[imageIndex];
+            
+            // Show confirmation dialog
+            if (confirm(`Remove image "${imageFileName}" from subproblem ${subproblemKey}?\n\nNote: This only removes the reference from the JSON file. You will need to manually delete the actual image file.`)) {
+                // Remove image from array
+                imageArray.splice(imageIndex, 1);
+                
+                // Refresh the subproblems section
+                refreshSubproblemsSection();
+                
+                showSuccess(`Image "${imageFileName}" removed from subproblem ${subproblemKey} successfully!`);
+            }
+        }
+
+        function refreshImageDisplay(context) {
+            const problem = problemsData.problems[currentProblemIndex];
+            
+            switch (context) {
+                case 'main':
+                    // Refresh main problem images
+                    const mainImageContainer = document.getElementById('problemImage');
+                    if (mainImageContainer && problem.images && problem.images.length > 0) {
+                        mainImageContainer.innerHTML = generateImageSection(problem.images, 'main');
+                    } else if (mainImageContainer) {
+                        // Hide the entire images section if no images left
+                        const imagesFormGroup = mainImageContainer.closest('.form-group');
+                        if (imagesFormGroup) {
+                            imagesFormGroup.style.display = 'none';
+                        }
+                    }
+                    break;
+                    
+                case 'solution':
+                    // Refresh solution images - need to find and update the solution images section
+                    const solutionImagesContainer = document.querySelector('.form-group .problem-image');
+                    if (solutionImagesContainer && problem.solution && problem.solution.images && problem.solution.images.length > 0) {
+                        // Find the solution images container specifically
+                        const solutionLabel = document.querySelector('label[style*="font-size: 12px"]:not([style*="text-align"])');
+                        if (solutionLabel && solutionLabel.textContent.includes('Solution Images')) {
+                            const container = solutionLabel.closest('.form-group').querySelector('.problem-image');
+                            if (container) {
+                                container.innerHTML = generateImageSection(problem.solution.images, 'solution');
+                            }
+                        }
+                    } else {
+                        // Hide the solution images section if no images left
+                        const solutionLabel = document.querySelector('label[style*="font-size: 12px"]:not([style*="text-align"])');
+                        if (solutionLabel && solutionLabel.textContent.includes('Solution Images')) {
+                            const formGroup = solutionLabel.closest('.form-group');
+                            if (formGroup) {
+                                formGroup.style.display = 'none';
+                            }
+                        }
+                    }
+                    break;
             }
         }
 
