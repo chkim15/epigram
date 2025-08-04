@@ -851,6 +851,10 @@ class SinglePDFConverter:
             # Find images for this problem based on page numbers
             problem_images = self._find_problem_images(problem_num, problem_pages, all_images)
             
+            # Distribute images between main problem and subproblems
+            main_images, subproblems_with_images = self._distribute_images_to_subproblems(
+                cleaned_problem_text, subproblems, problem_images)
+            
             # Create ID with manual prefix
             if id_prefix:
                 problem_id = f"{id_prefix}_p{problem_num}"
@@ -862,10 +866,10 @@ class SinglePDFConverter:
                 "id": problem_id,
                 "doc_id": id_prefix if id_prefix else "unknown",
                 "problem_text": self._clean_text(cleaned_problem_text),
-                "subproblems": subproblems,
+                "subproblems": subproblems_with_images,
                 "correct_answer": None,
                 "solution": None,
-                "images": problem_images,
+                "images": main_images,
                 "difficulty": None,
                 "domain": [],
                 "topics": [],
@@ -1035,7 +1039,8 @@ class SinglePDFConverter:
                 subproblems[marker['key']] = {
                     "problem_text": self._clean_text(subproblem_content),
                     "correct_answer": None,
-                    "solution": None
+                    "solution": None,
+                    "images": []
                 }
                 print(f"   ✅ Extracted subproblem {marker['key']}")
             else:
@@ -1287,6 +1292,72 @@ class SinglePDFConverter:
                 return cleaned_text.strip()
         
         return content
+
+    def _distribute_images_to_subproblems(self, main_problem_text, subproblems, all_images):
+        """Distribute images between main problem and subproblems based on content analysis"""
+        
+        main_images = []
+        updated_subproblems = {}
+        
+        # Create a copy of subproblems to update with images
+        for key, subproblem in subproblems.items():
+            updated_subproblems[key] = subproblem.copy()
+            if "images" not in updated_subproblems[key]:
+                updated_subproblems[key]["images"] = []
+        
+        # Analyze each image to determine its association
+        for image_filename in all_images:
+            associated_subproblem = self._determine_image_subproblem_association(
+                image_filename, main_problem_text, subproblems)
+            
+            if associated_subproblem:
+                updated_subproblems[associated_subproblem]["images"].append(image_filename)
+                print(f"   🖼️ Associated image {image_filename} with subproblem {associated_subproblem}")
+            else:
+                main_images.append(image_filename)
+                print(f"   🖼️ Associated image {image_filename} with main problem text")
+        
+        return main_images, updated_subproblems
+    
+    def _determine_image_subproblem_association(self, image_filename, main_problem_text, subproblems):
+        """Determine which subproblem an image belongs to based on content and filename analysis"""
+        
+        # Method 1: Filename pattern analysis (e.g., "p6_b_1.png" -> subproblem b)
+        filename_match = re.search(r'p\d+_([a-z])_\d+\.png', image_filename)
+        if filename_match:
+            subproblem_key = filename_match.group(1)
+            if subproblem_key in subproblems:
+                print(f"   🔍 Filename pattern suggests {image_filename} belongs to subproblem {subproblem_key}")
+                return subproblem_key
+        
+        # Method 2: Content analysis - look for visual cues in subproblem text
+        image_keywords = [
+            'shaded region', 'graph', 'figure', 'diagram', 'chart', 'below', 'above',
+            'shown', 'illustrated', 'picture', 'image', 'plot', 'curve', 'line'
+        ]
+        
+        best_match = None
+        max_matches = 0
+        
+        for subproblem_key, subproblem_data in subproblems.items():
+            subproblem_text = subproblem_data.get('problem_text', '')
+            match_count = 0
+            
+            for keyword in image_keywords:
+                if keyword.lower() in subproblem_text.lower():
+                    match_count += 1
+                    print(f"   🔍 Found image keyword '{keyword}' in subproblem {subproblem_key}")
+            
+            if match_count > max_matches:
+                max_matches = match_count
+                best_match = subproblem_key
+        
+        # Method 3: Special cases - if main problem is empty/short, likely belongs to a subproblem
+        if not main_problem_text.strip() and len(subproblems) == 1:
+            # If main problem is empty and there's only one subproblem, image likely belongs there
+            return list(subproblems.keys())[0]
+        
+        return best_match if max_matches > 0 else None
 
     def _parse_prefix_metadata(self, id_prefix):
         """Parse the prefix to extract metadata fields"""
