@@ -1372,12 +1372,14 @@
             }
             
             const imageCount = images.length;
+            // Use document ID if available, fallback to currentFileName
+            const documentId = problemsData?.doc?.id || currentFileName;
             
             const imageContent = images.map((image, index) => {
                 // Detect if running on GitHub Pages and use appropriate path
                 const isGitHubPages = window.location.hostname.includes('github.io');
                 const basePath = isGitHubPages ? '/math-problem-converter' : '';
-                const imagePath = `${basePath}/output/${currentFileName}/images/${image}`;
+                const imagePath = `${basePath}/output/${documentId}/images/${image}`;
                 return `
                     <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
                         <button class="image-remove-btn" onclick="removeImageFromContext('${context}', ${index})" title="Remove image">×</button>
@@ -1405,11 +1407,14 @@
                 return '';
             }
             
+            // Use document ID if available, fallback to currentFileName
+            const documentId = problemsData?.doc?.id || currentFileName;
+            
             return images.map((image, index) => {
                 // Detect if running on GitHub Pages and use appropriate path
                 const isGitHubPages = window.location.hostname.includes('github.io');
                 const basePath = isGitHubPages ? '/math-problem-converter' : '';
-                const imagePath = `${basePath}/output/${currentFileName}/images/${image}`;
+                const imagePath = `${basePath}/output/${documentId}/images/${image}`;
                 return `
                     <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
                         <button class="image-remove-btn" onclick="removeImageFromSubproblem('${subproblemKey}', ${index})" title="Remove image">×</button>
@@ -2422,10 +2427,12 @@
             
             // Convert ![imagename.png] to actual image tags
             return text.replace(/!\[([^\]]+)\]/g, function(match, imageName) {
+                // Use document ID if available, fallback to currentFileName
+                const documentId = problemsData?.doc?.id || currentFileName;
                 // Detect if running on GitHub Pages and use appropriate path
                 const isGitHubPages = window.location.hostname.includes('github.io');
                 const basePath = isGitHubPages ? '/math-problem-converter' : '';
-                const imagePath = `${basePath}/output/${currentFileName}/images/${imageName}`;
+                const imagePath = `${basePath}/output/${documentId}/images/${imageName}`;
                 
                 return `<div style="text-align: center; margin: 15px 0;">
                     <img src="${imagePath}" alt="${imageName}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
