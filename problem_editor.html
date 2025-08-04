@@ -1040,11 +1040,23 @@
 
                 <div class="form-group">
                     <label class="form-label">Solution</label>
+                    ${problem.solution && problem.solution.images && problem.solution.images.length > 0 ? `
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" style="font-size: 12px;">Solution Images</label>
+                        <div class="problem-image">
+                            ${generateImageSection(problem.solution.images)}
+                        </div>
+                    </div>
+                    ` : ''}
                     <div class="problem-text-display" onclick="toggleSolutionEdit()" id="solutionDisplay">
                         <div id="solutionRendered">${problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '')}</div>
                     </div>
                     <div class="answer-option" id="solutionEdit" style="display: none;">
-                        <textarea onchange="updateSolution(this.value)" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution...">${problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '')}</textarea>
+                        <div style="margin-bottom: 10px;">
+                            <button type="button" onclick="insertImagePlaceholder()" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📷 Insert Image</button>
+                            <small style="margin-left: 10px; color: #666;">Use ![imagename.png] to insert images inline</small>
+                        </div>
+                        <textarea id="solutionTextarea" onchange="updateSolutionFromTextarea()" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution with LaTeX and images..." style="min-height: 150px;"></textarea>
                     </div>
                 </div>
 
@@ -1265,42 +1277,48 @@
             
             if (display.style.display === 'none') {
                 // Save and switch to display mode
-                const newText = edit.querySelector('textarea').value;
+                const textarea = document.getElementById('solutionTextarea');
+                const newText = textarea.value;
                 
                 // Clear any existing MathJax processing first
                 if (window.MathJax) {
                     MathJax.typesetClear([rendered]);
                 }
                 
-                // Set the new text content
-                rendered.innerHTML = newText;
+                // Process the text to convert image placeholders to actual images
+                const processedHtml = processImagePlaceholders(newText);
+                
+                // Set the new content
+                rendered.innerHTML = processedHtml;
                 display.style.display = 'block';
                 edit.style.display = 'none';
+                
+                // Save the text content
                 updateSolution(newText);
                 
                 // Re-render LaTeX with proper promise chaining
                 if (window.MathJax) {
                     MathJax.typesetPromise([rendered]).catch((err) => {
                         console.log('MathJax typeset error:', err);
-                        // Fallback: just show the raw text if MathJax fails
-                        rendered.innerHTML = newText;
+                        // Fallback: just show the processed text if MathJax fails
+                        rendered.innerHTML = processedHtml;
                     });
                 }
             } else {
                 // Switch to edit mode
                 display.style.display = 'none';
                 edit.style.display = 'flex';
-                const textarea = edit.querySelector('textarea');
                 
-                // Ensure textarea has the current data value
+                // Populate textarea with current solution data
                 if (currentProblemIndex >= 0) {
                     const problem = problemsData.problems[currentProblemIndex];
                     const solutionText = problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '');
+                    
+                    const textarea = document.getElementById('solutionTextarea'); 
                     textarea.value = solutionText;
+                    textarea.focus();
+                    autoResizeTextarea(textarea);
                 }
-                
-                textarea.focus();
-                autoResizeTextarea(textarea);
             }
         }
 
@@ -1589,6 +1607,13 @@
                     // Update existing object format
                     problemsData.problems[currentProblemIndex].solution.text = value;
                 }
+            }
+        }
+
+        function updateSolutionFromTextarea() {
+            const textarea = document.getElementById('solutionTextarea');
+            if (textarea) {
+                updateSolution(textarea.value);
             }
         }
 
@@ -2333,6 +2358,78 @@
                 autoResizeTextarea(event.target);
             }
         });
+
+        // Image placeholder processing functions
+        function processImagePlaceholders(text) {
+            if (!text) return text;
+            
+            // Convert ![imagename.png] to actual image tags
+            return text.replace(/!\[([^\]]+)\]/g, function(match, imageName) {
+                // Detect if running on GitHub Pages and use appropriate path
+                const isGitHubPages = window.location.hostname.includes('github.io');
+                const basePath = isGitHubPages ? '/math-problem-converter' : '';
+                const imagePath = `${basePath}/output/${currentFileName}/images/${imageName}`;
+                
+                return `<div style="text-align: center; margin: 15px 0;">
+                    <img src="${imagePath}" alt="${imageName}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${imageName}</div>
+                    <div style="font-size: 12px; color: #6c757d; margin-top: 8px;">${imageName}</div>
+                </div>`;
+            });
+        }
+
+        function insertImagePlaceholder() {
+            const textarea = document.getElementById('solutionTextarea');
+            if (!textarea) return;
+            
+            // Get available images from the current problem
+            let availableImages = [];
+            if (currentProblemIndex >= 0) {
+                const problem = problemsData.problems[currentProblemIndex];
+                if (problem.images && problem.images.length > 0) {
+                    availableImages = [...problem.images];
+                }
+                if (problem.solution && problem.solution.images && problem.solution.images.length > 0) {
+                    availableImages = [...availableImages, ...problem.solution.images];
+                }
+            }
+            
+            if (availableImages.length === 0) {
+                alert('No images available for this problem. Upload images first or add them to the problem/solution images array.');
+                return;
+            }
+            
+            // Show a simple selection of available images
+            let imageSelection = 'Available images:\\n';
+            availableImages.forEach((img, index) => {
+                imageSelection += `${index + 1}. ${img}\\n`;
+            });
+            
+            const selectedImage = prompt(imageSelection + '\\nEnter image filename (e.g., p2_2.png):');
+            if (selectedImage && selectedImage.trim()) {
+                const imageName = selectedImage.trim();
+                const placeholder = `![${imageName}]`;
+                
+                // Insert at cursor position
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const textBefore = textarea.value.substring(0, start);
+                const textAfter = textarea.value.substring(end);
+                
+                textarea.value = textBefore + placeholder + textAfter;
+                
+                // Move cursor after the inserted placeholder
+                textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+                textarea.focus();
+                
+                // Auto-resize textarea
+                autoResizeTextarea(textarea);
+                
+                // Update the solution data
+                updateSolutionFromTextarea();
+            }
+        }
+
     </script>
 </body>
 </html> 
