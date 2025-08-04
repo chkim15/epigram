@@ -996,7 +996,10 @@
                         <div id="problemTextRendered">${problem.problem_text || ''}</div>
                     </div>
                     <div class="answer-option" id="problemTextEdit" style="display: none;">
-                        <textarea onchange="updateProblem('problem_text', this.value)" onblur="saveProblemText()" onkeydown="handleMultilineEdit(event)" placeholder="Enter problem text...">${problem.problem_text || ''}</textarea>
+                        <div style="margin-bottom: 10px;">
+                            <button type="button" onclick="insertImagePlaceholder('problemText')" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📷 Insert Image</button>
+                        </div>
+                        <textarea id="problemTextTextarea" onchange="updateProblem('problem_text', this.value)" onblur="saveProblemText()" onkeydown="handleMultilineEdit(event)" placeholder="Enter problem text...">${problem.problem_text || ''}</textarea>
                     </div>
                 </div>
 
@@ -1040,23 +1043,22 @@
 
                 <div class="form-group">
                     <label class="form-label">Solution</label>
-                    ${problem.solution && problem.solution.images && problem.solution.images.length > 0 ? `
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label class="form-label" style="font-size: 12px;">Solution Images</label>
-                        <div class="problem-image">
-                            ${generateImageSection(problem.solution.images)}
-                        </div>
-                    </div>
-                    ` : ''}
                     <div class="problem-text-display" onclick="toggleSolutionEdit()" id="solutionDisplay">
                         <div id="solutionRendered">${problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '')}</div>
                     </div>
                     <div class="answer-option" id="solutionEdit" style="display: none;">
                         <div style="margin-bottom: 10px;">
-                            <button type="button" onclick="insertImagePlaceholder()" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📷 Insert Image</button>
-                            <small style="margin-left: 10px; color: #666;">Use ![imagename.png] to insert images inline</small>
+                            <button type="button" onclick="insertImagePlaceholder('solution')" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📷 Insert Image</button>
                         </div>
                         <textarea id="solutionTextarea" onchange="updateSolutionFromTextarea()" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution with LaTeX and images..." style="min-height: 150px;"></textarea>
+                        ${problem.solution && problem.solution.images && problem.solution.images.length > 0 ? `
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label class="form-label" style="font-size: 12px;">Solution Images</label>
+                            <div class="problem-image">
+                                ${generateImageSection(problem.solution.images)}
+                            </div>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
 
@@ -1181,15 +1183,19 @@
             
             if (display.style.display === 'none') {
                 // Save and switch to display mode
-                const newText = edit.querySelector('textarea').value;
+                const textarea = document.getElementById('problemTextTextarea');
+                const newText = textarea.value;
                 
                 // Clear any existing MathJax processing first
                 if (window.MathJax) {
                     MathJax.typesetClear([rendered]);
                 }
                 
-                // Set the new text content
-                rendered.innerHTML = newText;
+                // Process the text to convert image placeholders to actual images
+                const processedHtml = processImagePlaceholders(newText);
+                
+                // Set the new content
+                rendered.innerHTML = processedHtml;
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateProblem('problem_text', newText);
@@ -1198,15 +1204,15 @@
                 if (window.MathJax) {
                     MathJax.typesetPromise([rendered]).catch((err) => {
                         console.log('MathJax typeset error:', err);
-                        // Fallback: just show the raw text if MathJax fails
-                        rendered.innerHTML = newText;
+                        // Fallback: just show the processed text if MathJax fails
+                        rendered.innerHTML = processedHtml;
                     });
                 }
             } else {
                 // Switch to edit mode
                 display.style.display = 'none';
                 edit.style.display = 'flex';
-                const textarea = edit.querySelector('textarea');
+                const textarea = document.getElementById('problemTextTextarea');
                 
                 // Ensure textarea has the current data value, not potentially modified DOM content
                 if (currentProblemIndex >= 0) {
@@ -1524,7 +1530,10 @@
                             <div id="subproblemSolutionRendered_${key}">${solution}</div>
                         </div>
                         <div class="answer-option" id="subproblemSolutionEdit_${key}" style="display: none;">
-                            <textarea onchange="updateSubproblemSolution('${key}', this.value)" onblur="saveSubproblemSolution('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution..." style="min-height: 60px;">${solution}</textarea>
+                            <div style="margin-bottom: 10px;">
+                                <button type="button" onclick="insertImagePlaceholder('subproblemSolution', '${key}')" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📷 Insert Image</button>
+                            </div>
+                            <textarea id="subproblemSolutionTextarea_${key}" onchange="updateSubproblemSolution('${key}', this.value)" onblur="saveSubproblemSolution('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution..." style="min-height: 60px;">${solution}</textarea>
                         </div>
                     </div>
                 </div>
@@ -1883,15 +1892,19 @@
             
             if (display.style.display === 'none') {
                 // Save and switch to display mode
-                const newText = edit.querySelector('textarea').value;
+                const textarea = document.getElementById(`subproblemSolutionTextarea_${key}`);
+                const newText = textarea.value;
                 
                 // Clear any existing MathJax processing first
                 if (window.MathJax) {
                     MathJax.typesetClear([rendered]);
                 }
                 
-                // Set the new text content
-                rendered.innerHTML = newText;
+                // Process the text to convert image placeholders to actual images
+                const processedHtml = processImagePlaceholders(newText);
+                
+                // Set the new content
+                rendered.innerHTML = processedHtml;
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateSubproblemSolution(key, newText);
@@ -1900,15 +1913,32 @@
                 if (window.MathJax) {
                     MathJax.typesetPromise([rendered]).catch((err) => {
                         console.log('MathJax typeset error:', err);
-                        // Fallback: just show the raw text if MathJax fails
-                        rendered.innerHTML = newText;
+                        // Fallback: just show the processed text if MathJax fails
+                        rendered.innerHTML = processedHtml;
                     });
                 }
             } else {
                 // Switch to edit mode
                 display.style.display = 'none';
                 edit.style.display = 'flex';
-                const textarea = edit.querySelector('textarea');
+                const textarea = document.getElementById(`subproblemSolutionTextarea_${key}`);
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0) {
+                    const problem = problemsData.problems[currentProblemIndex];
+                    let solutionText = '';
+                    if (problem.subproblems && problem.subproblems[key]) {
+                        if (problem.subproblems[key].solution) {
+                            if (typeof problem.subproblems[key].solution === 'string') {
+                                solutionText = problem.subproblems[key].solution;
+                            } else if (problem.subproblems[key].solution.text) {
+                                solutionText = problem.subproblems[key].solution.text;
+                            }
+                        }
+                    }
+                    textarea.value = solutionText;
+                }
+                
                 textarea.focus();
                 autoResizeTextarea(textarea);
             }
@@ -2378,8 +2408,24 @@
             });
         }
 
-        function insertImagePlaceholder() {
-            const textarea = document.getElementById('solutionTextarea');
+        function insertImagePlaceholder(context, key = null) {
+            let textarea;
+            
+            // Determine which textarea to target based on context
+            switch (context) {
+                case 'solution':
+                    textarea = document.getElementById('solutionTextarea');
+                    break;
+                case 'problemText':
+                    textarea = document.getElementById('problemTextTextarea');
+                    break;
+                case 'subproblemSolution':
+                    textarea = document.getElementById(`subproblemSolutionTextarea_${key}`);
+                    break;
+                default:
+                    textarea = document.getElementById('solutionTextarea');
+            }
+            
             if (!textarea) return;
             
             // Get available images from the current problem
@@ -2425,8 +2471,14 @@
                 // Auto-resize textarea
                 autoResizeTextarea(textarea);
                 
-                // Update the solution data
-                updateSolutionFromTextarea();
+                // Update the appropriate data based on context
+                if (context === 'solution') {
+                    updateSolutionFromTextarea();
+                } else if (context === 'problemText') {
+                    updateProblem('problem_text', textarea.value);
+                } else if (context === 'subproblemSolution') {
+                    updateSubproblemSolution(key, textarea.value);
+                }
             }
         }
 
