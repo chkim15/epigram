@@ -996,9 +996,6 @@
                         <div id="problemTextRendered">${problem.problem_text || ''}</div>
                     </div>
                     <div class="answer-option" id="problemTextEdit" style="display: none;">
-                        <div style="margin-bottom: 10px;">
-                            <button type="button" onclick="insertImagePlaceholder('problemText')" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📷 Insert Image</button>
-                        </div>
                         <textarea id="problemTextTextarea" onchange="updateProblem('problem_text', this.value)" onblur="saveProblemText()" onkeydown="handleMultilineEdit(event)" placeholder="Enter problem text...">${problem.problem_text || ''}</textarea>
                     </div>
                 </div>
@@ -1047,19 +1044,16 @@
                         <div id="solutionRendered">${problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '')}</div>
                     </div>
                     <div class="answer-option" id="solutionEdit" style="display: none;">
-                        <div style="margin-bottom: 10px;">
-                            <button type="button" onclick="insertImagePlaceholder('solution')" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📷 Insert Image</button>
-                        </div>
                         <textarea id="solutionTextarea" onchange="updateSolutionFromTextarea()" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution with LaTeX and images..." style="min-height: 150px;"></textarea>
-                        ${problem.solution && problem.solution.images && problem.solution.images.length > 0 ? `
-                        <div class="form-group" style="margin-top: 15px;">
-                            <label class="form-label" style="font-size: 12px;">Solution Images</label>
-                            <div class="problem-image">
-                                ${generateImageSection(problem.solution.images)}
-                            </div>
-                        </div>
-                        ` : ''}
                     </div>
+                    ${problem.solution && problem.solution.images && problem.solution.images.length > 0 ? `
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label class="form-label" style="font-size: 12px;">Solution Images</label>
+                        <div class="problem-image">
+                            ${generateImageSection(problem.solution.images)}
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
 
                 <div class="form-group">
@@ -1530,9 +1524,6 @@
                             <div id="subproblemSolutionRendered_${key}">${solution}</div>
                         </div>
                         <div class="answer-option" id="subproblemSolutionEdit_${key}" style="display: none;">
-                            <div style="margin-bottom: 10px;">
-                                <button type="button" onclick="insertImagePlaceholder('subproblemSolution', '${key}')" style="padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📷 Insert Image</button>
-                            </div>
                             <textarea id="subproblemSolutionTextarea_${key}" onchange="updateSubproblemSolution('${key}', this.value)" onblur="saveSubproblemSolution('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution..." style="min-height: 60px;">${solution}</textarea>
                         </div>
                     </div>

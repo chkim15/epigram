@@ -433,10 +433,10 @@ class SinglePDFConverter:
         images_saved = []
         
         try:
-            # Skip images if there are no problems on this page
+            # Don't skip images completely if no problems found - they might be important
             if not problem_boundaries or len(problem_boundaries) == 0:
-                print(f"   ⏭️ Page {page_num}: No problems found, skipping all images")
-                return images_saved
+                print(f"   ⚠️ Page {page_num}: No problems found, but still checking for images")
+                # We'll still extract images but won't associate them with specific problems
             
             # Open the original PDF
             pdf_doc = fitz.open(self.pdf_path)  # We need to store pdf_path in the class
@@ -455,7 +455,7 @@ class SinglePDFConverter:
                     try:
                         xref = img[0]
                         
-                        # Check if this is a header image BEFORE processing
+                        # Check if this is a header image BEFORE processing (be more conservative)
                         if self._is_header_image(pdf_doc, page_num, xref):
                             print(f"   ⏭️ Skipped header image: {img_idx + 1}")
                             continue
@@ -477,6 +477,9 @@ class SinglePDFConverter:
                                     associated_subproblem = self._detect_subproblem_for_image(
                                         page_num, associated_problem, img_idx
                                     )
+                            else:
+                                # No problem boundaries found, but still save the image
+                                print(f"   ⚠️ No problem boundaries on page {page_num}, saving image without association")
                             
                             # Create filename based on associated problem and subproblem
                             filename = self._generate_problem_based_filename(
@@ -757,6 +760,17 @@ class SinglePDFConverter:
             r'Show all work',
             r'No calculators allowed',
             r'Good luck',
+            # McGill header patterns
+            r'\)\s*Winter\s+\d{4}\s+MATH\s+\d+\s+V\d+,\s+P\d+(?:\s+Question)?',
+            r'Winter\s+\d{4}\s+MATH\s+\d+\s+V\d+,\s+P\d+(?:\s+Question)?',
+            # McGill exam instructions and metadata
+            r'Course:\s*MATH\s*\d+.*?Page number:\s*\d+\s*of\s*\d+',
+            r'INSTRUCTIONS\s*-\s*You have until.*?enjoy the summer!',
+            r'You have until.*?submit it on myCourses.*?No late submissions will be accepted',
+            r'All solutions should be your own.*?solve the problems',
+            r'Show and justify each step.*?simplify the answers',
+            r'You may answer the questions directly.*?single PDF file',
+            r'Stay safe and enjoy the summer!',
             # Exam instructions and metadata
             r'University of Pennsylvania.*?Math 103.*?Fall 2014',
             r'Name.*?PRINT.*?Professor.*?Rimmer.*?Wong.*?Towsner',
@@ -868,9 +882,12 @@ class SinglePDFConverter:
     def _is_valid_subproblem_content(self, content):
         """Check if content represents a valid subproblem (more lenient than main problems)"""
         
+        # Clean content first by removing header patterns
+        cleaned_content = self._clean_subproblem_content(content)
+        
         # Must have minimum length (more lenient for subproblems)
-        if len(content.strip()) < 8:
-            print(f"      ❌ Subproblem content too short: {len(content.strip())} chars")
+        if len(cleaned_content.strip()) < 3:  # Very lenient for math expressions
+            print(f"      ❌ Subproblem content too short: {len(cleaned_content.strip())} chars")
             return False
         
         # Must contain math-related content or problem-solving keywords
@@ -884,10 +901,15 @@ class SinglePDFConverter:
             r'\\sqrt\{.*?\}',  # LaTeX square roots
             r'\\int',  # LaTeX integrals
             r'\\lim',  # LaTeX limits
+            r'\\arcsin|\\arccos|\\arctan',  # LaTeX inverse trig functions
+            r'\\cosh|\\sinh|\\tanh',  # LaTeX hyperbolic functions
+            r'\\cos|\\sin|\\tan',  # LaTeX trig functions
+            r'\\log|\\ln|\\exp',  # LaTeX logarithmic functions
+            r'\\[a-zA-Z]+\s*\([^)]*\)',  # LaTeX functions with arguments
         ]
         
         for pattern in math_indicators:
-            if re.search(pattern, content, re.IGNORECASE):
+            if re.search(pattern, cleaned_content, re.IGNORECASE):
                 print(f"      ✅ Found math indicator: {pattern}")
                 return True
         
@@ -898,12 +920,120 @@ class SinglePDFConverter:
         ]
         
         for keyword in problem_keywords:
-            if keyword.lower() in content.lower():
+            if keyword.lower() in cleaned_content.lower():
                 print(f"      ✅ Found problem keyword: {keyword}")
                 return True
         
-        print(f"      ❌ No math indicators or keywords found in subproblem")
+        # Very lenient check for LaTeX expressions (even simple ones)
+        if '\\(' in cleaned_content and '\\)' in cleaned_content:
+            print(f"      ✅ Found LaTeX expression delimiters")
+            return True
+        
+        # Check for simple mathematical variables/expressions
+        if re.search(r'[a-zA-Z]', cleaned_content) and len(cleaned_content.strip()) >= 3:
+            print(f"      ✅ Contains mathematical variables (very lenient)")
+            return True
+        
+        print(f"      ❌ No math indicators or keywords found in subproblem. Content: '{cleaned_content[:50]}...'")
         return False
+    
+    def _clean_subproblem_content(self, content):
+        """Clean subproblem content by removing header patterns"""
+        
+        # Remove McGill header patterns specifically
+        header_patterns = [
+            r'\)\s*Winter\s+\d{4}\s+MATH\s+\d+\s+V\d+,\s+P\d+(?:\s+Question)?',
+            r'Winter\s+\d{4}\s+MATH\s+\d+\s+V\d+,\s+P\d+(?:\s+Question)?',
+        ]
+        
+        cleaned = content
+        for pattern in header_patterns:
+            cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+        
+        return cleaned.strip()
+    
+    def _indicates_subproblems_expected(self, content):
+        """Check if the problem text indicates that subproblems should follow"""
+        
+        indicators = [
+            r'find the following',
+            r'determine the following',
+            r'calculate the following',
+            r'evaluate the following',
+            r'compute the following',
+            r'solve the following',
+            r'show the following',
+            r'prove the following',
+        ]
+        
+        for indicator in indicators:
+            if re.search(indicator, content, re.IGNORECASE):
+                print(f"   🔍 Found subproblem indicator: '{indicator}'")
+                return True
+        
+        return False
+    
+    def _extract_text_based_subproblems(self, content):
+        """Try to extract subproblems from text-based format"""
+        
+        subproblems = {}
+        
+        # Try to split on sentences that might be implicit subproblems
+        # Look for patterns like mathematical expressions or tasks
+        sentences = re.split(r'[.!?]\s+', content)
+        
+        subproblem_count = 0
+        for sentence in sentences:
+            sentence = sentence.strip()
+            
+            # Skip very short sentences or the main problem statement
+            if len(sentence) < 10:
+                continue
+            
+            # Skip sentences that are clearly not subproblems
+            skip_patterns = [
+                r'^Given:',
+                r'^Note:',
+                r'^Hint:',
+                r'find the following',
+                r'marks\)',
+            ]
+            
+            should_skip = False
+            for skip_pattern in skip_patterns:
+                if re.search(skip_pattern, sentence, re.IGNORECASE):
+                    should_skip = True
+                    break
+            
+            if should_skip:
+                continue
+            
+            # Check if this sentence contains mathematical content
+            if self._is_valid_subproblem_content(sentence):
+                subproblem_key = chr(ord('a') + subproblem_count)
+                
+                # Clean the sentence content
+                cleaned_sentence = self._clean_subproblem_content(sentence)
+                problem_text, solution = self._extract_solution(cleaned_sentence)
+                
+                subproblems[subproblem_key] = {
+                    "problem_text": self._clean_text(problem_text),
+                    "correct_answer": None,
+                    "solution": {
+                        "text": self._clean_text(solution) if solution else None,
+                        "images": []
+                    } if solution else None,
+                    "images": []
+                }
+                
+                subproblem_count += 1
+                print(f"   ✅ Extracted text-based subproblem {subproblem_key}: '{cleaned_sentence[:50]}...'")
+                
+                # Limit to reasonable number of subproblems
+                if subproblem_count >= 6:
+                    break
+        
+        return subproblems if subproblems else {}
     
     def _is_valid_problem_number(self, problem_num):
         """Check if a problem number is in a valid range for exam problems"""
@@ -1166,11 +1296,15 @@ class SinglePDFConverter:
             # a. format - look for letter followed by period  
             r'([a-zA-Z])\.',
             # (a) format - look for letter inside parentheses
-            r'\(([a-zA-Z])\)'
+            r'\(([a-zA-Z])\)',
+            # i) format - roman numerals
+            r'([iv]+)\)',
+            # 1) format - numbers followed by parenthesis
+            r'(\d+)\)',
         ]
         
         for pattern_idx, pattern in enumerate(patterns):
-            pattern_name = ['a)', 'a.', '(a)'][pattern_idx]
+            pattern_name = ['a)', 'a.', '(a)', 'i)', '1)'][pattern_idx]
             
             for match in re.finditer(pattern, content, re.MULTILINE):
                 key = match.group(1).lower()
@@ -1240,6 +1374,14 @@ class SinglePDFConverter:
             print(f"   🚫 Detected multiple choice options - excluding from subproblems")
             return {}
         
+        # Special handling for problems that indicate subproblems but none were found
+        if not subproblem_markers and self._indicates_subproblems_expected(content):
+            print(f"   🔍 Problem indicates subproblems expected but none found with standard patterns")
+            # Try to extract text-based subproblems
+            text_subproblems = self._extract_text_based_subproblems(content)
+            if text_subproblems:
+                return text_subproblems
+        
         # Extract subproblem content between markers
         for i, marker in enumerate(subproblem_markers):
             start_pos = marker['end']  # Start after the marker (e.g., after "a)")
@@ -1259,10 +1401,15 @@ class SinglePDFConverter:
             subproblem_content = re.sub(r'\n\s*$', '', subproblem_content)
             subproblem_content = subproblem_content.strip()
             
+            print(f"   🔍 Raw subproblem {marker['key']} content: '{subproblem_content[:100]}...'")
+            
             # Basic validation for subproblem content (more lenient than main problems)
             if self._is_valid_subproblem_content(subproblem_content):
+                # Clean the subproblem content to remove header patterns
+                cleaned_subproblem_content = self._clean_subproblem_content(subproblem_content)
+                
                 # Extract solution if present
-                problem_text, solution = self._extract_solution(subproblem_content)
+                problem_text, solution = self._extract_solution(cleaned_subproblem_content)
                 
                 subproblems[marker['key']] = {
                     "problem_text": self._clean_text(problem_text),
@@ -1389,6 +1536,17 @@ class SinglePDFConverter:
             r'Good luck',
             r'jeremywu12345@gmail\.com',
             r'jeremywu12345',
+            # McGill header patterns
+            r'\)\s*Winter\s+\d{4}\s+MATH\s+\d+\s+V\d+,\s+P\d+(?:\s+Question)?',
+            r'Winter\s+\d{4}\s+MATH\s+\d+\s+V\d+,\s+P\d+(?:\s+Question)?',
+            # McGill exam instructions and metadata
+            r'Course:\s*MATH\s*\d+.*?Page number:\s*\d+\s*of\s*\d+',
+            r'INSTRUCTIONS\s*-\s*You have until.*?enjoy the summer!',
+            r'You have until.*?submit it on myCourses.*?No late submissions will be accepted',
+            r'All solutions should be your own.*?solve the problems',
+            r'Show and justify each step.*?simplify the answers',
+            r'You may answer the questions directly.*?single PDF file',
+            r'Stay safe and enjoy the summer!',
             # Exam instructions and metadata
             r'University of Pennsylvania.*?Math 103.*?Fall 2014',
             r'Name.*?PRINT.*?Professor.*?Rimmer.*?Wong.*?Towsner',
@@ -1786,24 +1944,27 @@ class SinglePDFConverter:
                             img_width = rect.width
                             img_center_x = (rect.x0 + rect.x1) / 2
                             
-                            # Header criteria:
-                            # 1. Located in top 15% of page
-                            # 2. Small height (less than 10% of page height)
+                            # Header criteria (more conservative):
+                            # 1. Located in top 10% of page (was 15%)
+                            # 2. Small height (less than 8% of page height) (was 10%)
                             # 3. Located in the right half of the page (for PENN ID box)
-                            is_top_region = img_top < (page_height * 0.15)
-                            is_small_height = img_height < (page_height * 0.10)
+                            # 4. Must satisfy BOTH top region AND (small height OR right side)
+                            is_top_region = img_top < (page_height * 0.10)  # More conservative
+                            is_small_height = img_height < (page_height * 0.08)  # More conservative  
                             is_right_side = img_center_x > (page_width * 0.5)
                             
-                            if is_top_region and (is_small_height or is_right_side):
+                            # Require stricter criteria - must be small AND in top region
+                            if is_top_region and is_small_height and is_right_side:
                                 print(f"   🎯 Detected header image at top of page (y={img_top:.1f}, height={img_height:.1f})")
                                 return True
                             
-                            # Also check if it's a small rectangular image (like PENN ID box)
+                            # Also check if it's a very small rectangular image (like PENN ID box) - more conservative
                             aspect_ratio = img_width / img_height if img_height > 0 else 0
-                            is_rectangular = 1.5 < aspect_ratio < 4.0  # Wider than tall
-                            is_small = img_height < 50 or img_width < 150
+                            is_rectangular = 2.0 < aspect_ratio < 4.0  # More restrictive aspect ratio
+                            is_very_small = img_height < 40 and img_width < 120  # Smaller thresholds
                             
-                            if is_top_region and is_rectangular and is_small:
+                            # Only filter if it's very clearly a header (small, rectangular, top-right)
+                            if is_top_region and is_rectangular and is_very_small and is_right_side:
                                 print(f"   🎯 Detected small rectangular header image (aspect ratio={aspect_ratio:.2f})")
                                 return True
             
