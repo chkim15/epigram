@@ -1170,20 +1170,37 @@
             if (display.style.display === 'none') {
                 // Save and switch to display mode
                 const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content
                 rendered.innerHTML = newText;
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateProblem('problem_text', newText);
                 
-                // Re-render LaTeX
+                // Re-render LaTeX with proper promise chaining
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]);
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
                 }
             } else {
                 // Switch to edit mode
                 display.style.display = 'none';
                 edit.style.display = 'flex';
                 const textarea = edit.querySelector('textarea');
+                
+                // Ensure textarea has the current data value, not potentially modified DOM content
+                if (currentProblemIndex >= 0) {
+                    textarea.value = problemsData.problems[currentProblemIndex].problem_text || '';
+                }
+                
                 textarea.focus();
                 autoResizeTextarea(textarea);
             }
@@ -1201,20 +1218,37 @@
             if (display.style.display === 'none') {
                 // Save and switch to display mode
                 const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content
                 rendered.innerHTML = newText;
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateProblem('correct_answer', newText);
                 
-                // Re-render LaTeX
+                // Re-render LaTeX with proper promise chaining
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]);
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
                 }
             } else {
                 // Switch to edit mode
                 display.style.display = 'none';
                 edit.style.display = 'flex';
                 const textarea = edit.querySelector('textarea');
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0) {
+                    textarea.value = problemsData.problems[currentProblemIndex].correct_answer || '';
+                }
+                
                 textarea.focus();
                 autoResizeTextarea(textarea);
             }
@@ -1232,20 +1266,39 @@
             if (display.style.display === 'none') {
                 // Save and switch to display mode
                 const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content
                 rendered.innerHTML = newText;
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateSolution(newText);
                 
-                // Re-render LaTeX
+                // Re-render LaTeX with proper promise chaining
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]);
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
                 }
             } else {
                 // Switch to edit mode
                 display.style.display = 'none';
                 edit.style.display = 'flex';
                 const textarea = edit.querySelector('textarea');
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0) {
+                    const problem = problemsData.problems[currentProblemIndex];
+                    const solutionText = problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '');
+                    textarea.value = solutionText;
+                }
+                
                 textarea.focus();
                 autoResizeTextarea(textarea);
             }
@@ -1339,14 +1392,25 @@
                 // Save and switch to display mode
                 const newValue = edit.querySelector('textarea').value;
                 const rendered = document.getElementById(`answerOptionRendered_${key}`);
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content
                 rendered.innerHTML = newValue;
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateAnswerOption(key, newValue);
                 
-                // Re-render LaTeX
+                // Re-render LaTeX with proper promise chaining
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]);
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newValue;
+                    });
                 }
             } else {
                 // Switch to edit mode
@@ -1711,14 +1775,25 @@
             if (display.style.display === 'none') {
                 // Save and switch to display mode
                 const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content
                 rendered.innerHTML = newText;
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateSubproblemText(key, newText);
                 
-                // Re-render LaTeX
+                // Re-render LaTeX with proper promise chaining
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]);
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
                 }
             } else {
                 // Switch to edit mode
@@ -1742,14 +1817,25 @@
             if (display.style.display === 'none') {
                 // Save and switch to display mode
                 const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content
                 rendered.innerHTML = newText;
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateSubproblemAnswer(key, newText);
                 
-                // Re-render LaTeX
+                // Re-render LaTeX with proper promise chaining
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]);
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
                 }
             } else {
                 // Switch to edit mode
@@ -1773,14 +1859,25 @@
             if (display.style.display === 'none') {
                 // Save and switch to display mode
                 const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content
                 rendered.innerHTML = newText;
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateSubproblemSolution(key, newText);
                 
-                // Re-render LaTeX
+                // Re-render LaTeX with proper promise chaining
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]);
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
                 }
             } else {
                 // Switch to edit mode
@@ -1976,6 +2073,11 @@
             
             // Auto-resize textarea
             autoResizeTextarea(event.target);
+        }
+
+        function htmlEscapeMathSymbols(text) {
+            if (!text) return text;
+            return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
         function autoResizeTextarea(textarea) {

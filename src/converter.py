@@ -566,6 +566,7 @@ class SinglePDFConverter:
         """Parse content from a single page"""
         
         problems = []
+        orphaned_content = ""
         
         # Filter out common header/footer text and metadata
         filtered_content = self._filter_page_content(content, page_num)
@@ -575,6 +576,15 @@ class SinglePDFConverter:
             return problems
         
         print(f"   📄 Page {page_num}: Processing filtered content (length: {len(filtered_content)})")
+        
+        # Extract orphaned content (content before first problem number) for pages > 1
+        if page_num > 1:
+            orphaned_content = self._extract_orphaned_content(filtered_content, page_num)
+            if orphaned_content:
+                # Store orphaned content to be associated with previous page's last problem
+                self.orphaned_content_by_page = getattr(self, 'orphaned_content_by_page', {})
+                self.orphaned_content_by_page[page_num] = orphaned_content
+                print(f"   🔗 Page {page_num}: Found orphaned content (length: {len(orphaned_content)})")
         
         # Look for problem patterns with improved detection
         patterns = [
@@ -628,7 +638,36 @@ class SinglePDFConverter:
             
             # Validate the sequence of problems found
             if current_problems and self._is_valid_problem_sequence(current_problems):
-                if len(current_problems) > len(best_problems):
+                # For pages that likely have single problems (9, 10, etc.), prefer patterns that find reasonable problem numbers
+                # Check if all found problems have reasonable numbers for the page
+                problem_numbers = [p['number'] for p in current_problems]
+                max_problem_num = max(problem_numbers) if problem_numbers else 0
+                min_problem_num = min(problem_numbers) if problem_numbers else 0
+                
+                # If we're on page 5+ and finding problem numbers < 5, it's likely a false positive
+                if page_num >= 5 and max_problem_num < 5 and len(current_problems) > 1:
+                    print(f"   ⚠️ Page {page_num}: Pattern {pattern_idx + 1} found suspiciously low problem numbers {problem_numbers}")
+                    continue
+                
+                # Prefer patterns that find more reasonable problems
+                is_better = False
+                if not best_problems:
+                    is_better = True
+                elif page_num == 1 and len(current_problems) > 1 and len(best_problems) == 1:
+                    # On page 1, prefer patterns that find multiple problems (likely 1, 2, 3)
+                    is_better = True
+                elif len(current_problems) == 1 and len(best_problems) > 1:
+                    # If current finds 1 problem with reasonable number, prefer it over multiple low numbers
+                    if max_problem_num >= page_num and page_num > 3:
+                        is_better = True
+                elif len(current_problems) > len(best_problems):
+                    is_better = True
+                elif len(current_problems) == len(best_problems):
+                    # Prefer lower pattern index (more specific patterns)
+                    if pattern_idx < best_pattern_idx:
+                        is_better = True
+                
+                if is_better:
                     best_problems = current_problems
                     best_pattern_idx = pattern_idx
                     print(f"   ✅ Page {page_num}: Pattern {pattern_idx + 1} gave better results ({len(current_problems)} problems)")
@@ -642,6 +681,56 @@ class SinglePDFConverter:
             print(f"   📊 Page {page_num}: Using pattern {best_pattern_idx + 1}, returning {len(problems)} problems")
         
         return problems
+    
+    def _extract_orphaned_content(self, content, page_num):
+        """Extract content that appears before the first problem number on a page"""
+        
+        # Find the first problem number pattern
+        first_problem_patterns = [
+            r'(?:^|\n)\s*(\d+)\.\s',  # "1. "
+            r'(?:^|\n)\s*Problem\s+(\d+)',  # "Problem 1"
+            r'(\d+)\.\s',  # Simple "1. "
+        ]
+        
+        first_problem_pos = len(content)  # Default to end of content
+        
+        for pattern in first_problem_patterns:
+            match = re.search(pattern, content)
+            if match and match.start() < first_problem_pos:
+                first_problem_pos = match.start()
+        
+        # Extract content before the first problem
+        if first_problem_pos > 0:
+            orphaned = content[:first_problem_pos].strip()
+            
+            # Filter out headers and metadata from orphaned content
+            orphaned = self._clean_orphaned_content(orphaned)
+            
+            # Only return if there's substantial content
+            if len(orphaned) > 20:  # Minimum threshold
+                return orphaned
+        
+        return ""
+    
+    def _clean_orphaned_content(self, content):
+        """Clean orphaned content by removing headers and metadata"""
+        
+        # Remove header patterns specific to this document
+        header_patterns = [
+            r'Stanford Math\s*Tournament\s*Calculus\s*April 13, 2024',
+            r'Stanford Math\s*Tournament\s*Calculus',
+            r'April 13, 2024',
+            r'\s*Calculus\s*',
+        ]
+        
+        cleaned = content
+        for pattern in header_patterns:
+            cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+        
+        # Remove excessive whitespace
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+        
+        return cleaned
     
     def _filter_page_content(self, content, page_num):
         """Filter out header/footer text and metadata"""
@@ -896,6 +985,9 @@ class SinglePDFConverter:
                 problems_by_number[num] = []
             problems_by_number[num].append(problem)
         
+        # Associate orphaned content with problems
+        self._associate_orphaned_content_with_problems(problems_by_number)
+        
         # Create final problem objects
         for problem_num in sorted(problems_by_number.keys()):
             problem_parts = problems_by_number[problem_num]
@@ -915,7 +1007,8 @@ class SinglePDFConverter:
             
             # Combine content from all pages in order (to handle multi-page problems/solutions)
             problem_parts_sorted = sorted(problem_parts, key=lambda p: p['page'])
-            combined_content = ' '.join([part['content'] for part in problem_parts_sorted])
+            combined_content = '\n'.join([part['content'] for part in problem_parts_sorted])
+            
             print(f"   📄 Problem {problem_num}: Combined content from {len(problem_parts)} page(s), total length: {len(combined_content)}")
             
             # Extract subproblems from the content
@@ -937,6 +1030,14 @@ class SinglePDFConverter:
             main_images, subproblems_with_images = self._distribute_images_to_subproblems(
                 main_problem_text, subproblems, problem_images)
             
+            # Check if any images should belong to solution instead of main problem
+            solution_images = []
+            if main_solution and main_images:
+                # For problems with solutions, check if images appear after "Solution" marker
+                solution_images, main_images = self._separate_solution_images(
+                    cleaned_problem_text, main_solution, main_images, problem_num
+                )
+            
             # Create ID with manual prefix
             if id_prefix:
                 problem_id = f"{id_prefix}_p{problem_num}"
@@ -952,7 +1053,7 @@ class SinglePDFConverter:
                 "correct_answer": None,
                 "solution": {
                     "text": self._clean_text(main_solution) if main_solution else None,
-                    "images": []  # For solution-specific images
+                    "images": solution_images  # For solution-specific images
                 } if main_solution else None,
                 "images": main_images,
                 "difficulty": None,
@@ -965,6 +1066,45 @@ class SinglePDFConverter:
             combined_problems.append(final_problem)
         
         return combined_problems
+    
+    def _associate_orphaned_content_with_problems(self, problems_by_number):
+        """Associate orphaned content with the appropriate problems"""
+        
+        orphaned_content_by_page = getattr(self, 'orphaned_content_by_page', {})
+        
+        if not orphaned_content_by_page:
+            return
+            
+        # Sort problems by their first page appearance to determine the "last problem" of each page
+        all_problems_with_pages = []
+        for problem_num, problem_parts in problems_by_number.items():
+            first_page = min(p['page'] for p in problem_parts)
+            all_problems_with_pages.append((problem_num, first_page))
+        
+        all_problems_with_pages.sort(key=lambda x: x[1])  # Sort by page
+        
+        # For each page with orphaned content, find the last problem from the previous page
+        for page_num, orphaned_content in orphaned_content_by_page.items():
+            # Find the last problem that appears before this page
+            last_problem_num = None
+            for problem_num, problem_page in all_problems_with_pages:
+                if problem_page < page_num:
+                    last_problem_num = problem_num
+                else:
+                    break  # We've passed the current page
+            
+            if last_problem_num:
+                # Create a virtual "problem part" for the orphaned content
+                orphaned_part = {
+                    'page': page_num,
+                    'number': last_problem_num,
+                    'content': orphaned_content,
+                    'full_text': self._clean_text(orphaned_content),
+                    'is_continuation': True
+                }
+                
+                problems_by_number[last_problem_num].append(orphaned_part)
+                print(f"   🔗 Associated orphaned content from page {page_num} with problem {last_problem_num}")
         
     def _save_image_from_results(self, image_info, images_path, page_num, img_num, associated_problem=None, associated_subproblem=None):
         """Save image from Mathpix results"""
@@ -1222,6 +1362,9 @@ class SinglePDFConverter:
         # Remove page markers
         text = re.sub(r'--- PAGE \d+ ---', '', text)
         
+        # HTML escape inequality symbols to prevent HTML parsing issues
+        text = self._html_escape_math_symbols(text)
+        
         # Remove common metadata patterns
         metadata_patterns = [
             r'Gstudocu.*?Studocu.*?university',
@@ -1281,7 +1424,21 @@ class SinglePDFConverter:
         # Remove common artifacts
         text = re.sub(r'^\s*\d+\.\s*', '', text)  # Remove leading "1. "
         
-        return text.strip()
+        # Clean up excessive whitespace but preserve question marks at the end
+        text = text.strip()
+        # Don't strip question marks - they're important punctuation
+        
+        return text
+    
+    def _html_escape_math_symbols(self, text):
+        """Escape HTML special characters in mathematical expressions to prevent rendering issues"""
+        
+        # Replace < and > with HTML entities to prevent browser from interpreting them as HTML tags
+        # This is especially important for mathematical inequalities like "a<b<c"
+        text = text.replace('<', '&lt;')
+        text = text.replace('>', '&gt;')
+        
+        return text
 
     def _clean_problem_text(self, content, subproblems):
         """Clean up the problem text by removing subproblem parts."""
@@ -1379,8 +1536,8 @@ class SinglePDFConverter:
                 first_mc_pos = mc_markers[0]['start']
                 cleaned_text = content[:first_mc_pos]
                 
-                # Clean up trailing whitespace and punctuation
-                cleaned_text = cleaned_text.rstrip(' \t\n?:')
+                # Clean up trailing whitespace and some punctuation, but preserve question marks
+                cleaned_text = cleaned_text.rstrip(' \t\n:')
                 
                 print(f"   🧹 Removed multiple choice options from problem text")
                 return cleaned_text.strip()
@@ -1460,34 +1617,40 @@ class SinglePDFConverter:
             tuple: (problem_text, solution) where solution is None if not found
         """
         
-        # Look for solution markers
+        # Look for solution markers with word boundaries to avoid false matches
         solution_patterns = [
-            r'Solution\.',      # "Solution."
-            r'Solution:',       # "Solution:"
-            r'Answer\.',        # "Answer."
-            r'Answer:',         # "Answer:"
-            r'Sol\.',          # "Sol."
-            r'Sol:',           # "Sol:"
+            r'\bSolution[:\.]\s*',      # "Solution:" or "Solution." with optional space
+            r'\bAnswer[:\.]\s*',        # "Answer:" or "Answer." with optional space  
+            r'\bSol[:\.]\s*',          # "Sol:" or "Sol." with optional space
+            r'\bSolution\s*:',          # "Solution :" with space before colon
+            r'\bAnswer\s*:',            # "Answer :" with space before colon
         ]
+        
+        best_match = None
+        best_position = len(content)
         
         for pattern in solution_patterns:
             # Use case-insensitive search to find solution marker
             match = re.search(pattern, content, re.IGNORECASE)
             
-            if match:
-                # Split content at the solution marker
-                problem_text = content[:match.start()].strip()
-                solution_text = content[match.end():].strip()
-                
-                # Clean up the problem text (remove trailing punctuation if needed)
-                problem_text = problem_text.rstrip(' .?:')
-                
-                if solution_text:
-                    print(f"   📝 Found solution (length: {len(solution_text)} chars)")
-                    return problem_text, solution_text
-                else:
-                    print(f"   ⚠️ Solution marker found but no solution content")
-                    return problem_text, None
+            if match and match.start() < best_position:
+                best_match = match
+                best_position = match.start()
+        
+        if best_match:
+            # Split content at the solution marker
+            problem_text = content[:best_match.start()].strip()
+            solution_text = content[best_match.end():].strip()
+            
+            # Clean up the problem text (remove trailing whitespace and periods, but keep question marks)
+            problem_text = problem_text.rstrip(' .:')
+            
+            if solution_text:
+                print(f"   📝 Found solution (length: {len(solution_text)} chars)")
+                return problem_text, solution_text
+            else:
+                print(f"   ⚠️ Solution marker found but no solution content")
+                return problem_text, None
         
         # No solution found
         return content, None
@@ -1569,6 +1732,31 @@ class SinglePDFConverter:
         except Exception as e:
             print(f"   ⚠️ Error detecting subproblem for image: {e}")
             return None
+
+    def _separate_solution_images(self, problem_text, solution_text, images, problem_num):
+        """Separate images that belong to solution from main problem images"""
+        
+        solution_images = []
+        main_images = []
+        
+        # For now, use a simple heuristic: if there's a solution and images,
+        # and the problem text doesn't mention graphs/figures, images likely belong to solution
+        image_keywords = ['graph', 'figure', 'diagram', 'chart', 'below', 'above', 
+                         'shown', 'illustrated', 'picture', 'image', 'plot', 'curve', 'line',
+                         'shaded region', 'shaded area']
+        
+        problem_mentions_image = any(keyword in problem_text.lower() for keyword in image_keywords)
+        solution_mentions_image = any(keyword in solution_text.lower() for keyword in image_keywords) if solution_text else False
+        
+        for img in images:
+            # If problem mentions images, keep in main; if only solution mentions images, move to solution
+            if not problem_mentions_image and solution_mentions_image:
+                solution_images.append(img)
+                print(f"   🖼️ Moving image {img} to solution for problem {problem_num}")
+            else:
+                main_images.append(img)
+        
+        return solution_images, main_images
 
     def _is_header_image(self, pdf_doc, page_num, xref):
         """Check if an image is likely a header image based on position and size"""
