@@ -1019,6 +1019,7 @@ class SinglePDFConverter:
                 subproblems[subproblem_key] = {
                     "problem_text": self._clean_text(problem_text),
                     "correct_answer": None,
+                    "hint": [],
                     "solution": {
                         "text": self._clean_text(solution) if solution else None,
                         "images": []
@@ -1181,6 +1182,7 @@ class SinglePDFConverter:
                 "problem_text": self._clean_text(main_problem_text),
                 "subproblems": subproblems_with_images,
                 "correct_answer": None,
+                "hint": [],
                 "solution": {
                     "text": self._clean_text(main_solution) if main_solution else None,
                     "images": solution_images  # For solution-specific images
@@ -1414,6 +1416,7 @@ class SinglePDFConverter:
                 subproblems[marker['key']] = {
                     "problem_text": self._clean_text(problem_text),
                     "correct_answer": None,
+                    "hint": [],
                     "solution": {
                         "text": self._clean_text(solution) if solution else None,
                         "images": []  # For solution-specific images

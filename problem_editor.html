@@ -1045,6 +1045,34 @@
 
                 ${generateSubproblemsSection(problem.subproblems)}
 
+                <div class="form-group">
+                    <label class="form-label">Hint</label>
+                    <div class="problem-text-display" onclick="toggleHintEdit()" id="hintDisplay">
+                        <div id="hintRendered">${formatHintsForDisplay(problem.hint || [])}</div>
+                    </div>
+                    <div class="answer-option" id="hintEdit" style="display: none;">
+                        <textarea id="hintTextarea" onchange="updateHintFromTextarea()" onblur="saveHint()" onkeydown="handleMultilineEdit(event)" placeholder="Enter hints (one per line)..." style="min-height: 100px;">${formatHintsForEdit(problem.hint || [])}</textarea>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Solution</label>
+                    <div class="problem-text-display" onclick="toggleSolutionEdit()" id="solutionDisplay">
+                        <div id="solutionRendered">${problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '')}</div>
+                    </div>
+                    <div class="answer-option" id="solutionEdit" style="display: none;">
+                        <textarea id="solutionTextarea" onchange="updateSolutionFromTextarea()" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution with LaTeX and images..." style="min-height: 150px;"></textarea>
+                    </div>
+                    ${problem.solution && problem.solution.images && problem.solution.images.length > 0 ? `
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label class="form-label" style="font-size: 12px;">Solution Images</label>
+                        <div class="problem-image">
+                            ${generateImageSection(problem.solution.images, 'solution')}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+
                 ${isTextAnswer ? `
                     <div class="form-group">
                         <label class="form-label">Correct Answer</label>
@@ -1071,24 +1099,6 @@
                         </select>
                     </div>
                 `}
-
-                <div class="form-group">
-                    <label class="form-label">Solution</label>
-                    <div class="problem-text-display" onclick="toggleSolutionEdit()" id="solutionDisplay">
-                        <div id="solutionRendered">${problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '')}</div>
-                    </div>
-                    <div class="answer-option" id="solutionEdit" style="display: none;">
-                        <textarea id="solutionTextarea" onchange="updateSolutionFromTextarea()" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution with LaTeX and images..." style="min-height: 150px;"></textarea>
-                    </div>
-                    ${problem.solution && problem.solution.images && problem.solution.images.length > 0 ? `
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label class="form-label" style="font-size: 12px;">Solution Images</label>
-                        <div class="problem-image">
-                            ${generateImageSection(problem.solution.images, 'solution')}
-                        </div>
-                    </div>
-                    ` : ''}
-                </div>
 
                 <div class="form-group">
                     <label class="form-label">Difficulty Level</label>
@@ -1165,6 +1175,12 @@
                     elementsToRender.push(document.getElementById('textAnswerRendered'));
                 }
                 
+                // Add hint element
+                const hintElement = document.getElementById('hintRendered');
+                if (hintElement) {
+                    elementsToRender.push(hintElement);
+                }
+                
                 // Add answer option elements to rendering queue
                 if (!isTextAnswer && problem.answer_options) {
                     Object.keys(problem.answer_options).forEach(key => {
@@ -1180,12 +1196,16 @@
                     Object.keys(problem.subproblems).forEach(key => {
                         const subproblemElement = document.getElementById(`subproblemRendered_${key}`);
                         const subproblemAnswerElement = document.getElementById(`subproblemAnswerRendered_${key}`);
+                        const subproblemHintElement = document.getElementById(`subproblemHintRendered_${key}`);
                         const subproblemSolutionElement = document.getElementById(`subproblemSolutionRendered_${key}`);
                         if (subproblemElement) {
                             elementsToRender.push(subproblemElement);
                         }
                         if (subproblemAnswerElement) {
                             elementsToRender.push(subproblemAnswerElement);
+                        }
+                        if (subproblemHintElement) {
+                            elementsToRender.push(subproblemHintElement);
                         }
                         if (subproblemSolutionElement) {
                             elementsToRender.push(subproblemSolutionElement);
@@ -1551,12 +1571,12 @@
                     </div>
                     ` : ''}
                     <div class="form-group" style="margin-top: 10px;">
-                        <label class="form-label" style="font-size: 12px;">Correct Answer (${key})</label>
-                        <div class="problem-text-display" onclick="toggleSubproblemAnswerEdit('${key}')" id="subproblemAnswerDisplay_${key}">
-                            <div id="subproblemAnswerRendered_${key}">${correctAnswer}</div>
+                        <label class="form-label" style="font-size: 12px;">Hint (${key})</label>
+                        <div class="problem-text-display" onclick="toggleSubproblemHintEdit('${key}')" id="subproblemHintDisplay_${key}">
+                            <div id="subproblemHintRendered_${key}">${formatHintsForDisplay(typeof subproblemData === 'object' ? (subproblemData.hint || []) : [])}</div>
                         </div>
-                        <div class="answer-option" id="subproblemAnswerEdit_${key}" style="display: none;">
-                            <textarea onchange="updateSubproblemAnswer('${key}', this.value)" onblur="saveSubproblemAnswer('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter correct answer...">${correctAnswer}</textarea>
+                        <div class="answer-option" id="subproblemHintEdit_${key}" style="display: none;">
+                            <textarea id="subproblemHintTextarea_${key}" onchange="updateSubproblemHint('${key}', this.value)" onblur="saveSubproblemHint('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter hints (one per line)..." style="min-height: 60px;">${formatHintsForEdit(typeof subproblemData === 'object' ? (subproblemData.hint || []) : [])}</textarea>
                         </div>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
@@ -1566,6 +1586,15 @@
                         </div>
                         <div class="answer-option" id="subproblemSolutionEdit_${key}" style="display: none;">
                             <textarea id="subproblemSolutionTextarea_${key}" onchange="updateSubproblemSolution('${key}', this.value)" onblur="saveSubproblemSolution('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution..." style="min-height: 60px;">${solution}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="form-label" style="font-size: 12px;">Correct Answer (${key})</label>
+                        <div class="problem-text-display" onclick="toggleSubproblemAnswerEdit('${key}')" id="subproblemAnswerDisplay_${key}">
+                            <div id="subproblemAnswerRendered_${key}">${correctAnswer}</div>
+                        </div>
+                        <div class="answer-option" id="subproblemAnswerEdit_${key}" style="display: none;">
+                            <textarea onchange="updateSubproblemAnswer('${key}', this.value)" onblur="saveSubproblemAnswer('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter correct answer...">${correctAnswer}</textarea>
                         </div>
                     </div>
                 </div>
@@ -1989,6 +2018,7 @@
                     problemsData.problems[currentProblemIndex].subproblems[key] = {
                         problem_text: null,
                         correct_answer: null,
+                        hint: [],
                         solution: null,
                         images: []
                     };
@@ -2006,6 +2036,7 @@
                     problemsData.problems[currentProblemIndex].subproblems[key] = {
                         problem_text: null,
                         correct_answer: null,
+                        hint: [],
                         solution: null,
                         images: []
                     };
@@ -2023,6 +2054,7 @@
                     problemsData.problems[currentProblemIndex].subproblems[key] = {
                         problem_text: null,
                         correct_answer: null,
+                        hint: [],
                         solution: null,
                         images: []
                     };
@@ -2232,12 +2264,16 @@
                     Object.keys(problem.subproblems).forEach(key => {
                         const subproblemElement = document.getElementById(`subproblemRendered_${key}`);
                         const subproblemAnswerElement = document.getElementById(`subproblemAnswerRendered_${key}`);
+                        const subproblemHintElement = document.getElementById(`subproblemHintRendered_${key}`);
                         const subproblemSolutionElement = document.getElementById(`subproblemSolutionRendered_${key}`);
                         if (subproblemElement) {
                             elementsToRender.push(subproblemElement);
                         }
                         if (subproblemAnswerElement) {
                             elementsToRender.push(subproblemAnswerElement);
+                        }
+                        if (subproblemHintElement) {
+                            elementsToRender.push(subproblemHintElement);
                         }
                         if (subproblemSolutionElement) {
                             elementsToRender.push(subproblemSolutionElement);
@@ -2637,6 +2673,178 @@
                     }
                     break;
             }
+        }
+
+        // Helper functions for hints
+        function formatHintsForDisplay(hints) {
+            if (!hints || hints.length === 0) {
+                return '';
+            }
+            // Join hints with line breaks for display
+            return hints.join('<br>');
+        }
+
+        function formatHintsForEdit(hints) {
+            if (!hints || hints.length === 0) {
+                return '';
+            }
+            // Join hints with newlines for editing
+            return hints.join('\n');
+        }
+
+        // Main problem hint functions
+        function toggleHintEdit() {
+            const display = document.getElementById('hintDisplay');
+            const rendered = document.getElementById('hintRendered');
+            const edit = document.getElementById('hintEdit');
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const textarea = document.getElementById('hintTextarea');
+                const newText = textarea.value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Convert text to array of hints
+                const hintsArray = newText.trim() ? newText.split('\n').filter(h => h.trim()) : [];
+                
+                // Update the data
+                updateHint(hintsArray);
+                
+                // Set the new content for display
+                rendered.innerHTML = formatHintsForDisplay(hintsArray);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the processed text if MathJax fails
+                        rendered.innerHTML = formatHintsForDisplay(hintsArray);
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = document.getElementById('hintTextarea');
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0) {
+                    const hints = problemsData.problems[currentProblemIndex].hint || [];
+                    textarea.value = formatHintsForEdit(hints);
+                }
+                
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function updateHint(hintsArray) {
+            if (currentProblemIndex >= 0) {
+                problemsData.problems[currentProblemIndex].hint = hintsArray;
+            }
+        }
+
+        function updateHintFromTextarea() {
+            const textarea = document.getElementById('hintTextarea');
+            if (textarea) {
+                const hintsArray = textarea.value.trim() ? textarea.value.split('\n').filter(h => h.trim()) : [];
+                updateHint(hintsArray);
+            }
+        }
+
+        function saveHint() {
+            toggleHintEdit();
+        }
+
+        // Subproblem hint functions
+        function toggleSubproblemHintEdit(key) {
+            const display = document.getElementById(`subproblemHintDisplay_${key}`);
+            const rendered = document.getElementById(`subproblemHintRendered_${key}`);
+            const edit = document.getElementById(`subproblemHintEdit_${key}`);
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const textarea = document.getElementById(`subproblemHintTextarea_${key}`);
+                const newText = textarea.value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Convert text to array of hints
+                const hintsArray = newText.trim() ? newText.split('\n').filter(h => h.trim()) : [];
+                
+                // Update the data
+                updateSubproblemHintArray(key, hintsArray);
+                
+                // Set the new content for display
+                rendered.innerHTML = formatHintsForDisplay(hintsArray);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the processed text if MathJax fails
+                        rendered.innerHTML = formatHintsForDisplay(hintsArray);
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = document.getElementById(`subproblemHintTextarea_${key}`);
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0) {
+                    const problem = problemsData.problems[currentProblemIndex];
+                    let hints = [];
+                    if (problem.subproblems && problem.subproblems[key] && problem.subproblems[key].hint) {
+                        hints = problem.subproblems[key].hint;
+                    }
+                    textarea.value = formatHintsForEdit(hints);
+                }
+                
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function updateSubproblemHint(key, value) {
+            // This function is called from the textarea onchange event
+            // Convert the textarea value to array
+            const hintsArray = value.trim() ? value.split('\n').filter(h => h.trim()) : [];
+            updateSubproblemHintArray(key, hintsArray);
+        }
+
+        function updateSubproblemHintArray(key, hintsArray) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: null,
+                        correct_answer: null,
+                        hint: [],
+                        solution: null,
+                        images: []
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].hint = hintsArray;
+            }
+        }
+
+        function saveSubproblemHint(key) {
+            toggleSubproblemHintEdit(key);
         }
 
     </script>
