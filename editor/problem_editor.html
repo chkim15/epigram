@@ -10,15 +10,55 @@
     <script>
         window.MathJax = {
             tex: {
-                inlineMath: [['\\(', '\\)']],
-                displayMath: [['\\[', '\\]']],
+                inlineMath: [['\\(', '\\)'], ['$', '$']],
+                displayMath: [['\\[', '\\]'], ['$$', '$$']],
                 processEscapes: true,
-                processEnvironments: true
+                processEnvironments: true,
+                packages: {'[+]': ['ams', 'html']}
             },
             options: {
                 skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            },
+            loader: {
+                load: ['[tex]/ams', '[tex]/html']
             }
         };
+        
+        // Preprocess LaTeX list environments and text commands to HTML
+        function preprocessLatexLists(text) {
+            if (!text) return text;
+            
+            // Convert itemize environment to HTML list
+            text = text.replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g, function(match, content) {
+                // Process each \item
+                const items = content.split(/\\item\s+/).filter(item => item.trim());
+                if (items.length === 0) return match;
+                
+                const htmlItems = items.map(item => `<li>${item.trim()}</li>`).join('\n');
+                return `<ul style="margin: 10px 0; padding-left: 20px;">\n${htmlItems}\n</ul>`;
+            });
+            
+            // Convert enumerate environment to HTML list
+            text = text.replace(/\\begin\{enumerate\}([\s\S]*?)\\end\{enumerate\}/g, function(match, content) {
+                // Process each \item
+                const items = content.split(/\\item\s+/).filter(item => item.trim());
+                if (items.length === 0) return match;
+                
+                const htmlItems = items.map(item => `<li>${item.trim()}</li>`).join('\n');
+                return `<ol style="margin: 10px 0; padding-left: 20px;">\n${htmlItems}\n</ol>`;
+            });
+            
+            // Convert \underline{...} to HTML underline
+            text = text.replace(/\\underline\{([^}]+)\}/g, '<u>$1</u>');
+            
+            // Convert \textbf{...} to HTML bold
+            text = text.replace(/\\textbf\{([^}]+)\}/g, '<b>$1</b>');
+            
+            // Convert \dne to "Does Not Exist" (DNE)
+            text = text.replace(/\\dne/g, 'DNE');
+            
+            return text;
+        }
     </script>
     <style>
         * {
@@ -1024,7 +1064,7 @@
                 <div class="form-group">
                     <label class="form-label">Problem Text</label>
                     <div class="problem-text-display" onclick="toggleProblemTextEdit()" id="problemTextDisplay">
-                        <div id="problemTextRendered">${problem.problem_text || ''}</div>
+                        <div id="problemTextRendered">${preprocessLatexLists(problem.problem_text || '')}</div>
                     </div>
                     <div class="answer-option" id="problemTextEdit" style="display: none;">
                         <textarea id="problemTextTextarea" onchange="updateProblem('problem_text', this.value)" onblur="saveProblemText()" onkeydown="handleMultilineEdit(event)" placeholder="Enter problem text...">${problem.problem_text || ''}</textarea>
@@ -1055,7 +1095,7 @@
                 <div class="form-group">
                     <label class="form-label">Solution</label>
                     <div class="problem-text-display" onclick="toggleSolutionEdit()" id="solutionDisplay">
-                        <div id="solutionRendered">${problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '')}</div>
+                        <div id="solutionRendered">${preprocessLatexLists(problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || ''))}</div>
                     </div>
                     <div class="answer-option" id="solutionEdit" style="display: none;">
                         <textarea id="solutionTextarea" onchange="updateSolutionFromTextarea()" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution with LaTeX and images..." style="min-height: 150px;"></textarea>
@@ -1074,7 +1114,7 @@
                     <div class="form-group">
                         <label class="form-label">Correct Answer</label>
                         <div class="problem-text-display" onclick="toggleTextAnswerEdit()" id="textAnswerDisplay">
-                            <div id="textAnswerRendered">${problem.correct_answer || ''}</div>
+                            <div id="textAnswerRendered">${preprocessLatexLists(problem.correct_answer || '')}</div>
                         </div>
                         <div class="answer-option" id="textAnswerEdit" style="display: none;">
                             <textarea onchange="updateProblem('correct_answer', this.value)" onblur="saveTextAnswer()" onkeydown="handleMultilineEdit(event)" placeholder="Enter the answer...">${problem.correct_answer || ''}</textarea>
@@ -1237,7 +1277,9 @@
                 }
                 
                 // Process the text to convert image placeholders to actual images
-                const processedHtml = processImagePlaceholders(newText);
+                let processedHtml = processImagePlaceholders(newText);
+                // Also preprocess LaTeX lists
+                processedHtml = preprocessLatexLists(processedHtml);
                 
                 // Set the new content
                 rendered.innerHTML = processedHtml;
@@ -1287,8 +1329,8 @@
                     MathJax.typesetClear([rendered]);
                 }
                 
-                // Set the new text content
-                rendered.innerHTML = newText;
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateProblem('correct_answer', newText);
@@ -1337,7 +1379,9 @@
                 }
                 
                 // Process the text to convert image placeholders to actual images
-                const processedHtml = processImagePlaceholders(newText);
+                let processedHtml = processImagePlaceholders(newText);
+                // Also preprocess LaTeX lists
+                processedHtml = preprocessLatexLists(processedHtml);
                 
                 // Set the new content
                 rendered.innerHTML = processedHtml;
@@ -1451,7 +1495,7 @@
             return Object.entries(answerOptions).map(([key, value]) => `
                 <div class="answer-option-display" onclick="toggleAnswerOptionEdit('${key}')" id="answerOptionDisplay_${key}">
                     <div class="answer-option-label">${key}:</div>
-                    <div id="answerOptionRendered_${key}">${value}</div>
+                    <div id="answerOptionRendered_${key}">${preprocessLatexLists(value)}</div>
                 </div>
                 <div class="answer-option" id="answerOptionEdit_${key}" style="display: none;">
                     <div class="answer-option-label">${key}:</div>
@@ -1474,8 +1518,8 @@
                     MathJax.typesetClear([rendered]);
                 }
                 
-                // Set the new text content
-                rendered.innerHTML = newValue;
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newValue);
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateAnswerOption(key, newValue);
@@ -1554,7 +1598,7 @@
                         <button class="subproblem-remove" onclick="removeSubproblem('${key}')">Remove</button>
                     </div>
                     <div class="problem-text-display" onclick="toggleSubproblemEdit('${key}')" id="subproblemDisplay_${key}">
-                        <div id="subproblemRendered_${key}">${problemText}</div>
+                        <div id="subproblemRendered_${key}">${preprocessLatexLists(problemText)}</div>
                     </div>
                     <div class="answer-option" id="subproblemEdit_${key}" style="display: none;">
                         <textarea onchange="updateSubproblemText('${key}', this.value)" onblur="saveSubproblem('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter subproblem text...">${problemText}</textarea>
@@ -1579,7 +1623,7 @@
                     <div class="form-group" style="margin-top: 10px;">
                         <label class="form-label" style="font-size: 12px;">Solution (${key})</label>
                         <div class="problem-text-display" onclick="toggleSubproblemSolutionEdit('${key}')" id="subproblemSolutionDisplay_${key}">
-                            <div id="subproblemSolutionRendered_${key}">${solution}</div>
+                            <div id="subproblemSolutionRendered_${key}">${preprocessLatexLists(solution)}</div>
                         </div>
                         <div class="answer-option" id="subproblemSolutionEdit_${key}" style="display: none;">
                             <textarea id="subproblemSolutionTextarea_${key}" onchange="updateSubproblemSolution('${key}', this.value)" onblur="saveSubproblemSolution('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution..." style="min-height: 60px;">${solution}</textarea>
@@ -1588,7 +1632,7 @@
                     <div class="form-group" style="margin-top: 10px;">
                         <label class="form-label" style="font-size: 12px;">Correct Answer (${key})</label>
                         <div class="problem-text-display" onclick="toggleSubproblemAnswerEdit('${key}')" id="subproblemAnswerDisplay_${key}">
-                            <div id="subproblemAnswerRendered_${key}">${correctAnswer}</div>
+                            <div id="subproblemAnswerRendered_${key}">${preprocessLatexLists(correctAnswer)}</div>
                         </div>
                         <div class="answer-option" id="subproblemAnswerEdit_${key}" style="display: none;">
                             <textarea onchange="updateSubproblemAnswer('${key}', this.value)" onblur="saveSubproblemAnswer('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter correct answer...">${correctAnswer}</textarea>
@@ -1873,8 +1917,8 @@
                     MathJax.typesetClear([rendered]);
                 }
                 
-                // Set the new text content
-                rendered.innerHTML = newText;
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateSubproblemText(key, newText);
@@ -1915,8 +1959,8 @@
                     MathJax.typesetClear([rendered]);
                 }
                 
-                // Set the new text content
-                rendered.innerHTML = newText;
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 updateSubproblemAnswer(key, newText);
@@ -1959,7 +2003,9 @@
                 }
                 
                 // Process the text to convert image placeholders to actual images
-                const processedHtml = processImagePlaceholders(newText);
+                let processedHtml = processImagePlaceholders(newText);
+                // Also preprocess LaTeX lists
+                processedHtml = preprocessLatexLists(processedHtml);
                 
                 // Set the new content
                 rendered.innerHTML = processedHtml;
