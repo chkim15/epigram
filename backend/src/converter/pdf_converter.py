@@ -1512,6 +1512,9 @@ class SinglePDFConverter:
         # Remove page markers
         text = re.sub(r'--- PAGE \d+ ---', '', text)
         
+        # Normalize LaTeX delimiters to use dollar signs
+        text = self._normalize_latex_delimiters(text)
+        
         # HTML escape inequality symbols to prevent HTML parsing issues
         text = self._html_escape_math_symbols(text)
         
@@ -1598,6 +1601,23 @@ class SinglePDFConverter:
         # This is especially important for mathematical inequalities like "a<b<c"
         text = text.replace('<', '&lt;')
         text = text.replace('>', '&gt;')
+        
+        return text
+    
+    def _normalize_latex_delimiters(self, text):
+        """Normalize LaTeX delimiters to use dollar signs instead of \\( \\) and \\[ \\]"""
+        
+        if not text:
+            return text
+            
+        # Convert inline math delimiters: \( ... \) to $ ... $
+        # Match \( but not \\( (which is escaped)
+        text = re.sub(r'(?<!\\)\\(?!\\)\(', '$', text)
+        text = re.sub(r'(?<!\\)\\(?!\\)\)', '$', text)
+        
+        # Convert display math delimiters: \[ ... \] to $$ ... $$
+        text = re.sub(r'(?<!\\)\\(?!\\)\[', '$$', text)
+        text = re.sub(r'(?<!\\)\\(?!\\)\]', '$$', text)
         
         return text
 

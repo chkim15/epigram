@@ -57,6 +57,12 @@
             // Convert \dne to "Does Not Exist" (DNE)
             text = text.replace(/\\dne/g, 'DNE');
             
+            // Convert \\ to line breaks (but not inside math expressions)
+            text = text.replace(/\\\\(?![a-zA-Z])/g, '<br>');
+            
+            // Convert \par to paragraph breaks
+            text = text.replace(/\\par\b/g, '<br><br>');
+            
             return text;
         }
     </script>
