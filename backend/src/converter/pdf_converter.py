@@ -1021,9 +1021,9 @@ class SinglePDFConverter:
                     "correct_answer": None,
                     "hint": [],
                     "solution": {
-                        "text": self._clean_text(solution) if solution else None,
+                        "text": [self._clean_text(solution)] if solution else [],
                         "images": []
-                    } if solution else None,
+                    },
                     "images": []
                 }
                 
@@ -1184,9 +1184,9 @@ class SinglePDFConverter:
                 "correct_answer": None,
                 "hint": [],
                 "solution": {
-                    "text": self._clean_text(main_solution) if main_solution else None,
+                    "text": [self._clean_text(main_solution)] if main_solution else [],
                     "images": solution_images  # For solution-specific images
-                } if main_solution else None,
+                },
                 "images": main_images,
                 "difficulty": None,
                 "domain": [],
@@ -1418,9 +1418,9 @@ class SinglePDFConverter:
                     "correct_answer": None,
                     "hint": [],
                     "solution": {
-                        "text": self._clean_text(solution) if solution else None,
+                        "text": [self._clean_text(solution)] if solution else [],
                         "images": []  # For solution-specific images
-                    } if solution else None,
+                    },
                     "images": []
                 }
                 if solution:

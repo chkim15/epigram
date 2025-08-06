@@ -1089,22 +1089,22 @@
                 ${generateSubproblemsSection(problem.subproblems)}
 
                 <div class="form-group">
-                    <label class="form-label">Hint</label>
-                    <div class="problem-text-display" onclick="toggleHintEdit()" id="hintDisplay">
-                        <div id="hintRendered">${formatHintsForDisplay(problem.hint || [])}</div>
+                    <label class="form-label">Hints</label>
+                    <div id="hintsContainer">
+                        ${generateHintsSection(problem.hint || [])}
                     </div>
-                    <div class="answer-option" id="hintEdit" style="display: none;">
-                        <textarea id="hintTextarea" onchange="updateHintFromTextarea()" onblur="saveHint()" onkeydown="handleMultilineEdit(event)" placeholder="Enter hints (one per line)..." style="min-height: 100px;">${formatHintsForEdit(problem.hint || [])}</textarea>
+                    <div class="hint-controls" style="margin-top: 10px;">
+                        <button class="btn btn-primary" onclick="addHint()" type="button">Add Hint</button>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Solution</label>
-                    <div class="problem-text-display" onclick="toggleSolutionEdit()" id="solutionDisplay">
-                        <div id="solutionRendered">${preprocessLatexLists(problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || ''))}</div>
+                    <label class="form-label">Solutions</label>
+                    <div id="solutionsContainer">
+                        ${generateSolutionsSection(problem.solution)}
                     </div>
-                    <div class="answer-option" id="solutionEdit" style="display: none;">
-                        <textarea id="solutionTextarea" onchange="updateSolutionFromTextarea()" onblur="saveSolution()" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution with LaTeX and images..." style="min-height: 150px;"></textarea>
+                    <div class="solution-controls" style="margin-top: 10px;">
+                        <button class="btn btn-primary" onclick="addSolution()" type="button">Add Solution</button>
                     </div>
                     ${problem.solution && problem.solution.images && problem.solution.images.length > 0 ? `
                     <div class="form-group" style="margin-top: 15px;">
@@ -1208,21 +1208,38 @@
 
             // Render LaTeX for problem text, answer options, solution, text answer, and subproblems
             if (window.MathJax) {
-                const elementsToRender = [
-                    document.getElementById('problemTextRendered'),
-                    document.getElementById('solutionRendered')
-                ];
+                const elementsToRender = [];
+                
+                // Add problem text element
+                const problemTextElement = document.getElementById('problemTextRendered');
+                if (problemTextElement) elementsToRender.push(problemTextElement);
                 
                 // Add text answer element if it exists
                 if (isTextAnswer) {
-                    elementsToRender.push(document.getElementById('textAnswerRendered'));
+                    const textAnswerElement = document.getElementById('textAnswerRendered');
+                    if (textAnswerElement) elementsToRender.push(textAnswerElement);
                 }
                 
-                // Add hint element
-                const hintElement = document.getElementById('hintRendered');
-                if (hintElement) {
-                    elementsToRender.push(hintElement);
+                // Add solution elements (now multiple)
+                let solutions = [];
+                if (problem.solution) {
+                    if (typeof problem.solution === 'string') {
+                        solutions = [problem.solution];
+                    } else if (problem.solution.text) {
+                        solutions = Array.isArray(problem.solution.text) ? problem.solution.text : [problem.solution.text];
+                    }
                 }
+                solutions.forEach((_, index) => {
+                    const elem = document.getElementById(`solutionRendered_${index}`);
+                    if (elem) elementsToRender.push(elem);
+                });
+                
+                // Add hint elements (now multiple)
+                const hints = problem.hint || [];
+                hints.forEach((_, index) => {
+                    const elem = document.getElementById(`hintRendered_${index}`);
+                    if (elem) elementsToRender.push(elem);
+                });
                 
                 // Add answer option elements to rendering queue
                 if (!isTextAnswer && problem.answer_options) {
@@ -1237,22 +1254,36 @@
                 // Add subproblem elements to rendering queue
                 if (problem.subproblems) {
                     Object.keys(problem.subproblems).forEach(key => {
+                        const subproblem = problem.subproblems[key];
+                        
+                        // Subproblem text
                         const subproblemElement = document.getElementById(`subproblemRendered_${key}`);
+                        if (subproblemElement) elementsToRender.push(subproblemElement);
+                        
+                        // Subproblem answer
                         const subproblemAnswerElement = document.getElementById(`subproblemAnswerRendered_${key}`);
-                        const subproblemHintElement = document.getElementById(`subproblemHintRendered_${key}`);
-                        const subproblemSolutionElement = document.getElementById(`subproblemSolutionRendered_${key}`);
-                        if (subproblemElement) {
-                            elementsToRender.push(subproblemElement);
+                        if (subproblemAnswerElement) elementsToRender.push(subproblemAnswerElement);
+                        
+                        // Subproblem hints (now multiple)
+                        const subHints = (subproblem && subproblem.hint) || [];
+                        subHints.forEach((_, index) => {
+                            const elem = document.getElementById(`subHintRendered_${key}_${index}`);
+                            if (elem) elementsToRender.push(elem);
+                        });
+                        
+                        // Subproblem solutions (now multiple)
+                        let subSolutions = [];
+                        if (subproblem && subproblem.solution) {
+                            if (typeof subproblem.solution === 'string') {
+                                subSolutions = [subproblem.solution];
+                            } else if (subproblem.solution.text) {
+                                subSolutions = Array.isArray(subproblem.solution.text) ? subproblem.solution.text : [subproblem.solution.text];
+                            }
                         }
-                        if (subproblemAnswerElement) {
-                            elementsToRender.push(subproblemAnswerElement);
-                        }
-                        if (subproblemHintElement) {
-                            elementsToRender.push(subproblemHintElement);
-                        }
-                        if (subproblemSolutionElement) {
-                            elementsToRender.push(subproblemSolutionElement);
-                        }
+                        subSolutions.forEach((_, index) => {
+                            const elem = document.getElementById(`subSolutionRendered_${key}_${index}`);
+                            if (elem) elementsToRender.push(elem);
+                        });
                     });
                 }
                 
@@ -1263,7 +1294,12 @@
                     });
                 }, 100);
                 
-                MathJax.typesetPromise(elementsToRender);
+                // Render all LaTeX elements
+                if (elementsToRender.length > 0) {
+                    MathJax.typesetPromise(elementsToRender).catch(err => {
+                        console.error('MathJax rendering error:', err);
+                    });
+                }
             }
         }
 
@@ -1369,62 +1405,9 @@
             toggleTextAnswerEdit();
         }
 
-        function toggleSolutionEdit() {
-            const display = document.getElementById('solutionDisplay');
-            const rendered = document.getElementById('solutionRendered');
-            const edit = document.getElementById('solutionEdit');
-            
-            if (display.style.display === 'none') {
-                // Save and switch to display mode
-                const textarea = document.getElementById('solutionTextarea');
-                const newText = textarea.value;
-                
-                // Clear any existing MathJax processing first
-                if (window.MathJax) {
-                    MathJax.typesetClear([rendered]);
-                }
-                
-                // Process the text to convert image placeholders to actual images
-                let processedHtml = processImagePlaceholders(newText);
-                // Also preprocess LaTeX lists
-                processedHtml = preprocessLatexLists(processedHtml);
-                
-                // Set the new content
-                rendered.innerHTML = processedHtml;
-                display.style.display = 'block';
-                edit.style.display = 'none';
-                
-                // Save the text content
-                updateSolution(newText);
-                
-                // Re-render LaTeX with proper promise chaining
-                if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]).catch((err) => {
-                        console.log('MathJax typeset error:', err);
-                        // Fallback: just show the processed text if MathJax fails
-                        rendered.innerHTML = processedHtml;
-                    });
-                }
-            } else {
-                // Switch to edit mode
-                display.style.display = 'none';
-                edit.style.display = 'flex';
-                
-                // Populate textarea with current solution data
-                if (currentProblemIndex >= 0) {
-                    const problem = problemsData.problems[currentProblemIndex];
-                    const solutionText = problem.solution && problem.solution.text ? problem.solution.text : (problem.solution || '');
-                    
-                    const textarea = document.getElementById('solutionTextarea'); 
-                    textarea.value = solutionText;
-                    textarea.focus();
-                    autoResizeTextarea(textarea);
-                }
-            }
-        }
-
+        // Legacy functions kept for backward compatibility
         function saveSolution() {
-            toggleSolutionEdit();
+            // No longer needed with new individual solution boxes
         }
 
         function generateProblemImage(images) {
@@ -1618,21 +1601,21 @@
                     </div>
                     ` : ''}
                     <div class="form-group" style="margin-top: 10px;">
-                        <label class="form-label" style="font-size: 12px;">Hint (${key})</label>
-                        <div class="problem-text-display" onclick="toggleSubproblemHintEdit('${key}')" id="subproblemHintDisplay_${key}">
-                            <div id="subproblemHintRendered_${key}">${formatHintsForDisplay(typeof subproblemData === 'object' ? (subproblemData.hint || []) : [])}</div>
+                        <label class="form-label" style="font-size: 12px;">Hints (${key})</label>
+                        <div id="subproblemHintsContainer_${key}">
+                            ${generateSubproblemHintsSection(typeof subproblemData === 'object' ? (subproblemData.hint || []) : [], key)}
                         </div>
-                        <div class="answer-option" id="subproblemHintEdit_${key}" style="display: none;">
-                            <textarea id="subproblemHintTextarea_${key}" onchange="updateSubproblemHint('${key}', this.value)" onblur="saveSubproblemHint('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter hints (one per line)..." style="min-height: 60px;">${formatHintsForEdit(typeof subproblemData === 'object' ? (subproblemData.hint || []) : [])}</textarea>
+                        <div class="hint-controls" style="margin-top: 10px;">
+                            <button class="btn btn-primary" onclick="addSubproblemHint('${key}')" type="button" style="font-size: 12px; padding: 4px 8px;">Add Hint</button>
                         </div>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
-                        <label class="form-label" style="font-size: 12px;">Solution (${key})</label>
-                        <div class="problem-text-display" onclick="toggleSubproblemSolutionEdit('${key}')" id="subproblemSolutionDisplay_${key}">
-                            <div id="subproblemSolutionRendered_${key}">${preprocessLatexLists(solution)}</div>
+                        <label class="form-label" style="font-size: 12px;">Solutions (${key})</label>
+                        <div id="subproblemSolutionsContainer_${key}">
+                            ${generateSubproblemSolutionsSection(typeof subproblemData === 'object' && subproblemData.solution ? subproblemData.solution : solution, key)}
                         </div>
-                        <div class="answer-option" id="subproblemSolutionEdit_${key}" style="display: none;">
-                            <textarea id="subproblemSolutionTextarea_${key}" onchange="updateSubproblemSolution('${key}', this.value)" onblur="saveSubproblemSolution('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter solution..." style="min-height: 60px;">${solution}</textarea>
+                        <div class="solution-controls" style="margin-top: 10px;">
+                            <button class="btn btn-primary" onclick="addSubproblemSolution('${key}')" type="button" style="font-size: 12px; padding: 4px 8px;">Add Solution</button>
                         </div>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
@@ -1993,69 +1976,9 @@
             toggleSubproblemAnswerEdit(key);
         }
 
-        function toggleSubproblemSolutionEdit(key) {
-            const display = document.getElementById(`subproblemSolutionDisplay_${key}`);
-            const rendered = document.getElementById(`subproblemSolutionRendered_${key}`);
-            const edit = document.getElementById(`subproblemSolutionEdit_${key}`);
-            
-            if (display.style.display === 'none') {
-                // Save and switch to display mode
-                const textarea = document.getElementById(`subproblemSolutionTextarea_${key}`);
-                const newText = textarea.value;
-                
-                // Clear any existing MathJax processing first
-                if (window.MathJax) {
-                    MathJax.typesetClear([rendered]);
-                }
-                
-                // Process the text to convert image placeholders to actual images
-                let processedHtml = processImagePlaceholders(newText);
-                // Also preprocess LaTeX lists
-                processedHtml = preprocessLatexLists(processedHtml);
-                
-                // Set the new content
-                rendered.innerHTML = processedHtml;
-                display.style.display = 'block';
-                edit.style.display = 'none';
-                updateSubproblemSolution(key, newText);
-                
-                // Re-render LaTeX with proper promise chaining
-                if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]).catch((err) => {
-                        console.log('MathJax typeset error:', err);
-                        // Fallback: just show the processed text if MathJax fails
-                        rendered.innerHTML = processedHtml;
-                    });
-                }
-            } else {
-                // Switch to edit mode
-                display.style.display = 'none';
-                edit.style.display = 'flex';
-                const textarea = document.getElementById(`subproblemSolutionTextarea_${key}`);
-                
-                // Ensure textarea has the current data value
-                if (currentProblemIndex >= 0) {
-                    const problem = problemsData.problems[currentProblemIndex];
-                    let solutionText = '';
-                    if (problem.subproblems && problem.subproblems[key]) {
-                        if (problem.subproblems[key].solution) {
-                            if (typeof problem.subproblems[key].solution === 'string') {
-                                solutionText = problem.subproblems[key].solution;
-                            } else if (problem.subproblems[key].solution.text) {
-                                solutionText = problem.subproblems[key].solution.text;
-                            }
-                        }
-                    }
-                    textarea.value = solutionText;
-                }
-                
-                textarea.focus();
-                autoResizeTextarea(textarea);
-            }
-        }
-
+        // Legacy functions kept for backward compatibility
         function saveSubproblemSolution(key) {
-            toggleSubproblemSolutionEdit(key);
+            // No longer needed with new individual solution boxes
         }
 
         function updateSubproblemText(key, value) {
@@ -2068,7 +1991,7 @@
                         problem_text: null,
                         correct_answer: null,
                         hint: [],
-                        solution: null,
+                        solution: { text: [], images: [] },
                         images: []
                     };
                 }
@@ -2086,7 +2009,7 @@
                         problem_text: null,
                         correct_answer: null,
                         hint: [],
-                        solution: null,
+                        solution: { text: [], images: [] },
                         images: []
                     };
                 }
@@ -2094,27 +2017,9 @@
             }
         }
 
+        // Legacy function kept for backward compatibility
         function updateSubproblemSolution(key, value) {
-            if (currentProblemIndex >= 0) {
-                if (!problemsData.problems[currentProblemIndex].subproblems) {
-                    problemsData.problems[currentProblemIndex].subproblems = {};
-                }
-                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
-                    problemsData.problems[currentProblemIndex].subproblems[key] = {
-                        problem_text: null,
-                        correct_answer: null,
-                        hint: [],
-                        solution: null,
-                        images: []
-                    };
-                }
-                
-                // Update solution with new object format
-                problemsData.problems[currentProblemIndex].subproblems[key].solution = {
-                    text: value,
-                    images: []
-                };
-            }
+            // This function is now handled by updateSubproblemSolutionAtIndex
         }
 
         function toggleDomain(domain) {
@@ -2741,55 +2646,106 @@
             return hints.join('\n');
         }
 
-        // Main problem hint functions
-        function toggleHintEdit() {
-            const display = document.getElementById('hintDisplay');
-            const rendered = document.getElementById('hintRendered');
-            const edit = document.getElementById('hintEdit');
+        // Generate hints section with individual boxes
+        function generateHintsSection(hints) {
+            if (!hints || hints.length === 0) {
+                hints = [''];  // Start with one empty hint
+            }
             
-            if (display.style.display === 'none') {
-                // Save and switch to display mode
-                const textarea = document.getElementById('hintTextarea');
-                const newText = textarea.value;
-                
-                // Clear any existing MathJax processing first
-                if (window.MathJax) {
-                    MathJax.typesetClear([rendered]);
+            return hints.map((hint, index) => `
+                <div class="hint-item" style="margin-bottom: 15px; position: relative;">
+                    <div class="hint-display" id="hintDisplay_${index}" style="${hint ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleHintEdit(${index})">
+                            <div id="hintRendered_${index}">${preprocessLatexLists(hint || '')}</div>
+                        </div>
+                    </div>
+                    <div class="hint-edit" id="hintEdit_${index}" style="${hint ? 'display: none;' : ''}">
+                        <input type="text" class="form-control" id="hintInput_${index}" onblur="saveHintEdit(${index})" value="${hint ? hint.replace(/"/g, '&quot;') : ''}" placeholder="Enter a hint..." style="width: 100%; padding: 15px; min-height: 60px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    </div>
+                    <button class="btn" onclick="removeHint(${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Main problem hint functions
+        function addHint() {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].hint) {
+                    problemsData.problems[currentProblemIndex].hint = [];
                 }
-                
-                // Convert text to array of hints
-                const hintsArray = newText.trim() ? newText.split('\n').filter(h => h.trim()) : [];
-                
-                // Update the data
-                updateHint(hintsArray);
-                
-                // Set the new content for display
-                rendered.innerHTML = formatHintsForDisplay(hintsArray);
+                problemsData.problems[currentProblemIndex].hint.push('');
+                refreshHintsSection();
+            }
+        }
+
+        function removeHint(index) {
+            if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].hint) {
+                problemsData.problems[currentProblemIndex].hint.splice(index, 1);
+                refreshHintsSection();
+            }
+        }
+
+        function updateHintAtIndex(index, value) {
+            if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].hint) {
+                problemsData.problems[currentProblemIndex].hint[index] = value;
+            }
+        }
+
+        function refreshHintsSection() {
+            const hintsContainer = document.getElementById('hintsContainer');
+            const hints = problemsData.problems[currentProblemIndex].hint || [];
+            hintsContainer.innerHTML = generateHintsSection(hints);
+            
+            // Re-render LaTeX for all hint displays
+            if (window.MathJax) {
+                const elements = [];
+                hints.forEach((_, index) => {
+                    const elem = document.getElementById(`hintRendered_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
+            }
+        }
+
+        function toggleHintEdit(index) {
+            const display = document.getElementById(`hintDisplay_${index}`);
+            const edit = document.getElementById(`hintEdit_${index}`);
+            const input = document.getElementById(`hintInput_${index}`);
+            
+            // Switch to edit mode
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            input.focus();
+            input.select();
+        }
+
+        function saveHintEdit(index) {
+            const input = document.getElementById(`hintInput_${index}`);
+            const display = document.getElementById(`hintDisplay_${index}`);
+            const edit = document.getElementById(`hintEdit_${index}`);
+            const rendered = document.getElementById(`hintRendered_${index}`);
+            
+            const newValue = input.value.trim();
+            
+            // Update the data
+            updateHintAtIndex(index, newValue);
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 
-                // Re-render LaTeX with proper promise chaining
+                // Re-render LaTeX
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]).catch((err) => {
-                        console.log('MathJax typeset error:', err);
-                        // Fallback: just show the processed text if MathJax fails
-                        rendered.innerHTML = formatHintsForDisplay(hintsArray);
-                    });
+                    MathJax.typesetPromise([rendered]);
                 }
             } else {
-                // Switch to edit mode
+                // If empty, stay in edit mode
                 display.style.display = 'none';
-                edit.style.display = 'flex';
-                const textarea = document.getElementById('hintTextarea');
-                
-                // Ensure textarea has the current data value
-                if (currentProblemIndex >= 0) {
-                    const hints = problemsData.problems[currentProblemIndex].hint || [];
-                    textarea.value = formatHintsForEdit(hints);
-                }
-                
-                textarea.focus();
-                autoResizeTextarea(textarea);
+                edit.style.display = 'block';
             }
         }
 
@@ -2799,79 +2755,441 @@
             }
         }
 
-        function updateHintFromTextarea() {
-            const textarea = document.getElementById('hintTextarea');
-            if (textarea) {
-                const hintsArray = textarea.value.trim() ? textarea.value.split('\n').filter(h => h.trim()) : [];
-                updateHint(hintsArray);
+        // Generate solutions section with individual boxes
+        function generateSolutionsSection(solution) {
+            // Handle different solution formats: null, string, object with text, object with array
+            let solutions = [];
+            if (solution) {
+                if (typeof solution === 'string') {
+                    solutions = solution ? [solution] : [];
+                } else if (solution.text) {
+                    if (Array.isArray(solution.text)) {
+                        solutions = solution.text;
+                    } else {
+                        solutions = solution.text ? [solution.text] : [];
+                    }
+                } else if (Array.isArray(solution)) {
+                    solutions = solution;
+                }
+            }
+            
+            if (solutions.length === 0) {
+                solutions = [''];  // Start with one empty solution
+            }
+            
+            return solutions.map((sol, index) => `
+                <div class="solution-item" style="margin-bottom: 15px; position: relative;">
+                    <div class="solution-display" id="solutionDisplay_${index}" style="${sol ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSolutionEdit(${index})">
+                            <div id="solutionRendered_${index}">${preprocessLatexLists(sol || '')}</div>
+                        </div>
+                    </div>
+                    <div class="solution-edit" id="solutionEdit_${index}" style="${sol ? 'display: none;' : ''}">
+                        <textarea class="form-control" id="solutionTextarea_${index}" onblur="saveSolutionEdit(${index})" style="width: 100%; min-height: 100px; resize: vertical; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${sol ? sol.replace(/"/g, '&quot;') : ''}</textarea>
+                    </div>
+                    <button class="btn" onclick="removeSolution(${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Main problem solution functions
+        function addSolution() {
+            if (currentProblemIndex >= 0) {
+                let problem = problemsData.problems[currentProblemIndex];
+                
+                // Initialize solution structure
+                if (!problem.solution) {
+                    problem.solution = { text: [], images: [] };
+                } else if (typeof problem.solution === 'string') {
+                    // Convert string to array format
+                    problem.solution = { 
+                        text: problem.solution ? [problem.solution] : [], 
+                        images: [] 
+                    };
+                } else if (problem.solution.text && !Array.isArray(problem.solution.text)) {
+                    // Convert single text to array
+                    problem.solution.text = problem.solution.text ? [problem.solution.text] : [];
+                }
+                
+                if (!Array.isArray(problem.solution.text)) {
+                    problem.solution.text = [];
+                }
+                
+                problem.solution.text.push('');
+                refreshSolutionsSection();
             }
         }
 
-        function saveHint() {
-            toggleHintEdit();
+        function removeSolution(index) {
+            if (currentProblemIndex >= 0) {
+                let problem = problemsData.problems[currentProblemIndex];
+                if (problem.solution && problem.solution.text && Array.isArray(problem.solution.text)) {
+                    problem.solution.text.splice(index, 1);
+                    refreshSolutionsSection();
+                }
+            }
         }
 
-        // Subproblem hint functions
-        function toggleSubproblemHintEdit(key) {
-            const display = document.getElementById(`subproblemHintDisplay_${key}`);
-            const rendered = document.getElementById(`subproblemHintRendered_${key}`);
-            const edit = document.getElementById(`subproblemHintEdit_${key}`);
-            
-            if (display.style.display === 'none') {
-                // Save and switch to display mode
-                const textarea = document.getElementById(`subproblemHintTextarea_${key}`);
-                const newText = textarea.value;
-                
-                // Clear any existing MathJax processing first
-                if (window.MathJax) {
-                    MathJax.typesetClear([rendered]);
+        function updateSolutionAtIndex(index, value) {
+            if (currentProblemIndex >= 0) {
+                let problem = problemsData.problems[currentProblemIndex];
+                if (problem.solution && problem.solution.text && Array.isArray(problem.solution.text)) {
+                    problem.solution.text[index] = value;
                 }
-                
-                // Convert text to array of hints
-                const hintsArray = newText.trim() ? newText.split('\n').filter(h => h.trim()) : [];
-                
-                // Update the data
-                updateSubproblemHintArray(key, hintsArray);
-                
-                // Set the new content for display
-                rendered.innerHTML = formatHintsForDisplay(hintsArray);
+            }
+        }
+
+        function refreshSolutionsSection() {
+            const solutionsContainer = document.getElementById('solutionsContainer');
+            const solution = problemsData.problems[currentProblemIndex].solution;
+            solutionsContainer.innerHTML = generateSolutionsSection(solution);
+            
+            // Re-render LaTeX for all solution displays
+            if (window.MathJax) {
+                const elements = [];
+                let solutions = [];
+                if (solution) {
+                    if (typeof solution === 'string') {
+                        solutions = [solution];
+                    } else if (solution.text) {
+                        solutions = Array.isArray(solution.text) ? solution.text : [solution.text];
+                    }
+                }
+                solutions.forEach((_, index) => {
+                    const elem = document.getElementById(`solutionRendered_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
+            }
+        }
+
+        function toggleSolutionEdit(index) {
+            const display = document.getElementById(`solutionDisplay_${index}`);
+            const edit = document.getElementById(`solutionEdit_${index}`);
+            const textarea = document.getElementById(`solutionTextarea_${index}`);
+            
+            // Switch to edit mode
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            textarea.focus();
+            autoResizeTextarea(textarea);
+        }
+
+        function saveSolutionEdit(index) {
+            const textarea = document.getElementById(`solutionTextarea_${index}`);
+            const display = document.getElementById(`solutionDisplay_${index}`);
+            const edit = document.getElementById(`solutionEdit_${index}`);
+            const rendered = document.getElementById(`solutionRendered_${index}`);
+            
+            const newValue = textarea.value.trim();
+            
+            // Update the data
+            updateSolutionAtIndex(index, newValue);
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
                 display.style.display = 'block';
                 edit.style.display = 'none';
                 
-                // Re-render LaTeX with proper promise chaining
+                // Re-render LaTeX
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]).catch((err) => {
-                        console.log('MathJax typeset error:', err);
-                        // Fallback: just show the processed text if MathJax fails
-                        rendered.innerHTML = formatHintsForDisplay(hintsArray);
-                    });
+                    MathJax.typesetPromise([rendered]);
                 }
             } else {
-                // Switch to edit mode
+                // If empty, stay in edit mode
                 display.style.display = 'none';
-                edit.style.display = 'flex';
-                const textarea = document.getElementById(`subproblemHintTextarea_${key}`);
-                
-                // Ensure textarea has the current data value
-                if (currentProblemIndex >= 0) {
-                    const problem = problemsData.problems[currentProblemIndex];
-                    let hints = [];
-                    if (problem.subproblems && problem.subproblems[key] && problem.subproblems[key].hint) {
-                        hints = problem.subproblems[key].hint;
-                    }
-                    textarea.value = formatHintsForEdit(hints);
-                }
-                
-                textarea.focus();
-                autoResizeTextarea(textarea);
+                edit.style.display = 'block';
             }
         }
 
-        function updateSubproblemHint(key, value) {
-            // This function is called from the textarea onchange event
-            // Convert the textarea value to array
-            const hintsArray = value.trim() ? value.split('\n').filter(h => h.trim()) : [];
-            updateSubproblemHintArray(key, hintsArray);
+        // Generate subproblem solutions section with individual boxes
+        function generateSubproblemSolutionsSection(solution, subproblemKey) {
+            // Handle different solution formats: null, string, object with text, object with array
+            let solutions = [];
+            if (solution) {
+                if (typeof solution === 'string') {
+                    solutions = solution ? [solution] : [];
+                } else if (solution.text) {
+                    if (Array.isArray(solution.text)) {
+                        solutions = solution.text;
+                    } else {
+                        solutions = solution.text ? [solution.text] : [];
+                    }
+                } else if (Array.isArray(solution)) {
+                    solutions = solution;
+                }
+            }
+            
+            if (solutions.length === 0) {
+                solutions = [''];  // Start with one empty solution
+            }
+            
+            return solutions.map((sol, index) => `
+                <div class="solution-item" style="margin-bottom: 10px; position: relative;">
+                    <div class="solution-display" id="subSolutionDisplay_${subproblemKey}_${index}" style="${sol ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer; font-size: 12px; min-height: 80px;" onclick="toggleSubproblemSolutionEdit('${subproblemKey}', ${index})">
+                            <div id="subSolutionRendered_${subproblemKey}_${index}">${preprocessLatexLists(sol || '')}</div>
+                        </div>
+                    </div>
+                    <div class="solution-edit" id="subSolutionEdit_${subproblemKey}_${index}" style="${sol ? 'display: none;' : ''}">
+                        <textarea class="form-control" id="subSolutionTextarea_${subproblemKey}_${index}" onblur="saveSubproblemSolutionEdit('${subproblemKey}', ${index})" style="width: 100%; min-height: 80px; resize: vertical; font-size: 12px; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${sol ? sol.replace(/"/g, '&quot;') : ''}</textarea>
+                    </div>
+                    <button class="btn" onclick="removeSubproblemSolution('${subproblemKey}', ${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Subproblem solution functions
+        function addSubproblemSolution(key) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: '',
+                        correct_answer: '',
+                        hint: [],
+                        solution: { text: [], images: [] },
+                        images: []
+                    };
+                }
+                
+                let subproblemSolution = problemsData.problems[currentProblemIndex].subproblems[key].solution;
+                
+                // Initialize solution structure
+                if (!subproblemSolution) {
+                    subproblemSolution = { text: [], images: [] };
+                    problemsData.problems[currentProblemIndex].subproblems[key].solution = subproblemSolution;
+                } else if (typeof subproblemSolution === 'string') {
+                    // Convert string to array format
+                    subproblemSolution = { 
+                        text: subproblemSolution ? [subproblemSolution] : [], 
+                        images: [] 
+                    };
+                    problemsData.problems[currentProblemIndex].subproblems[key].solution = subproblemSolution;
+                } else if (subproblemSolution.text && !Array.isArray(subproblemSolution.text)) {
+                    // Convert single text to array
+                    subproblemSolution.text = subproblemSolution.text ? [subproblemSolution.text] : [];
+                }
+                
+                if (!Array.isArray(subproblemSolution.text)) {
+                    subproblemSolution.text = [];
+                }
+                
+                subproblemSolution.text.push('');
+                refreshSubproblemSolutionsSection(key);
+            }
+        }
+
+        function removeSubproblemSolution(key, index) {
+            if (currentProblemIndex >= 0) {
+                const subproblem = problemsData.problems[currentProblemIndex].subproblems?.[key];
+                if (subproblem && subproblem.solution && subproblem.solution.text && Array.isArray(subproblem.solution.text)) {
+                    subproblem.solution.text.splice(index, 1);
+                    refreshSubproblemSolutionsSection(key);
+                }
+            }
+        }
+
+        function updateSubproblemSolutionAtIndex(key, index, value) {
+            if (currentProblemIndex >= 0) {
+                const subproblem = problemsData.problems[currentProblemIndex].subproblems?.[key];
+                if (subproblem && subproblem.solution && subproblem.solution.text && Array.isArray(subproblem.solution.text)) {
+                    subproblem.solution.text[index] = value;
+                }
+            }
+        }
+
+        function refreshSubproblemSolutionsSection(key) {
+            const solutionsContainer = document.getElementById(`subproblemSolutionsContainer_${key}`);
+            const subproblem = problemsData.problems[currentProblemIndex].subproblems?.[key];
+            const solution = subproblem ? subproblem.solution : null;
+            solutionsContainer.innerHTML = generateSubproblemSolutionsSection(solution, key);
+            
+            // Re-render LaTeX for all solution displays
+            if (window.MathJax) {
+                const elements = [];
+                let solutions = [];
+                if (solution) {
+                    if (typeof solution === 'string') {
+                        solutions = [solution];
+                    } else if (solution && solution.text) {
+                        solutions = Array.isArray(solution.text) ? solution.text : [solution.text];
+                    }
+                }
+                solutions.forEach((_, index) => {
+                    const elem = document.getElementById(`subSolutionRendered_${key}_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
+            }
+        }
+
+        function toggleSubproblemSolutionEdit(key, index) {
+            const display = document.getElementById(`subSolutionDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subSolutionEdit_${key}_${index}`);
+            const textarea = document.getElementById(`subSolutionTextarea_${key}_${index}`);
+            
+            // Switch to edit mode
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            textarea.focus();
+            autoResizeTextarea(textarea);
+        }
+
+        function saveSubproblemSolutionEdit(key, index) {
+            const textarea = document.getElementById(`subSolutionTextarea_${key}_${index}`);
+            const display = document.getElementById(`subSolutionDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subSolutionEdit_${key}_${index}`);
+            const rendered = document.getElementById(`subSolutionRendered_${key}_${index}`);
+            
+            const newValue = textarea.value.trim();
+            
+            // Update the data
+            updateSubproblemSolutionAtIndex(key, index, newValue);
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                // If empty, stay in edit mode
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+        // Generate subproblem hints section with individual boxes
+        function generateSubproblemHintsSection(hints, subproblemKey) {
+            if (!hints || hints.length === 0) {
+                hints = [''];  // Start with one empty hint
+            }
+            
+            return hints.map((hint, index) => `
+                <div class="hint-item" style="margin-bottom: 10px; position: relative;">
+                    <div class="hint-display" id="subHintDisplay_${subproblemKey}_${index}" style="${hint ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer; font-size: 12px; min-height: 60px;" onclick="toggleSubproblemHintEdit('${subproblemKey}', ${index})">
+                            <div id="subHintRendered_${subproblemKey}_${index}">${preprocessLatexLists(hint || '')}</div>
+                        </div>
+                    </div>
+                    <div class="hint-edit" id="subHintEdit_${subproblemKey}_${index}" style="${hint ? 'display: none;' : ''}">
+                        <input type="text" class="form-control" id="subHintInput_${subproblemKey}_${index}" onblur="saveSubproblemHintEdit('${subproblemKey}', ${index})" value="${hint ? hint.replace(/"/g, '&quot;') : ''}" placeholder="Enter a hint..." style="width: 100%; font-size: 12px; padding: 12px; min-height: 60px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    </div>
+                    <button class="btn" onclick="removeSubproblemHint('${subproblemKey}', ${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Subproblem hint functions
+        function addSubproblemHint(key) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: '',
+                        correct_answer: '',
+                        hint: [],
+                        solution: null,
+                        images: []
+                    };
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key].hint) {
+                    problemsData.problems[currentProblemIndex].subproblems[key].hint = [];
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].hint.push('');
+                refreshSubproblemHintsSection(key);
+            }
+        }
+
+        function removeSubproblemHint(key, index) {
+            if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].subproblems && 
+                problemsData.problems[currentProblemIndex].subproblems[key] && 
+                problemsData.problems[currentProblemIndex].subproblems[key].hint) {
+                problemsData.problems[currentProblemIndex].subproblems[key].hint.splice(index, 1);
+                refreshSubproblemHintsSection(key);
+            }
+        }
+
+        function updateSubproblemHintAtIndex(key, index, value) {
+            if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].subproblems && 
+                problemsData.problems[currentProblemIndex].subproblems[key] && 
+                problemsData.problems[currentProblemIndex].subproblems[key].hint) {
+                problemsData.problems[currentProblemIndex].subproblems[key].hint[index] = value;
+            }
+        }
+
+        function refreshSubproblemHintsSection(key) {
+            const hintsContainer = document.getElementById(`subproblemHintsContainer_${key}`);
+            const hints = (problemsData.problems[currentProblemIndex].subproblems && 
+                          problemsData.problems[currentProblemIndex].subproblems[key] && 
+                          problemsData.problems[currentProblemIndex].subproblems[key].hint) || [];
+            hintsContainer.innerHTML = generateSubproblemHintsSection(hints, key);
+            
+            // Re-render LaTeX for all hint displays
+            if (window.MathJax) {
+                const elements = [];
+                hints.forEach((_, index) => {
+                    const elem = document.getElementById(`subHintRendered_${key}_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
+            }
+        }
+
+        function toggleSubproblemHintEdit(key, index) {
+            const display = document.getElementById(`subHintDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subHintEdit_${key}_${index}`);
+            const input = document.getElementById(`subHintInput_${key}_${index}`);
+            
+            // Switch to edit mode
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            input.focus();
+            input.select();
+        }
+
+        function saveSubproblemHintEdit(key, index) {
+            const input = document.getElementById(`subHintInput_${key}_${index}`);
+            const display = document.getElementById(`subHintDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subHintEdit_${key}_${index}`);
+            const rendered = document.getElementById(`subHintRendered_${key}_${index}`);
+            
+            const newValue = input.value.trim();
+            
+            // Update the data
+            updateSubproblemHintAtIndex(key, index, newValue);
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                // If empty, stay in edit mode
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
         }
 
         function updateSubproblemHintArray(key, hintsArray) {
@@ -2881,8 +3199,8 @@
                 }
                 if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
                     problemsData.problems[currentProblemIndex].subproblems[key] = {
-                        problem_text: null,
-                        correct_answer: null,
+                        problem_text: '',
+                        correct_answer: '',
                         hint: [],
                         solution: null,
                         images: []
@@ -2890,10 +3208,6 @@
                 }
                 problemsData.problems[currentProblemIndex].subproblems[key].hint = hintsArray;
             }
-        }
-
-        function saveSubproblemHint(key) {
-            toggleSubproblemHintEdit(key);
         }
 
     </script>
