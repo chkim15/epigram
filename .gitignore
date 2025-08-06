@@ -3,9 +3,15 @@
 .env.local
 .env.*.local
 
-# Output files
+# Storage directories
+storage/temp/
+storage/processed/*.json
 temp/
-*.json
+
+# Root level JSON files (keep data files in version control)
+/problems.json
+/problems_clean.json
+/topics.json
 
 # Python
 __pycache__/
@@ -14,7 +20,15 @@ __pycache__/
 *.pyd
 .Python
 env/
-venv/
 .venv/
 
+# Frontend dependencies (for future use)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.next/
+
+# IDE
 .cursor/mcp.json
+.vscode/
+.idea/

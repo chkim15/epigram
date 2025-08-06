@@ -4,56 +4,90 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Mathpix PDF-to-JSON converter for math problems with a web-based editor interface. The project processes PDF files containing math exams/problems, extracts problems using the Mathpix API, and provides a comprehensive HTML editor for reviewing and enhancing the extracted content.
+A Mathpix-powered PDF-to-JSON converter for extracting mathematical problems from exams and assignments. The system processes academic PDFs, extracts problems with LaTeX formatting, and provides a web-based editor for review and enhancement.
 
 ## Core Architecture
 
 ### Main Components
 
-**PDF Processing Pipeline (`src/converter.py`)**
-- `SinglePDFConverter` class handles PDF to JSON conversion using Mathpix API
-- Converts PDF pages to images using PyMuPDF (fitz)
-- Processes each page with Mathpix text recognition API
-- Extracts mathematical problems, images, and metadata
-- Applies intelligent filtering to remove headers/footers and exam metadata
-- Associates images with specific problems using content analysis
+**PDF Processing Pipeline (`backend/src/converter/pdf_converter.py`)**
+- `SinglePDFConverter` class orchestrates PDF to JSON conversion via Mathpix API
+- Converts PDF pages to high-resolution images (2x scale) using PyMuPDF
+- Submits images to Mathpix text recognition API for mathematical content extraction
+- Filters exam metadata (headers, footers, instructions) using pattern matching
+- Associates extracted images with problems using boundary detection and proximity analysis
 
-**Web Editor Interface (`problem_editor.html`)**
-- Self-contained HTML file with embedded CSS/JavaScript
-- MathJax integration for LaTeX rendering
-- Editable problem text, answer options, solutions, difficulty levels, and topic tags
-- Real-time LaTeX preview and editing capabilities
-- Local storage backup and JSON export functionality
+**Web Editor (`editor/problem_editor.html`)**
+- Self-contained HTML file with embedded MathJax for LaTeX rendering
+- Real-time editing of problem text, answers, solutions, difficulty, and topics
+- Local storage persistence with automatic backup
+- Completion tracking with visual indicators
 
-**Launcher Script (`open_editor.py`)**
-- Copies problems.json to working directory for easy access
-- Opens the HTML editor in default browser
-- Handles file path management and provides user instructions
+**Launcher (`editor/open_editor.py`)**
+- Copies problems.json to working directory
+- Opens editor in default browser
+- Manages file paths for user convenience
 
-### Data Structure
+## Development Commands
 
-The project uses a standardized JSON format:
+### Environment Setup
+```bash
+# Create virtual environment
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure Mathpix API credentials
+echo "MATHPIX_APP_ID=your_app_id" > .env
+echo "MATHPIX_APP_KEY=your_app_key" >> .env
+```
+
+### PDF Conversion
+```bash
+# Basic conversion
+python backend/src/converter/pdf_converter.py --pdf "path/to/exam.pdf" --prefix "school_course_type_term_year" --output "storage/processed"
+
+# Example with UPenn exam
+python backend/src/converter/pdf_converter.py --pdf "data/upenn/103finalf14.pdf" --prefix "upenn_math103_final_fall_2014" --output "storage/processed"
+```
+
+### Editor Workflow
+```bash
+# Quick launch - opens browser with editor
+python editor/open_editor.py
+
+# Manual approach
+# 1. Open editor/problem_editor.html in browser
+# 2. Load JSON file via interface
+# 3. Edit and export
+```
+
+## JSON Data Structure
+
 ```json
 {
   "doc": {
     "id": "prefix_identifier",
-    "school": "institution_name", 
+    "school": "institution_name",
     "course": "course_code",
     "problem_type": "exam_type",
     "term": "semester",
     "year": "academic_year",
     "total_problems": 15,
     "total_images": 2,
-    "created_at": "timestamp (Eastern Time, YYYY-MM-DD HH:MM:SS format)"
+    "created_at": "YYYY-MM-DD HH:MM:SS"  // Eastern Time
   },
   "problems": [
     {
       "id": "unique_problem_id",
-      "problem_text": "LaTeX formatted problem statement",
-      "answer_options": {"A": "option1", "B": "option2"}, // or null for text answers
-      "correct_answer": "A", // or text answer
-      "solution": "detailed solution steps",
-      "images": ["filename1.png"],
+      "problem_text": "LaTeX formatted statement",
+      "answer_options": {"A": "opt1", "B": "opt2"},  // null for text answers
+      "correct_answer": "A",
+      "solution": "detailed steps",
+      "images": ["file1.png"],
       "difficulty": "easy|medium|hard",
       "topics": ["calculus", "derivatives"]
     }
@@ -61,114 +95,108 @@ The project uses a standardized JSON format:
 }
 ```
 
-## Development Commands
-
-### Environment Setup
-```bash
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Running the Converter
-```bash
-# Convert a PDF to JSON format
-python src/converter.py --pdf "path/to/exam.pdf" --prefix "school_course_type_term_year" --output "output"
-
-# Example
-python src/converter.py --pdf "data/103finalf14.pdf" --prefix "penn_math103_final_fall_2014" --output "output"
-```
-
-### Environment Variables Required
-Create a `.env` file in the root directory:
-```
-MATHPIX_APP_ID=your_app_id_here
-MATHPIX_APP_KEY=your_app_key_here
-```
-
-### Opening the Editor
-```bash
-# Quick start - copies files and opens browser
-python open_editor.py
-
-# Manual approach - open problem_editor.html directly in browser
-```
-
 ## Key Implementation Details
 
-### PDF Processing Strategy
-- Converts PDF to high-resolution images (2x scale) for better OCR accuracy
-- Automatically detects content start page by analyzing for math content and problem numbers
-- Filters out common exam metadata patterns (headers, instructions, student info)
-- Uses content analysis to associate images with specific problems
-- Handles multiple problems per page with boundary detection
+### PDF Processing (`backend/src/converter/pdf_converter.py`)
 
-### Image Association Logic
-The converter uses sophisticated logic to associate images with problems:
-- Analyzes problem boundaries using regex patterns for problem numbers
-- Filters header images based on position and size heuristics
-- Associates images with problems based on content proximity and context
-- Supports both Mathpix-extracted images and direct PDF image extraction
+**Content Detection**
+- `_detect_content_start_page()`: Finds first page with math content
+- `_filter_page_content()`: Removes headers/footers using regex patterns
+- `_is_valid_problem_content()`: Validates problems using math keywords
 
-### Problem Text Processing
-- Extracts subproblems (a), b), c) formats) from main problem text
-- Validates problem content using math-specific patterns and keywords
-- Cleans extracted text by removing exam artifacts and metadata
+**Image Association**
+- `_find_best_problem_for_image()`: Maps images to problems using boundaries
+- Filters header images based on position and size
+- Handles both Mathpix-extracted and PDF-embedded images
+
+**Problem Extraction**
+- Detects problem numbers (1., 2., etc.) and subproblems (a), b), c))
 - Preserves LaTeX formatting for mathematical expressions
+- Extracts multiple choice options and identifies answer patterns
 
-### Editor Features
-- Click-to-edit LaTeX rendering with real-time preview
-- Automatic problem completion validation
-- Browser storage backup for work-in-progress
-- Statistics tracking (total, completed, incomplete problems)
-- Support for both multiple choice and text-based answers
+### Editor Features (`editor/problem_editor.html`)
+
+**Completion Validation**
+- Problem marked complete when: has text, correct answer, solution, difficulty, and topics
+- Real-time status updates with visual indicators
+- Progress statistics in header
+
+**Data Persistence**
+- `saveToStorage()`: Saves to browser localStorage
+- `exportJSON()`: Downloads edited data as `problems_edited.json`
+- Automatic recovery on page reload
 
 ## File Organization
 
 ```
 mathpix/
-├── src/
-│   └── converter.py          # Main PDF processing logic
-├── data/                     # Input PDF files
-├── output/                   # Generated JSON and images
-│   └── [prefix]/
-│       ├── [prefix].json
-│       └── images/
-├── problem_editor.html       # Web-based editor
-├── open_editor.py           # Launcher script
-├── problems.json            # Working copy for editor
-└── README_editor.md         # Detailed editor documentation
+├── backend/                 # Backend Python services
+│   ├── src/
+│   │   └── converter/
+│   │       ├── __init__.py
+│   │       └── pdf_converter.py
+│   └── requirements.txt
+├── frontend/                # Future web frontend
+├── editor/                  # Standalone editor
+│   ├── problem_editor.html
+│   ├── open_editor.py
+│   └── README_editor.md
+├── storage/                 # Processed data
+│   ├── processed/          # Generated JSON and images
+│   │   └── [prefix]/
+│   │       ├── [prefix].json
+│   │       └── images/
+│   └── temp/               # Temporary files
+├── data/                   # Input PDFs
+│   ├── upenn/
+│   ├── mit/
+│   └── upload/
+└── problems.json          # Working copy
 ```
 
-## Working with the Codebase
+## Processing New Exam Formats
 
-### Adding New PDF Processing Features
-- Extend the `SinglePDFConverter` class in `src/converter.py`
-- Modify the `_filter_page_content()` method to handle new exam formats
-- Update the `_is_valid_problem_content()` method for new problem types
-- Test with various PDF formats to ensure robust extraction
+### Adding Institution-Specific Patterns
+1. Update `_filter_page_content()` in `backend/src/converter/pdf_converter.py` with new header patterns
+2. Add institution-specific problem number formats to regex patterns
+3. Test with sample PDFs to verify extraction accuracy
 
-### Customizing the Editor
-- Modify the HTML/CSS/JavaScript in `problem_editor.html`
-- The editor is self-contained with embedded MathJax
-- Uses local storage for backup - data persists between sessions
-- Add new validation rules in the `isProblemComplete()` function
+### Prefix Convention
+Format: `institution_course_type_term_year`
+Examples:
+- `upenn_math103_final_fall_2021`
+- `mit_18.01_midterm_spring_2022`
+- `stanford_tournament_competition_april_2024`
 
-### Processing New Exam Formats
-- Create new prefix patterns following the convention: `school_course_type_term_year`
-- Update filtering patterns in `_filter_page_content()` for institution-specific headers
-- Adjust image association logic in `_find_best_problem_for_image()` as needed
+## Common Modifications
 
-## Testing and Quality Assurance
+### Adjusting Image Processing
+- Scale factor: Modify `matrix=fitz.Matrix(2, 2)` in pdf_converter.py:line ~150
+- Image filtering: Update size/position thresholds in `_find_best_problem_for_image()`
 
-Always verify output quality by:
-1. Running the converter on test PDFs
-2. Opening the generated JSON in the editor
-3. Checking that images are properly associated with problems
-4. Verifying LaTeX rendering in the editor
-5. Ensuring all problems are correctly extracted and formatted
+### Enhancing Problem Validation
+- Math keywords: Edit `math_keywords` list in `_is_valid_problem_content()`
+- Problem patterns: Modify regex in `_filter_page_content()` for new formats
 
-The editor provides completion indicators to help identify problems that need manual review or correction.
+### Editor Customization
+- Validation rules: Update `isProblemComplete()` function
+- UI elements: Modify HTML structure and CSS styles
+- Storage keys: Change localStorage keys in save/load functions
+
+## Dependencies
+
+- **requests**: Mathpix API communication
+- **python-dotenv**: Environment variable management
+- **PyMuPDF (fitz)**: PDF to image conversion
+- **Pillow**: Image processing
+- **pytz**: Timezone handling for timestamps
+- **supabase**: Database integration (optional)
+
+## Quality Assurance Checklist
+
+1. Verify PDF conversion captures all problems
+2. Check image associations are correct
+3. Validate LaTeX rendering in editor
+4. Confirm completion indicators work properly
+5. Test export/import functionality
+6. Verify problem numbering sequence

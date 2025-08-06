@@ -23,7 +23,7 @@ class SinglePDFConverter:
         self.app_key = app_key
         self.base_url = "https://api.mathpix.com/v3"
     
-    def convert_pdf(self, pdf_path, output_dir="output", id_prefix=None):
+    def convert_pdf(self, pdf_path, output_dir="storage/processed", id_prefix=None):
         """Convert a single PDF to JSON with problems and images"""
         
         print(f"🔄 Converting: {pdf_path}")
@@ -1988,8 +1988,8 @@ def main():
                        help='Path to the PDF file (default: ../data/103finalf14.pdf)')
     parser.add_argument('--prefix', '-i', type=str, required=True,
                        help='ID prefix for the problems (e.g., math103_final_fall2014)')
-    parser.add_argument('--output', '-o', type=str, default="output",
-                       help='Output directory (default: output)')
+    parser.add_argument('--output', '-o', type=str, default="storage/processed",
+                       help='Output directory (default: storage/processed)')
     
     args = parser.parse_args()
     

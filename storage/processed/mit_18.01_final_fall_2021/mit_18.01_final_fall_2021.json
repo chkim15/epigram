@@ -1,0 +1,95 @@
+{
+  "doc": {
+    "id": "mit_18.01_final_fall_2021",
+    "school": "mit",
+    "course": "18.01",
+    "problem_type": "final",
+    "term": "fall",
+    "year": "2021",
+    "total_problems": 3,
+    "total_images": 2,
+    "created_at": "2025-08-05 21:34:16",
+    "updated_at": null,
+    "version": "raw"
+  },
+  "problems": [
+    {
+      "id": "mit_18.01_final_fall_2021_p1",
+      "doc_id": "mit_18.01_final_fall_2021",
+      "problem_text": "Finger exercises",
+      "subproblems": {
+        "a": {
+          "problem_text": "Find the 2 nd-order Taylor series of \\( f \\) around \\( x=0 \\)",
+          "correct_answer": null,
+          "hint": [],
+          "solution": {
+            "text": "Compute \\[ \\begin{aligned} f(x) & =e^{-x^{2}}+\\frac{1}{10} x, \\quad f(0)=1 f^{\\prime \\prime}(x) & =-2 e^{-x^{2}}+4 x^{2} e^{-x^{2}}, \\quad f^{\\prime \\prime}(0)=-2 \\end{aligned} \\] Use this in the formula for Taylor series to get \\[ f(x) \\approx 1+\\frac{1}{10} x-x^{2} \\] Alternative method: Recall the Taylor series formula for \\( e^{z} \\) : \\[ e^{z}=1+z+\\frac{z^{2}}{2}+\\frac{z^{3}}{3!}+\\cdots \\] and plug in \\( z=-x^{2} \\) to get the 2nd order Taylor series \\[ e^{-x^{2}} \\approx 1-x^{2} \\] (we don't need any terms that are higher order in \\( x \\), so we drop them). The function \\( \\frac{1}{10} x \\) is linear, so it is already in the form of a 2 nd order Taylor series. Add the two Taylor approximations together to get \\[ f(x) \\approx 1-x^{2}+\\frac{1}{10} x=1+\\frac{1}{10} x-x^{2} \\]",
+            "images": []
+          },
+          "images": []
+        },
+        "b": {
+          "problem_text": "What fraction of the population is at least 50 years old?",
+          "correct_answer": null,
+          "hint": [],
+          "solution": {
+            "text": "We need to find the integral of the density function: \\[ \\text { proportion of population at least } 50 \\mathrm{y} / \\mathrm{o}=\\int_{50 \\mathrm{yrs}}^{100 \\mathrm{yrs}} p(t) d t \\] One solution is to notice that the line \\( t=50 \\) bisects the bottom of the triangle, and the area to the right corresponds to a triangle that has \\( 1 / 4 \\) of the total area: )",
+            "images": []
+          },
+          "images": []
+        },
+        "c": {
+          "problem_text": "Find \\( \\int x \\ln x d x \\). ) 3",
+          "correct_answer": null,
+          "hint": [],
+          "solution": {
+            "text": "We will integrate by parts. \\[ \\begin{array}{rlr} u & =\\ln x, & v=x^{2} / 2 \\int x \\ln x d x & =\\frac{x^{2}}{2} \\ln x-\\int \\frac{x^{2}}{2} \\cdot \\frac{1}{x} d x & & =\\frac{1}{2} x^{2} \\ln x-\\frac{1}{4} x^{2} & \\end{array} \\] ) 4 2 Taylor Let \\( f(x)=e^{-x^{2}}+\\frac{1}{10} x \\).",
+            "images": []
+          },
+          "images": []
+        }
+      },
+      "correct_answer": null,
+      "hint": [],
+      "solution": null,
+      "images": [
+        "p1_1.png"
+      ],
+      "difficulty": null,
+      "domain": [],
+      "topics": [],
+      "math_approach": [],
+      "reasoning_type": []
+    },
+    {
+      "id": "mit_18.01_final_fall_2021_p2",
+      "doc_id": "mit_18.01_final_fall_2021",
+      "problem_text": "Taylor Let \\( f(x)=e^{-x^{2}}+\\frac{1}{10} x \\).",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": [],
+      "solution": null,
+      "images": [],
+      "difficulty": null,
+      "domain": [],
+      "topics": [],
+      "math_approach": [],
+      "reasoning_type": []
+    },
+    {
+      "id": "mit_18.01_final_fall_2021_p10",
+      "doc_id": "mit_18.01_final_fall_2021",
+      "problem_text": "& =3(10)^{2}=300 \\end{aligned} \\] Then we have: \\[ f(10+\\Delta",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": [],
+      "solution": null,
+      "images": [],
+      "difficulty": null,
+      "domain": [],
+      "topics": [],
+      "math_approach": [],
+      "reasoning_type": []
+    }
+  ]
+}

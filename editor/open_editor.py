@@ -9,11 +9,11 @@ import webbrowser
 from pathlib import Path
 
 def main():
-    # Get the current directory
-    current_dir = Path.cwd()
+    # Get the directory of this script
+    script_dir = Path(__file__).parent
     
-    # Define path to HTML editor
-    editor_html = current_dir / "problem_editor.html"
+    # Define path to HTML editor (in the same directory as this script)
+    editor_html = script_dir / "problem_editor.html"
     
     # Check if the HTML file exists
     if not editor_html.exists():
