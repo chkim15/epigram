@@ -32,3 +32,4 @@ frontend/.next/
 .cursor/mcp.json
 .vscode/
 .idea/
+.mcp.json
