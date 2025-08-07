@@ -28,6 +28,25 @@
         function preprocessLatexLists(text) {
             if (!text) return text;
             
+            // Protect LaTeX environments that should not have \\ converted to <br>
+            // Store them temporarily and restore after processing
+            const protectedEnvironments = [];
+            const placeholder = '___PROTECTED_ENV_';
+            
+            // Protect cases environment and other math environments
+            text = text.replace(/\\begin\{cases\}[\s\S]*?\\end\{cases\}/g, function(match) {
+                const index = protectedEnvironments.length;
+                protectedEnvironments.push(match);
+                return placeholder + index + '___';
+            });
+            
+            // Protect align, aligned, array environments (including starred versions)
+            text = text.replace(/\\begin\{(align\*?|aligned|array|matrix|pmatrix|bmatrix|vmatrix|Vmatrix|gather\*?|equation\*?|eqnarray\*?|multline\*?|split|alignat\*?)\}[\s\S]*?\\end\{\1\}/g, function(match) {
+                const index = protectedEnvironments.length;
+                protectedEnvironments.push(match);
+                return placeholder + index + '___';
+            });
+            
             // Convert itemize environment to HTML list
             text = text.replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g, function(match, content) {
                 // Process each \item
@@ -62,6 +81,11 @@
             
             // Convert \par to paragraph breaks
             text = text.replace(/\\par\b/g, '<br><br>');
+            
+            // Restore protected environments
+            protectedEnvironments.forEach((env, index) => {
+                text = text.replace(placeholder + index + '___', env);
+            });
             
             return text;
         }
@@ -1194,6 +1218,16 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label class="form-label">Comment</label>
+                    <div class="problem-text-display" onclick="toggleCommentEdit()" id="commentDisplay">
+                        <div id="commentRendered">${preprocessLatexLists(problem.comment || '')}</div>
+                    </div>
+                    <div class="answer-option" id="commentEdit" style="display: none;">
+                        <textarea id="commentTextarea" onchange="updateProblem('comment', this.value)" onblur="saveComment()" onkeydown="handleMultilineEdit(event)" placeholder="Enter comment...">${problem.comment || ''}</textarea>
+                    </div>
+                </div>
+
                 <div class="save-section">
                     <button class="btn btn-success" onclick="saveCurrentProblem()">
                         💾 Save Problem
@@ -1284,8 +1318,16 @@
                             const elem = document.getElementById(`subSolutionRendered_${key}_${index}`);
                             if (elem) elementsToRender.push(elem);
                         });
+                        
+                        // Subproblem comment
+                        const subCommentElement = document.getElementById(`subproblemCommentRendered_${key}`);
+                        if (subCommentElement) elementsToRender.push(subCommentElement);
                     });
                 }
+                
+                // Add comment element
+                const commentElement = document.getElementById('commentRendered');
+                if (commentElement) elementsToRender.push(commentElement);
                 
                 // Auto-resize all textareas after rendering
                 setTimeout(() => {
@@ -1403,6 +1445,54 @@
 
         function saveTextAnswer() {
             toggleTextAnswerEdit();
+        }
+
+        function toggleCommentEdit() {
+            const display = document.getElementById('commentDisplay');
+            const rendered = document.getElementById('commentRendered');
+            const edit = document.getElementById('commentEdit');
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newText = document.getElementById('commentTextarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateProblem('comment', newText);
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = document.getElementById('commentTextarea');
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0) {
+                    textarea.value = problemsData.problems[currentProblemIndex].comment || '';
+                }
+                
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveComment() {
+            toggleCommentEdit();
         }
 
         // Legacy functions kept for backward compatibility
@@ -1625,6 +1715,18 @@
                         </div>
                         <div class="answer-option" id="subproblemAnswerEdit_${key}" style="display: none;">
                             <textarea onchange="updateSubproblemAnswer('${key}', this.value)" onblur="saveSubproblemAnswer('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter correct answer...">${correctAnswer}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <button class="btn btn-primary" onclick="toggleSubproblemComment('${key}')" type="button" style="font-size: 12px; padding: 4px 8px;">Add Comment</button>
+                        <div id="subproblemCommentContainer_${key}" style="display: none; margin-top: 10px;">
+                            <label class="form-label" style="font-size: 12px;">Comment (${key})</label>
+                            <div class="problem-text-display" onclick="toggleSubproblemCommentEdit('${key}')" id="subproblemCommentDisplay_${key}">
+                                <div id="subproblemCommentRendered_${key}">${preprocessLatexLists(typeof subproblemData === 'object' ? (subproblemData.comment || '') : '')}</div>
+                            </div>
+                            <div class="answer-option" id="subproblemCommentEdit_${key}" style="display: none;">
+                                <textarea onchange="updateSubproblemComment('${key}', this.value)" onblur="saveSubproblemComment('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter comment...">${typeof subproblemData === 'object' ? (subproblemData.comment || '') : ''}</textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1992,7 +2094,8 @@
                         correct_answer: null,
                         hint: [],
                         solution: { text: [], images: [] },
-                        images: []
+                        images: [],
+                        comment: null
                     };
                 }
                 problemsData.problems[currentProblemIndex].subproblems[key].problem_text = value;
@@ -2010,10 +2113,90 @@
                         correct_answer: null,
                         hint: [],
                         solution: { text: [], images: [] },
-                        images: []
+                        images: [],
+                        comment: null
                     };
                 }
                 problemsData.problems[currentProblemIndex].subproblems[key].correct_answer = value;
+            }
+        }
+
+        function toggleSubproblemComment(key) {
+            const container = document.getElementById(`subproblemCommentContainer_${key}`);
+            if (container) {
+                if (container.style.display === 'none') {
+                    container.style.display = 'block';
+                } else {
+                    container.style.display = 'none';
+                }
+            }
+        }
+
+        function toggleSubproblemCommentEdit(key) {
+            const display = document.getElementById(`subproblemCommentDisplay_${key}`);
+            const rendered = document.getElementById(`subproblemCommentRendered_${key}`);
+            const edit = document.getElementById(`subproblemCommentEdit_${key}`);
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateSubproblemComment(key, newText);
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = edit.querySelector('textarea');
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].subproblems && 
+                    problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    textarea.value = problemsData.problems[currentProblemIndex].subproblems[key].comment || '';
+                }
+                
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveSubproblemComment(key) {
+            toggleSubproblemCommentEdit(key);
+        }
+
+        function updateSubproblemComment(key, value) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: null,
+                        correct_answer: null,
+                        hint: [],
+                        solution: { text: [], images: [] },
+                        images: [],
+                        comment: null
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].comment = value;
             }
         }
 

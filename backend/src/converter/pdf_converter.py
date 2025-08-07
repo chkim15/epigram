@@ -1024,7 +1024,8 @@ class SinglePDFConverter:
                         "text": [self._clean_text(solution)] if solution else [],
                         "images": []
                     },
-                    "images": []
+                    "images": [],
+                    "comment": None
                 }
                 
                 subproblem_count += 1
@@ -1192,7 +1193,8 @@ class SinglePDFConverter:
                 "domain": [],
                 "topics": [],
                 "math_approach": [],
-                "reasoning_type": []
+                "reasoning_type": [],
+                "comment": None
             }
             
             combined_problems.append(final_problem)
@@ -1421,7 +1423,8 @@ class SinglePDFConverter:
                         "text": [self._clean_text(solution)] if solution else [],
                         "images": []  # For solution-specific images
                     },
-                    "images": []
+                    "images": [],
+                    "comment": None
                 }
                 if solution:
                     print(f"   ✅ Extracted subproblem {marker['key']} with solution")
