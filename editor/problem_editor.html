@@ -1020,40 +1020,59 @@
             const problemList = document.getElementById('problemList');
             problemList.innerHTML = '';
 
-            problemsData.problems.forEach((problem, index) => {
-                // Set calculus as default domain if no domain is set
-                if (!problem.domain || problem.domain.length === 0) {
-                    problem.domain = ['calculus'];
-                }
-                
-                // Convert topic names to IDs if needed
-                if (problem.topics && Array.isArray(problem.topics)) {
-                    problem.topics = problem.topics.map(topic => {
-                        if (typeof topic === 'string') {
-                            // Find topic by name and convert to ID
-                            const foundTopic = availableTopics.find(t => t.name === topic);
-                            return foundTopic ? foundTopic.id : topic;
-                        }
-                        return topic; // Already an ID
-                    });
-                }
-                
-                const isComplete = isProblemComplete(problem);
-                const listItem = document.createElement('div');
-                listItem.className = 'problem-item';
-                listItem.onclick = () => selectProblem(index);
-                
-                listItem.innerHTML = `
-                    <div class="problem-id">${problem.id}</div>
-                    <div class="problem-status ${isComplete ? 'complete' : 'incomplete'}">
-                    </div>
-                `;
-                
-                problemList.appendChild(listItem);
-            });
+            try {
+                console.log(`Loading ${problemsData.problems.length} problems`);
+                problemsData.problems.forEach((problem, index) => {
+                    console.log(`Processing problem ${index + 1}: ${problem.id}`);
+                    // Initialize null fields to prevent errors
+                    if (!problem.domain) problem.domain = [];
+                    if (!problem.topics) problem.topics = [];
+                    if (!problem.hint) problem.hint = [];
+                    if (!problem.solution) problem.solution = { text: [], images: [] };
+                    if (problem.solution && !problem.solution.text) problem.solution.text = [];
+                    if (problem.solution && !problem.solution.images) problem.solution.images = [];
+                    if (!problem.subproblems) problem.subproblems = {};
+                    if (!problem.math_approach) problem.math_approach = [];
+                    if (!problem.reasoning_type) problem.reasoning_type = [];
+                    if (!problem.images) problem.images = [];
+                    
+                    // Set calculus as default domain if no domain is set
+                    if (!problem.domain || problem.domain.length === 0) {
+                        problem.domain = ['calculus'];
+                    }
+                    
+                    // Convert topic names to IDs if needed
+                    if (problem.topics && Array.isArray(problem.topics)) {
+                        problem.topics = problem.topics.map(topic => {
+                            if (typeof topic === 'string') {
+                                // Find topic by name and convert to ID
+                                const foundTopic = availableTopics.find(t => t.name === topic);
+                                return foundTopic ? foundTopic.id : topic;
+                            }
+                            return topic; // Already an ID
+                        });
+                    }
+                    
+                    const isComplete = isProblemComplete(problem);
+                    const listItem = document.createElement('div');
+                    listItem.className = 'problem-item';
+                    listItem.onclick = () => selectProblem(index);
+                    
+                    listItem.innerHTML = `
+                        <div class="problem-id">${problem.id}</div>
+                        <div class="problem-status ${isComplete ? 'complete' : 'incomplete'}">
+                        </div>
+                    `;
+                    
+                    problemList.appendChild(listItem);
+                });
 
-            updateStats();
-            selectProblem(0);
+                updateStats();
+                selectProblem(0);
+            } catch (error) {
+                console.error('Error loading problems:', error);
+                showError('Error loading problems. Check console for details.');
+            }
         }
 
         function selectProblem(index) {
@@ -2478,19 +2497,29 @@
             // Check if either problem_text exists OR at least one subproblem exists
             const hasContent = problem.problem_text || 
                               (problem.subproblems && Object.keys(problem.subproblems).length > 0 && 
-                               Object.values(problem.subproblems).some(sp => sp && sp.trim()));
+                               Object.values(problem.subproblems).some(sp => sp && sp.problem_text && sp.problem_text.trim()));
             
-            // Handle solution object format
-            const hasSolution = problem.solution && 
-                               (typeof problem.solution === 'string' ? problem.solution : problem.solution.text);
+            // Handle solution object format - check if solution has actual content
+            let hasSolution = false;
+            if (problem.solution) {
+                if (typeof problem.solution === 'string' && problem.solution.trim()) {
+                    hasSolution = true;
+                } else if (problem.solution.text) {
+                    if (Array.isArray(problem.solution.text)) {
+                        hasSolution = problem.solution.text.some(text => text && text.trim());
+                    } else if (typeof problem.solution.text === 'string') {
+                        hasSolution = problem.solution.text.trim().length > 0;
+                    }
+                }
+            }
             
             return hasContent &&
                    problem.correct_answer && 
                    hasSolution && 
                    problem.difficulty && 
-                   problem.topics && 
+                   problem.topics && Array.isArray(problem.topics) &&
                    problem.topics.length > 0 &&
-                   problem.domain &&
+                   problem.domain && Array.isArray(problem.domain) &&
                    problem.domain.length > 0;
                    // Note: math_approach and reasoning_type are now optional
         }
