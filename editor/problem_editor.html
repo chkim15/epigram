@@ -1038,7 +1038,7 @@
                     });
                 }
                 
-                const isComplete = problem.manually_saved && isProblemComplete(problem);
+                const isComplete = isProblemComplete(problem);
                 const listItem = document.createElement('div');
                 listItem.className = 'problem-item';
                 listItem.onclick = () => selectProblem(index);
@@ -1226,6 +1226,16 @@
                     <div class="answer-option" id="commentEdit" style="display: none;">
                         <textarea id="commentTextarea" onchange="updateProblem('comment', this.value)" onblur="saveComment()" onkeydown="handleMultilineEdit(event)" placeholder="Enter comment...">${problem.comment || ''}</textarea>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Importance</label>
+                    <select class="form-control" id="importanceSelect" onchange="updateProblem('importance', parseInt(this.value))">
+                        <option value="">Select importance...</option>
+                        <option value="1" ${problem.importance === 1 ? 'selected' : ''}>1</option>
+                        <option value="2" ${problem.importance === 2 ? 'selected' : ''}>2</option>
+                        <option value="3" ${problem.importance === 3 ? 'selected' : ''}>3</option>
+                    </select>
                 </div>
 
                 <div class="save-section">
@@ -1513,7 +1523,7 @@
             
             const imageCount = images.length;
             // Use document ID if available, fallback to currentFileName
-            const documentId = problemsData?.doc?.id || currentFileName;
+            const documentId = problemsData?.document?.id || problemsData?.doc?.id || currentFileName;
             
             const imageContent = images.map((image, index) => {
                 // Detect if running on GitHub Pages and use appropriate path
@@ -1548,7 +1558,7 @@
             }
             
             // Use document ID if available, fallback to currentFileName
-            const documentId = problemsData?.doc?.id || currentFileName;
+            const documentId = problemsData?.document?.id || problemsData?.doc?.id || currentFileName;
             
             return images.map((image, index) => {
                 // Detect if running on GitHub Pages and use appropriate path
@@ -2440,8 +2450,7 @@
                     localStorage.setItem('originalFileName', originalFileName);
                 }
                 
-                // Mark this problem as manually saved and update completion status
-                problemsData.problems[currentProblemIndex].manually_saved = true;
+                // Update completion status
                 
                 // Update the problem status in the sidebar
                 updateProblemStatus();
@@ -2453,7 +2462,7 @@
         function updateProblemStatus() {
             if (currentProblemIndex >= 0) {
                 const problem = problemsData.problems[currentProblemIndex];
-                const isComplete = problem.manually_saved && isProblemComplete(problem);
+                const isComplete = isProblemComplete(problem);
                 
                 const problemItem = document.querySelectorAll('.problem-item')[currentProblemIndex];
                 const statusElement = problemItem.querySelector('.problem-status');
@@ -2490,7 +2499,7 @@
             if (!problemsData) return;
 
             const total = problemsData.problems.length;
-            const completed = problemsData.problems.filter(p => p.manually_saved && isProblemComplete(p)).length;
+            const completed = problemsData.problems.filter(p => isProblemComplete(p)).length;
             const incomplete = total - completed;
 
             document.getElementById('totalProblems').textContent = total;
@@ -2508,41 +2517,55 @@
             // Create a copy for export
             const exportData = JSON.parse(JSON.stringify(problemsData));
             
-            // Update metadata for export
-            if (exportData.doc) {
-                // Set updated_at timestamp in Eastern timezone with yyyy-mm-dd format
-                const now = new Date();
-                const easternTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-                const year = easternTime.getFullYear();
-                const month = String(easternTime.getMonth() + 1).padStart(2, '0');
-                const day = String(easternTime.getDate()).padStart(2, '0');
-                const hours = String(easternTime.getHours()).padStart(2, '0');
-                const minutes = String(easternTime.getMinutes()).padStart(2, '0');
-                const seconds = String(easternTime.getSeconds()).padStart(2, '0');
-                exportData.doc.updated_at = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-                
-                // Increment version
-                if (exportData.doc.version === 'raw') {
-                    exportData.doc.version = 'v1';
-                } else if (exportData.doc.version && exportData.doc.version.startsWith('v')) {
-                    const currentVersion = parseInt(exportData.doc.version.substring(1));
-                    if (!isNaN(currentVersion)) {
-                        exportData.doc.version = `v${currentVersion + 1}`;
+            // Handle both old format (doc) and new format (document)
+            const documentField = exportData.document || exportData.doc;
+            if (exportData.doc && !exportData.document) {
+                // Convert old format to new format
+                exportData.document = exportData.doc;
+                delete exportData.doc;
+            }
+            
+            // Set updated_at timestamp in Eastern timezone with yyyy-mm-dd format
+            const now = new Date();
+            const easternTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+            const year = easternTime.getFullYear();
+            const month = String(easternTime.getMonth() + 1).padStart(2, '0');
+            const day = String(easternTime.getDate()).padStart(2, '0');
+            const hours = String(easternTime.getHours()).padStart(2, '0');
+            const minutes = String(easternTime.getMinutes()).padStart(2, '0');
+            const seconds = String(easternTime.getSeconds()).padStart(2, '0');
+            const timestampStr = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            
+            // Update each problem's updated_at and version fields
+            if (exportData.problems && Array.isArray(exportData.problems)) {
+                exportData.problems.forEach(problem => {
+                    // Set updated_at timestamp
+                    problem.updated_at = timestampStr;
+                    
+                    // Increment version for each problem
+                    if (problem.version === 'raw') {
+                        problem.version = 'v1';
+                    } else if (problem.version && problem.version.startsWith('v')) {
+                        const currentVersion = parseInt(problem.version.substring(1));
+                        if (!isNaN(currentVersion)) {
+                            problem.version = `v${currentVersion + 1}`;
+                        } else {
+                            problem.version = 'v1';
+                        }
                     } else {
-                        exportData.doc.version = 'v1';
+                        problem.version = 'v1';
                     }
-                } else {
-                    exportData.doc.version = 'v1';
-                }
+                });
             }
 
             const dataStr = JSON.stringify(exportData, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(dataBlob);
             
-            // Create filename with version suffix using the input file name
+            // Create filename with version suffix using the input file name and first problem's version
             const baseFileName = originalFileName ? originalFileName.replace('.json', '') : 'problems';
-            const version = exportData.doc && exportData.doc.version ? exportData.doc.version : 'v1';
+            const version = (exportData.problems && exportData.problems.length > 0) ? 
+                          (exportData.problems[0].version || 'v1') : 'v1';
             const exportFileName = `${baseFileName}_${version}.json`;
             
             const link = document.createElement('a');
@@ -2601,7 +2624,7 @@
             // Convert ![imagename.png] to actual image tags
             return text.replace(/!\[([^\]]+)\]/g, function(match, imageName) {
                 // Use document ID if available, fallback to currentFileName
-                const documentId = problemsData?.doc?.id || currentFileName;
+                const documentId = problemsData?.document?.id || problemsData?.doc?.id || currentFileName;
                 // Detect if running on GitHub Pages and use appropriate path
                 const isGitHubPages = window.location.hostname.includes('github.io');
                 const basePath = isGitHubPages ? '/math-problem-converter' : '';

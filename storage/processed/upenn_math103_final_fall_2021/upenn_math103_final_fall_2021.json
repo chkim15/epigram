@@ -1,5 +1,5 @@
 {
-  "doc": {
+  "document": {
     "id": "upenn_math103_final_fall_2021",
     "school": "upenn",
     "course": "math103",
@@ -7,34 +7,44 @@
     "term": "fall",
     "year": "2021",
     "total_problems": 8,
-    "total_images": 4,
-    "created_at": "2025-08-04 16:15:13",
-    "updated_at": null,
-    "version": "raw"
+    "created_at": "2025-08-07 20:14:21"
   },
   "problems": [
     {
       "id": "upenn_math103_final_fall_2021_p1",
       "doc_id": "upenn_math103_final_fall_2021",
-      "problem_text": "Use the limit definition of the derivative to calculate the derivative of \\( f(x)=\\frac{3}{4 x-3} \\). Find the equation of the tangent line to \\( f(x) \\) at \\( x=1 \\).",
+      "problem_text": "Use the limit definition of the derivative to calculate the derivative of $ f(x)=\\frac{3}{4 x-3} $. Find the equation of the tangent line to $ f(x) $ at $ x=1 $.",
       "subproblems": {},
       "correct_answer": null,
-      "solution": null,
+      "hint": [],
+      "solution": {
+        "text": [],
+        "images": []
+      },
       "images": [],
       "difficulty": null,
       "domain": [],
       "topics": [],
       "math_approach": [],
-      "reasoning_type": []
+      "reasoning_type": [],
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
     },
     {
       "id": "upenn_math103_final_fall_2021_p2",
       "doc_id": "upenn_math103_final_fall_2021",
-      "problem_text": "The graph of \\( f^{\\prime}(x) \\) (the derivative of \\( f(x) \\) ) is given below. Answer the following questions about the function \\( f(x) \\). Include a brief explanation justifying your answer in each part.",
+      "problem_text": "The graph of $ f^{\\prime}(x) $ (the derivative of $ f(x) $ )is given below. Answer the following questions about the function $ f(x) $. Include a brief explanation justifying your answer in each part.",
       "subproblems": {},
       "correct_answer": null,
-      "solution": null,
+      "hint": [],
+      "solution": {
+        "text": [],
+        "images": []
+      },
       "images": [
+        "p2_1.png",
         "p2_2.png",
         "p2_3.png"
       ],
@@ -42,40 +52,67 @@
       "domain": [],
       "topics": [],
       "math_approach": [],
-      "reasoning_type": []
+      "reasoning_type": [],
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
     },
     {
       "id": "upenn_math103_final_fall_2021_p3",
       "doc_id": "upenn_math103_final_fall_2021",
-      "problem_text": "Let \\( f(x)=\\sqrt{1+4 \\sqrt{x}} \\).",
+      "problem_text": "Let $ f(x)=\\sqrt{1+4 \\sqrt{x}} $.",
       "subproblems": {
         "a": {
-          "problem_text": "Find \\( f(36) \\)",
+          "problem_text": "Find $ f(36) $",
           "correct_answer": null,
-          "solution": null,
-          "images": []
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
+          "images": [],
+          "comment": null
         },
         "b": {
-          "problem_text": "Find \\( f^{-1}(7) \\)",
+          "problem_text": "Find $ f^{-1}(7) $",
           "correct_answer": null,
-          "solution": null,
-          "images": []
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
+          "images": [],
+          "comment": null
         },
         "c": {
-          "problem_text": "Find \\( f^{\\prime}(4) \\)",
+          "problem_text": "Find $ f^{\\prime}(4) $",
           "correct_answer": null,
-          "solution": null,
-          "images": []
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
+          "images": [],
+          "comment": null
         }
       },
       "correct_answer": null,
-      "solution": null,
+      "hint": [],
+      "solution": {
+        "text": [],
+        "images": []
+      },
       "images": [],
       "difficulty": null,
       "domain": [],
       "topics": [],
       "math_approach": [],
-      "reasoning_type": []
+      "reasoning_type": [],
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
     },
     {
       "id": "upenn_math103_final_fall_2021_p4",
@@ -83,32 +120,55 @@
       "problem_text": "Evaluate the following limits.",
       "subproblems": {
         "a": {
-          "problem_text": "\\( \\lim _{x \\rightarrow 0} \\frac{x^{2}-x-6}{\\sqrt[3]{x+27}} \\)",
+          "problem_text": "$ \\lim _{x \\rightarrow 0} \\frac{x^{2}-x-6}{\\sqrt[3]{x+27}} $",
           "correct_answer": null,
-          "solution": null,
-          "images": []
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
+          "images": [],
+          "comment": null
         },
         "b": {
-          "problem_text": "\\( \\lim _{x \\rightarrow \\infty} \\frac{6 x+2}{\\sqrt{4 x^{2}-x-3}} \\)",
+          "problem_text": "$ \\lim _{x \\rightarrow \\infty} \\frac{6 x+2}{\\sqrt{4 x^{2}-x-3}} $",
           "correct_answer": null,
-          "solution": null,
-          "images": []
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
+          "images": [],
+          "comment": null
         },
         "c": {
-          "problem_text": "\\( \\lim _{x \\rightarrow 1} \\frac{\\ln (5-4 x)+e^{2 x-2}-1}{\\frac{4}{\\pi} \\arctan (3 x-2)-x} \\)",
+          "problem_text": "$ \\lim _{x \\rightarrow 1} \\frac{\\ln (5-4 x)+e^{2 x-2}-1}{\\frac{4}{\\pi} \\arctan (3 x-2)-x} $",
           "correct_answer": null,
-          "solution": null,
-          "images": []
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
+          "images": [],
+          "comment": null
         }
       },
       "correct_answer": null,
-      "solution": null,
+      "hint": [],
+      "solution": {
+        "text": [],
+        "images": []
+      },
       "images": [],
       "difficulty": null,
       "domain": [],
       "topics": [],
       "math_approach": [],
-      "reasoning_type": []
+      "reasoning_type": [],
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
     },
     {
       "id": "upenn_math103_final_fall_2021_p5",
@@ -116,7 +176,11 @@
       "problem_text": "A farmer wants to fence in a rectangular grazing area next to a river. The grazing area must be 180,000 square meters. What dimensions would require the least amount of fencing if no fencing were required along the river?",
       "subproblems": {},
       "correct_answer": null,
-      "solution": null,
+      "hint": [],
+      "solution": {
+        "text": [],
+        "images": []
+      },
       "images": [
         "p5_1.png"
       ],
@@ -124,7 +188,11 @@
       "domain": [],
       "topics": [],
       "math_approach": [],
-      "reasoning_type": []
+      "reasoning_type": [],
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
     },
     {
       "id": "upenn_math103_final_fall_2021_p6",
@@ -132,42 +200,68 @@
       "problem_text": "",
       "subproblems": {
         "a": {
-          "problem_text": "Evaluate the integral below \\[ \\int \\frac{\\ln \\left(x^{2}+1\\right)}{x^{2}} d x \\]",
+          "problem_text": "Evaluate the integral below $$ \\int \\frac{\\ln \\left(x^{2}+1\\right)}{x^{2}} d x $$",
           "correct_answer": null,
-          "solution": null,
-          "images": []
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
+          "images": [],
+          "comment": null
         },
         "b": {
           "problem_text": "Find the area of the shaded region below",
           "correct_answer": null,
-          "solution": null,
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
           "images": [
             "p6_1.png"
-          ]
+          ],
+          "comment": null
         }
       },
       "correct_answer": null,
-      "solution": null,
+      "hint": [],
+      "solution": {
+        "text": [],
+        "images": []
+      },
       "images": [],
       "difficulty": null,
       "domain": [],
       "topics": [],
       "math_approach": [],
-      "reasoning_type": []
+      "reasoning_type": [],
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
     },
     {
       "id": "upenn_math103_final_fall_2021_p7",
       "doc_id": "upenn_math103_final_fall_2021",
-      "problem_text": "A continuous random variable \\( X \\) has the following probability density function \\[ f(x)=\\left\\{\\begin{array}{cc} \\cos x & \\text { if } 0 \\leq x \\leq \\frac{\\pi}{2} \\\\ 0 & \\text { otherwise } \\end{array}\\right. \\] Find the median.",
+      "problem_text": "A continuous random variable $ X $ has the following probability density function $$ f(x)=\\left\\{\\begin{array}{cc} \\cos x & \\text { if } 0 \\leq x \\leq \\frac{\\pi}{2} \\\\ 0 & \\text { otherwise } \\end{array}\\right. $$ Find the median.",
       "subproblems": {},
       "correct_answer": null,
-      "solution": null,
+      "hint": [],
+      "solution": {
+        "text": [],
+        "images": []
+      },
       "images": [],
       "difficulty": null,
       "domain": [],
       "topics": [],
       "math_approach": [],
-      "reasoning_type": []
+      "reasoning_type": [],
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
     },
     {
       "id": "upenn_math103_final_fall_2021_p8",
@@ -175,26 +269,44 @@
       "problem_text": "",
       "subproblems": {
         "a": {
-          "problem_text": "Use the Taylor series centered at 0 (Maclaurin series) for \\( \\cos x \\) to approximate \\( 32 x \\cos \\sqrt{x} \\) with a cubic polynomial.",
+          "problem_text": "Use the Taylor series centered at 0 (Maclaurin series) for $ \\cos x $ to approximate $ 32 x \\cos \\sqrt{x} $ with a cubic polynomial.",
           "correct_answer": null,
-          "solution": null,
-          "images": []
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
+          "images": [],
+          "comment": null
         },
         "b": {
-          "problem_text": "Use the cubic polynomial found in part a to approximate \\( \\int_{0}^{1} 32 x \\cos \\sqrt{x} d x \\)",
+          "problem_text": "Use the cubic polynomial found in part a to approximate $$ \\int_{0}^{1} 32 x \\cos \\sqrt{x} d x $$",
           "correct_answer": null,
-          "solution": null,
-          "images": []
+          "hint": [],
+          "solution": {
+            "text": [],
+            "images": []
+          },
+          "images": [],
+          "comment": null
         }
       },
       "correct_answer": null,
-      "solution": null,
+      "hint": [],
+      "solution": {
+        "text": [],
+        "images": []
+      },
       "images": [],
       "difficulty": null,
       "domain": [],
       "topics": [],
       "math_approach": [],
-      "reasoning_type": []
+      "reasoning_type": [],
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
     }
   ]
 }

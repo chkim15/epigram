@@ -102,14 +102,11 @@ class SinglePDFConverter:
         metadata = {
             **prefix_metadata,  # Include all parsed prefix fields at the beginning
             "total_problems": len(combined_problems),
-            "total_images": len(all_images),
-            "created_at": eastern_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "updated_at": None,
-            "version": "raw"
+            "created_at": eastern_time.strftime("%Y-%m-%d %H:%M:%S")
         }
         
         final_data = {
-            "doc": metadata,
+            "document": metadata,
             "problems": combined_problems
         }
         
@@ -1194,7 +1191,10 @@ class SinglePDFConverter:
                 "topics": [],
                 "math_approach": [],
                 "reasoning_type": [],
-                "comment": None
+                "comment": None,
+                "importance": None,
+                "updated_at": None,
+                "version": "raw"
             }
             
             combined_problems.append(final_problem)
@@ -1455,7 +1455,12 @@ class SinglePDFConverter:
         # This handles cases like a, c, e, g (where b, d, f might be missing)
         if len(keys) >= 4:
             # Convert letters to numbers for easier analysis
-            letter_nums = [ord(k) - ord('a') for k in keys]
+            # Only process single character keys to avoid TypeError
+            single_char_keys = [k for k in keys if len(k) == 1 and k.isalpha()]
+            if len(single_char_keys) < 4:
+                return False
+            
+            letter_nums = [ord(k) - ord('a') for k in single_char_keys]
             letter_nums.sort()
             
             # If the range spans 4+ positions and we have 4+ items, likely multiple choice
