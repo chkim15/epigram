@@ -84,6 +84,27 @@
             // Convert \par to paragraph breaks
             text = text.replace(/\\par\b/g, '<br><br>');
             
+            // Convert image references ![filename] to HTML img tags
+            text = text.replace(/!\[([^\]]+)\]/g, function(match, filename) {
+                // Get the current document ID for the image path
+                const documentId = problemsData && problemsData.document ? problemsData.document.id : '';
+                
+                if (documentId && filename) {
+                    const imageUrl = getSupabaseImageUrl(documentId, filename);
+                    console.log(`Rendering image: ${filename} from URL: ${imageUrl}`);
+                    return `<div style="text-align: center; margin: 15px 0;">
+                        <img src="${imageUrl}" alt="${filename}" style="max-width: 100%; max-height: 400px; height: auto; border: 1px solid #dee2e6; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" 
+                             onerror="console.error('Failed to load image:', '${imageUrl}'); this.style.display='none'; this.nextSibling.style.display='block';">
+                        <div style="display: none; color: #666; font-style: italic; padding: 10px; border: 1px dashed #ccc; border-radius: 4px; background: #f8f9fa;">
+                            Image not found: ${filename}<br>
+                            <small>Path: ${imageUrl}</small>
+                        </div>
+                    </div>`;
+                } else {
+                    return `<div style="color: #666; font-style: italic; padding: 10px; border: 1px dashed #ccc; border-radius: 4px; margin: 10px 0; background: #f8f9fa; text-align: center;">Image not found: ${filename} (No document loaded)</div>`;
+                }
+            });
+            
             // Restore protected environments
             protectedEnvironments.forEach((env, index) => {
                 text = text.replace(placeholder + index + '___', env);
@@ -193,6 +214,16 @@
             transform: translateY(-2px);
         }
 
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+
         .btn-warning {
             background: #ffc107;
             color: #212529;
@@ -248,8 +279,8 @@
             font-size: 12px;
             padding: 4px 8px;
             border-radius: 12px;
-            background: #28a745;
-            color: white;
+            background: #ffc107;
+            color: #212529;
         }
 
         .problem-status.incomplete {
@@ -260,6 +291,11 @@
         .problem-status.incomplete::before {
             content: "⚠";
             margin-right: 4px;
+        }
+
+        .problem-status.complete {
+            background: #ffc107;
+            color: #212529;
         }
 
         .problem-status.complete::before {
@@ -900,6 +936,115 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: none;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {transform: translateY(-50px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            margin: 0;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .document-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+
+        .document-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .document-item:last-child {
+            border-bottom: none;
+        }
+
+        .document-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .document-item.selected {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .document-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .document-details {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .modal-footer .btn {
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -915,6 +1060,9 @@
             </button>
             <button class="btn btn-success" onclick="exportData()">
                 💾 Export JSON
+            </button>
+            <button class="btn btn-info" onclick="showReadDatabaseModal()">
+                📖 Read Database
             </button>
             <button class="btn btn-primary" onclick="updateDatabaseWorking()">
                 🗃️ Update Database
@@ -952,6 +1100,25 @@
             <div class="stat-item">
                 <div class="stat-number" id="incompleteProblems">0</div>
                 <div class="stat-label">Incomplete</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Read Database Modal -->
+    <div id="readDatabaseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📖 Select Document from Database</h2>
+                <span class="close" onclick="closeReadDatabaseModal()">&times;</span>
+            </div>
+            <div id="documentListContainer">
+                <div style="text-align: center; padding: 20px; color: #666;">
+                    Loading documents...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeReadDatabaseModal()">Cancel</button>
+                <button id="loadDocumentBtn" class="btn btn-primary" onclick="loadSelectedDocument()" disabled>Load Document</button>
             </div>
         </div>
     </div>
@@ -1053,24 +1220,8 @@
         }
 
 
-        async function insertImagesWorking(images, problemUuid, subproblemUuid = null, context = 'problem') {
-            if (!images || images.length === 0) return;
-            
-            const imageData = images.map(image => ({
-                problem_id: problemUuid,
-                subproblem_id: subproblemUuid,
-                solution_id: null,
-                image_path: image,
-                context: context
-            }));
-            
-            const { data, error } = await supabase
-                .from('images')
-                .insert(imageData)
-                .select();
-            
-            if (error) throw new Error(`Images insert failed: ${error.message}`);
-        }
+        // Images are handled directly via Supabase storage URLs from JSON data
+        // No database insertion function needed for image metadata
 
         // Hints are now stored directly in problems/subproblems table - no separate function needed
 
@@ -1096,69 +1247,114 @@
                 originalButton.disabled = true;
                 console.log('Starting database update...');
                 
-                // Insert document
-                const documentData = problemsData.document;
-                console.log('Inserting document:', documentData);
-                const documentResponse = await insertDocumentWorking(documentData);
-                const documentUuid = documentResponse.data[0].id;
-                console.log('Document inserted with UUID:', documentUuid);
+                // Detect changes
+                const changedProblems = detectChangedProblems();
                 
-                // Insert all problems
-                let successfulInserts = 0;
-                let totalProblems = problemsData.problems.length;
+                if (changedProblems.length === 0) {
+                    // No changes detected
+                    originalButton.innerHTML = originalText;
+                    originalButton.disabled = false;
+                    showSuccess('No changes detected. Database is up to date.');
+                    return;
+                }
                 
-                for (const problem of problemsData.problems) {
+                console.log(`Found ${changedProblems.length} changed problems:`, changedProblems.map(cp => cp.problemId));
+                
+                // Get document UUID (assuming document exists since we loaded from database)
+                const { data: docData, error: docError } = await supabase
+                    .from('documents')
+                    .select('id')
+                    .eq('document_id', problemsData.document.id)
+                    .single();
+
+                if (docError) {
+                    throw new Error('Failed to find document in database: ' + docError.message);
+                }
+                const documentUuid = docData.id;
+                
+                // Update only changed problems
+                let successfulUpdates = 0;
+                
+                for (const changeInfo of changedProblems) {
                     try {
-                        console.log(`Processing problem: ${problem.id}`);
+                        const problem = problemsData.problems[changeInfo.index];
+                        const originalProblem = originalData.problems.find(p => p.id === problem.id);
                         
-                        // Insert problem
-                        const problemResponse = await insertProblemWorking(problem, documentUuid);
-                        const problemUuid = problemResponse.data[0].id;
+                        console.log(`Updating problem: ${problem.id}`);
                         
-                        // Insert subproblems (hints and solutions now stored directly in subproblems table)
+                        // Increment version
+                        const newVersion = incrementVersion(originalProblem?.version || 'v1');
+                        problem.version = newVersion;
+                        problem.updated_at = new Date().toISOString();
+                        
+                        // Update problem in database
+                        const updateData = {
+                            problem_text: problem.problem_text,
+                            correct_answer: problem.correct_answer,
+                            hint: problem.hint,
+                            solution_text: problem.solution?.text,
+                            math_approach: problem.math_approach,
+                            reasoning_type: problem.reasoning_type,
+                            topic_id: problem.topics && problem.topics.length > 0 ? problem.topics[0] : null,
+                            difficulty: problem.difficulty,
+                            importance: problem.importance,
+                            comment: problem.comment,
+                            version: newVersion,
+                            updated_at: new Date().toISOString()
+                        };
+                        
+                        const { error: updateError } = await supabase
+                            .from('problems')
+                            .update(updateData)
+                            .eq('problem_id', problem.id);
+                        
+                        if (updateError) {
+                            throw updateError;
+                        }
+                        
+                        // Update subproblems if they exist
                         if (problem.subproblems && Object.keys(problem.subproblems).length > 0) {
-                            const subproblemResponse = await insertSubproblemsWorking(problem.subproblems, problemUuid);
-                            
-                            // Insert images for subproblems
-                            for (const [key, subproblem] of Object.entries(problem.subproblems)) {
-                                const subproblemUuid = subproblemResponse.data?.find(s => s.key === key)?.id;
+                            // Get the problem UUID from database
+                            const { data: problemData, error: problemError } = await supabase
+                                .from('problems')
+                                .select('id')
+                                .eq('problem_id', problem.id)
+                                .single();
                                 
-                                if (subproblem.images && subproblem.images.length > 0) {
-                                    await insertImagesWorking(subproblem.images, problemUuid, subproblemUuid, 'subproblem');
-                                }
+                            if (!problemError) {
+                                const problemUuid = problemData.id;
                                 
-                                // Insert subproblem solution images if they exist
-                                if (subproblem.solution && subproblem.solution.images && subproblem.solution.images.length > 0) {
-                                    await insertImagesWorking(subproblem.solution.images, problemUuid, subproblemUuid, 'subproblem_solution');
-                                }
+                                // Delete existing subproblems and insert new ones (simpler than selective update)
+                                await supabase.from('subproblems').delete().eq('problem_id', problemUuid);
+                                await insertSubproblemsWorking(problem.subproblems, problemUuid);
                             }
                         }
                         
-                        // Insert problem-level images (hints, solutions, topics, approach, reasoning stored directly in problems table)
-                        if (problem.images && problem.images.length > 0) {
-                            console.log(`Inserting images for ${problem.id}:`, problem.images);
-                            await insertImagesWorking(problem.images, problemUuid, null, 'problem');
-                        }
-                        
-                        // Insert solution images if they exist
-                        if (problem.solution && problem.solution.images && problem.solution.images.length > 0) {
-                            console.log(`Inserting solution images for ${problem.id}:`, problem.solution.images);
-                            await insertImagesWorking(problem.solution.images, problemUuid, null, 'problem_solution');
-                        }
-                        
-                        successfulInserts++;
-                        console.log(`Problem ${problem.id} inserted successfully`);
+                        successfulUpdates++;
+                        console.log(`Problem ${problem.id} updated successfully to version ${newVersion}`);
                         
                     } catch (problemError) {
-                        console.error(`Failed to insert problem ${problem.id}:`, problemError);
+                        console.error(`Failed to update problem ${changeInfo.problemId}:`, problemError);
                     }
+                }
+                
+                // Update originalData to reflect the new state
+                if (successfulUpdates > 0) {
+                    originalData = JSON.parse(JSON.stringify(problemsData));
+                    
+                    // Save to localStorage
+                    localStorage.setItem('problemsData', JSON.stringify(problemsData));
                 }
                 
                 // Reset button
                 originalButton.innerHTML = originalText;
                 originalButton.disabled = false;
                 
-                showSuccess(`Database update completed! ${successfulInserts}/${totalProblems} problems inserted successfully.`);
+                if (successfulUpdates === changedProblems.length) {
+                    showSuccess(`Database update completed! ${successfulUpdates} problem(s) updated successfully.`);
+                } else {
+                    showError(`Partial update: ${successfulUpdates}/${changedProblems.length} problem(s) updated successfully.`);
+                }
                 console.log('Database update completed');
                 
             } catch (error) {
@@ -3170,20 +3366,21 @@
         function processImagePlaceholders(text) {
             if (!text) return text;
             
-            // Convert ![imagename.png] to actual image tags
+            // Convert ![imagename.png] to actual image tags using Supabase storage
             return text.replace(/!\[([^\]]+)\]/g, function(match, imageName) {
                 // Use document ID if available, fallback to currentFileName
                 const documentId = problemsData?.document?.id || problemsData?.doc?.id || currentFileName;
-                // Detect if running on GitHub Pages and use appropriate path
-                const isGitHubPages = window.location.hostname.includes('github.io');
-                const basePath = isGitHubPages ? '/math-problem-converter' : '';
-                const imagePath = `${basePath}/storage/processed/${documentId}/images/${imageName}`;
                 
-                return `<div style="text-align: center; margin: 15px 0;">
-                    <img src="${imagePath}" alt="${imageName}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <div style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${imageName}</div>
-                    <div style="font-size: 12px; color: #6c757d; margin-top: 8px;">${imageName}</div>
-                </div>`;
+                if (documentId && imageName) {
+                    const imagePath = getSupabaseImageUrl(documentId, imageName);
+                    return `<div style="text-align: center; margin: 15px 0;">
+                        <img src="${imagePath}" alt="${imageName}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${imageName}</div>
+                        <div style="font-size: 12px; color: #6c757d; margin-top: 8px;">${imageName}</div>
+                    </div>`;
+                } else {
+                    return `<div style="color: #666; font-style: italic; padding: 10px; border: 1px dashed #ccc; border-radius: 4px; margin: 10px 0; background: #f8f9fa; text-align: center;">Image not found: ${imageName} (No document loaded)</div>`;
+                }
             });
         }
 
@@ -3587,6 +3784,18 @@
                     </div>
                     <div class="solution-edit" id="solutionEdit_single" style="${solutionText ? 'display: none;' : ''}">
                         <textarea class="form-control" id="solutionTextarea_single" onblur="saveSingleSolutionEdit()" style="width: 100%; min-height: 100px; resize: vertical; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${solutionText ? solutionText.replace(/"/g, '&quot;') : ''}</textarea>
+                    </div>
+                    
+                    <!-- Solution Image Upload Section (Always Visible) -->
+                    <div class="solution-image-upload" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        <label style="font-size: 12px; color: #6c757d; margin-bottom: 5px; display: block;">Solution Images</label>
+                        <input type="file" id="solutionImageUpload" multiple accept="image/*" style="display: none;" onchange="handleSolutionImageUpload(event)">
+                        <button type="button" class="btn btn-sm" onclick="triggerSolutionImageUpload()" style="background: #17a2b8; color: white; font-size: 12px; padding: 6px 12px;">
+                            📷 Upload Images
+                        </button>
+                        <div id="solutionImagePreview" style="margin-top: 10px;">
+                            ${generateSolutionImagePreview(solution)}
+                        </div>
                     </div>
                 </div>
             `;
@@ -4234,6 +4443,612 @@
             } else {
                 display.style.display = 'none';
                 edit.style.display = 'block';
+            }
+        }
+
+        // ===== READ DATABASE FUNCTIONALITY =====
+        let selectedDocumentId = null;
+
+        async function showReadDatabaseModal() {
+            const modal = document.getElementById('readDatabaseModal');
+            modal.style.display = 'block';
+            await loadDocumentList();
+        }
+
+        function closeReadDatabaseModal() {
+            const modal = document.getElementById('readDatabaseModal');
+            modal.style.display = 'none';
+            selectedDocumentId = null;
+            document.getElementById('loadDocumentBtn').disabled = true;
+        }
+
+        async function loadDocumentList() {
+            const container = document.getElementById('documentListContainer');
+            
+            try {
+                // Query all documents from the database
+                const { data: documents, error } = await supabase
+                    .from('documents')
+                    .select('id, document_id, school, course, problem_type, term, year, total_problems, created_at')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    throw error;
+                }
+
+                if (documents && documents.length > 0) {
+                    let html = '<div class="document-list">';
+                    
+                    documents.forEach(doc => {
+                        const createdDate = new Date(doc.created_at).toLocaleDateString();
+                        html += `
+                            <div class="document-item" data-document-id="${doc.document_id}" onclick="selectDocument('${doc.document_id}')">
+                                <div class="document-title">${doc.document_id}</div>
+                                <div class="document-details">
+                                    ${doc.school || 'Unknown'} • ${doc.course || 'Unknown'} • ${doc.problem_type || 'Unknown'} • ${doc.term || ''} ${doc.year || ''}<br>
+                                    ${doc.total_problems || 0} problems • Created: ${createdDate}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No documents found in database.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc3545;">Error loading documents: ' + error.message + '</div>';
+            }
+        }
+
+        function selectDocument(documentId) {
+            // Remove previous selection
+            document.querySelectorAll('.document-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Add selection to clicked item
+            document.querySelector(`[data-document-id="${documentId}"]`).classList.add('selected');
+            
+            selectedDocumentId = documentId;
+            document.getElementById('loadDocumentBtn').disabled = false;
+        }
+
+        async function loadSelectedDocument() {
+            if (!selectedDocumentId) {
+                showError('No document selected');
+                return;
+            }
+
+            try {
+                // Show loading state
+                document.getElementById('loadDocumentBtn').innerHTML = '⏳ Loading...';
+                document.getElementById('loadDocumentBtn').disabled = true;
+
+                const documentData = await loadDocumentFromDatabase(selectedDocumentId);
+                
+                if (documentData) {
+                    // Replace current data with loaded document
+                    problemsData = documentData;
+                    originalData = JSON.parse(JSON.stringify(documentData)); // Deep copy for change detection
+                    
+                    // Update UI
+                    displayProblemsList();
+                    updateStats();
+                    
+                    // Update file info
+                    document.getElementById('fileInfo').textContent = `Loaded: ${selectedDocumentId}`;
+                    currentFileName = selectedDocumentId;
+                    originalFileName = selectedDocumentId;
+                    
+                    // Save to localStorage
+                    localStorage.setItem('problemsData', JSON.stringify(problemsData));
+                    localStorage.setItem('currentFileName', currentFileName);
+                    localStorage.setItem('originalFileName', originalFileName);
+                    
+                    // Close modal
+                    closeReadDatabaseModal();
+                    
+                    showSuccess('Document loaded successfully from database!');
+                }
+                
+            } catch (error) {
+                console.error('Error loading document:', error);
+                showError('Error loading document: ' + error.message);
+            } finally {
+                // Restore button state
+                document.getElementById('loadDocumentBtn').innerHTML = 'Load Document';
+                document.getElementById('loadDocumentBtn').disabled = false;
+            }
+        }
+
+        async function loadDocumentFromDatabase(documentId) {
+            try {
+                // Get document metadata
+                const { data: docData, error: docError } = await supabase
+                    .from('documents')
+                    .select('*')
+                    .eq('document_id', documentId)
+                    .single();
+
+                if (docError) throw docError;
+
+                // Get problems with topics
+                const { data: problemsData, error: problemsError } = await supabase
+                    .from('problems')
+                    .select(`
+                        id,
+                        problem_id,
+                        problem_text,
+                        correct_answer,
+                        hint,
+                        solution_text,
+                        math_approach,
+                        reasoning_type,
+                        topic_id,
+                        difficulty,
+                        importance,
+                        comment,
+                        version,
+                        created_at,
+                        updated_at,
+                        topics:topic_id(name)
+                    `)
+                    .eq('document_id', docData.id)
+                    .order('problem_id');
+
+                if (problemsError) throw problemsError;
+
+                // Get subproblems
+                const problemIds = problemsData.map(p => p.id);
+                let subproblemsData = [];
+                
+                if (problemIds.length > 0) {
+                    const { data: subs, error: subError } = await supabase
+                        .from('subproblems')
+                        .select('*')
+                        .in('problem_id', problemIds);
+                    
+                    if (subError) throw subError;
+                    subproblemsData = subs || [];
+                }
+
+                // Transform to JSON format
+                const problems = problemsData.map(problem => {
+                    // Get subproblems for this problem
+                    const subprobs = subproblemsData.filter(sub => sub.problem_id === problem.id);
+                    const subproblemsObj = {};
+                    
+                    subprobs.forEach(sub => {
+                        subproblemsObj[sub.key] = {
+                            problem_text: sub.problem_text,
+                            correct_answer: sub.correct_answer,
+                            hint: sub.hint,
+                            solution: {
+                                text: sub.solution_text,
+                                images: [] // Images are stored in Supabase storage, not database
+                            },
+                            images: [], // Will be populated from storage if needed
+                            comment: sub.comment
+                        };
+                    });
+
+                    // Get topic as array (convert single topic_id to array format expected by frontend)
+                    const topics = problem.topics ? [problem.topic_id] : [];
+
+                    return {
+                        id: problem.problem_id,
+                        doc_id: documentId,
+                        problem_text: problem.problem_text,
+                        subproblems: subproblemsObj,
+                        correct_answer: problem.correct_answer,
+                        hint: problem.hint,
+                        solution: {
+                            text: problem.solution_text,
+                            images: [] // Images are stored in Supabase storage
+                        },
+                        images: [], // Images are stored in Supabase storage
+                        difficulty: problem.difficulty,
+                        topics: topics,
+                        math_approach: problem.math_approach,
+                        reasoning_type: problem.reasoning_type,
+                        comment: problem.comment,
+                        importance: problem.importance,
+                        updated_at: problem.updated_at,
+                        version: problem.version
+                    };
+                });
+
+                // Return in expected format
+                return {
+                    document: {
+                        id: docData.document_id,
+                        school: docData.school,
+                        course: docData.course,
+                        problem_type: docData.problem_type,
+                        term: docData.term,
+                        year: docData.year,
+                        total_problems: docData.total_problems,
+                        created_at: docData.created_at
+                    },
+                    problems: problems
+                };
+
+            } catch (error) {
+                console.error('Error loading document from database:', error);
+                throw error;
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('readDatabaseModal');
+            if (event.target == modal) {
+                closeReadDatabaseModal();
+            }
+        }
+
+        // ===== CHANGE DETECTION SYSTEM =====
+        function detectChangedProblems() {
+            if (!originalData || !problemsData) {
+                return [];
+            }
+
+            const changedProblems = [];
+            
+            problemsData.problems.forEach((currentProblem, index) => {
+                const originalProblem = originalData.problems.find(p => p.id === currentProblem.id);
+                
+                if (!originalProblem) {
+                    // This is a new problem (shouldn't happen in normal workflow, but handle it)
+                    changedProblems.push({
+                        index: index,
+                        problemId: currentProblem.id,
+                        reason: 'new problem'
+                    });
+                    return;
+                }
+
+                // Compare all relevant fields
+                if (isProblemChanged(currentProblem, originalProblem)) {
+                    changedProblems.push({
+                        index: index,
+                        problemId: currentProblem.id,
+                        reason: 'modified'
+                    });
+                }
+            });
+
+            return changedProblems;
+        }
+
+        function isProblemChanged(current, original) {
+            // Compare main problem fields
+            const fieldsToCompare = [
+                'problem_text', 'correct_answer', 'hint', 
+                'difficulty', 'math_approach', 'reasoning_type', 'comment', 'importance'
+            ];
+            
+            for (const field of fieldsToCompare) {
+                if (current[field] !== original[field]) {
+                    return true;
+                }
+            }
+
+            // Compare solution text
+            if (current.solution?.text !== original.solution?.text) {
+                return true;
+            }
+
+            // Compare topics (convert to string for comparison since they're arrays)
+            const currentTopics = JSON.stringify((current.topics || []).sort());
+            const originalTopics = JSON.stringify((original.topics || []).sort());
+            if (currentTopics !== originalTopics) {
+                return true;
+            }
+
+            // Compare subproblems
+            if (isSubproblemsChanged(current.subproblems, original.subproblems)) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function isSubproblemsChanged(currentSubprobs, originalSubprobs) {
+            const currentKeys = Object.keys(currentSubprobs || {}).sort();
+            const originalKeys = Object.keys(originalSubprobs || {}).sort();
+            
+            // Check if number of subproblems changed
+            if (currentKeys.length !== originalKeys.length) {
+                return true;
+            }
+            
+            // Check if subproblem keys are different
+            if (JSON.stringify(currentKeys) !== JSON.stringify(originalKeys)) {
+                return true;
+            }
+            
+            // Check each subproblem for changes
+            for (const key of currentKeys) {
+                const currentSub = currentSubprobs[key];
+                const originalSub = originalSubprobs[key];
+                
+                if (!originalSub) {
+                    return true; // New subproblem
+                }
+                
+                // Compare subproblem fields
+                const subFieldsToCompare = ['problem_text', 'correct_answer', 'hint', 'comment'];
+                for (const field of subFieldsToCompare) {
+                    if (currentSub[field] !== originalSub[field]) {
+                        return true;
+                    }
+                }
+                
+                // Compare subproblem solution text
+                if (currentSub.solution?.text !== originalSub.solution?.text) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        function incrementVersion(currentVersion) {
+            if (!currentVersion) {
+                return 'v2';
+            }
+            
+            // Extract version number (e.g., "v1" -> 1, "v10" -> 10)
+            const match = currentVersion.match(/^v(\d+)$/);
+            if (match) {
+                const versionNumber = parseInt(match[1], 10);
+                return `v${versionNumber + 1}`;
+            }
+            
+            // If version format is unexpected, default to v2
+            return 'v2';
+        }
+
+        function getChangesSummary() {
+            const changedProblems = detectChangedProblems();
+            
+            if (changedProblems.length === 0) {
+                return 'No changes detected.';
+            }
+            
+            const problemIds = changedProblems.map(cp => cp.problemId).join(', ');
+            return `${changedProblems.length} problem(s) changed: ${problemIds}`;
+        }
+
+        // ===== SOLUTION IMAGE UPLOAD FUNCTIONALITY =====
+        function generateSolutionImagePreview(solution) {
+            if (!solution || !solution.images || solution.images.length === 0) {
+                return '<div style="color: #6c757d; font-size: 12px; font-style: italic;">No images uploaded</div>';
+            }
+
+            return solution.images.map((image, index) => `
+                <div style="display: inline-block; margin: 5px; position: relative;">
+                    <img src="${getSupabaseImageUrl(problemsData.document.id, image)}" 
+                         alt="Solution Image ${index + 1}" 
+                         style="max-width: 100px; max-height: 80px; border: 1px solid #dee2e6; border-radius: 4px;">
+                    <button type="button" onclick="removeSolutionImage(${index})" 
+                            style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer;">×</button>
+                    <div style="font-size: 10px; color: #6c757d; text-align: center; margin-top: 2px;">${image}</div>
+                </div>
+            `).join('');
+        }
+
+        async function handleSolutionImageUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            if (currentProblemIndex < 0) {
+                showError('No problem selected');
+                return;
+            }
+
+            try {
+                const problem = problemsData.problems[currentProblemIndex];
+                const problemNumber = extractProblemNumber(problem.id);
+                
+                // Initialize solution.images array if needed
+                if (!problem.solution) {
+                    problem.solution = { text: null, images: [] };
+                }
+                if (!problem.solution.images) {
+                    problem.solution.images = [];
+                }
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    
+                    // Generate automatic filename
+                    const existingCount = problem.solution.images.length;
+                    const filename = `p${problemNumber}_solution_${existingCount + i + 1}.${getFileExtension(file.name)}`;
+                    
+                    // Upload to Supabase Storage
+                    const { error: uploadError } = await supabase.storage
+                        .from(STORAGE_BUCKET)
+                        .upload(`${problemsData.document.id}/images/${filename}`, file);
+
+                    if (uploadError) {
+                        console.error('Upload error:', uploadError);
+                        showError(`Failed to upload ${file.name}: ${uploadError.message}`);
+                        continue;
+                    }
+
+                    // Add to solution images array
+                    problem.solution.images.push(filename);
+                }
+
+                // Update the preview
+                const previewElement = document.getElementById('solutionImagePreview');
+                if (previewElement) {
+                    previewElement.innerHTML = generateSolutionImagePreview(problem.solution);
+                }
+                
+                // Save changes
+                localStorage.setItem('problemsData', JSON.stringify(problemsData));
+                
+                // Show detailed success message with filenames
+                const uploadedNames = [];
+                for (let i = 0; i < files.length; i++) {
+                    const existingCount = problem.solution.images.length - files.length + i;
+                    uploadedNames.push(`p${problemNumber}_solution_${existingCount + 1}.${getFileExtension(files[i].name)}`);
+                }
+                showSuccess(`${files.length} image(s) uploaded successfully: ${uploadedNames.join(', ')}`);
+                
+            } catch (error) {
+                console.error('Error uploading images:', error);
+                showError('Error uploading images: ' + error.message);
+            }
+
+            // Clear the input
+            event.target.value = '';
+        }
+
+        function removeSolutionImage(index) {
+            if (currentProblemIndex < 0) return;
+
+            const problem = problemsData.problems[currentProblemIndex];
+            if (!problem.solution || !problem.solution.images || index >= problem.solution.images.length) {
+                return;
+            }
+
+            // Remove from array
+            const removedImage = problem.solution.images.splice(index, 1)[0];
+            
+            // Update preview
+            const previewElement = document.getElementById('solutionImagePreview');
+            if (previewElement) {
+                previewElement.innerHTML = generateSolutionImagePreview(problem.solution);
+            }
+            
+            // Save changes
+            localStorage.setItem('problemsData', JSON.stringify(problemsData));
+            
+            // Note: We don't delete from Supabase Storage here to avoid accidental data loss
+            // The image will remain in storage but won't be referenced
+            
+            showSuccess('Image removed from solution');
+        }
+
+        function extractProblemNumber(problemId) {
+            // Extract problem number from ID like "upenn_math103_final_fall_2021_p1" -> "1"
+            const match = problemId.match(/_p(\d+)$/);
+            return match ? match[1] : '1';
+        }
+
+        function getFileExtension(filename) {
+            return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
+        }
+
+        function triggerSolutionImageUpload() {
+            const fileInput = document.getElementById('solutionImageUpload');
+            if (fileInput) {
+                fileInput.click();
+            }
+        }
+
+        // Debug function to test image URLs
+        function testImageUrl(filename) {
+            if (!problemsData || !problemsData.document) {
+                console.log('No document loaded');
+                return;
+            }
+            const documentId = problemsData.document.id;
+            const imageUrl = getSupabaseImageUrl(documentId, filename);
+            console.log(`Testing image URL: ${imageUrl}`);
+            
+            // Create a temporary image to test if it loads
+            const testImg = new Image();
+            testImg.onload = function() {
+                console.log(`✅ Image loads successfully: ${filename}`);
+                console.log(`Image dimensions: ${this.naturalWidth}x${this.naturalHeight}`);
+            };
+            testImg.onerror = function() {
+                console.log(`❌ Failed to load image: ${filename}`);
+                console.log(`URL attempted: ${imageUrl}`);
+            };
+            testImg.src = imageUrl;
+        }
+
+        // ===== PROBLEMS LIST DISPLAY FUNCTION =====
+        function displayProblemsList() {
+            if (!problemsData || !problemsData.problems) {
+                return;
+            }
+
+            const problemList = document.getElementById('problemList');
+            problemList.innerHTML = '';
+            
+            try {
+                console.log(`Loading ${problemsData.problems.length} problems`);
+                problemsData.problems.forEach((problem, index) => {
+                    console.log(`Processing problem ${index + 1}: ${problem.id}`);
+                    
+                    // Initialize null fields to prevent errors
+                    if (!problem.topics) problem.topics = [];
+                    if (!problem.hint) problem.hint = null;
+                    if (!problem.solution) problem.solution = { text: null, images: [] };
+                    if (problem.solution && !problem.solution.text) problem.solution.text = null;
+                    if (problem.solution && !problem.solution.images) problem.solution.images = [];
+                    if (!problem.subproblems) problem.subproblems = {};
+                    if (!problem.math_approach) problem.math_approach = null;
+                    if (!problem.reasoning_type) problem.reasoning_type = null;
+                    if (!problem.images) problem.images = [];
+                    
+                    // Convert topic names to IDs if needed
+                    if (problem.topics && Array.isArray(problem.topics)) {
+                        problem.topics = problem.topics.map(topic => {
+                            if (typeof topic === 'string') {
+                                // Find topic by name and convert to ID
+                                const foundTopic = availableTopics.find(t => t.name === topic);
+                                return foundTopic ? foundTopic.id : topic;
+                            }
+                            return topic;
+                        });
+                    }
+                    
+                    // Process subproblems
+                    if (problem.subproblems && typeof problem.subproblems === 'object') {
+                        Object.keys(problem.subproblems).forEach(key => {
+                            const subproblem = problem.subproblems[key];
+                            if (!subproblem.hint) subproblem.hint = null;
+                            if (!subproblem.solution) subproblem.solution = { text: null, images: [] };
+                            if (subproblem.solution && !subproblem.solution.text) subproblem.solution.text = null;
+                            if (subproblem.solution && !subproblem.solution.images) subproblem.solution.images = [];
+                            if (!subproblem.images) subproblem.images = [];
+                        });
+                    }
+
+                    const problemItem = document.createElement('div');
+                    problemItem.className = 'problem-item';
+                    problemItem.onclick = () => selectProblem(index);
+                    
+                    const problemId = document.createElement('div');
+                    problemId.className = 'problem-id';
+                    problemId.textContent = problem.id;
+                    
+                    const problemStatus = document.createElement('div');
+                    problemStatus.className = 'problem-status';
+                    
+                    problemItem.appendChild(problemId);
+                    problemItem.appendChild(problemStatus);
+                    problemList.appendChild(problemItem);
+                });
+                
+                // Update problem status indicators
+                updateProblemStatus();
+                
+                console.log('Problems list displayed successfully');
+            } catch (error) {
+                console.error('Error displaying problems list:', error);
+                showError('Error displaying problems list: ' + error.message);
             }
         }
 
