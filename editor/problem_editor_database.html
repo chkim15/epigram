@@ -84,16 +84,34 @@
             // Convert \par to paragraph breaks
             text = text.replace(/\\par\b/g, '<br><br>');
             
-            // Convert image references ![filename] to HTML img tags
-            text = text.replace(/!\[([^\]]+)\]/g, function(match, filename) {
+            // Convert image references ![filename] or ![filename|size] to HTML img tags
+            text = text.replace(/!\[([^\|\]]+)(?:\|([^\]]+))?\]/g, function(match, filename, size) {
                 // Get the current document ID for the image path
                 const documentId = problemsData && problemsData.document ? problemsData.document.id : '';
                 
                 if (documentId && filename) {
                     const imageUrl = getSupabaseImageUrl(documentId, filename);
-                    console.log(`Rendering image: ${filename} from URL: ${imageUrl}`);
+                    
+                    // Parse size parameter
+                    let imageStyle = 'max-width: 100%; max-height: 400px; height: auto;';
+                    
+                    if (size) {
+                        if (size.includes('x')) {
+                            // Format: widthxheight (e.g., "300x200")
+                            const [width, height] = size.split('x');
+                            imageStyle = `width: ${width}px; height: ${height}px;`;
+                        } else if (size.includes('%')) {
+                            // Percentage format (e.g., "50%")
+                            imageStyle = `width: ${size}; height: auto;`;
+                        } else {
+                            // Single number = width in pixels (e.g., "300")
+                            imageStyle = `width: ${size}px; height: auto;`;
+                        }
+                    }
+                    
+                    console.log(`Rendering image: ${filename} from URL: ${imageUrl} with style: ${imageStyle}`);
                     return `<div style="text-align: center; margin: 15px 0;">
-                        <img src="${imageUrl}" alt="${filename}" style="max-width: 100%; max-height: 400px; height: auto; border: 1px solid #dee2e6; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" 
+                        <img src="${imageUrl}" alt="${filename}" style="${imageStyle} border: 1px solid #dee2e6; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" 
                              onerror="console.error('Failed to load image:', '${imageUrl}'); this.style.display='none'; this.nextSibling.style.display='block';">
                         <div style="display: none; color: #666; font-style: italic; padding: 10px; border: 1px dashed #ccc; border-radius: 4px; background: #f8f9fa;">
                             Image not found: ${filename}<br>
@@ -294,8 +312,8 @@
         }
 
         .problem-status.complete {
-            background: #ffc107;
-            color: #212529;
+            background: #28a745;
+            color: white;
         }
 
         .problem-status.complete::before {
@@ -1045,6 +1063,37 @@
         .modal-footer .btn {
             margin-left: 10px;
         }
+
+        /* Topic dropdown styles */
+        .topic-dropdown {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .topic-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .topic-option:last-child {
+            border-bottom: none;
+        }
+
+        .topic-option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .topic-option.selected {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .topic-option-id {
+            font-size: 11px;
+            color: #999;
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
@@ -1108,9 +1157,38 @@
     <div id="readDatabaseModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>📖 Select Document from Database</h2>
+                <h2>📖 Load from Database</h2>
                 <span class="close" onclick="closeReadDatabaseModal()">&times;</span>
             </div>
+            
+            <!-- Filter Options -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <label style="font-weight: 600; margin-bottom: 10px; display: block;">Filter by:</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button id="filterDocumentBtn" class="btn btn-primary" onclick="setFilterMode('document')" style="font-size: 14px;">
+                        📄 By Document
+                    </button>
+                    <button id="filterTopicBtn" class="btn btn-secondary" onclick="setFilterMode('topic')" style="font-size: 14px;">
+                        🏷️ By Topic
+                    </button>
+                </div>
+                
+                <!-- Topic Selector (hidden by default) -->
+                <div id="topicSelector" style="display: none; margin-top: 10px;">
+                    <div style="position: relative;">
+                        <input type="text" id="modalTopicSearchInput" class="form-control" placeholder="Search topics..." 
+                               style="padding: 8px 35px 8px 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%;"
+                               oninput="filterTopicsInModal()" onfocus="showModalTopicDropdown()" onblur="hideModalTopicDropdown()">
+                        <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666; pointer-events: none;">
+                            🔍
+                        </div>
+                        <div id="modalTopicDropdown" class="topic-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; max-height: 200px; overflow-y: auto; z-index: 1000;">
+                        </div>
+                    </div>
+                    <div id="selectedTopicDisplay" style="margin-top: 8px; font-size: 12px; color: #666;"></div>
+                </div>
+            </div>
+            
             <div id="documentListContainer">
                 <div style="text-align: center; padding: 20px; color: #666;">
                     Loading documents...
@@ -1118,7 +1196,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeReadDatabaseModal()">Cancel</button>
-                <button id="loadDocumentBtn" class="btn btn-primary" onclick="loadSelectedDocument()" disabled>Load Document</button>
+                <button id="loadDocumentBtn" class="btn btn-primary" onclick="loadSelectedItem()" disabled>Load Problems</button>
             </div>
         </div>
     </div>
@@ -1509,6 +1587,7 @@
 
             currentProblemIndex = index;
             const problem = problemsData.problems[index];
+            console.log(`selectProblem: index=${index}, problem=`, problem);
             displayProblem(problem);
             
             // Scroll to top of editor panel
@@ -2352,23 +2431,16 @@
             console.log('addTopicById called with ID:', topicId);
             
             if (currentProblemIndex >= 0 && problemsData && problemsData.problems) {
-                if (!problemsData.problems[currentProblemIndex].topics) {
-                    problemsData.problems[currentProblemIndex].topics = [];
-                }
+                // Set only one topic (replace existing)
+                problemsData.problems[currentProblemIndex].topics = [topicId];
+                console.log('Topic set:', topicId);
+                updateTopicsList();
                 
-                if (!problemsData.problems[currentProblemIndex].topics.includes(topicId)) {
-                    problemsData.problems[currentProblemIndex].topics.push(topicId);
-                    console.log('Topic added:', topicId);
-                    updateTopicsList();
-                    
-                    // Clear search and hide dropdown
-                    const searchInput = document.getElementById('topicSearchInput');
-                    const dropdown = document.getElementById('topicsDropdown');
-                    if (searchInput) searchInput.value = '';
-                    if (dropdown) dropdown.style.display = 'none';
-                } else {
-                    console.log('Topic already exists');
-                }
+                // Clear search and hide dropdown
+                const searchInput = document.getElementById('topicSearchInput');
+                const dropdown = document.getElementById('topicsDropdown');
+                if (searchInput) searchInput.value = '';
+                if (dropdown) dropdown.style.display = 'none';
             } else {
                 console.log('No problem selected or problemsData not available');
                 alert('Please load a JSON file and select a problem first');
@@ -2838,6 +2910,27 @@
                 
                 updateStats();
             }
+        }
+
+        function updateAllProblemStatuses() {
+            if (!problemsData || !problemsData.problems) {
+                return;
+            }
+
+            const problemItems = document.querySelectorAll('.problem-item');
+            problemsData.problems.forEach((problem, index) => {
+                if (problemItems[index]) {
+                    const isComplete = isProblemComplete(problem);
+                    const statusElement = problemItems[index].querySelector('.problem-status');
+                    
+                    if (statusElement) {
+                        statusElement.className = `problem-status ${isComplete ? 'complete' : 'incomplete'}`;
+                        statusElement.textContent = ''; // No text, just icons
+                    }
+                }
+            });
+            
+            updateStats();
         }
 
         function isProblemComplete(problem) {
@@ -3366,15 +3459,33 @@
         function processImagePlaceholders(text) {
             if (!text) return text;
             
-            // Convert ![imagename.png] to actual image tags using Supabase storage
-            return text.replace(/!\[([^\]]+)\]/g, function(match, imageName) {
+            // Convert ![imagename.png] or ![imagename.png|size] to actual image tags using Supabase storage
+            return text.replace(/!\[([^\|\]]+)(?:\|([^\]]+))?\]/g, function(match, imageName, size) {
                 // Use document ID if available, fallback to currentFileName
                 const documentId = problemsData?.document?.id || problemsData?.doc?.id || currentFileName;
                 
                 if (documentId && imageName) {
                     const imagePath = getSupabaseImageUrl(documentId, imageName);
+                    
+                    // Parse size parameter
+                    let imageStyle = 'max-width: 100%; max-height: 300px;';
+                    
+                    if (size) {
+                        if (size.includes('x')) {
+                            // Format: widthxheight (e.g., "300x200")
+                            const [width, height] = size.split('x');
+                            imageStyle = `width: ${width}px; height: ${height}px;`;
+                        } else if (size.includes('%')) {
+                            // Percentage format (e.g., "50%")
+                            imageStyle = `width: ${size}; height: auto;`;
+                        } else {
+                            // Single number = width in pixels (e.g., "300")
+                            imageStyle = `width: ${size}px; height: auto;`;
+                        }
+                    }
+                    
                     return `<div style="text-align: center; margin: 15px 0;">
-                        <img src="${imagePath}" alt="${imageName}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <img src="${imagePath}" alt="${imageName}" style="${imageStyle} border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <div style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${imageName}</div>
                         <div style="font-size: 12px; color: #6c757d; margin-top: 8px;">${imageName}</div>
                     </div>`;
@@ -4448,18 +4559,180 @@
 
         // ===== READ DATABASE FUNCTIONALITY =====
         let selectedDocumentId = null;
+        let selectedTopic = null;
+        let currentFilterMode = 'document'; // 'document' or 'topic'
 
         async function showReadDatabaseModal() {
             const modal = document.getElementById('readDatabaseModal');
             modal.style.display = 'block';
-            await loadDocumentList();
+            await loadTopicsInModal();
+            await setFilterMode('document'); // Start with document mode
         }
 
         function closeReadDatabaseModal() {
             const modal = document.getElementById('readDatabaseModal');
             modal.style.display = 'none';
             selectedDocumentId = null;
+            selectedTopic = null;
             document.getElementById('loadDocumentBtn').disabled = true;
+        }
+
+        async function setFilterMode(mode) {
+            currentFilterMode = mode;
+            
+            // Update button styles
+            const documentBtn = document.getElementById('filterDocumentBtn');
+            const topicBtn = document.getElementById('filterTopicBtn');
+            const topicSelector = document.getElementById('topicSelector');
+            
+            if (mode === 'document') {
+                documentBtn.className = 'btn btn-primary';
+                topicBtn.className = 'btn btn-secondary';
+                topicSelector.style.display = 'none';
+                await loadDocumentList();
+            } else {
+                documentBtn.className = 'btn btn-secondary';
+                topicBtn.className = 'btn btn-primary';
+                topicSelector.style.display = 'block';
+                document.getElementById('documentListContainer').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Select a topic above to see relevant problems.</div>';
+            }
+            
+            // Reset selections
+            selectedDocumentId = null;
+            selectedTopic = null;
+            selectedTopicInSearch = null;
+            
+            // Clear topic search
+            const searchInput = document.getElementById('topicSearchInput');
+            const selectedDisplay = document.getElementById('selectedTopicDisplay');
+            if (searchInput) searchInput.value = '';
+            if (selectedDisplay) selectedDisplay.innerHTML = '';
+            
+            document.getElementById('loadDocumentBtn').disabled = true;
+        }
+
+        let allTopics = [];
+        let selectedTopicInSearch = null;
+
+        async function loadTopicsInModal() {
+            try {
+                const { data: topics, error } = await supabase
+                    .from('topics')
+                    .select('id, name')
+                    .order('id'); // Order by ID to match editor ordering
+                
+                if (error) throw error;
+                
+                allTopics = topics;
+                populateModalTopicDropdown(topics);
+                
+            } catch (error) {
+                console.error('Error loading topics:', error);
+            }
+        }
+
+        function populateModalTopicDropdown(topics) {
+            const dropdown = document.getElementById('modalTopicDropdown');
+            dropdown.innerHTML = '';
+            
+            topics.forEach(topic => {
+                const option = document.createElement('div');
+                option.className = 'topic-option';
+                option.dataset.topicId = topic.id;
+                option.onmousedown = (e) => {
+                    e.preventDefault(); // Prevent blur event
+                    selectTopicFromDropdown(topic.id, topic.name);
+                };
+                
+                option.innerHTML = `
+                    <span class="topic-option-id">${topic.id}.</span>
+                    <span>${topic.name}</span>
+                `;
+                
+                dropdown.appendChild(option);
+            });
+        }
+
+        function filterTopicsInModal() {
+            const searchInput = document.getElementById('modalTopicSearchInput');
+            const query = searchInput.value.toLowerCase();
+            
+            if (query === '') {
+                populateModalTopicDropdown(allTopics);
+                return;
+            }
+            
+            const filteredTopics = allTopics.filter(topic => 
+                topic.name.toLowerCase().includes(query) || 
+                topic.id.toString().includes(query)
+            );
+            
+            populateModalTopicDropdown(filteredTopics);
+            showModalTopicDropdown();
+        }
+
+        function showModalTopicDropdown() {
+            const dropdown = document.getElementById('modalTopicDropdown');
+            dropdown.style.display = 'block';
+        }
+
+        function hideModalTopicDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('modalTopicDropdown');
+                dropdown.style.display = 'none';
+            }, 200); // Delay to allow click events
+        }
+
+        function selectTopicFromDropdown(topicId, topicName) {
+            selectedTopicInSearch = topicId;
+            const searchInput = document.getElementById('modalTopicSearchInput');
+            const selectedDisplay = document.getElementById('selectedTopicDisplay');
+            
+            searchInput.value = topicName;
+            selectedDisplay.innerHTML = `Selected: <strong>${topicId}. ${topicName}</strong>`;
+            
+            hideModalTopicDropdown();
+            loadProblemsByTopic();
+        }
+
+        async function loadProblemsByTopic() {
+            const topicId = selectedTopicInSearch;
+            const container = document.getElementById('documentListContainer');
+            
+            if (!topicId) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Select a topic above to load relevant problems.</div>';
+                selectedTopic = null;
+                document.getElementById('loadDocumentBtn').disabled = true;
+                return;
+            }
+            
+            try {
+                // Just check if problems exist for this topic
+                const { data: problems, error } = await supabase
+                    .from('problems')
+                    .select('id')
+                    .eq('topic_id', topicId)
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                if (problems && problems.length > 0) {
+                    selectedTopic = topicId;
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #28a745;">✓ Topic selected. Click "Load Problems" to load all related problems.</div>';
+                    document.getElementById('loadDocumentBtn').innerHTML = 'Load Problems';
+                    document.getElementById('loadDocumentBtn').disabled = false;
+                } else {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No problems found for this topic.</div>';
+                    selectedTopic = null;
+                    document.getElementById('loadDocumentBtn').disabled = true;
+                }
+                
+            } catch (error) {
+                console.error('Error checking problems for topic:', error);
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc3545;">Error checking topic: ' + error.message + '</div>';
+                selectedTopic = null;
+                document.getElementById('loadDocumentBtn').disabled = true;
+            }
         }
 
         async function loadDocumentList() {
@@ -4480,14 +4753,9 @@
                     let html = '<div class="document-list">';
                     
                     documents.forEach(doc => {
-                        const createdDate = new Date(doc.created_at).toLocaleDateString();
                         html += `
                             <div class="document-item" data-document-id="${doc.document_id}" onclick="selectDocument('${doc.document_id}')">
                                 <div class="document-title">${doc.document_id}</div>
-                                <div class="document-details">
-                                    ${doc.school || 'Unknown'} • ${doc.course || 'Unknown'} • ${doc.problem_type || 'Unknown'} • ${doc.term || ''} ${doc.year || ''}<br>
-                                    ${doc.total_problems || 0} problems • Created: ${createdDate}
-                                </div>
                             </div>
                         `;
                     });
@@ -4513,7 +4781,32 @@
             document.querySelector(`[data-document-id="${documentId}"]`).classList.add('selected');
             
             selectedDocumentId = documentId;
+            selectedTopic = null; // Clear topic selection
             document.getElementById('loadDocumentBtn').disabled = false;
+            document.getElementById('loadDocumentBtn').innerHTML = 'Load Problems';
+        }
+
+        function selectProblemInModal(problemId) {
+            // Remove previous selection
+            document.querySelectorAll('.document-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Add selection to clicked item
+            document.querySelector(`[data-problem-id="${problemId}"]`).classList.add('selected');
+            
+            selectedDocumentId = null; // Clear document selection
+            document.getElementById('loadDocumentBtn').disabled = false;
+        }
+
+        async function loadSelectedItem() {
+            if (currentFilterMode === 'document' && selectedDocumentId) {
+                await loadSelectedDocument();
+            } else if (currentFilterMode === 'topic' && selectedTopic) {
+                await loadProblemsByTopicForEditing();
+            } else {
+                showError('Please make a selection first');
+            }
         }
 
         async function loadSelectedDocument() {
@@ -4559,7 +4852,7 @@
                 showError('Error loading document: ' + error.message);
             } finally {
                 // Restore button state
-                document.getElementById('loadDocumentBtn').innerHTML = 'Load Document';
+                document.getElementById('loadDocumentBtn').innerHTML = 'Load Problems';
                 document.getElementById('loadDocumentBtn').disabled = false;
             }
         }
@@ -4679,6 +4972,150 @@
             } catch (error) {
                 console.error('Error loading document from database:', error);
                 throw error;
+            }
+        }
+
+        async function loadProblemsByTopicForEditing() {
+            if (!selectedTopic) {
+                showError('No topic selected');
+                return;
+            }
+
+            try {
+                // Show loading state
+                document.getElementById('loadDocumentBtn').innerHTML = '⏳ Loading...';
+                document.getElementById('loadDocumentBtn').disabled = true;
+
+                // Get all problems for this topic with their associated documents
+                const { data: problems, error: problemsError } = await supabase
+                    .from('problems')
+                    .select(`
+                        *,
+                        documents:document_id(*)
+                    `)
+                    .eq('topic_id', selectedTopic)
+                    .order('problem_id');
+
+                if (problemsError) throw problemsError;
+
+                if (!problems || problems.length === 0) {
+                    showError('No problems found for the selected topic');
+                    return;
+                }
+
+                // Get subproblems for all these problems
+                const problemIds = problems.map(p => p.id);
+                let subproblemsData = [];
+                
+                if (problemIds.length > 0) {
+                    const { data: subs, error: subError } = await supabase
+                        .from('subproblems')
+                        .select('*')
+                        .in('problem_id', problemIds);
+                    
+                    if (subError) throw subError;
+                    subproblemsData = subs || [];
+                }
+
+                // Get topic name for display
+                const { data: topicData, error: topicError } = await supabase
+                    .from('topics')
+                    .select('name')
+                    .eq('id', selectedTopic)
+                    .single();
+                
+                const topicName = topicData?.name || 'Unknown Topic';
+
+                // Transform to JSON format
+                const transformedProblems = problems.map(problem => {
+                    // Get subproblems for this problem
+                    const subprobs = subproblemsData.filter(sub => sub.problem_id === problem.id);
+                    const subproblemsObj = {};
+                    
+                    subprobs.forEach(sub => {
+                        subproblemsObj[sub.key] = {
+                            problem_text: sub.problem_text,
+                            correct_answer: sub.correct_answer,
+                            hint: sub.hint,
+                            solution: {
+                                text: sub.solution_text,
+                                images: []
+                            },
+                            images: [],
+                            comment: sub.comment
+                        };
+                    });
+
+                    return {
+                        id: problem.problem_id,
+                        doc_id: problem.documents?.document_id || 'unknown',
+                        problem_text: problem.problem_text,
+                        subproblems: subproblemsObj,
+                        correct_answer: problem.correct_answer,
+                        hint: problem.hint,
+                        solution: {
+                            text: problem.solution_text,
+                            images: []
+                        },
+                        images: [],
+                        difficulty: problem.difficulty,
+                        topics: [selectedTopic],
+                        math_approach: problem.math_approach,
+                        reasoning_type: problem.reasoning_type,
+                        comment: problem.comment,
+                        importance: problem.importance,
+                        updated_at: problem.updated_at,
+                        version: problem.version
+                    };
+                });
+
+                // Create a synthetic document for the topic
+                const syntheticDocument = {
+                    id: `topic_${selectedTopic}`,
+                    school: 'Various',
+                    course: 'Various', 
+                    problem_type: `Topic: ${topicName}`,
+                    term: '',
+                    year: '',
+                    total_problems: transformedProblems.length,
+                    created_at: new Date().toISOString()
+                };
+
+                // Set up the data
+                const documentData = {
+                    document: syntheticDocument,
+                    problems: transformedProblems
+                };
+
+                problemsData = documentData;
+                originalData = JSON.parse(JSON.stringify(documentData));
+                
+                // Update UI
+                displayProblemsList();
+                updateStats();
+                
+                // Update file info
+                document.getElementById('fileInfo').textContent = `Loaded: ${topicName} (${transformedProblems.length} problems)`;
+                currentFileName = `topic_${selectedTopic}`;
+                originalFileName = `topic_${selectedTopic}`;
+                
+                // Save to localStorage
+                localStorage.setItem('problemsData', JSON.stringify(problemsData));
+                localStorage.setItem('currentFileName', currentFileName);
+                localStorage.setItem('originalFileName', originalFileName);
+                
+                // Close modal
+                closeReadDatabaseModal();
+                
+                showSuccess(`Loaded ${transformedProblems.length} problems for topic: ${topicName}`);
+                
+            } catch (error) {
+                console.error('Error loading problems by topic:', error);
+                showError('Error loading problems by topic: ' + error.message);
+            } finally {
+                // Restore button state
+                document.getElementById('loadDocumentBtn').innerHTML = 'Load Problems';
+                document.getElementById('loadDocumentBtn').disabled = false;
             }
         }
 
@@ -4863,12 +5300,14 @@
                     problem.solution.images = [];
                 }
 
+                // Calculate existing count once before loop
+                const initialCount = problem.solution.images.length;
+                
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     
-                    // Generate automatic filename
-                    const existingCount = problem.solution.images.length;
-                    const filename = `p${problemNumber}_solution_${existingCount + i + 1}.${getFileExtension(file.name)}`;
+                    // Generate automatic filename with sequential numbering
+                    const filename = `p${problemNumber}_solution_${initialCount + i + 1}.${getFileExtension(file.name)}`;
                     
                     // Upload to Supabase Storage
                     const { error: uploadError } = await supabase.storage
@@ -4911,7 +5350,7 @@
             event.target.value = '';
         }
 
-        function removeSolutionImage(index) {
+        async function removeSolutionImage(index) {
             if (currentProblemIndex < 0) return;
 
             const problem = problemsData.problems[currentProblemIndex];
@@ -4919,8 +5358,32 @@
                 return;
             }
 
+            // Get the image filename that will be removed
+            const removedImageName = problem.solution.images[index];
+            
             // Remove from array
             const removedImage = problem.solution.images.splice(index, 1)[0];
+            
+            // Delete from Supabase Storage
+            try {
+                const documentId = problemsData.document.id;
+                const imagePath = `${documentId}/images/${removedImageName}`;
+                
+                const { error: deleteError } = await supabase.storage
+                    .from(STORAGE_BUCKET)
+                    .remove([imagePath]);
+
+                if (deleteError) {
+                    console.error('Error deleting image from storage:', deleteError);
+                    showError(`Failed to delete image from storage: ${deleteError.message}`);
+                    // Optionally re-add the image back to the array if storage deletion failed
+                    // problem.solution.images.splice(index, 0, removedImage);
+                    // return;
+                }
+            } catch (error) {
+                console.error('Error deleting image from storage:', error);
+                showError(`Failed to delete image from storage: ${error.message}`);
+            }
             
             // Update preview
             const previewElement = document.getElementById('solutionImagePreview');
@@ -4930,9 +5393,6 @@
             
             // Save changes
             localStorage.setItem('problemsData', JSON.stringify(problemsData));
-            
-            // Note: We don't delete from Supabase Storage here to avoid accidental data loss
-            // The image will remain in storage but won't be referenced
             
             showSuccess('Image removed from solution');
         }
@@ -5042,8 +5502,8 @@
                     problemList.appendChild(problemItem);
                 });
                 
-                // Update problem status indicators
-                updateProblemStatus();
+                // Update all problem status indicators
+                updateAllProblemStatuses();
                 
                 console.log('Problems list displayed successfully');
             } catch (error) {
