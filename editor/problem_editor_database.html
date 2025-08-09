@@ -1,0 +1,4242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Problems Database Editor</title>
+    <!-- Supabase JavaScript client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- MathJax for LaTeX rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)'], ['$', '$']],
+                displayMath: [['\\[', '\\]'], ['$$', '$$']],
+                processEscapes: true,
+                processEnvironments: true,
+                packages: {'[+]': ['ams', 'html']}
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            },
+            loader: {
+                load: ['[tex]/ams', '[tex]/html']
+            }
+        };
+        
+        // Preprocess LaTeX list environments and text commands to HTML
+        function preprocessLatexLists(text) {
+            if (!text) return text;
+            
+            // Protect LaTeX environments that should not have \\ converted to <br>
+            // Store them temporarily and restore after processing
+            const protectedEnvironments = [];
+            const placeholder = '___PROTECTED_ENV_';
+            
+            // Protect cases environment and other math environments
+            text = text.replace(/\\begin\{cases\}[\s\S]*?\\end\{cases\}/g, function(match) {
+                const index = protectedEnvironments.length;
+                protectedEnvironments.push(match);
+                return placeholder + index + '___';
+            });
+            
+            // Protect align, aligned, array environments (including starred versions)
+            text = text.replace(/\\begin\{(align\*?|aligned|array|matrix|pmatrix|bmatrix|vmatrix|Vmatrix|gather\*?|equation\*?|eqnarray\*?|multline\*?|split|alignat\*?)\}[\s\S]*?\\end\{\1\}/g, function(match) {
+                const index = protectedEnvironments.length;
+                protectedEnvironments.push(match);
+                return placeholder + index + '___';
+            });
+            
+            // Convert itemize environment to HTML list
+            text = text.replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g, function(match, content) {
+                // Process each \item
+                const items = content.split(/\\item\s+/).filter(item => item.trim());
+                if (items.length === 0) return match;
+                
+                const htmlItems = items.map(item => `<li>${item.trim()}</li>`).join('\n');
+                return `<ul style="margin: 10px 0; padding-left: 20px;">\n${htmlItems}\n</ul>`;
+            });
+            
+            // Convert enumerate environment to HTML list
+            text = text.replace(/\\begin\{enumerate\}([\s\S]*?)\\end\{enumerate\}/g, function(match, content) {
+                // Process each \item
+                const items = content.split(/\\item\s+/).filter(item => item.trim());
+                if (items.length === 0) return match;
+                
+                const htmlItems = items.map(item => `<li>${item.trim()}</li>`).join('\n');
+                return `<ol style="margin: 10px 0; padding-left: 20px;">\n${htmlItems}\n</ol>`;
+            });
+            
+            // Convert \underline{...} to HTML underline
+            text = text.replace(/\\underline\{([^}]+)\}/g, '<u>$1</u>');
+            
+            // Convert \textbf{...} to HTML bold
+            text = text.replace(/\\textbf\{([^}]+)\}/g, '<b>$1</b>');
+            
+            // Convert \dne to "Does Not Exist" (DNE)
+            text = text.replace(/\\dne/g, 'DNE');
+            
+            // Convert \\ to line breaks (but not inside math expressions)
+            text = text.replace(/\\\\(?![a-zA-Z])/g, '<br>');
+            
+            // Convert \par to paragraph breaks
+            text = text.replace(/\\par\b/g, '<br><br>');
+            
+            // Restore protected environments
+            protectedEnvironments.forEach((env, index) => {
+                text = text.replace(placeholder + index + '___', env);
+            });
+            
+            return text;
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: white;
+            color: #333;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0;
+            font-weight: 300;
+            color: #333;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .problem-list {
+            list-style: none;
+        }
+
+        .problem-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .problem-item:hover {
+            background: #e9ecef;
+        }
+
+        .problem-item.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .problem-id {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .problem-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: #28a745;
+            color: white;
+        }
+
+        .problem-status.incomplete {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .problem-status.incomplete::before {
+            content: "⚠";
+            margin-right: 4px;
+        }
+
+        .problem-status.complete::before {
+            content: "✓";
+            margin-right: 4px;
+        }
+
+        .editor-panel {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .problem-text-display {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 100px;
+        }
+
+        .problem-text-display:hover {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+
+        .problem-text-display.editing {
+            border-color: #007bff;
+            background: white;
+        }
+
+        .problem-text-display .edit-hint {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .problem-text-display .edit-hint::before {
+            content: "Click to edit LaTeX";
+        }
+
+        .problem-text-display.editing .edit-hint::before {
+            content: "Editing LaTeX - click outside to save";
+        }
+
+        .answer-option-display .edit-hint {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .answer-option-display .edit-hint::before {
+            content: "Click to edit LaTeX";
+        }
+
+        .answer-option-display.editing .edit-hint::before {
+            content: "Editing LaTeX - click outside to save";
+        }
+
+        .problem-image {
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .problem-image img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .problem-image .no-image {
+            color: #6c757d;
+            font-style: italic;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .answer-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .answer-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .answer-option input[type="text"] {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .answer-option textarea {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        .answer-option.selected {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .answer-option-label {
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .answer-option-display {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 80px;
+        }
+
+        .answer-option-display:hover {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+
+        .answer-option-display.editing {
+            border-color: #007bff;
+            background: white;
+        }
+
+        .answer-option-display .edit-hint {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .answer-option-display .edit-hint::before {
+            content: "Click to edit LaTeX";
+        }
+
+        .answer-option-display.editing .edit-hint::before {
+            content: "Editing LaTeX - click outside to save";
+        }
+
+        .text-answer-container {
+            margin-top: 15px;
+        }
+
+        .text-answer-container .form-label {
+            margin-bottom: 10px;
+        }
+
+        .text-answer-container textarea {
+            min-height: 80px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .difficulty-btn:hover {
+            border-color: #007bff;
+        }
+
+        .difficulty-btn.selected {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .topics-container {
+            margin-top: 10px;
+        }
+
+        .topics-search-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .topics-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #007bff;
+            border-top: 1px solid #007bff;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 9999;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .topics-dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+
+        .topics-dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .topics-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .topics-dropdown-item.selected {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .topics-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .topic-tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .topic-tag:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .topic-tag .remove {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .subproblems-container {
+            margin: 15px 0;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .subproblems-header {
+            padding: 15px;
+            background: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .subproblems-header:hover {
+            background: #dee2e6;
+        }
+
+        .subproblems-toggle {
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .subproblems-toggle.expanded {
+            transform: rotate(90deg);
+        }
+
+        .subproblems-content {
+            padding: 15px;
+            display: none;
+        }
+
+        .subproblems-content.expanded {
+            display: block;
+        }
+
+        .subproblem-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+        }
+
+        .subproblem-label {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+
+        .approach-container {
+            margin-top: 10px;
+        }
+
+        .approach-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .approach-btn {
+            padding: 6px 12px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .approach-btn:hover {
+            border-color: #007bff;
+        }
+
+        .approach-btn.selected {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .reasoning-container {
+            margin-top: 10px;
+        }
+
+        .reasoning-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .reasoning-input input {
+            flex: 1;
+        }
+
+        .reasoning-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .reasoning-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .reasoning-btn {
+            padding: 6px 12px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .reasoning-btn:hover {
+            border-color: #007bff;
+        }
+
+        .reasoning-btn.selected {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .subproblem-controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .subproblem-add-input {
+            width: 60px;
+            padding: 6px 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .subproblem-controls button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .subproblem-remove {
+            float: right;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .subproblem-remove:hover {
+            background: #c82333;
+        }
+
+        .save-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+            text-align: center;
+        }
+
+        .problem-id-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .remove-problem-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .remove-problem-btn:hover {
+            background: #c82333;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .no-problem {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .no-problem h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .image-remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .image-remove-btn:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+
+        .image-item {
+            position: relative;
+        }
+
+        .image-item:hover .image-remove-btn {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 200px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .answer-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Math Problems Database Editor</h1>
+        </div>
+
+        <div class="controls">
+            <input type="file" id="fileInput" class="file-input" accept=".json">
+            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                📁 Load JSON File
+            </button>
+            <button class="btn btn-success" onclick="exportData()">
+                💾 Export JSON
+            </button>
+            <button class="btn btn-primary" onclick="updateDatabaseWorking()">
+                🗃️ Update Database
+            </button>
+            <div id="fileInfo" style="margin-left: auto; color: #6c757d; font-size: 14px;"></div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div id="problemList" class="problem-list">
+                    <div class="no-problem" style="padding: 40px 20px; text-align: center; color: #6c757d;">
+                        <h3 style="margin-bottom: 10px; color: #495057;">No File Loaded</h3>
+                        <p>Load a JSON file to start editing</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-panel">
+                <div id="noProblem" class="no-problem">
+                    <h3>No Problem Selected</h3>
+                    <p>Select a problem from the sidebar to start editing</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-number" id="totalProblems">0</div>
+                <div class="stat-label">Total Problems</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="completedProblems">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="incompleteProblems">0</div>
+                <div class="stat-label">Incomplete</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let problemsData = null;
+        let currentProblemIndex = -1;
+        let originalData = null;
+        let imageBasePath = '';
+        
+        // Supabase configuration
+        const SUPABASE_URL = 'https://zhiqvimisjwctuzuoakg.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoaXF2aW1pc2p3Y3R1enVvYWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNDU2MzcsImV4cCI6MjA2OTgyMTYzN30.hCqX6FSVstitEuPCJB9zICeryiHeUtHJg5SLD2Jps1s';
+        const STORAGE_BUCKET = 'math-problems';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentFileName = '';
+        let originalFileName = '';
+        let availableTopics = [];
+
+        // ===== WORKING DATABASE FUNCTIONS (using Supabase client directly) =====
+        // These override the broken proxy-based functions below
+        
+        async function insertDocumentWorking(documentData) {
+            const payload = {
+                document_id: documentData.id,
+                school: documentData.school || null,
+                course: documentData.course || null,
+                problem_type: documentData.problem_type || null,
+                term: documentData.term || null,
+                year: documentData.year ? parseInt(documentData.year) : null,
+                total_problems: documentData.total_problems || 0
+            };
+            
+            const { data, error } = await supabase
+                .from('documents')
+                .upsert(payload, { onConflict: 'document_id' })
+                .select();
+            
+            if (error) throw new Error(`Document insert failed: ${error.message}`);
+            return { data };
+        }
+        
+        async function insertProblemWorking(problem, documentUuid) {
+            // Get topic_id from topics array (expecting single value now)
+            let topicId = null;
+            if (problem.topics && problem.topics.length > 0) {
+                topicId = problem.topics[0]; // Take first topic ID
+            }
+            
+            const payload = {
+                problem_id: problem.id,
+                document_id: documentUuid,
+                problem_text: problem.problem_text || null,
+                correct_answer: problem.correct_answer || null,
+                hint: problem.hint || null,
+                solution_text: problem.solution && problem.solution.text ? problem.solution.text : null,
+                math_approach: problem.math_approach || null,
+                reasoning_type: problem.reasoning_type || null,
+                topic_id: topicId,
+                difficulty: problem.difficulty || null,
+                importance: problem.importance || null,
+                comment: problem.comment || null,
+                version: problem.version || 'v1'
+            };
+            
+            const { data, error } = await supabase
+                .from('problems')
+                .upsert(payload, { onConflict: 'problem_id' })
+                .select();
+            
+            if (error) throw new Error(`Problem insert failed: ${error.message}`);
+            return { data };
+        }
+
+        async function insertSubproblemsWorking(subproblems, problemUuid) {
+            const subproblemData = [];
+            for (const [key, subproblem] of Object.entries(subproblems)) {
+                subproblemData.push({
+                    problem_id: problemUuid,
+                    key: key,
+                    problem_text: subproblem.problem_text || null,
+                    correct_answer: subproblem.correct_answer || null,
+                    hint: subproblem.hint || null,
+                    solution_text: subproblem.solution && subproblem.solution.text ? subproblem.solution.text : null,
+                    comment: subproblem.comment || null
+                });
+            }
+            
+            if (subproblemData.length > 0) {
+                const { data, error } = await supabase
+                    .from('subproblems')
+                    .upsert(subproblemData, { onConflict: 'problem_id,key' })
+                    .select();
+                
+                if (error) throw new Error(`Subproblems insert failed: ${error.message}`);
+                return { data };
+            }
+            return { data: [] };
+        }
+
+
+        async function insertImagesWorking(images, problemUuid, subproblemUuid = null, context = 'problem') {
+            if (!images || images.length === 0) return;
+            
+            const imageData = images.map(image => ({
+                problem_id: problemUuid,
+                subproblem_id: subproblemUuid,
+                solution_id: null,
+                image_path: image,
+                context: context
+            }));
+            
+            const { data, error } = await supabase
+                .from('images')
+                .insert(imageData)
+                .select();
+            
+            if (error) throw new Error(`Images insert failed: ${error.message}`);
+        }
+
+        // Hints are now stored directly in problems/subproblems table - no separate function needed
+
+        // Solutions are now stored directly in problems/subproblems table - no separate function needed
+
+        // Topics are now stored directly as foreign key in problems table - no separate function needed
+
+        // Approaches are now stored directly in problems table - no separate function needed
+
+        // Reasoning types are now stored directly in problems table - no separate function needed
+
+        // Override the main updateDatabase function to use working functions
+        async function updateDatabaseWorking() {
+            if (!problemsData) {
+                showError('No data to update. Please load a JSON file first.');
+                return;
+            }
+            
+            try {
+                const originalButton = event.target;
+                const originalText = originalButton.innerHTML;
+                originalButton.innerHTML = '⏳ Updating Database...';
+                originalButton.disabled = true;
+                console.log('Starting database update...');
+                
+                // Insert document
+                const documentData = problemsData.document;
+                console.log('Inserting document:', documentData);
+                const documentResponse = await insertDocumentWorking(documentData);
+                const documentUuid = documentResponse.data[0].id;
+                console.log('Document inserted with UUID:', documentUuid);
+                
+                // Insert all problems
+                let successfulInserts = 0;
+                let totalProblems = problemsData.problems.length;
+                
+                for (const problem of problemsData.problems) {
+                    try {
+                        console.log(`Processing problem: ${problem.id}`);
+                        
+                        // Insert problem
+                        const problemResponse = await insertProblemWorking(problem, documentUuid);
+                        const problemUuid = problemResponse.data[0].id;
+                        
+                        // Insert subproblems (hints and solutions now stored directly in subproblems table)
+                        if (problem.subproblems && Object.keys(problem.subproblems).length > 0) {
+                            const subproblemResponse = await insertSubproblemsWorking(problem.subproblems, problemUuid);
+                            
+                            // Insert images for subproblems
+                            for (const [key, subproblem] of Object.entries(problem.subproblems)) {
+                                const subproblemUuid = subproblemResponse.data?.find(s => s.key === key)?.id;
+                                
+                                if (subproblem.images && subproblem.images.length > 0) {
+                                    await insertImagesWorking(subproblem.images, problemUuid, subproblemUuid, 'subproblem');
+                                }
+                                
+                                // Insert subproblem solution images if they exist
+                                if (subproblem.solution && subproblem.solution.images && subproblem.solution.images.length > 0) {
+                                    await insertImagesWorking(subproblem.solution.images, problemUuid, subproblemUuid, 'subproblem_solution');
+                                }
+                            }
+                        }
+                        
+                        // Insert problem-level images (hints, solutions, topics, approach, reasoning stored directly in problems table)
+                        if (problem.images && problem.images.length > 0) {
+                            console.log(`Inserting images for ${problem.id}:`, problem.images);
+                            await insertImagesWorking(problem.images, problemUuid, null, 'problem');
+                        }
+                        
+                        // Insert solution images if they exist
+                        if (problem.solution && problem.solution.images && problem.solution.images.length > 0) {
+                            console.log(`Inserting solution images for ${problem.id}:`, problem.solution.images);
+                            await insertImagesWorking(problem.solution.images, problemUuid, null, 'problem_solution');
+                        }
+                        
+                        successfulInserts++;
+                        console.log(`Problem ${problem.id} inserted successfully`);
+                        
+                    } catch (problemError) {
+                        console.error(`Failed to insert problem ${problem.id}:`, problemError);
+                    }
+                }
+                
+                // Reset button
+                originalButton.innerHTML = originalText;
+                originalButton.disabled = false;
+                
+                showSuccess(`Database update completed! ${successfulInserts}/${totalProblems} problems inserted successfully.`);
+                console.log('Database update completed');
+                
+            } catch (error) {
+                console.error('Database update failed:', error);
+                showError(`Database update failed: ${error.message}`);
+                
+                // Reset button on error
+                if (event && event.target) {
+                    event.target.innerHTML = '🗃️ Update Database';
+                    event.target.disabled = false;
+                }
+            }
+        }
+
+        // Load topics data - embedded to avoid fetch issues
+        function loadTopics() {
+            availableTopics = [
+                {"id": 1, "name": "Variables, Functions and Graphs"},
+                {"id": 2, "name": "Limits of Functions"},
+                {"id": 3, "name": "Continuity and IVT"},
+                {"id": 4, "name": "Indeterminate Forms Limits via Algebraic Manipulation"},
+                {"id": 5, "name": "Limits at Infinity and Asymptotes"},
+                {"id": 6, "name": "Limiting Definition of Derivatives"},
+                {"id": 7, "name": "Chain, Product and Quotient Rules"},
+                {"id": 8, "name": "Implicit Differentiation and Inverse Derivatives"},
+                {"id": 9, "name": "Logarithmic Differentiation"},
+                {"id": 10, "name": "Inverse Trig and Hyperbolic Functions"},
+                {"id": 11, "name": "Indeterminate Forms Limits via L'Hospital Rule"},
+                {"id": 12, "name": "Extreme Values, Monotonicity and Concavity"},
+                {"id": 13, "name": "Applied Optimization"},
+                {"id": 14, "name": "Approximation via Differentiation"},
+                {"id": 15, "name": "Antiderivatives"},
+                {"id": 16, "name": "Riemann Sum and Definite Integral"},
+                {"id": 17, "name": "Fundamental Theorem of Calculus"},
+                {"id": 18, "name": "Substitution Rules"},
+                {"id": 19, "name": "Area Between Curves"},
+                {"id": 20, "name": "Volume by Slicing"},
+                {"id": 21, "name": "Volume by Cylindrical Shells"},
+                {"id": 22, "name": "Integration by Parts"},
+                {"id": 23, "name": "Partial Fractions"},
+                {"id": 24, "name": "Improper Integrals"},
+                {"id": 25, "name": "Arc Length"},
+                {"id": 26, "name": "Surface Area"},
+                {"id": 27, "name": "Sequences"},
+                {"id": 28, "name": "Series"},
+                {"id": 29, "name": "Integral Tests"},
+                {"id": 30, "name": "Comparison Tests"},
+                {"id": 31, "name": "Alternating Series"},
+                {"id": 32, "name": "Absolute Convergence, Ratio and Root Test"},
+                {"id": 33, "name": "Power Series"},
+                {"id": 34, "name": "Taylor and MacLaurin Series"},
+                {"id": 35, "name": "Applications of Taylor Polynomials"},
+                {"id": 36, "name": "Separable and Homogeneous ODE"},
+                {"id": 37, "name": "First Order Linear ODE"},
+                {"id": 38, "name": "Second Order Linear ODE"},
+                {"id": 39, "name": "Nonhomogeneous Linear ODE"},
+                {"id": 40, "name": "Series Solutions of ODE"}
+            ];
+            console.log('Topics loaded:', availableTopics.length);
+        }
+
+        // File input handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        problemsData = JSON.parse(e.target.result);
+                        originalData = JSON.parse(e.target.result);
+                        loadProblems();
+                        currentFileName = file.name.replace('.json', '');
+                        originalFileName = file.name;
+                        document.getElementById('fileInfo').textContent = `Loaded: ${file.name}`;
+                    } catch (error) {
+                        showError('Invalid JSON file. Please check the file format.');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function loadProblems() {
+            if (!problemsData || !problemsData.problems) {
+                showError('Invalid data format. Expected a JSON object with a "problems" array.');
+                return;
+            }
+
+            const problemList = document.getElementById('problemList');
+            problemList.innerHTML = '';
+
+            try {
+                console.log(`Loading ${problemsData.problems.length} problems`);
+                problemsData.problems.forEach((problem, index) => {
+                    console.log(`Processing problem ${index + 1}: ${problem.id}`);
+                    // Initialize null fields to prevent errors
+                    if (!problem.topics) problem.topics = [];
+                    if (!problem.hint) problem.hint = null;
+                    if (!problem.solution) problem.solution = { text: null, images: [] };
+                    if (problem.solution && !problem.solution.text) problem.solution.text = null;
+                    if (problem.solution && !problem.solution.images) problem.solution.images = [];
+                    if (!problem.subproblems) problem.subproblems = {};
+                    if (!problem.math_approach) problem.math_approach = null;
+                    if (!problem.reasoning_type) problem.reasoning_type = null;
+                    if (!problem.images) problem.images = [];
+                    
+                    
+                    // Convert topic names to IDs if needed
+                    if (problem.topics && Array.isArray(problem.topics)) {
+                        problem.topics = problem.topics.map(topic => {
+                            if (typeof topic === 'string') {
+                                // Find topic by name and convert to ID
+                                const foundTopic = availableTopics.find(t => t.name === topic);
+                                return foundTopic ? foundTopic.id : topic;
+                            }
+                            return topic; // Already an ID
+                        });
+                    }
+                    
+                    const isComplete = isProblemComplete(problem);
+                    const listItem = document.createElement('div');
+                    listItem.className = 'problem-item';
+                    listItem.onclick = () => selectProblem(index);
+                    
+                    listItem.innerHTML = `
+                        <div class="problem-id">${problem.id}</div>
+                        <div class="problem-status ${isComplete ? 'complete' : 'incomplete'}">
+                        </div>
+                    `;
+                    
+                    problemList.appendChild(listItem);
+                });
+
+                updateStats();
+                selectProblem(0);
+            } catch (error) {
+                console.error('Error loading problems:', error);
+                showError('Error loading problems. Check console for details.');
+            }
+        }
+
+        function selectProblem(index) {
+            if (index < 0 || index >= problemsData.problems.length) return;
+
+            // Remove active class from all items
+            document.querySelectorAll('.problem-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Add active class to selected item
+            document.querySelectorAll('.problem-item')[index].classList.add('active');
+
+            currentProblemIndex = index;
+            const problem = problemsData.problems[index];
+            displayProblem(problem);
+            
+            // Scroll to top of editor panel
+            const editorPanel = document.querySelector('.editor-panel');
+            if (editorPanel) {
+                editorPanel.scrollTop = 0;
+            }
+        }
+
+        function displayProblem(problem) {
+            const editorPanel = document.querySelector('.editor-panel');
+            const isTextAnswer = !problem.answer_options;
+            
+            editorPanel.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">Problem ID</label>
+                    <div class="problem-id-container">
+                        <input type="text" class="form-control" value="${problem.id}" readonly style="flex: 1;">
+                        <button class="remove-problem-btn" onclick="removeProblem()">Remove Problem</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Problem Text</label>
+                    <div class="problem-text-display" onclick="toggleProblemTextEdit()" id="problemTextDisplay">
+                        <div id="problemTextRendered">${preprocessLatexLists(problem.problem_text || '')}</div>
+                    </div>
+                    <div class="answer-option" id="problemTextEdit" style="display: none;">
+                        <textarea id="problemTextTextarea" onchange="updateProblem('problem_text', this.value)" onblur="saveProblemText()" onkeydown="handleMultilineEdit(event)" placeholder="Enter problem text...">${problem.problem_text || ''}</textarea>
+                    </div>
+                </div>
+
+                ${problem.images && problem.images.length > 0 ? `
+                <div class="form-group">
+                    <label class="form-label">Images</label>
+                    <div class="problem-image" id="problemImage">
+                        ${generateProblemImage(problem.images)}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${generateSubproblemsSection(problem.subproblems)}
+
+                <div class="form-group">
+                    <label class="form-label">Hint</label>
+                    <div id="hintsContainer">
+                        ${generateHintSection(problem.hint || null)}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Solution</label>
+                    <div id="solutionsContainer">
+                        ${generateSolutionSection(problem.solution)}
+                    </div>
+                    ${problem.solution && problem.solution.images && problem.solution.images.length > 0 ? `
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label class="form-label" style="font-size: 12px;">Solution Images</label>
+                        <div class="problem-image">
+                            ${generateImageSection(problem.solution.images, 'problem_solution')}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                ${isTextAnswer ? `
+                    <div class="form-group">
+                        <label class="form-label">Correct Answer</label>
+                        <div class="problem-text-display" onclick="toggleTextAnswerEdit()" id="textAnswerDisplay">
+                            <div id="textAnswerRendered">${preprocessLatexLists(problem.correct_answer || '')}</div>
+                        </div>
+                        <div class="answer-option" id="textAnswerEdit" style="display: none;">
+                            <textarea onchange="updateProblem('correct_answer', this.value)" onblur="saveTextAnswer()" onkeydown="handleMultilineEdit(event)" placeholder="Enter the answer...">${problem.correct_answer || ''}</textarea>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="form-group">
+                        <label class="form-label">Answer Options</label>
+                        <div class="answer-options" id="answerOptions">
+                            ${generateAnswerOptions(problem.answer_options)}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Correct Answer</label>
+                        <select class="form-control" id="correctAnswer" onchange="updateProblem('correct_answer', this.value)">
+                            <option value="">Select correct answer...</option>
+                            ${generateCorrectAnswerOptions(problem.answer_options)}
+                        </select>
+                    </div>
+                `}
+
+                <div class="form-group">
+                    <label class="form-label">Difficulty Level</label>
+                    <div class="difficulty-buttons">
+                        <button class="difficulty-btn ${problem.difficulty === 'easy' ? 'selected' : ''}" onclick="setDifficulty('easy')">Easy</button>
+                        <button class="difficulty-btn ${problem.difficulty === 'medium' ? 'selected' : ''}" onclick="setDifficulty('medium')">Medium</button>
+                        <button class="difficulty-btn ${problem.difficulty === 'hard' ? 'selected' : ''}" onclick="setDifficulty('hard')">Hard</button>
+                        <button class="difficulty-btn ${problem.difficulty === 'very_hard' ? 'selected' : ''}" onclick="setDifficulty('very_hard')">Very Hard</button>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="form-label">Topics</label>
+                    <div class="topics-container">
+                        <div class="topics-search-container" style="position: relative;">
+                            <input type="text" class="form-control" id="topicSearchInput" placeholder="Search topics..." oninput="handleTopicInput()" onfocus="showTopicsDropdown()" onblur="hideTopicsDropdown()">
+                            <button type="button" style="position: absolute; right: 5px; top: 5px; background: #007bff; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; z-index: 10;" onclick="testTopicsDropdown()">▼</button>
+                            <div id="topicsDropdown" class="topics-dropdown" style="display: none;">
+                                <!-- Topics will be populated here -->
+                            </div>
+                        </div>
+                        <div class="topics-list" id="topicsList">
+                            ${generateTopicsList(problem.topics || [])}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mathematical Approach</label>
+                    <div class="approach-container">
+                        <div class="approach-buttons" id="approachButtons">
+                            ${generateApproachButtons(problem.math_approach || null)}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Type of Reasoning</label>
+                    <div class="reasoning-buttons">
+                        ${generateReasoningButtons(problem.reasoning_type || null)}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Comment</label>
+                    <div class="problem-text-display" onclick="toggleCommentEdit()" id="commentDisplay">
+                        <div id="commentRendered">${preprocessLatexLists(problem.comment || '')}</div>
+                    </div>
+                    <div class="answer-option" id="commentEdit" style="display: none;">
+                        <textarea id="commentTextarea" onchange="updateProblem('comment', this.value)" onblur="saveComment()" onkeydown="handleMultilineEdit(event)" placeholder="Enter comment...">${problem.comment || ''}</textarea>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Importance</label>
+                    <select class="form-control" id="importanceSelect" onchange="updateProblem('importance', parseInt(this.value))">
+                        <option value="">Select importance...</option>
+                        <option value="1" ${problem.importance === 1 ? 'selected' : ''}>1</option>
+                        <option value="2" ${problem.importance === 2 ? 'selected' : ''}>2</option>
+                        <option value="3" ${problem.importance === 3 ? 'selected' : ''}>3</option>
+                    </select>
+                </div>
+
+                <div class="save-section">
+                    <button class="btn btn-success" onclick="saveCurrentProblem()">
+                        💾 Save Problem
+                    </button>
+                </div>
+            `;
+
+            // Set correct answer if it exists
+            if (problem.correct_answer && !isTextAnswer) {
+                document.getElementById('correctAnswer').value = problem.correct_answer;
+            }
+
+            // Render LaTeX for problem text, answer options, solution, text answer, and subproblems
+            if (window.MathJax) {
+                const elementsToRender = [];
+                
+                // Add problem text element
+                const problemTextElement = document.getElementById('problemTextRendered');
+                if (problemTextElement) elementsToRender.push(problemTextElement);
+                
+                // Add text answer element if it exists
+                if (isTextAnswer) {
+                    const textAnswerElement = document.getElementById('textAnswerRendered');
+                    if (textAnswerElement) elementsToRender.push(textAnswerElement);
+                }
+                
+                // Add solution elements (now multiple)
+                let solutions = [];
+                if (problem.solution) {
+                    if (typeof problem.solution === 'string') {
+                        solutions = [problem.solution];
+                    } else if (problem.solution.text) {
+                        solutions = Array.isArray(problem.solution.text) ? problem.solution.text : [problem.solution.text];
+                    }
+                }
+                // Add single solution element
+                if (problem.solution && problem.solution.text) {
+                    const elem = document.getElementById(`solutionRendered_single`);
+                    if (elem) elementsToRender.push(elem);
+                }
+                
+                // Add hint element (single)
+                if (problem.hint) {
+                    const elem = document.getElementById(`hintRendered_single`);
+                    if (elem) elementsToRender.push(elem);
+                }
+                
+                // Add answer option elements to rendering queue
+                if (!isTextAnswer && problem.answer_options) {
+                    Object.keys(problem.answer_options).forEach(key => {
+                        const answerElement = document.getElementById(`answerOptionRendered_${key}`);
+                        if (answerElement) {
+                            elementsToRender.push(answerElement);
+                        }
+                    });
+                }
+                
+                // Add subproblem elements to rendering queue
+                if (problem.subproblems) {
+                    Object.keys(problem.subproblems).forEach(key => {
+                        const subproblem = problem.subproblems[key];
+                        
+                        // Subproblem text
+                        const subproblemElement = document.getElementById(`subproblemRendered_${key}`);
+                        if (subproblemElement) elementsToRender.push(subproblemElement);
+                        
+                        // Subproblem answer
+                        const subproblemAnswerElement = document.getElementById(`subproblemAnswerRendered_${key}`);
+                        if (subproblemAnswerElement) elementsToRender.push(subproblemAnswerElement);
+                        
+                        // Subproblem hint (single)
+                        if (subproblem && subproblem.hint) {
+                            const elem = document.getElementById(`subHintRendered_${key}_single`);
+                            if (elem) elementsToRender.push(elem);
+                        }
+                        
+                        // Subproblem solution (single)
+                        if (subproblem && subproblem.solution && subproblem.solution.text) {
+                            const elem = document.getElementById(`subSolutionRendered_${key}_single`);
+                            if (elem) elementsToRender.push(elem);
+                        }
+                        
+                        // Subproblem comment
+                        const subCommentElement = document.getElementById(`subproblemCommentRendered_${key}`);
+                        if (subCommentElement) elementsToRender.push(subCommentElement);
+                    });
+                }
+                
+                // Add comment element
+                const commentElement = document.getElementById('commentRendered');
+                if (commentElement) elementsToRender.push(commentElement);
+                
+                // Auto-resize all textareas after rendering
+                setTimeout(() => {
+                    document.querySelectorAll('textarea').forEach(textarea => {
+                        autoResizeTextarea(textarea);
+                    });
+                }, 100);
+                
+                // Render all LaTeX elements
+                if (elementsToRender.length > 0) {
+                    MathJax.typesetPromise(elementsToRender).catch(err => {
+                        console.error('MathJax rendering error:', err);
+                    });
+                }
+            }
+        }
+
+        function toggleProblemTextEdit() {
+            const display = document.getElementById('problemTextDisplay');
+            const rendered = document.getElementById('problemTextRendered');
+            const edit = document.getElementById('problemTextEdit');
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const textarea = document.getElementById('problemTextTextarea');
+                const newText = textarea.value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Process the text to convert image placeholders to actual images
+                let processedHtml = processImagePlaceholders(newText);
+                // Also preprocess LaTeX lists
+                processedHtml = preprocessLatexLists(processedHtml);
+                
+                // Set the new content
+                rendered.innerHTML = processedHtml;
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateProblem('problem_text', newText);
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the processed text if MathJax fails
+                        rendered.innerHTML = processedHtml;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = document.getElementById('problemTextTextarea');
+                
+                // Ensure textarea has the current data value, not potentially modified DOM content
+                if (currentProblemIndex >= 0) {
+                    textarea.value = problemsData.problems[currentProblemIndex].problem_text || '';
+                }
+                
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveProblemText() {
+            toggleProblemTextEdit();
+        }
+
+        function toggleTextAnswerEdit() {
+            const display = document.getElementById('textAnswerDisplay');
+            const rendered = document.getElementById('textAnswerRendered');
+            const edit = document.getElementById('textAnswerEdit');
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateProblem('correct_answer', newText);
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = edit.querySelector('textarea');
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0) {
+                    textarea.value = problemsData.problems[currentProblemIndex].correct_answer || '';
+                }
+                
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveTextAnswer() {
+            toggleTextAnswerEdit();
+        }
+
+        function toggleCommentEdit() {
+            const display = document.getElementById('commentDisplay');
+            const rendered = document.getElementById('commentRendered');
+            const edit = document.getElementById('commentEdit');
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newText = document.getElementById('commentTextarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateProblem('comment', newText);
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = document.getElementById('commentTextarea');
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0) {
+                    textarea.value = problemsData.problems[currentProblemIndex].comment || '';
+                }
+                
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveComment() {
+            toggleCommentEdit();
+        }
+
+        // Legacy functions kept for backward compatibility
+        function saveSolution() {
+            // No longer needed with new individual solution boxes
+        }
+
+        function generateProblemImage(images) {
+            return generateImageSection(images);
+        }
+
+        // Helper function to generate Supabase storage URLs for images
+        function getSupabaseImageUrl(documentId, imageName) {
+            return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${documentId}/images/${imageName}`;
+        }
+
+        function generateImageSection(images, context = 'problem') {
+            const hasImages = images && images.length > 0;
+            
+            if (!hasImages) {
+                return '';
+            }
+            
+            const imageCount = images.length;
+            // Use document ID if available, fallback to currentFileName
+            const documentId = problemsData?.document?.id || problemsData?.doc?.id || currentFileName;
+            
+            const imageContent = images.map((image, index) => {
+                // Use Supabase storage URL
+                const imagePath = getSupabaseImageUrl(documentId, image);
+                return `
+                    <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
+                        <button class="image-remove-btn" onclick="removeImageFromContext('${context}', ${index})" title="Remove image">×</button>
+                        <img src="${imagePath}" alt="Problem image" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="no-image" style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${image}</div>
+                        <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6c757d;">${image}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            return `
+                <div class="images-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #e9ecef; border-radius: 6px;">
+                    <span style="font-weight: 600; color: #495057;">Images (${imageCount})</span>
+                </div>
+                <div class="images-content">
+                    ${imageContent}
+                </div>
+            `;
+        }
+
+        function generateSubproblemImageSection(images, subproblemKey) {
+            const hasImages = images && images.length > 0;
+            
+            if (!hasImages) {
+                return '';
+            }
+            
+            // Use document ID if available, fallback to currentFileName
+            const documentId = problemsData?.document?.id || problemsData?.doc?.id || currentFileName;
+            
+            return images.map((image, index) => {
+                // Use Supabase storage URL
+                const imagePath = getSupabaseImageUrl(documentId, image);
+                return `
+                    <div class="image-item" style="margin-bottom: 15px; position: relative; display: inline-block;">
+                        <button class="image-remove-btn" onclick="removeImageFromSubproblem('${subproblemKey}', ${index})" title="Remove image">×</button>
+                        <img src="${imagePath}" alt="Subproblem image" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="no-image" style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${image}</div>
+                        <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #6c757d;">${image}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function generateAnswerOptions(answerOptions) {
+            if (!answerOptions) {
+                return '<p style="color: #6c757d; font-style: italic;">No answer options available</p>';
+            }
+
+            return Object.entries(answerOptions).map(([key, value]) => `
+                <div class="answer-option-display" onclick="toggleAnswerOptionEdit('${key}')" id="answerOptionDisplay_${key}">
+                    <div class="answer-option-label">${key}:</div>
+                    <div id="answerOptionRendered_${key}">${preprocessLatexLists(value)}</div>
+                </div>
+                <div class="answer-option" id="answerOptionEdit_${key}" style="display: none;">
+                    <div class="answer-option-label">${key}:</div>
+                    <textarea onchange="updateAnswerOption('${key}', this.value)" onblur="saveAnswerOption('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter answer option...">${value}</textarea>
+                </div>
+            `).join('');
+        }
+
+        function toggleAnswerOptionEdit(key) {
+            const display = document.getElementById(`answerOptionDisplay_${key}`);
+            const edit = document.getElementById(`answerOptionEdit_${key}`);
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newValue = edit.querySelector('textarea').value;
+                const rendered = document.getElementById(`answerOptionRendered_${key}`);
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateAnswerOption(key, newValue);
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newValue;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.classList.add('editing');
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = edit.querySelector('textarea');
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveAnswerOption(key) {
+            toggleAnswerOptionEdit(key);
+        }
+
+        function generateCorrectAnswerOptions(answerOptions) {
+            if (!answerOptions) return '';
+            
+            return Object.keys(answerOptions).map(key => 
+                `<option value="${key}">${key}</option>`
+            ).join('');
+        }
+
+        function generateTopicsList(topicIds) {
+            if (!topicIds || topicIds.length === 0) {
+                return '<p style="color: #6c757d; font-style: italic;">No topics added</p>';
+            }
+
+            return topicIds.map(topicId => {
+                const topic = availableTopics.find(t => t.id === topicId);
+                const displayName = topic ? topic.name : `Topic ${topicId}`;
+                return `
+                    <div class="topic-tag" onclick="removeTopic(${topicId})">
+                        ${displayName}
+                        <span class="remove">×</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function generateSubproblemsSection(subproblems) {
+            const hasSubproblems = subproblems && Object.keys(subproblems).length > 0;
+            
+            const subproblemItems = hasSubproblems ? Object.entries(subproblems).sort().map(([key, subproblemData]) => {
+                // Handle both old format (string) and new format (object)
+                const problemText = typeof subproblemData === 'string' ? subproblemData : (subproblemData.problem_text || '');
+                const correctAnswer = typeof subproblemData === 'object' ? (subproblemData.correct_answer || '') : '';
+                // Handle solution object format
+                let solution = '';
+                if (typeof subproblemData === 'object') {
+                    if (subproblemData.solution) {
+                        if (typeof subproblemData.solution === 'string') {
+                            solution = subproblemData.solution;
+                        } else if (subproblemData.solution.text) {
+                            solution = subproblemData.solution.text;
+                        }
+                    }
+                }
+                const images = typeof subproblemData === 'object' ? (subproblemData.images || []) : [];
+                
+                return `
+                <div class="subproblem-item" id="subproblemItem_${key}">
+                    <div class="subproblem-label">${key}:
+                        <button class="subproblem-remove" onclick="removeSubproblem('${key}')">Remove</button>
+                    </div>
+                    <div class="problem-text-display" onclick="toggleSubproblemEdit('${key}')" id="subproblemDisplay_${key}">
+                        <div id="subproblemRendered_${key}">${preprocessLatexLists(problemText)}</div>
+                    </div>
+                    <div class="answer-option" id="subproblemEdit_${key}" style="display: none;">
+                        <textarea onchange="updateSubproblemText('${key}', this.value)" onblur="saveSubproblem('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter subproblem text...">${problemText}</textarea>
+                    </div>
+                    ${images.length > 0 ? `
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="form-label" style="font-size: 12px;">Images (${key})</label>
+                        <div class="problem-image">
+                            ${generateSubproblemImageSection(images, key)}
+                        </div>
+                    </div>
+                    ` : ''}
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="form-label" style="font-size: 12px;">Hint (${key})</label>
+                        <div id="subproblemHintsContainer_${key}">
+                            ${generateSubproblemHintSection(typeof subproblemData === 'object' ? (subproblemData.hint || null) : null, key)}
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="form-label" style="font-size: 12px;">Solution (${key})</label>
+                        <div id="subproblemSolutionsContainer_${key}">
+                            ${generateSubproblemSolutionSection(typeof subproblemData === 'object' && subproblemData.solution ? subproblemData.solution : solution, key)}
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="form-label" style="font-size: 12px;">Correct Answer (${key})</label>
+                        <div class="problem-text-display" onclick="toggleSubproblemAnswerEdit('${key}')" id="subproblemAnswerDisplay_${key}">
+                            <div id="subproblemAnswerRendered_${key}">${preprocessLatexLists(correctAnswer)}</div>
+                        </div>
+                        <div class="answer-option" id="subproblemAnswerEdit_${key}" style="display: none;">
+                            <textarea onchange="updateSubproblemAnswer('${key}', this.value)" onblur="saveSubproblemAnswer('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter correct answer...">${correctAnswer}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <button class="btn btn-primary" onclick="toggleSubproblemComment('${key}')" type="button" style="font-size: 12px; padding: 4px 8px;">Add Comment</button>
+                        <div id="subproblemCommentContainer_${key}" style="display: none; margin-top: 10px;">
+                            <label class="form-label" style="font-size: 12px;">Comment (${key})</label>
+                            <div class="problem-text-display" onclick="toggleSubproblemCommentEdit('${key}')" id="subproblemCommentDisplay_${key}">
+                                <div id="subproblemCommentRendered_${key}">${preprocessLatexLists(typeof subproblemData === 'object' ? (subproblemData.comment || '') : '')}</div>
+                            </div>
+                            <div class="answer-option" id="subproblemCommentEdit_${key}" style="display: none;">
+                                <textarea onchange="updateSubproblemComment('${key}', this.value)" onblur="saveSubproblemComment('${key}')" onkeydown="handleMultilineEdit(event)" placeholder="Enter comment...">${typeof subproblemData === 'object' ? (subproblemData.comment || '') : ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('') : '';
+
+            const expandedClass = hasSubproblems ? 'expanded' : '';
+            const toggleSymbol = hasSubproblems ? '▼' : '▶';
+            const count = hasSubproblems ? Object.keys(subproblems).length : 0;
+
+            return `
+                <div class="subproblems-container">
+                    <div class="subproblems-header" onclick="toggleSubproblems()">
+                        <span>Sub-Problems (${count})</span>
+                        <span class="subproblems-toggle ${expandedClass}" id="subproblemsToggle">${toggleSymbol}</span>
+                    </div>
+                    <div class="subproblems-content ${expandedClass}" id="subproblemsContent">
+                        ${subproblemItems}
+                        <div class="subproblem-controls">
+                            <input type="text" class="subproblem-add-input" id="newSubproblemKey" placeholder="a" maxlength="1">
+                            <button class="btn btn-primary" onclick="addSubproblem()">Add Subproblem</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        function generateApproachButtons(approach) {
+            const availableApproaches = ['Algebraic', 'Geometric', 'Combinatorial', 'Approximation', 'Intuitive', 'Algorithmic', 'Logical', 'Symmetric', 'Statistical', 'Nontraditional'];
+            
+            return availableApproaches.map(availableApproach => `
+                <button class="approach-btn ${approach && approach.toLowerCase() === availableApproach.toLowerCase() ? 'selected' : ''}" onclick="toggleApproach('${availableApproach}')">
+                    ${availableApproach}
+                </button>
+            `).join('');
+        }
+
+        function generateReasoningButtons(reasoning) {
+            const availableReasonings = ['Proof-based', 'Example Construction', 'Counterexample Construction', 'Computational', 'Conceptual', 'Application-based'];
+            
+            return availableReasonings.map(availableReasoning => `
+                <button class="reasoning-btn ${reasoning && reasoning.toLowerCase() === availableReasoning.toLowerCase() ? 'selected' : ''}" onclick="toggleReasoning('${availableReasoning}')">
+                    ${availableReasoning}
+                </button>
+            `).join('');
+        }
+
+        function updateProblem(field, value) {
+            if (currentProblemIndex >= 0) {
+                problemsData.problems[currentProblemIndex][field] = value;
+                // Don't auto-update completion status here
+            }
+        }
+
+        function updateSolution(value) {
+            if (currentProblemIndex >= 0) {
+                // Handle both old format (string) and new format (object)
+                if (!problemsData.problems[currentProblemIndex].solution) {
+                    problemsData.problems[currentProblemIndex].solution = {
+                        text: value,
+                        images: []
+                    };
+                } else if (typeof problemsData.problems[currentProblemIndex].solution === 'string') {
+                    // Convert old format to new format
+                    problemsData.problems[currentProblemIndex].solution = {
+                        text: value,
+                        images: []
+                    };
+                } else {
+                    // Update existing object format
+                    problemsData.problems[currentProblemIndex].solution.text = value;
+                }
+            }
+        }
+
+        function updateSolutionFromTextarea() {
+            const textarea = document.getElementById('solutionTextarea');
+            if (textarea) {
+                updateSolution(textarea.value);
+            }
+        }
+
+        function updateAnswerOption(key, value) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].answer_options) {
+                    problemsData.problems[currentProblemIndex].answer_options = {};
+                }
+                problemsData.problems[currentProblemIndex].answer_options[key] = value;
+                // Don't auto-update completion status here
+            }
+        }
+
+        function setDifficulty(difficulty) {
+            if (currentProblemIndex >= 0) {
+                problemsData.problems[currentProblemIndex].difficulty = difficulty;
+            }
+            
+            // Update UI
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function filterTopics() {
+            console.log('filterTopics called');
+            const searchInput = document.getElementById('topicSearchInput');
+            const dropdown = document.getElementById('topicsDropdown');
+            
+            if (!searchInput) {
+                console.log('searchInput not found');
+                return;
+            }
+            
+            if (!dropdown) {
+                console.log('dropdown not found');
+                return;
+            }
+            
+            const searchTerm = searchInput.value.toLowerCase();
+            console.log('Search term:', searchTerm);
+            console.log('Available topics:', availableTopics.length);
+            
+            // Get current topic IDs, default to empty array if no problem selected
+            const currentTopicIds = (currentProblemIndex >= 0 && problemsData && problemsData.problems) 
+                ? (problemsData.problems[currentProblemIndex].topics || [])
+                : [];
+            
+            console.log('Current topic IDs:', currentTopicIds);
+            
+            let filteredTopics;
+            if (!searchTerm) {
+                // Show all topics if no search term
+                filteredTopics = availableTopics.filter(topic => !currentTopicIds.includes(topic.id));
+            } else {
+                // Filter by search term
+                filteredTopics = availableTopics.filter(topic => 
+                    topic.name.toLowerCase().includes(searchTerm) && 
+                    !currentTopicIds.includes(topic.id)
+                );
+            }
+            
+            console.log('Filtered topics:', filteredTopics.length);
+            
+            dropdown.innerHTML = filteredTopics.map(topic => `
+                <div class="topics-dropdown-item" onmousedown="addTopicById(${topic.id})">
+                    ${topic.name}
+                </div>
+            `).join('');
+            
+            if (filteredTopics.length === 0 && searchTerm) {
+                dropdown.innerHTML = '<div class="topics-dropdown-item" style="color: #6c757d; font-style: italic;">No topics found</div>';
+            }
+        }
+
+        function showTopicsDropdown() {
+            console.log('showTopicsDropdown called');
+            const dropdown = document.getElementById('topicsDropdown');
+            if (!dropdown) {
+                console.log('dropdown element not found');
+                return;
+            }
+            dropdown.style.display = 'block';
+            console.log('dropdown display set to block');
+            filterTopics(); // Show filtered results
+        }
+
+        function handleTopicInput() {
+            console.log('handleTopicInput called');
+            showTopicsDropdown();
+            filterTopics();
+        }
+
+        function testTopicsDropdown() {
+            console.log('Test button clicked');
+            console.log('Available topics:', availableTopics.length);
+            const dropdown = document.getElementById('topicsDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                if (dropdown.style.display === 'block') {
+                    filterTopics();
+                }
+            }
+        }
+
+        function hideTopicsDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('topicsDropdown');
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                }
+                const searchInput = document.getElementById('topicSearchInput');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+            }, 300); // Longer delay to allow click events to fire
+        }
+
+        function addTopicById(topicId) {
+            console.log('addTopicById called with ID:', topicId);
+            
+            if (currentProblemIndex >= 0 && problemsData && problemsData.problems) {
+                if (!problemsData.problems[currentProblemIndex].topics) {
+                    problemsData.problems[currentProblemIndex].topics = [];
+                }
+                
+                if (!problemsData.problems[currentProblemIndex].topics.includes(topicId)) {
+                    problemsData.problems[currentProblemIndex].topics.push(topicId);
+                    console.log('Topic added:', topicId);
+                    updateTopicsList();
+                    
+                    // Clear search and hide dropdown
+                    const searchInput = document.getElementById('topicSearchInput');
+                    const dropdown = document.getElementById('topicsDropdown');
+                    if (searchInput) searchInput.value = '';
+                    if (dropdown) dropdown.style.display = 'none';
+                } else {
+                    console.log('Topic already exists');
+                }
+            } else {
+                console.log('No problem selected or problemsData not available');
+                alert('Please load a JSON file and select a problem first');
+            }
+        }
+
+        function removeTopic(topicId) {
+            if (currentProblemIndex >= 0) {
+                const topics = problemsData.problems[currentProblemIndex].topics;
+                const index = topics.indexOf(topicId);
+                if (index > -1) {
+                    topics.splice(index, 1);
+                    updateTopicsList();
+                }
+            }
+        }
+
+        function updateTopicsList() {
+            const topicsList = document.getElementById('topicsList');
+            const topics = problemsData.problems[currentProblemIndex].topics || [];
+            topicsList.innerHTML = generateTopicsList(topics);
+        }
+
+        function toggleSubproblems() {
+            const content = document.getElementById('subproblemsContent');
+            const toggle = document.getElementById('subproblemsToggle');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+                toggle.textContent = '▶';
+            } else {
+                content.classList.add('expanded');
+                toggle.classList.add('expanded');
+                toggle.textContent = '▼';
+            }
+        }
+
+        function toggleSubproblemEdit(key) {
+            const display = document.getElementById(`subproblemDisplay_${key}`);
+            const rendered = document.getElementById(`subproblemRendered_${key}`);
+            const edit = document.getElementById(`subproblemEdit_${key}`);
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateSubproblemText(key, newText);
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = edit.querySelector('textarea');
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveSubproblem(key) {
+            toggleSubproblemEdit(key);
+        }
+
+        function toggleSubproblemAnswerEdit(key) {
+            const display = document.getElementById(`subproblemAnswerDisplay_${key}`);
+            const rendered = document.getElementById(`subproblemAnswerRendered_${key}`);
+            const edit = document.getElementById(`subproblemAnswerEdit_${key}`);
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateSubproblemAnswer(key, newText);
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = edit.querySelector('textarea');
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveSubproblemAnswer(key) {
+            toggleSubproblemAnswerEdit(key);
+        }
+
+        // Legacy functions kept for backward compatibility
+        function saveSubproblemSolution(key) {
+            // No longer needed with new individual solution boxes
+        }
+
+        function updateSubproblemText(key, value) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: null,
+                        correct_answer: null,
+                        hint: null,
+                        solution: { text: null, images: [] },
+                        images: [],
+                        comment: null
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].problem_text = value;
+            }
+        }
+
+        function updateSubproblemAnswer(key, value) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: null,
+                        correct_answer: null,
+                        hint: null,
+                        solution: { text: null, images: [] },
+                        images: [],
+                        comment: null
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].correct_answer = value;
+            }
+        }
+
+        function toggleSubproblemComment(key) {
+            const container = document.getElementById(`subproblemCommentContainer_${key}`);
+            if (container) {
+                if (container.style.display === 'none') {
+                    container.style.display = 'block';
+                } else {
+                    container.style.display = 'none';
+                }
+            }
+        }
+
+        function toggleSubproblemCommentEdit(key) {
+            const display = document.getElementById(`subproblemCommentDisplay_${key}`);
+            const rendered = document.getElementById(`subproblemCommentRendered_${key}`);
+            const edit = document.getElementById(`subproblemCommentEdit_${key}`);
+            
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const newText = edit.querySelector('textarea').value;
+                
+                // Clear any existing MathJax processing first
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+                
+                // Set the new text content with preprocessing
+                rendered.innerHTML = preprocessLatexLists(newText);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateSubproblemComment(key, newText);
+                
+                // Re-render LaTeX with proper promise chaining
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        // Fallback: just show the raw text if MathJax fails
+                        rendered.innerHTML = newText;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = edit.querySelector('textarea');
+                
+                // Ensure textarea has the current data value
+                if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].subproblems && 
+                    problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    textarea.value = problemsData.problems[currentProblemIndex].subproblems[key].comment || '';
+                }
+                
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveSubproblemComment(key) {
+            toggleSubproblemCommentEdit(key);
+        }
+
+        function updateSubproblemComment(key, value) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: null,
+                        correct_answer: null,
+                        hint: null,
+                        solution: { text: null, images: [] },
+                        images: [],
+                        comment: null
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].comment = value;
+            }
+        }
+
+        // Legacy function kept for backward compatibility
+        function updateSubproblemSolution(key, value) {
+            // This function is now handled by updateSubproblemSolutionAtIndex
+        }
+
+
+        function toggleApproach(approach) {
+            if (currentProblemIndex >= 0) {
+                const currentApproach = problemsData.problems[currentProblemIndex].math_approach;
+                const approachLower = approach.toLowerCase();
+                
+                if (currentApproach && currentApproach.toLowerCase() === approachLower) {
+                    // Remove approach (deselect)
+                    problemsData.problems[currentProblemIndex].math_approach = null;
+                } else {
+                    // Set new approach
+                    problemsData.problems[currentProblemIndex].math_approach = approachLower;
+                }
+                
+                updateApproachButtons();
+            }
+        }
+
+        function updateApproachButtons() {
+            const approachButtons = document.getElementById('approachButtons');
+            const approach = problemsData.problems[currentProblemIndex].math_approach || null;
+            approachButtons.innerHTML = generateApproachButtons(approach);
+        }
+
+        function toggleReasoning(reasoning) {
+            if (currentProblemIndex >= 0) {
+                const currentReasoning = problemsData.problems[currentProblemIndex].reasoning_type;
+                const reasoningLower = reasoning.toLowerCase();
+                
+                if (currentReasoning && currentReasoning.toLowerCase() === reasoningLower) {
+                    // Remove reasoning (deselect)
+                    problemsData.problems[currentProblemIndex].reasoning_type = null;
+                } else {
+                    // Set new reasoning
+                    problemsData.problems[currentProblemIndex].reasoning_type = reasoningLower;
+                }
+                
+                updateReasoningButtons();
+            }
+        }
+
+        function updateReasoningButtons() {
+            const reasoningButtons = document.querySelector('.reasoning-buttons');
+            const reasoning = problemsData.problems[currentProblemIndex].reasoning_type || null;
+            reasoningButtons.innerHTML = generateReasoningButtons(reasoning);
+        }
+
+
+        function removeProblem() {
+            if (currentProblemIndex >= 0 && confirm('Are you sure you want to remove this entire problem? This action cannot be undone.')) {
+                // Remove the problem from the array
+                problemsData.problems.splice(currentProblemIndex, 1);
+                
+                // Update localStorage
+                localStorage.setItem('problemsData', JSON.stringify(problemsData));
+                
+                // Reload the problems list
+                loadProblems();
+                
+                // Reset current index
+                currentProblemIndex = -1;
+                
+                // Show no problem selected
+                const editorPanel = document.querySelector('.editor-panel');
+                editorPanel.innerHTML = `
+                    <div id="noProblem" class="no-problem">
+                        <h3>No Problem Selected</h3>
+                        <p>Select a problem from the sidebar to start editing</p>
+                    </div>
+                `;
+                
+                showSuccess('Problem removed successfully!');
+            }
+        }
+
+        function handleMultilineEdit(event) {
+            if (event.key === 'Enter' && event.shiftKey) {
+                // Allow line break with Shift+Enter
+                return true;
+            } else if (event.key === 'Enter' && !event.shiftKey) {
+                // Prevent default Enter behavior and trigger blur to save
+                event.preventDefault();
+                event.target.blur();
+            }
+            
+            // Auto-resize textarea
+            autoResizeTextarea(event.target);
+        }
+
+        function htmlEscapeMathSymbols(text) {
+            if (!text) return text;
+            return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.max(60, textarea.scrollHeight) + 'px';
+        }
+
+        function addSubproblem() {
+            const keyInput = document.getElementById('newSubproblemKey');
+            const key = keyInput.value.trim().toLowerCase();
+            
+            if (!key || !/^[a-z]$/.test(key)) {
+                alert('Please enter a single letter (a-z) for the subproblem key.');
+                return;
+            }
+            
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                
+                if (problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    alert(`Subproblem ${key} already exists.`);
+                    return;
+                }
+                
+                // Add new subproblem with new structure
+                problemsData.problems[currentProblemIndex].subproblems[key] = {
+                    problem_text: '',
+                    correct_answer: null,
+                    solution: null
+                };
+                
+                // Clear input
+                keyInput.value = '';
+                
+                // Refresh the subproblems section
+                refreshSubproblemsSection();
+            }
+        }
+
+        function removeSubproblem(key) {
+            if (currentProblemIndex >= 0) {
+                delete problemsData.problems[currentProblemIndex].subproblems[key];
+                
+                // Keep subproblems as empty dict if no subproblems left
+                if (Object.keys(problemsData.problems[currentProblemIndex].subproblems).length === 0) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                
+                // Refresh the subproblems section
+                refreshSubproblemsSection();
+            }
+        }
+
+        function refreshSubproblemsSection() {
+            const problem = problemsData.problems[currentProblemIndex];
+            const subproblemsContainer = document.querySelector('.subproblems-container');
+            if (subproblemsContainer) {
+                subproblemsContainer.outerHTML = generateSubproblemsSection(problem.subproblems);
+                
+                // Re-render LaTeX for new subproblems
+                if (window.MathJax && problem.subproblems) {
+                    const elementsToRender = [];
+                    Object.keys(problem.subproblems).forEach(key => {
+                        const subproblemElement = document.getElementById(`subproblemRendered_${key}`);
+                        const subproblemAnswerElement = document.getElementById(`subproblemAnswerRendered_${key}`);
+                        const subproblemHintElement = document.getElementById(`subproblemHintRendered_${key}`);
+                        const subproblemSolutionElement = document.getElementById(`subproblemSolutionRendered_${key}`);
+                        if (subproblemElement) {
+                            elementsToRender.push(subproblemElement);
+                        }
+                        if (subproblemAnswerElement) {
+                            elementsToRender.push(subproblemAnswerElement);
+                        }
+                        if (subproblemHintElement) {
+                            elementsToRender.push(subproblemHintElement);
+                        }
+                        if (subproblemSolutionElement) {
+                            elementsToRender.push(subproblemSolutionElement);
+                        }
+                    });
+                    if (elementsToRender.length > 0) {
+                        MathJax.typesetPromise(elementsToRender);
+                    }
+                }
+            }
+        }
+
+        function refreshImageSection() {
+            const problem = problemsData.problems[currentProblemIndex];
+            const imageContainer = document.getElementById('problemImage');
+            if (imageContainer) {
+                imageContainer.innerHTML = generateImageSection(problem.images);
+            }
+        }
+
+
+        function saveCurrentProblem() {
+            if (currentProblemIndex >= 0) {
+                // Save to localStorage as backup
+                localStorage.setItem('problemsData', JSON.stringify(problemsData));
+                if (originalFileName) {
+                    localStorage.setItem('originalFileName', originalFileName);
+                }
+                
+                // Update completion status
+                
+                // Update the problem status in the sidebar
+                updateProblemStatus();
+                
+                showSuccess('Problem saved successfully!');
+            }
+        }
+
+        function updateProblemStatus() {
+            if (currentProblemIndex >= 0) {
+                const problem = problemsData.problems[currentProblemIndex];
+                const isComplete = isProblemComplete(problem);
+                
+                const problemItem = document.querySelectorAll('.problem-item')[currentProblemIndex];
+                const statusElement = problemItem.querySelector('.problem-status');
+                
+                statusElement.className = `problem-status ${isComplete ? 'complete' : 'incomplete'}`;
+                statusElement.textContent = ''; // No text, just icons
+                
+                updateStats();
+            }
+        }
+
+        function isProblemComplete(problem) {
+            // Check if either problem_text exists OR at least one subproblem exists
+            const hasContent = problem.problem_text || 
+                              (problem.subproblems && Object.keys(problem.subproblems).length > 0 && 
+                               Object.values(problem.subproblems).some(sp => sp && sp.problem_text && sp.problem_text.trim()));
+            
+            // Handle solution object format - check if solution has actual content
+            let hasSolution = false;
+            if (problem.solution) {
+                if (typeof problem.solution === 'string' && problem.solution.trim()) {
+                    hasSolution = true;
+                } else if (problem.solution.text) {
+                    if (Array.isArray(problem.solution.text)) {
+                        hasSolution = problem.solution.text.some(text => text && text.trim());
+                    } else if (typeof problem.solution.text === 'string') {
+                        hasSolution = problem.solution.text.trim().length > 0;
+                    }
+                }
+            }
+            
+            return hasContent &&
+                   problem.correct_answer && 
+                   hasSolution && 
+                   problem.difficulty && 
+                   problem.topics && Array.isArray(problem.topics) &&
+                   problem.topics.length > 0 &&
+                   true; // Domain removed
+                   // Note: math_approach and reasoning_type are now optional
+        }
+
+        function updateStats() {
+            if (!problemsData) return;
+
+            const total = problemsData.problems.length;
+            const completed = problemsData.problems.filter(p => isProblemComplete(p)).length;
+            const incomplete = total - completed;
+
+            document.getElementById('totalProblems').textContent = total;
+            document.getElementById('completedProblems').textContent = completed;
+            document.getElementById('incompleteProblems').textContent = incomplete;
+            document.getElementById('stats').style.display = 'flex';
+        }
+
+        function exportData() {
+            if (!problemsData) {
+                showError('No data to export. Please load a JSON file first.');
+                return;
+            }
+
+            // Create a copy for export
+            const exportData = JSON.parse(JSON.stringify(problemsData));
+            
+            // Handle both old format (doc) and new format (document)
+            const documentField = exportData.document || exportData.doc;
+            if (exportData.doc && !exportData.document) {
+                // Convert old format to new format
+                exportData.document = exportData.doc;
+                delete exportData.doc;
+            }
+            
+            // Set updated_at timestamp in Eastern timezone with yyyy-mm-dd format
+            const now = new Date();
+            const easternTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+            const year = easternTime.getFullYear();
+            const month = String(easternTime.getMonth() + 1).padStart(2, '0');
+            const day = String(easternTime.getDate()).padStart(2, '0');
+            const hours = String(easternTime.getHours()).padStart(2, '0');
+            const minutes = String(easternTime.getMinutes()).padStart(2, '0');
+            const seconds = String(easternTime.getSeconds()).padStart(2, '0');
+            const timestampStr = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            
+            // Update each problem's updated_at and version fields
+            if (exportData.problems && Array.isArray(exportData.problems)) {
+                exportData.problems.forEach(problem => {
+                    // Set updated_at timestamp
+                    problem.updated_at = timestampStr;
+                    
+                    // Increment version for each problem
+                    if (problem.version === 'raw') {
+                        problem.version = 'v1';
+                    } else if (problem.version && problem.version.startsWith('v')) {
+                        const currentVersion = parseInt(problem.version.substring(1));
+                        if (!isNaN(currentVersion)) {
+                            problem.version = `v${currentVersion + 1}`;
+                        } else {
+                            problem.version = 'v1';
+                        }
+                    } else {
+                        problem.version = 'v1';
+                    }
+                });
+            }
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            // Create filename with version suffix using the input file name and first problem's version
+            const baseFileName = originalFileName ? originalFileName.replace('.json', '') : 'problems';
+            const version = (exportData.problems && exportData.problems.length > 0) ? 
+                          (exportData.problems[0].version || 'v1') : 'v1';
+            const exportFileName = `${baseFileName}_${version}.json`;
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = exportFileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showSuccess(`Data exported successfully as ${exportFileName}!`);
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.main-content'));
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.container').insertBefore(successDiv, document.querySelector('.main-content'));
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+
+        async function updateDatabase() {
+            if (!problemsData) {
+                showError('No data to update. Please load a JSON file first.');
+                return;
+            }
+
+            try {
+                // Show loading state
+                const originalButton = event.target;
+                const originalText = originalButton.innerHTML;
+                originalButton.innerHTML = '⏳ Updating Database...';
+                originalButton.disabled = true;
+
+                console.log('Starting database update...');
+                
+                // Step 1: Insert or update document
+                const documentData = problemsData.document;
+                console.log('Inserting document:', documentData);
+                
+                const documentResponse = await insertDocument(documentData);
+                const documentUuid = documentResponse.data[0].id;
+                console.log('Document inserted with UUID:', documentUuid);
+
+                // Step 2: Insert problems and related data
+                let successfulInserts = 0;
+                let totalProblems = problemsData.problems.length;
+
+                for (const problem of problemsData.problems) {
+                    try {
+                        console.log(`Processing problem: ${problem.id}`);
+                        
+                        // Insert problem
+                        const problemResponse = await insertProblem(problem, documentUuid);
+                        const problemUuid = problemResponse.data[0].id;
+                        console.log(`Problem inserted with UUID: ${problemUuid}`);
+
+                        // Insert subproblems
+                        if (problem.subproblems && Object.keys(problem.subproblems).length > 0) {
+                            await insertSubproblems(problem.subproblems, problemUuid);
+                        }
+
+                        // Insert hints
+                        if (problem.hint && problem.hint.length > 0) {
+                            await insertHints(problem.hint, problemUuid, null);
+                        }
+
+                        // Insert solutions
+                        if (problem.solution && problem.solution.text && problem.solution.text.length > 0) {
+                            await insertSolutions(problem.solution.text, problemUuid, null);
+                        }
+
+                        // Insert images
+                        if (problem.images && problem.images.length > 0) {
+                            await insertImages(problem.images, problemUuid, null, null, 'problem');
+                        }
+
+                        // Insert topics
+                        if (problem.topics && problem.topics.length > 0) {
+                            await insertTopics(problem.topics, problemUuid);
+                        }
+
+
+                        // Insert approaches
+                        if (problem.math_approach && problem.math_approach.length > 0) {
+                            await insertApproaches(problem.math_approach, problemUuid);
+                        }
+
+                        // Insert reasoning types
+                        if (problem.reasoning_type && problem.reasoning_type.length > 0) {
+                            await insertReasoningTypes(problem.reasoning_type, problemUuid);
+                        }
+
+                        successfulInserts++;
+                    } catch (problemError) {
+                        console.error(`Error processing problem ${problem.id}:`, problemError);
+                        showError(`Error processing problem ${problem.id}: ${problemError.message}`);
+                    }
+                }
+
+                // Restore button state
+                originalButton.innerHTML = originalText;
+                originalButton.disabled = false;
+
+                showSuccess(`Database updated successfully! Inserted ${successfulInserts}/${totalProblems} problems.`);
+                console.log('Database update completed successfully');
+
+            } catch (error) {
+                console.error('Database update failed:', error);
+                showError(`Database update failed: ${error.message}`);
+                
+                // Restore button state on error
+                if (event && event.target) {
+                    event.target.innerHTML = '🗃️ Update Database';
+                    event.target.disabled = false;
+                }
+            }
+        }
+
+        // Helper functions for database operations
+        async function insertDocument(documentData) {
+            const payload = {
+                document_id: documentData.id,
+                school: documentData.school || null,
+                course: documentData.course || null,
+                problem_type: documentData.problem_type || null,
+                term: documentData.term || null,
+                year: documentData.year ? parseInt(documentData.year) : null,
+                total_problems: documentData.total_problems || 0
+            };
+
+            const response = await fetch('/functions/v1/supabase-proxy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'upsert',
+                    table: 'documents',
+                    data: payload,
+                    onConflict: 'document_id'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Document insert failed: ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        async function insertProblem(problem, documentUuid) {
+            const payload = {
+                problem_id: problem.id,
+                document_id: documentUuid,
+                problem_text: problem.problem_text || null,
+                correct_answer: problem.correct_answer || null,
+                difficulty: problem.difficulty || null,
+                importance: problem.importance || null,
+                comment: problem.comment || null,
+                version: problem.version || 'v1'
+            };
+
+            const response = await fetch('/functions/v1/supabase-proxy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'upsert',
+                    table: 'problems',
+                    data: payload,
+                    onConflict: 'problem_id'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Problem insert failed: ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        async function insertSubproblems(subproblems, problemUuid) {
+            for (const [key, subproblem] of Object.entries(subproblems)) {
+                const payload = {
+                    problem_id: problemUuid,
+                    key: key,
+                    problem_text: subproblem.problem_text || null,
+                    correct_answer: subproblem.correct_answer || null,
+                    comment: subproblem.comment || null
+                };
+
+                const response = await fetch('/functions/v1/supabase-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'upsert',
+                        table: 'subproblems',
+                        data: payload,
+                        onConflict: 'problem_id,key'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Subproblem insert failed: ${response.statusText}`);
+                }
+
+                const subproblemResponse = await response.json();
+                const subproblemUuid = subproblemResponse.data[0].id;
+
+                // Insert subproblem hints
+                if (subproblem.hint && subproblem.hint.length > 0) {
+                    await insertHints(subproblem.hint, null, subproblemUuid);
+                }
+
+                // Insert subproblem solutions
+                if (subproblem.solution && subproblem.solution.text && subproblem.solution.text.length > 0) {
+                    await insertSolutions(subproblem.solution.text, null, subproblemUuid);
+                }
+
+                // Insert subproblem images
+                if (subproblem.images && subproblem.images.length > 0) {
+                    await insertImages(subproblem.images, null, subproblemUuid, null, 'subproblem');
+                }
+            }
+        }
+
+        async function insertHints(hints, problemUuid, subproblemUuid) {
+            for (let i = 0; i < hints.length; i++) {
+                const payload = {
+                    problem_id: problemUuid,
+                    subproblem_id: subproblemUuid,
+                    hint_text: hints[i],
+                    position: i
+                };
+
+                const response = await fetch('/functions/v1/supabase-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'insert',
+                        table: 'problem_hints',
+                        data: payload
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Hint insert failed: ${response.statusText}`);
+                }
+            }
+        }
+
+        async function insertSolutions(solutions, problemUuid, subproblemUuid) {
+            for (let i = 0; i < solutions.length; i++) {
+                const payload = {
+                    problem_id: problemUuid,
+                    subproblem_id: subproblemUuid,
+                    solution_text: solutions[i],
+                    position: i
+                };
+
+                const response = await fetch('/functions/v1/supabase-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'insert',
+                        table: 'problem_solutions',
+                        data: payload
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Solution insert failed: ${response.statusText}`);
+                }
+            }
+        }
+
+        async function insertImages(images, problemUuid, subproblemUuid, solutionUuid, context) {
+            for (const image of images) {
+                const payload = {
+                    problem_id: problemUuid,
+                    subproblem_id: subproblemUuid,
+                    solution_id: solutionUuid,
+                    image_path: image,
+                    context: context
+                };
+
+                const response = await fetch('/functions/v1/supabase-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'insert',
+                        table: 'problem_images',
+                        data: payload
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Image insert failed: ${response.statusText}`);
+                }
+            }
+        }
+
+        async function insertTopics(topicIds, problemUuid) {
+            for (const topicId of topicIds) {
+                const payload = {
+                    problem_id: problemUuid,
+                    topic_id: topicId
+                };
+
+                const response = await fetch('/functions/v1/supabase-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'upsert',
+                        table: 'problem_topics',
+                        data: payload,
+                        onConflict: 'problem_id,topic_id'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Topic insert failed: ${response.statusText}`);
+                }
+            }
+        }
+
+
+        async function insertApproaches(approaches, problemUuid) {
+            for (const approach of approaches) {
+                const payload = {
+                    problem_id: problemUuid,
+                    approach: approach
+                };
+
+                const response = await fetch('/functions/v1/supabase-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'upsert',
+                        table: 'approaches',
+                        data: payload,
+                        onConflict: 'problem_id,approach'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Approach insert failed: ${response.statusText}`);
+                }
+            }
+        }
+
+        async function insertReasoningTypes(reasoningTypes, problemUuid) {
+            for (const reasoningType of reasoningTypes) {
+                const payload = {
+                    problem_id: problemUuid,
+                    reasoning_type: reasoningType
+                };
+
+                const response = await fetch('/functions/v1/supabase-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'upsert',
+                        table: 'reasoning_types',
+                        data: payload,
+                        onConflict: 'problem_id,reasoning_type'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Reasoning type insert failed: ${response.statusText}`);
+                }
+            }
+        }
+
+        // Don't auto-load previous session data on initial page load
+        // Show clean boilerplate page instead
+        window.addEventListener('load', function() {
+            // Load topics data first
+            loadTopics();
+            // Clean start - no auto-loading of previous session
+            console.log('Editor loaded - ready for new file upload');
+        });
+
+        // Auto-resize textareas on input
+        document.addEventListener('input', function(event) {
+            if (event.target.tagName === 'TEXTAREA') {
+                autoResizeTextarea(event.target);
+            }
+        });
+
+        // Image placeholder processing functions
+        function processImagePlaceholders(text) {
+            if (!text) return text;
+            
+            // Convert ![imagename.png] to actual image tags
+            return text.replace(/!\[([^\]]+)\]/g, function(match, imageName) {
+                // Use document ID if available, fallback to currentFileName
+                const documentId = problemsData?.document?.id || problemsData?.doc?.id || currentFileName;
+                // Detect if running on GitHub Pages and use appropriate path
+                const isGitHubPages = window.location.hostname.includes('github.io');
+                const basePath = isGitHubPages ? '/math-problem-converter' : '';
+                const imagePath = `${basePath}/storage/processed/${documentId}/images/${imageName}`;
+                
+                return `<div style="text-align: center; margin: 15px 0;">
+                    <img src="${imagePath}" alt="${imageName}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; color: #6c757d; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">Image not found: ${imageName}</div>
+                    <div style="font-size: 12px; color: #6c757d; margin-top: 8px;">${imageName}</div>
+                </div>`;
+            });
+        }
+
+        function insertImagePlaceholder(context, key = null) {
+            let textarea;
+            
+            // Determine which textarea to target based on context
+            switch (context) {
+                case 'problem_solution':
+                    textarea = document.getElementById('solutionTextarea');
+                    break;
+                case 'problemText':
+                    textarea = document.getElementById('problemTextTextarea');
+                    break;
+                case 'subproblemSolution':
+                    textarea = document.getElementById(`subproblemSolutionTextarea_${key}`);
+                    break;
+                default:
+                    textarea = document.getElementById('solutionTextarea');
+            }
+            
+            if (!textarea) return;
+            
+            // Get available images from the current problem
+            let availableImages = [];
+            if (currentProblemIndex >= 0) {
+                const problem = problemsData.problems[currentProblemIndex];
+                if (problem.images && problem.images.length > 0) {
+                    availableImages = [...problem.images];
+                }
+                if (problem.solution && problem.solution.images && problem.solution.images.length > 0) {
+                    availableImages = [...availableImages, ...problem.solution.images];
+                }
+            }
+            
+            if (availableImages.length === 0) {
+                alert('No images available for this problem. Upload images first or add them to the problem/solution images array.');
+                return;
+            }
+            
+            // Show a simple selection of available images
+            let imageSelection = 'Available images:\\n';
+            availableImages.forEach((img, index) => {
+                imageSelection += `${index + 1}. ${img}\\n`;
+            });
+            
+            const selectedImage = prompt(imageSelection + '\\nEnter image filename (e.g., p2_2.png):');
+            if (selectedImage && selectedImage.trim()) {
+                const imageName = selectedImage.trim();
+                const placeholder = `![${imageName}]`;
+                
+                // Insert at cursor position
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const textBefore = textarea.value.substring(0, start);
+                const textAfter = textarea.value.substring(end);
+                
+                textarea.value = textBefore + placeholder + textAfter;
+                
+                // Move cursor after the inserted placeholder
+                textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+                textarea.focus();
+                
+                // Auto-resize textarea
+                autoResizeTextarea(textarea);
+                
+                // Update the appropriate data based on context
+                if (context === 'problem_solution') {
+                    updateSolutionFromTextarea();
+                } else if (context === 'problemText') {
+                    updateProblem('problem_text', textarea.value);
+                } else if (context === 'subproblemSolution') {
+                    updateSubproblemSolution(key, textarea.value);
+                }
+            }
+        }
+
+        // Image removal functions
+        function removeImageFromContext(context, imageIndex) {
+            if (currentProblemIndex < 0) {
+                alert('No problem selected');
+                return;
+            }
+            
+            const problem = problemsData.problems[currentProblemIndex];
+            let imageArray;
+            let imageFileName;
+            
+            // Determine which image array to modify based on context
+            switch (context) {
+                case 'problem':
+                    imageArray = problem.images;
+                    break;
+                case 'problem_solution':
+                    if (problem.solution && problem.solution.images) {
+                        imageArray = problem.solution.images;
+                    }
+                    break;
+                default:
+                    console.error('Unknown context:', context);
+                    return;
+            }
+            
+            if (!imageArray || imageIndex < 0 || imageIndex >= imageArray.length) {
+                alert('Invalid image index');
+                return;
+            }
+            
+            imageFileName = imageArray[imageIndex];
+            
+            // Show confirmation dialog
+            if (confirm(`Remove image "${imageFileName}" from the JSON?\n\nNote: This only removes the reference from the JSON file. You will need to manually delete the actual image file.`)) {
+                // Remove image from array
+                imageArray.splice(imageIndex, 1);
+                
+                // Refresh the display
+                refreshImageDisplay(context);
+                
+                showSuccess(`Image "${imageFileName}" removed from JSON successfully!`);
+            }
+        }
+
+        function removeImageFromSubproblem(subproblemKey, imageIndex) {
+            if (currentProblemIndex < 0) {
+                alert('No problem selected');
+                return;
+            }
+            
+            const problem = problemsData.problems[currentProblemIndex];
+            
+            if (!problem.subproblems || !problem.subproblems[subproblemKey] || !problem.subproblems[subproblemKey].images) {
+                alert('No images found for this subproblem');
+                return;
+            }
+            
+            const imageArray = problem.subproblems[subproblemKey].images;
+            
+            if (imageIndex < 0 || imageIndex >= imageArray.length) {
+                alert('Invalid image index');
+                return;
+            }
+            
+            const imageFileName = imageArray[imageIndex];
+            
+            // Show confirmation dialog
+            if (confirm(`Remove image "${imageFileName}" from subproblem ${subproblemKey}?\n\nNote: This only removes the reference from the JSON file. You will need to manually delete the actual image file.`)) {
+                // Remove image from array
+                imageArray.splice(imageIndex, 1);
+                
+                // Refresh the subproblems section
+                refreshSubproblemsSection();
+                
+                showSuccess(`Image "${imageFileName}" removed from subproblem ${subproblemKey} successfully!`);
+            }
+        }
+
+        function refreshImageDisplay(context) {
+            const problem = problemsData.problems[currentProblemIndex];
+            
+            switch (context) {
+                case 'problem':
+                    // Refresh main problem images
+                    const mainImageContainer = document.getElementById('problemImage');
+                    if (mainImageContainer && problem.images && problem.images.length > 0) {
+                        mainImageContainer.innerHTML = generateImageSection(problem.images, 'problem');
+                    } else if (mainImageContainer) {
+                        // Hide the entire images section if no images left
+                        const imagesFormGroup = mainImageContainer.closest('.form-group');
+                        if (imagesFormGroup) {
+                            imagesFormGroup.style.display = 'none';
+                        }
+                    }
+                    break;
+                    
+                case 'problem_solution':
+                    // Refresh solution images - need to find and update the solution images section
+                    const solutionImagesContainer = document.querySelector('.form-group .problem-image');
+                    if (solutionImagesContainer && problem.solution && problem.solution.images && problem.solution.images.length > 0) {
+                        // Find the solution images container specifically
+                        const solutionLabel = document.querySelector('label[style*="font-size: 12px"]:not([style*="text-align"])');
+                        if (solutionLabel && solutionLabel.textContent.includes('Solution Images')) {
+                            const container = solutionLabel.closest('.form-group').querySelector('.problem-image');
+                            if (container) {
+                                container.innerHTML = generateImageSection(problem.solution.images, 'problem_solution');
+                            }
+                        }
+                    } else {
+                        // Hide the solution images section if no images left
+                        const solutionLabel = document.querySelector('label[style*="font-size: 12px"]:not([style*="text-align"])');
+                        if (solutionLabel && solutionLabel.textContent.includes('Solution Images')) {
+                            const formGroup = solutionLabel.closest('.form-group');
+                            if (formGroup) {
+                                formGroup.style.display = 'none';
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+
+        // Helper functions for hints
+        function formatHintsForDisplay(hints) {
+            if (!hints || hints.length === 0) {
+                return '';
+            }
+            // Join hints with line breaks for display
+            return hints.join('<br>');
+        }
+
+        function formatHintsForEdit(hints) {
+            if (!hints || hints.length === 0) {
+                return '';
+            }
+            // Join hints with newlines for editing
+            return hints.join('\n');
+        }
+
+        // Generate hints section with individual boxes
+        function generateHintsSection(hints) {
+            if (!hints || hints.length === 0) {
+                hints = [''];  // Start with one empty hint
+            }
+            
+            return hints.map((hint, index) => `
+                <div class="hint-item" style="margin-bottom: 15px; position: relative;">
+                    <div class="hint-display" id="hintDisplay_${index}" style="${hint ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleHintEdit(${index})">
+                            <div id="hintRendered_${index}">${preprocessLatexLists(hint || '')}</div>
+                        </div>
+                    </div>
+                    <div class="hint-edit" id="hintEdit_${index}" style="${hint ? 'display: none;' : ''}">
+                        <input type="text" class="form-control" id="hintInput_${index}" onblur="saveHintEdit(${index})" value="${hint ? hint.replace(/"/g, '&quot;') : ''}" placeholder="Enter a hint..." style="width: 100%; padding: 15px; min-height: 60px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    </div>
+                    <button class="btn" onclick="removeHint(${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Main problem hint functions
+        function addHint() {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].hint) {
+                    problemsData.problems[currentProblemIndex].hint = [];
+                }
+                problemsData.problems[currentProblemIndex].hint.push('');
+                refreshHintsSection();
+            }
+        }
+
+        function removeHint(index) {
+            if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].hint) {
+                problemsData.problems[currentProblemIndex].hint.splice(index, 1);
+                refreshHintsSection();
+            }
+        }
+
+        function updateHintAtIndex(index, value) {
+            if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].hint) {
+                problemsData.problems[currentProblemIndex].hint[index] = value;
+            }
+        }
+
+        function refreshHintsSection() {
+            const hintsContainer = document.getElementById('hintsContainer');
+            const hints = problemsData.problems[currentProblemIndex].hint || [];
+            hintsContainer.innerHTML = generateHintsSection(hints);
+            
+            // Re-render LaTeX for all hint displays
+            if (window.MathJax) {
+                const elements = [];
+                hints.forEach((_, index) => {
+                    const elem = document.getElementById(`hintRendered_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
+            }
+        }
+
+        function toggleHintEdit(index) {
+            const display = document.getElementById(`hintDisplay_${index}`);
+            const edit = document.getElementById(`hintEdit_${index}`);
+            const input = document.getElementById(`hintInput_${index}`);
+            
+            // Switch to edit mode
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            input.focus();
+            input.select();
+        }
+
+        function saveHintEdit(index) {
+            const input = document.getElementById(`hintInput_${index}`);
+            const display = document.getElementById(`hintDisplay_${index}`);
+            const edit = document.getElementById(`hintEdit_${index}`);
+            const rendered = document.getElementById(`hintRendered_${index}`);
+            
+            const newValue = input.value.trim();
+            
+            // Update the data
+            updateHintAtIndex(index, newValue);
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                // If empty, stay in edit mode
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+        function updateHint(hintsArray) {
+            if (currentProblemIndex >= 0) {
+                problemsData.problems[currentProblemIndex].hint = hintsArray;
+            }
+        }
+
+        // NEW: Single-value hint functions
+        function generateHintSection(hint) {
+            const hintText = hint || '';
+            return `
+                <div class="hint-item" style="margin-bottom: 15px; position: relative;">
+                    <div class="hint-display" id="hintDisplay_single" style="${hintText ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSingleHintEdit()">
+                            <div id="hintRendered_single">${preprocessLatexLists(hintText)}</div>
+                        </div>
+                    </div>
+                    <div class="hint-edit" id="hintEdit_single" style="${hintText ? 'display: none;' : ''}">
+                        <input type="text" class="form-control" id="hintInput_single" onblur="saveSingleHintEdit()" value="${hintText ? hintText.replace(/"/g, '&quot;') : ''}" placeholder="Enter a hint..." style="width: 100%; padding: 15px; min-height: 60px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleSingleHintEdit() {
+            const display = document.getElementById('hintDisplay_single');
+            const edit = document.getElementById('hintEdit_single');
+            const input = document.getElementById('hintInput_single');
+            
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            input.focus();
+            input.select();
+        }
+
+        function saveSingleHintEdit() {
+            const input = document.getElementById('hintInput_single');
+            const display = document.getElementById('hintDisplay_single');
+            const edit = document.getElementById('hintEdit_single');
+            const rendered = document.getElementById('hintRendered_single');
+            
+            const newValue = input.value.trim();
+            
+            // Update the data
+            if (currentProblemIndex >= 0) {
+                problemsData.problems[currentProblemIndex].hint = newValue || null;
+            }
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+        // NEW: Single-value solution functions
+        function generateSolutionSection(solution) {
+            let solutionText = '';
+            if (solution) {
+                if (typeof solution === 'string') {
+                    solutionText = solution;
+                } else if (solution.text) {
+                    solutionText = solution.text || '';
+                }
+            }
+            
+            return `
+                <div class="solution-item" style="margin-bottom: 15px; position: relative;">
+                    <div class="solution-display" id="solutionDisplay_single" style="${solutionText ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSingleSolutionEdit()">
+                            <div id="solutionRendered_single">${preprocessLatexLists(solutionText)}</div>
+                        </div>
+                    </div>
+                    <div class="solution-edit" id="solutionEdit_single" style="${solutionText ? 'display: none;' : ''}">
+                        <textarea class="form-control" id="solutionTextarea_single" onblur="saveSingleSolutionEdit()" style="width: 100%; min-height: 100px; resize: vertical; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${solutionText ? solutionText.replace(/"/g, '&quot;') : ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleSingleSolutionEdit() {
+            const display = document.getElementById('solutionDisplay_single');
+            const edit = document.getElementById('solutionEdit_single');
+            const textarea = document.getElementById('solutionTextarea_single');
+            
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            textarea.focus();
+        }
+
+        function saveSingleSolutionEdit() {
+            const textarea = document.getElementById('solutionTextarea_single');
+            const display = document.getElementById('solutionDisplay_single');
+            const edit = document.getElementById('solutionEdit_single');
+            const rendered = document.getElementById('solutionRendered_single');
+            
+            const newValue = textarea.value.trim();
+            
+            // Update the data
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].solution) {
+                    problemsData.problems[currentProblemIndex].solution = { text: null, images: [] };
+                }
+                problemsData.problems[currentProblemIndex].solution.text = newValue || null;
+            }
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+        // Generate solutions section with individual boxes
+        function generateSolutionsSection(solution) {
+            // Handle different solution formats: null, string, object with text, object with array
+            let solutions = [];
+            if (solution) {
+                if (typeof solution === 'string') {
+                    solutions = solution ? [solution] : [];
+                } else if (solution.text) {
+                    if (Array.isArray(solution.text)) {
+                        solutions = solution.text;
+                    } else {
+                        solutions = solution.text ? [solution.text] : [];
+                    }
+                } else if (Array.isArray(solution)) {
+                    solutions = solution;
+                }
+            }
+            
+            if (solutions.length === 0) {
+                solutions = [''];  // Start with one empty solution
+            }
+            
+            return solutions.map((sol, index) => `
+                <div class="solution-item" style="margin-bottom: 15px; position: relative;">
+                    <div class="solution-display" id="solutionDisplay_${index}" style="${sol ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSolutionEdit(${index})">
+                            <div id="solutionRendered_${index}">${preprocessLatexLists(sol || '')}</div>
+                        </div>
+                    </div>
+                    <div class="solution-edit" id="solutionEdit_${index}" style="${sol ? 'display: none;' : ''}">
+                        <textarea class="form-control" id="solutionTextarea_${index}" onblur="saveSolutionEdit(${index})" style="width: 100%; min-height: 100px; resize: vertical; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${sol ? sol.replace(/"/g, '&quot;') : ''}</textarea>
+                    </div>
+                    <button class="btn" onclick="removeSolution(${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Main problem solution functions
+        function addSolution() {
+            if (currentProblemIndex >= 0) {
+                let problem = problemsData.problems[currentProblemIndex];
+                
+                // Initialize solution structure
+                if (!problem.solution) {
+                    problem.solution = { text: [], images: [] };
+                } else if (typeof problem.solution === 'string') {
+                    // Convert string to array format
+                    problem.solution = { 
+                        text: problem.solution ? [problem.solution] : [], 
+                        images: [] 
+                    };
+                } else if (problem.solution.text && !Array.isArray(problem.solution.text)) {
+                    // Convert single text to array
+                    problem.solution.text = problem.solution.text ? [problem.solution.text] : [];
+                }
+                
+                if (!Array.isArray(problem.solution.text)) {
+                    problem.solution.text = [];
+                }
+                
+                problem.solution.text.push('');
+                refreshSolutionsSection();
+            }
+        }
+
+        function removeSolution(index) {
+            if (currentProblemIndex >= 0) {
+                let problem = problemsData.problems[currentProblemIndex];
+                if (problem.solution && problem.solution.text && Array.isArray(problem.solution.text)) {
+                    problem.solution.text.splice(index, 1);
+                    refreshSolutionsSection();
+                }
+            }
+        }
+
+        function updateSolutionAtIndex(index, value) {
+            if (currentProblemIndex >= 0) {
+                let problem = problemsData.problems[currentProblemIndex];
+                if (problem.solution && problem.solution.text && Array.isArray(problem.solution.text)) {
+                    problem.solution.text[index] = value;
+                }
+            }
+        }
+
+        function refreshSolutionsSection() {
+            const solutionsContainer = document.getElementById('solutionsContainer');
+            const solution = problemsData.problems[currentProblemIndex].solution;
+            solutionsContainer.innerHTML = generateSolutionsSection(solution);
+            
+            // Re-render LaTeX for all solution displays
+            if (window.MathJax) {
+                const elements = [];
+                let solutions = [];
+                if (solution) {
+                    if (typeof solution === 'string') {
+                        solutions = [solution];
+                    } else if (solution.text) {
+                        solutions = Array.isArray(solution.text) ? solution.text : [solution.text];
+                    }
+                }
+                solutions.forEach((_, index) => {
+                    const elem = document.getElementById(`solutionRendered_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
+            }
+        }
+
+        function toggleSolutionEdit(index) {
+            const display = document.getElementById(`solutionDisplay_${index}`);
+            const edit = document.getElementById(`solutionEdit_${index}`);
+            const textarea = document.getElementById(`solutionTextarea_${index}`);
+            
+            // Switch to edit mode
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            textarea.focus();
+            autoResizeTextarea(textarea);
+        }
+
+        function saveSolutionEdit(index) {
+            const textarea = document.getElementById(`solutionTextarea_${index}`);
+            const display = document.getElementById(`solutionDisplay_${index}`);
+            const edit = document.getElementById(`solutionEdit_${index}`);
+            const rendered = document.getElementById(`solutionRendered_${index}`);
+            
+            const newValue = textarea.value.trim();
+            
+            // Update the data
+            updateSolutionAtIndex(index, newValue);
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                // If empty, stay in edit mode
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+        // Generate subproblem solutions section with individual boxes
+        function generateSubproblemSolutionsSection(solution, subproblemKey) {
+            // Handle different solution formats: null, string, object with text, object with array
+            let solutions = [];
+            if (solution) {
+                if (typeof solution === 'string') {
+                    solutions = solution ? [solution] : [];
+                } else if (solution.text) {
+                    if (Array.isArray(solution.text)) {
+                        solutions = solution.text;
+                    } else {
+                        solutions = solution.text ? [solution.text] : [];
+                    }
+                } else if (Array.isArray(solution)) {
+                    solutions = solution;
+                }
+            }
+            
+            if (solutions.length === 0) {
+                solutions = [''];  // Start with one empty solution
+            }
+            
+            return solutions.map((sol, index) => `
+                <div class="solution-item" style="margin-bottom: 10px; position: relative;">
+                    <div class="solution-display" id="subSolutionDisplay_${subproblemKey}_${index}" style="${sol ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer; font-size: 12px; min-height: 80px;" onclick="toggleSubproblemSolutionEdit('${subproblemKey}', ${index})">
+                            <div id="subSolutionRendered_${subproblemKey}_${index}">${preprocessLatexLists(sol || '')}</div>
+                        </div>
+                    </div>
+                    <div class="solution-edit" id="subSolutionEdit_${subproblemKey}_${index}" style="${sol ? 'display: none;' : ''}">
+                        <textarea class="form-control" id="subSolutionTextarea_${subproblemKey}_${index}" onblur="saveSubproblemSolutionEdit('${subproblemKey}', ${index})" style="width: 100%; min-height: 80px; resize: vertical; font-size: 12px; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${sol ? sol.replace(/"/g, '&quot;') : ''}</textarea>
+                    </div>
+                    <button class="btn" onclick="removeSubproblemSolution('${subproblemKey}', ${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Subproblem solution functions
+        function addSubproblemSolution(key) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: '',
+                        correct_answer: '',
+                        hint: [],
+                        solution: { text: [], images: [] },
+                        images: []
+                    };
+                }
+                
+                let subproblemSolution = problemsData.problems[currentProblemIndex].subproblems[key].solution;
+                
+                // Initialize solution structure
+                if (!subproblemSolution) {
+                    subproblemSolution = { text: [], images: [] };
+                    problemsData.problems[currentProblemIndex].subproblems[key].solution = subproblemSolution;
+                } else if (typeof subproblemSolution === 'string') {
+                    // Convert string to array format
+                    subproblemSolution = { 
+                        text: subproblemSolution ? [subproblemSolution] : [], 
+                        images: [] 
+                    };
+                    problemsData.problems[currentProblemIndex].subproblems[key].solution = subproblemSolution;
+                } else if (subproblemSolution.text && !Array.isArray(subproblemSolution.text)) {
+                    // Convert single text to array
+                    subproblemSolution.text = subproblemSolution.text ? [subproblemSolution.text] : [];
+                }
+                
+                if (!Array.isArray(subproblemSolution.text)) {
+                    subproblemSolution.text = [];
+                }
+                
+                subproblemSolution.text.push('');
+                refreshSubproblemSolutionsSection(key);
+            }
+        }
+
+        function removeSubproblemSolution(key, index) {
+            if (currentProblemIndex >= 0) {
+                const subproblem = problemsData.problems[currentProblemIndex].subproblems?.[key];
+                if (subproblem && subproblem.solution && subproblem.solution.text && Array.isArray(subproblem.solution.text)) {
+                    subproblem.solution.text.splice(index, 1);
+                    refreshSubproblemSolutionsSection(key);
+                }
+            }
+        }
+
+        function updateSubproblemSolutionAtIndex(key, index, value) {
+            if (currentProblemIndex >= 0) {
+                const subproblem = problemsData.problems[currentProblemIndex].subproblems?.[key];
+                if (subproblem && subproblem.solution && subproblem.solution.text && Array.isArray(subproblem.solution.text)) {
+                    subproblem.solution.text[index] = value;
+                }
+            }
+        }
+
+        function refreshSubproblemSolutionsSection(key) {
+            const solutionsContainer = document.getElementById(`subproblemSolutionsContainer_${key}`);
+            const subproblem = problemsData.problems[currentProblemIndex].subproblems?.[key];
+            const solution = subproblem ? subproblem.solution : null;
+            solutionsContainer.innerHTML = generateSubproblemSolutionsSection(solution, key);
+            
+            // Re-render LaTeX for all solution displays
+            if (window.MathJax) {
+                const elements = [];
+                let solutions = [];
+                if (solution) {
+                    if (typeof solution === 'string') {
+                        solutions = [solution];
+                    } else if (solution && solution.text) {
+                        solutions = Array.isArray(solution.text) ? solution.text : [solution.text];
+                    }
+                }
+                solutions.forEach((_, index) => {
+                    const elem = document.getElementById(`subSolutionRendered_${key}_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
+            }
+        }
+
+        function toggleSubproblemSolutionEdit(key, index) {
+            const display = document.getElementById(`subSolutionDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subSolutionEdit_${key}_${index}`);
+            const textarea = document.getElementById(`subSolutionTextarea_${key}_${index}`);
+            
+            // Switch to edit mode
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            textarea.focus();
+            autoResizeTextarea(textarea);
+        }
+
+        function saveSubproblemSolutionEdit(key, index) {
+            const textarea = document.getElementById(`subSolutionTextarea_${key}_${index}`);
+            const display = document.getElementById(`subSolutionDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subSolutionEdit_${key}_${index}`);
+            const rendered = document.getElementById(`subSolutionRendered_${key}_${index}`);
+            
+            const newValue = textarea.value.trim();
+            
+            // Update the data
+            updateSubproblemSolutionAtIndex(key, index, newValue);
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                // If empty, stay in edit mode
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+        // Generate subproblem hints section with individual boxes
+        function generateSubproblemHintsSection(hints, subproblemKey) {
+            if (!hints || hints.length === 0) {
+                hints = [''];  // Start with one empty hint
+            }
+            
+            return hints.map((hint, index) => `
+                <div class="hint-item" style="margin-bottom: 10px; position: relative;">
+                    <div class="hint-display" id="subHintDisplay_${subproblemKey}_${index}" style="${hint ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer; font-size: 12px; min-height: 60px;" onclick="toggleSubproblemHintEdit('${subproblemKey}', ${index})">
+                            <div id="subHintRendered_${subproblemKey}_${index}">${preprocessLatexLists(hint || '')}</div>
+                        </div>
+                    </div>
+                    <div class="hint-edit" id="subHintEdit_${subproblemKey}_${index}" style="${hint ? 'display: none;' : ''}">
+                        <input type="text" class="form-control" id="subHintInput_${subproblemKey}_${index}" onblur="saveSubproblemHintEdit('${subproblemKey}', ${index})" value="${hint ? hint.replace(/"/g, '&quot;') : ''}" placeholder="Enter a hint..." style="width: 100%; font-size: 12px; padding: 12px; min-height: 60px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    </div>
+                    <button class="btn" onclick="removeSubproblemHint('${subproblemKey}', ${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Subproblem hint functions
+        function addSubproblemHint(key) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: '',
+                        correct_answer: '',
+                        hint: [],
+                        solution: null,
+                        images: []
+                    };
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key].hint) {
+                    problemsData.problems[currentProblemIndex].subproblems[key].hint = [];
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].hint.push('');
+                refreshSubproblemHintsSection(key);
+            }
+        }
+
+        function removeSubproblemHint(key, index) {
+            if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].subproblems && 
+                problemsData.problems[currentProblemIndex].subproblems[key] && 
+                problemsData.problems[currentProblemIndex].subproblems[key].hint) {
+                problemsData.problems[currentProblemIndex].subproblems[key].hint.splice(index, 1);
+                refreshSubproblemHintsSection(key);
+            }
+        }
+
+        function updateSubproblemHintAtIndex(key, index, value) {
+            if (currentProblemIndex >= 0 && problemsData.problems[currentProblemIndex].subproblems && 
+                problemsData.problems[currentProblemIndex].subproblems[key] && 
+                problemsData.problems[currentProblemIndex].subproblems[key].hint) {
+                problemsData.problems[currentProblemIndex].subproblems[key].hint[index] = value;
+            }
+        }
+
+        function refreshSubproblemHintsSection(key) {
+            const hintsContainer = document.getElementById(`subproblemHintsContainer_${key}`);
+            const hints = (problemsData.problems[currentProblemIndex].subproblems && 
+                          problemsData.problems[currentProblemIndex].subproblems[key] && 
+                          problemsData.problems[currentProblemIndex].subproblems[key].hint) || [];
+            hintsContainer.innerHTML = generateSubproblemHintsSection(hints, key);
+            
+            // Re-render LaTeX for all hint displays
+            if (window.MathJax) {
+                const elements = [];
+                hints.forEach((_, index) => {
+                    const elem = document.getElementById(`subHintRendered_${key}_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
+            }
+        }
+
+        function toggleSubproblemHintEdit(key, index) {
+            const display = document.getElementById(`subHintDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subHintEdit_${key}_${index}`);
+            const input = document.getElementById(`subHintInput_${key}_${index}`);
+            
+            // Switch to edit mode
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            input.focus();
+            input.select();
+        }
+
+        function saveSubproblemHintEdit(key, index) {
+            const input = document.getElementById(`subHintInput_${key}_${index}`);
+            const display = document.getElementById(`subHintDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subHintEdit_${key}_${index}`);
+            const rendered = document.getElementById(`subHintRendered_${key}_${index}`);
+            
+            const newValue = input.value.trim();
+            
+            // Update the data
+            updateSubproblemHintAtIndex(key, index, newValue);
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                // If empty, stay in edit mode
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+        function updateSubproblemHintArray(key, hintsArray) {
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: '',
+                        correct_answer: '',
+                        hint: [],
+                        solution: null,
+                        images: []
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].hint = hintsArray;
+            }
+        }
+
+        // NEW: Single-value subproblem hint functions
+        function generateSubproblemHintSection(hint, subproblemKey) {
+            const hintText = hint || '';
+            return `
+                <div class="hint-item" style="margin-bottom: 15px; position: relative;">
+                    <div class="hint-display" id="subHintDisplay_${subproblemKey}_single" style="${hintText ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSubproblemSingleHintEdit('${subproblemKey}')">
+                            <div id="subHintRendered_${subproblemKey}_single">${preprocessLatexLists(hintText)}</div>
+                        </div>
+                    </div>
+                    <div class="hint-edit" id="subHintEdit_${subproblemKey}_single" style="${hintText ? 'display: none;' : ''}">
+                        <input type="text" class="form-control" id="subHintInput_${subproblemKey}_single" onblur="saveSubproblemSingleHintEdit('${subproblemKey}')" value="${hintText ? hintText.replace(/"/g, '&quot;') : ''}" placeholder="Enter a hint..." style="width: 100%; padding: 12px; min-height: 50px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 12px;">
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleSubproblemSingleHintEdit(key) {
+            const display = document.getElementById(`subHintDisplay_${key}_single`);
+            const edit = document.getElementById(`subHintEdit_${key}_single`);
+            const input = document.getElementById(`subHintInput_${key}_single`);
+            
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            input.focus();
+            input.select();
+        }
+
+        function saveSubproblemSingleHintEdit(key) {
+            const input = document.getElementById(`subHintInput_${key}_single`);
+            const display = document.getElementById(`subHintDisplay_${key}_single`);
+            const edit = document.getElementById(`subHintEdit_${key}_single`);
+            const rendered = document.getElementById(`subHintRendered_${key}_single`);
+            
+            const newValue = input.value.trim();
+            
+            // Update the data
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: '',
+                        correct_answer: '',
+                        hint: null,
+                        solution: { text: null, images: [] },
+                        images: []
+                    };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].hint = newValue || null;
+            }
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+        // NEW: Single-value subproblem solution functions
+        function generateSubproblemSolutionSection(solution, subproblemKey) {
+            let solutionText = '';
+            if (solution) {
+                if (typeof solution === 'string') {
+                    solutionText = solution;
+                } else if (solution.text) {
+                    solutionText = solution.text || '';
+                }
+            }
+            
+            return `
+                <div class="solution-item" style="margin-bottom: 15px; position: relative;">
+                    <div class="solution-display" id="subSolutionDisplay_${subproblemKey}_single" style="${solutionText ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSubproblemSingleSolutionEdit('${subproblemKey}')">
+                            <div id="subSolutionRendered_${subproblemKey}_single">${preprocessLatexLists(solutionText)}</div>
+                        </div>
+                    </div>
+                    <div class="solution-edit" id="subSolutionEdit_${subproblemKey}_single" style="${solutionText ? 'display: none;' : ''}">
+                        <textarea class="form-control" id="subSolutionTextarea_${subproblemKey}_single" onblur="saveSubproblemSingleSolutionEdit('${subproblemKey}')" style="width: 100%; min-height: 80px; resize: vertical; font-size: 12px; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${solutionText ? solutionText.replace(/"/g, '&quot;') : ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleSubproblemSingleSolutionEdit(key) {
+            const display = document.getElementById(`subSolutionDisplay_${key}_single`);
+            const edit = document.getElementById(`subSolutionEdit_${key}_single`);
+            const textarea = document.getElementById(`subSolutionTextarea_${key}_single`);
+            
+            display.style.display = 'none';
+            edit.style.display = 'block';
+            textarea.focus();
+        }
+
+        function saveSubproblemSingleSolutionEdit(key) {
+            const textarea = document.getElementById(`subSolutionTextarea_${key}_single`);
+            const display = document.getElementById(`subSolutionDisplay_${key}_single`);
+            const edit = document.getElementById(`subSolutionEdit_${key}_single`);
+            const rendered = document.getElementById(`subSolutionRendered_${key}_single`);
+            
+            const newValue = textarea.value.trim();
+            
+            // Update the data
+            if (currentProblemIndex >= 0) {
+                if (!problemsData.problems[currentProblemIndex].subproblems) {
+                    problemsData.problems[currentProblemIndex].subproblems = {};
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
+                    problemsData.problems[currentProblemIndex].subproblems[key] = {
+                        problem_text: '',
+                        correct_answer: '',
+                        hint: null,
+                        solution: { text: null, images: [] },
+                        images: []
+                    };
+                }
+                if (!problemsData.problems[currentProblemIndex].subproblems[key].solution) {
+                    problemsData.problems[currentProblemIndex].subproblems[key].solution = { text: null, images: [] };
+                }
+                problemsData.problems[currentProblemIndex].subproblems[key].solution.text = newValue || null;
+            }
+            
+            // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+    </script>
+</body>
+</html> 

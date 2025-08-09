@@ -1016,9 +1016,9 @@ class SinglePDFConverter:
                 subproblems[subproblem_key] = {
                     "problem_text": self._clean_text(problem_text),
                     "correct_answer": None,
-                    "hint": [],
+                    "hint": None,
                     "solution": {
-                        "text": [self._clean_text(solution)] if solution else [],
+                        "text": self._clean_text(solution) if solution else None,
                         "images": []
                     },
                     "images": [],
@@ -1180,17 +1180,16 @@ class SinglePDFConverter:
                 "problem_text": self._clean_text(main_problem_text),
                 "subproblems": subproblems_with_images,
                 "correct_answer": None,
-                "hint": [],
+                "hint": None,
                 "solution": {
-                    "text": [self._clean_text(main_solution)] if main_solution else [],
+                    "text": self._clean_text(main_solution) if main_solution else None,
                     "images": solution_images  # For solution-specific images
                 },
                 "images": main_images,
                 "difficulty": None,
-                "domain": [],
                 "topics": [],
-                "math_approach": [],
-                "reasoning_type": [],
+                "math_approach": None,
+                "reasoning_type": None,
                 "comment": None,
                 "importance": None,
                 "updated_at": None,
@@ -1418,9 +1417,9 @@ class SinglePDFConverter:
                 subproblems[marker['key']] = {
                     "problem_text": self._clean_text(problem_text),
                     "correct_answer": None,
-                    "hint": [],
+                    "hint": None,
                     "solution": {
-                        "text": [self._clean_text(solution)] if solution else [],
+                        "text": self._clean_text(solution) if solution else None,
                         "images": []  # For solution-specific images
                     },
                     "images": [],
