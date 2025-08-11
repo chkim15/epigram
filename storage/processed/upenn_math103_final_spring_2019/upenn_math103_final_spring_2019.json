@@ -1,0 +1,315 @@
+{
+  "document": {
+    "id": "upenn_math103_final_spring_2019",
+    "school": "upenn",
+    "course": "math103",
+    "problem_type": "final",
+    "term": "spring",
+    "year": "2019",
+    "total_problems": 14,
+    "created_at": "2025-08-10 23:04:16"
+  },
+  "problems": [
+    {
+      "id": "upenn_math103_final_spring_2019_p1",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p2",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Evaluate the limit $$ \\lim _{x \\rightarrow 2} \\frac{\\sqrt{x^{2}+5}-(x+1)}{(x-1)(x-2)} $$ Hint : Use algebra",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p3",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Use the graph of the function $ g(x) $ below to answer the following questions",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p3_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p4",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Let $$ f(x)=\\frac{3}{2} x^{2}+5 x $$ Find $ f^{\\prime}(x) $ using the definition of the derivative. 4",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p5",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Let $$ f(x)=e^{1 / x}+\\arctan (\\sqrt{x})+4^{x}-x^{6}-\\pi^{\\sqrt{2}}+\\ln (\\sqrt{x}) $$ Find $ f^{\\prime}(x) $. 5",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p6",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Find the coordinates of all the points on the graph of $$ 10 x^{2}-2 x y+y^{2}=360 $$ at which the tangent line has slope 0 . 6",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p7",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "It is a sunny day, and you decide to go for a walk to get ice cream. The ice cream store is at the opposite corner of a small square park that measures 12 meters by 12 meters. You do not want to cut through the park, because it is occupied by some very aggressive Canadian geese, so instead you walk around the outside. How fast is the distance between you and the ice cream store changing when you are 5 meters away from turning the corner if at that point in time you are going at a leisurely pace of 0.5 meters/second?",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p8",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "The graph below shows the derivative $ f^{\\prime}(x) $ of a continuous function $ f(x) $ defined for all $ x $. Answer the following questions about $ f(x) $. Provide complete explanations for your answers. Find the open interval(s) where $ f(x) $ is increasing and the intervals where $ f(x) $ is decreasing. Find and classify the critical point(s). Find the interval(s) where the $ f(x) $ is concave up and where the $ f(x) $ is concave down. 8",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p8_1.png",
+        "p8_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p9",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Let $$ y=\\frac{1}{8}\\left(x^{3}+3 x^{2}-9 x-3\\right) $$ Find the interval(s) where the function is increasing and the intervals where the function is decreasing. Find and classify the critical point(s). 9",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p10",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Let $$ y=\\frac{1}{8}\\left(x^{3}+3 x^{2}-9 x-3\\right) $$ Find the interval(s) where the function is concave up and interval(s) where the function is concave down. Identify the $ x $-value of any inflection point(s). 10",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p11",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Find the point on the graph of the function $ y=x^{2} $ that is closest to $ \\left(2, \\frac{1}{2}\\right) $ Hint : Minimize the square of the distance 11",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p11_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p12",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Evaluate the limit $ \\lim _{x \\rightarrow 0} \\frac{\\sin (3 x)-3 x+3 x^{2}}{x e^{x}-\\tan x} $",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p13",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Let $$ f^{\\prime}(x)=5 \\cdot \\sqrt[3]{x^{2}}-8 x^{3}+\\pi+2 \\sec ^{2} x+\\frac{1}{x^{2}}+12 \\sin (4 x) $$ Find $ f(x) $. 13",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_final_spring_2019_p14",
+      "doc_id": "upenn_math103_final_spring_2019",
+      "problem_text": "Evaluate $$ \\int_{1}^{4}\\left(9 \\sqrt{x}+\\frac{2}{\\sqrt{x}}\\right) d x $$",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    }
+  ]
+}
