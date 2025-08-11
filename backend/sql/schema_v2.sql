@@ -14,7 +14,6 @@ DROP TABLE IF EXISTS domains CASCADE;
 DROP TABLE IF EXISTS problem_solutions CASCADE;
 DROP TABLE IF EXISTS problem_hints CASCADE;
 DROP TABLE IF EXISTS problem_topics CASCADE;
-DROP TABLE IF EXISTS images CASCADE;
 DROP TABLE IF EXISTS subproblems CASCADE;
 DROP TABLE IF EXISTS problems CASCADE;
 DROP TABLE IF EXISTS topics CASCADE;
@@ -85,24 +84,10 @@ CREATE TABLE subproblems (
     UNIQUE(problem_id, key)
 );
 
--- 5. Images table - simplified (no solution_id since problem_solutions removed)
-CREATE TABLE images (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    problem_id UUID REFERENCES problems(id) ON DELETE CASCADE,
-    subproblem_id UUID REFERENCES subproblems(id) ON DELETE CASCADE,
-    image_path TEXT NOT NULL,
-    context TEXT CHECK (context IN ('problem', 'problem_solution', 'subproblem', 'subproblem_solution')) DEFAULT 'problem',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    -- Ensure at least one parent reference
-    CHECK (problem_id IS NOT NULL OR subproblem_id IS NOT NULL)
-);
-
 -- Create indexes for performance
 CREATE INDEX idx_problems_document_id ON problems(document_id);
 CREATE INDEX idx_problems_topic_id ON problems(topic_id);
 CREATE INDEX idx_subproblems_problem_id ON subproblems(problem_id);
-CREATE INDEX idx_images_problem_id ON images(problem_id);
-CREATE INDEX idx_images_subproblem_id ON images(subproblem_id);
 
 -- Create triggers for updated_at columns
 CREATE TRIGGER update_documents_updated_at 
@@ -169,20 +154,26 @@ CREATE INDEX idx_problems_reasoning_type ON problems(reasoning_type);
 CREATE INDEX idx_problems_importance ON problems(importance);
 
 -- Enable Row Level Security (RLS) for production
--- ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE problems ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE subproblems ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE images ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE topics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE problems ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subproblems ENABLE ROW LEVEL SECURITY;
+ALTER TABLE topics ENABLE ROW LEVEL SECURITY;
 
--- Example policies (uncomment for production)
--- CREATE POLICY "Allow public read" ON documents FOR SELECT USING (true);
--- CREATE POLICY "Allow public read" ON problems FOR SELECT USING (true);
--- CREATE POLICY "Allow public read" ON subproblems FOR SELECT USING (true);
--- CREATE POLICY "Allow public read" ON images FOR SELECT USING (true);
--- CREATE POLICY "Allow public read" ON topics FOR SELECT USING (true);
+-- Allow public read access to all tables
+CREATE POLICY "Allow public read" ON documents FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON problems FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON subproblems FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON topics FOR SELECT USING (true);
 
--- CREATE POLICY "Allow authenticated write" ON documents FOR ALL USING (auth.role() = 'authenticated');
--- CREATE POLICY "Allow authenticated write" ON problems FOR ALL USING (auth.role() = 'authenticated');
--- CREATE POLICY "Allow authenticated write" ON subproblems FOR ALL USING (auth.role() = 'authenticated');
--- CREATE POLICY "Allow authenticated write" ON images FOR ALL USING (auth.role() = 'authenticated');
+-- Allow public write access (can be restricted later if needed)
+CREATE POLICY "Allow public insert" ON documents FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update" ON documents FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete" ON documents FOR DELETE USING (true);
+
+CREATE POLICY "Allow public insert" ON problems FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update" ON problems FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete" ON problems FOR DELETE USING (true);
+
+CREATE POLICY "Allow public insert" ON subproblems FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update" ON subproblems FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete" ON subproblems FOR DELETE USING (true);

@@ -76,26 +76,6 @@ Stores subproblems (e.g., problem 1a, 1b, 1c) with direct hint and solution fiel
 
 **Unique Constraint:** (problem_id, key)
 
-### 5. `images`
-Stores image references for problems, subproblems, or solutions.
-
-| Column | Type | Constraints | Description |
-|--------|------|------------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid_generate_v4() | Unique identifier |
-| problem_id | UUID | FOREIGN KEY → problems(id), ON DELETE CASCADE, NULLABLE | Reference to problem |
-| subproblem_id | UUID | FOREIGN KEY → subproblems(id), ON DELETE CASCADE, NULLABLE | Reference to subproblem |
-| image_path | TEXT | NOT NULL | Path/filename of image |
-| context | TEXT | CHECK IN ('problem', 'problem_solution', 'subproblem', 'subproblem_solution') | Image context |
-| created_at | TIMESTAMPTZ | DEFAULT NOW() | Creation timestamp |
-
-**Check Constraint:** At least one of problem_id OR subproblem_id must be set
-
-**Context Values:**
-- `problem`: Image belongs to the main problem statement
-- `problem_solution`: Image belongs to the main problem's solution
-- `subproblem`: Image belongs to a subproblem statement
-- `subproblem_solution`: Image belongs to a subproblem's solution
-
 ## Indexes
 
 - `idx_problems_document_id` on problems(document_id)
