@@ -261,12 +261,59 @@
             width: 300px;
             background: #f8f9fa;
             border-right: 1px solid #e9ecef;
-            overflow-y: auto;
             max-height: 600px;
+            display: flex;
+            flex-direction: column;
         }
 
         .problem-list {
             list-style: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            margin: 0;
+        }
+
+        .add-problem-container {
+            flex-shrink: 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .add-problem-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .add-problem-btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .add-problem-btn:active {
+            transform: translateY(0);
+        }
+
+        .add-problem-icon {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .add-problem-text {
+            font-size: 14px;
         }
 
         .problem-item {
@@ -1094,6 +1141,30 @@
             color: #999;
             margin-right: 8px;
         }
+
+        .add-problem-btn {
+            position: sticky;
+            bottom: 0;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            width: 100%;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .add-problem-btn:hover {
+            background: #218838;
+        }
+
+        .new-problem-highlight {
+            background: #fff3cd !important;
+            border-left: 4px solid #ffc107 !important;
+        }
     </style>
 </head>
 <body>
@@ -1126,6 +1197,12 @@
                         <h3 style="margin-bottom: 10px; color: #495057;">No File Loaded</h3>
                         <p>Load a JSON file to start editing</p>
                     </div>
+                </div>
+                <div class="add-problem-container">
+                    <button class="add-problem-btn" onclick="addNewProblem()" title="Add New Problem">
+                        <span class="add-problem-icon">+</span>
+                        <span class="add-problem-text">Add Problem</span>
+                    </button>
                 </div>
             </div>
 
@@ -1634,6 +1711,119 @@
             }
         }
 
+        function addNewProblem() {
+            if (!problemsData) {
+                showError('No document loaded. Please load a JSON file first.');
+                return;
+            }
+
+            // Generate a unique problem ID
+            let newProblemId = '';
+            let counter = 1;
+            do {
+                newProblemId = `new_problem_${counter}`;
+                counter++;
+            } while (problemsData.problems.some(p => p.id === newProblemId));
+
+            // Create new problem template
+            const newProblem = {
+                id: newProblemId,
+                problem_text: '',
+                answer_options: null,
+                correct_answer: '',
+                solution: { text: '', images: [] },
+                hint: '',
+                images: [],
+                difficulty: '',
+                topics: [],
+                math_approach: null,
+                reasoning_type: null,
+                comment: '',
+                importance: 1,
+                subproblems: {}
+            };
+
+            // Add the new problem to the problems array
+            problemsData.problems.push(newProblem);
+
+            // Sort problems numerically by problem number suffix
+            problemsData.problems.sort((a, b) => {
+                // Extract the problem number from the end of the ID (e.g., "p1", "p10", "p2")
+                const getNumber = (id) => {
+                    const match = id.match(/_p(\d+)$/);
+                    return match ? parseInt(match[1]) : 0;
+                };
+                return getNumber(a.id) - getNumber(b.id);
+            });
+
+            // Find the index of the new problem after sorting
+            const newIndex = problemsData.problems.findIndex(p => p.id === newProblemId);
+
+            // Update display
+            displayProblemsList();
+            selectProblem(newIndex);
+
+            // Focus on the problem ID input for new problems
+            setTimeout(() => {
+                const problemIdInput = document.querySelector('.problem-id-input');
+                if (problemIdInput && !problemIdInput.readOnly) {
+                    problemIdInput.focus();
+                    problemIdInput.select();
+                }
+            }, 100);
+
+            // Save to localStorage
+            localStorage.setItem('problemsData', JSON.stringify(problemsData));
+            
+            // Show success message
+            showSuccess('New problem added successfully!');
+        }
+
+        function updateProblemId(newId) {
+            if (!newId.trim()) {
+                showError('Problem ID cannot be empty');
+                return;
+            }
+
+            // Check if ID already exists
+            if (problemsData.problems.some((p, index) => p.id === newId && index !== currentProblemIndex)) {
+                showError('Problem ID already exists');
+                return;
+            }
+
+            // Update the problem ID
+            const oldId = problemsData.problems[currentProblemIndex].id;
+            problemsData.problems[currentProblemIndex].id = newId;
+
+            // Sort problems numerically by problem number suffix
+            problemsData.problems.sort((a, b) => {
+                // Extract the problem number from the end of the ID (e.g., "p1", "p10", "p2")
+                const getNumber = (id) => {
+                    const match = id.match(/_p(\d+)$/);
+                    return match ? parseInt(match[1]) : 0;
+                };
+                return getNumber(a.id) - getNumber(b.id);
+            });
+
+            // Find new index after sorting
+            const newIndex = problemsData.problems.findIndex(p => p.id === newId);
+
+            // Update display
+            displayProblemsList();
+            selectProblem(newIndex);
+
+            // Make the input readonly now that it's been set
+            const inputElement = document.querySelector('.problem-id-input');
+            if (inputElement && !newId.startsWith('new_problem_')) {
+                inputElement.setAttribute('readonly', 'true');
+            }
+
+            // Save to localStorage
+            localStorage.setItem('problemsData', JSON.stringify(problemsData));
+            
+            showSuccess('Problem ID updated successfully!');
+        }
+
         function displayProblem(problem) {
             const editorPanel = document.querySelector('.editor-panel');
             const isTextAnswer = !problem.answer_options;
@@ -1642,7 +1832,7 @@
                 <div class="form-group">
                     <label class="form-label">Problem ID</label>
                     <div class="problem-id-container">
-                        <input type="text" class="form-control" value="${problem.id}" readonly style="flex: 1;">
+                        <input type="text" class="form-control problem-id-input" value="${problem.id}" ${problem.id.startsWith('new_problem_') ? '' : 'readonly'} onchange="updateProblemId(this.value)" style="flex: 1;">
                         <button class="remove-problem-btn" onclick="removeProblem()">Remove Problem</button>
                     </div>
                 </div>
