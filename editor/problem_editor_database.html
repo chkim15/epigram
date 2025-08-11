@@ -1215,6 +1215,7 @@
         let currentFileName = '';
         let originalFileName = '';
         let availableTopics = [];
+        let dataSourceType = 'json'; // Track data source: 'json' or 'database'
 
         // ===== WORKING DATABASE FUNCTIONS (using Supabase client directly) =====
         // These override the broken proxy-based functions below
@@ -1325,35 +1326,63 @@
                 originalButton.disabled = true;
                 console.log('Starting database update...');
                 
-                // Detect changes
-                const changedProblems = detectChangedProblems();
+                // Handle differently based on data source
+                let problemsToUpdate = [];
                 
-                if (changedProblems.length === 0) {
-                    // No changes detected
-                    originalButton.innerHTML = originalText;
-                    originalButton.disabled = false;
-                    showSuccess('No changes detected. Database is up to date.');
-                    return;
+                if (dataSourceType === 'json') {
+                    // For JSON files: Upload ALL problems regardless of changes
+                    problemsToUpdate = problemsData.problems.map((problem, index) => ({
+                        index: index,
+                        problemId: problem.id
+                    }));
+                    console.log(`Processing all ${problemsToUpdate.length} problems from JSON file`);
+                } else {
+                    // For database-loaded data: Only update changed problems
+                    const changedProblems = detectChangedProblems();
+                    
+                    if (changedProblems.length === 0) {
+                        // No changes detected
+                        originalButton.innerHTML = originalText;
+                        originalButton.disabled = false;
+                        showSuccess('No changes detected. Database is up to date.');
+                        return;
+                    }
+                    
+                    problemsToUpdate = changedProblems;
+                    console.log(`Found ${problemsToUpdate.length} changed problems:`, problemsToUpdate.map(cp => cp.problemId));
                 }
                 
-                console.log(`Found ${changedProblems.length} changed problems:`, changedProblems.map(cp => cp.problemId));
+                // Handle document creation/lookup based on data source
+                let documentUuid;
                 
-                // Get document UUID (assuming document exists since we loaded from database)
-                const { data: docData, error: docError } = await supabase
-                    .from('documents')
-                    .select('id')
-                    .eq('document_id', problemsData.document.id)
-                    .single();
+                if (dataSourceType === 'json') {
+                    // For JSON files: Create document first (or get existing one)
+                    console.log('Ensuring document exists in database...');
+                    const documentResult = await insertDocumentWorking(problemsData.document);
+                    if (documentResult.data && documentResult.data.length > 0) {
+                        documentUuid = documentResult.data[0].id;
+                        console.log(`Document created/updated: ${problemsData.document.id} -> ${documentUuid}`);
+                    } else {
+                        throw new Error('Failed to create/update document in database');
+                    }
+                } else {
+                    // For database-loaded data: Document should already exist
+                    const { data: docData, error: docError } = await supabase
+                        .from('documents')
+                        .select('id')
+                        .eq('document_id', problemsData.document.id)
+                        .single();
 
-                if (docError) {
-                    throw new Error('Failed to find document in database: ' + docError.message);
+                    if (docError) {
+                        throw new Error('Failed to find document in database: ' + docError.message);
+                    }
+                    documentUuid = docData.id;
                 }
-                const documentUuid = docData.id;
                 
-                // Update only changed problems
+                // Update problems based on source type
                 let successfulUpdates = 0;
                 
-                for (const changeInfo of changedProblems) {
+                for (const changeInfo of problemsToUpdate) {
                     try {
                         const problem = problemsData.problems[changeInfo.index];
                         const originalProblem = originalData.problems.find(p => p.id === problem.id);
@@ -1365,29 +1394,35 @@
                         problem.version = newVersion;
                         problem.updated_at = new Date().toISOString();
                         
-                        // Update problem in database
-                        const updateData = {
-                            problem_text: problem.problem_text,
-                            correct_answer: problem.correct_answer,
-                            hint: problem.hint,
-                            solution_text: problem.solution?.text,
-                            math_approach: problem.math_approach,
-                            reasoning_type: problem.reasoning_type,
-                            topic_id: problem.topics && problem.topics.length > 0 ? problem.topics[0] : null,
-                            difficulty: problem.difficulty,
-                            importance: problem.importance,
-                            comment: problem.comment,
-                            version: newVersion,
-                            updated_at: new Date().toISOString()
-                        };
-                        
-                        const { error: updateError } = await supabase
-                            .from('problems')
-                            .update(updateData)
-                            .eq('problem_id', problem.id);
-                        
-                        if (updateError) {
-                            throw updateError;
+                        if (dataSourceType === 'json') {
+                            // For JSON files: Insert new problems using the insertProblemWorking function
+                            console.log(`Inserting new problem: ${problem.id}`);
+                            await insertProblemWorking(problem, documentUuid);
+                        } else {
+                            // For database data: Update existing problems
+                            const updateData = {
+                                problem_text: problem.problem_text,
+                                correct_answer: problem.correct_answer,
+                                hint: problem.hint,
+                                solution_text: problem.solution?.text,
+                                math_approach: problem.math_approach,
+                                reasoning_type: problem.reasoning_type,
+                                topic_id: problem.topics && problem.topics.length > 0 ? problem.topics[0] : null,
+                                difficulty: problem.difficulty,
+                                importance: problem.importance,
+                                comment: problem.comment,
+                                version: newVersion,
+                                updated_at: new Date().toISOString()
+                            };
+                            
+                            const { error: updateError } = await supabase
+                                .from('problems')
+                                .update(updateData)
+                                .eq('problem_id', problem.id);
+                            
+                            if (updateError) {
+                                throw updateError;
+                            }
                         }
                         
                         // Update subproblems if they exist
@@ -1428,10 +1463,11 @@
                 originalButton.innerHTML = originalText;
                 originalButton.disabled = false;
                 
-                if (successfulUpdates === changedProblems.length) {
-                    showSuccess(`Database update completed! ${successfulUpdates} problem(s) updated successfully.`);
+                if (successfulUpdates === problemsToUpdate.length) {
+                    const sourceMessage = dataSourceType === 'json' ? 'All problems from JSON file' : 'Changed problems';
+                    showSuccess(`Database update completed! ${sourceMessage}: ${successfulUpdates} problem(s) updated successfully.`);
                 } else {
-                    showError(`Partial update: ${successfulUpdates}/${changedProblems.length} problem(s) updated successfully.`);
+                    showError(`Partial update: ${successfulUpdates}/${problemsToUpdate.length} problem(s) updated successfully.`);
                 }
                 console.log('Database update completed');
                 
@@ -1503,6 +1539,7 @@
                     try {
                         problemsData = JSON.parse(e.target.result);
                         originalData = JSON.parse(e.target.result);
+                        dataSourceType = 'json'; // Mark as JSON file source
                         loadProblems();
                         currentFileName = file.name.replace('.json', '');
                         originalFileName = file.name;
@@ -4835,6 +4872,7 @@
                     document.getElementById('fileInfo').textContent = `Loaded: ${selectedDocumentId}`;
                     currentFileName = selectedDocumentId;
                     originalFileName = selectedDocumentId;
+                    dataSourceType = 'database'; // Mark as database source
                     
                     // Save to localStorage
                     localStorage.setItem('problemsData', JSON.stringify(problemsData));
@@ -5098,6 +5136,7 @@
                 document.getElementById('fileInfo').textContent = `Loaded: ${topicName} (${transformedProblems.length} problems)`;
                 currentFileName = `topic_${selectedTopic}`;
                 originalFileName = `topic_${selectedTopic}`;
+                dataSourceType = 'database'; // Mark as database source
                 
                 // Save to localStorage
                 localStorage.setItem('problemsData', JSON.stringify(problemsData));
