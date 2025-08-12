@@ -42,11 +42,12 @@ CREATE TABLE documents (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Topics reference table - unchanged
+-- 2. Topics reference table - restructured for Calculus I/II organization
 CREATE TABLE topics (
     id INTEGER PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    category TEXT,
+    subtopics TEXT UNIQUE NOT NULL,
+    main_topics TEXT,
+    course TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -98,54 +99,58 @@ CREATE TRIGGER update_problems_updated_at
     BEFORE UPDATE ON problems 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Insert predefined topics
-INSERT INTO topics (id, name, category) VALUES
--- Limits and Continuity
-(1, 'Variables, Functions and Graphs', 'Foundations'),
-(2, 'Limits of Functions', 'Limits'),
-(3, 'Continuity and IVT', 'Limits'),
-(4, 'Indeterminate Forms Limits via Algebraic Manipulation', 'Limits'),
-(5, 'Limits at Infinity and Asymptotes', 'Limits'),
+-- Insert predefined topics with Calculus I/II organization
+INSERT INTO topics (id, subtopics, main_topics, course) VALUES
+-- CALCULUS I
+-- Basics of Functions
+(1, 'Variables, Functions and Graphs', 'Basics of Functions', 'Calculus I'),
+-- Limits
+(2, 'Limits of Functions', 'Limits', 'Calculus I'),
+(3, 'Continuity and Intermediate Value Theorem', 'Limits', 'Calculus I'),
+(4, 'Indeterminate Forms Limits via Algebraic Manipulation', 'Limits', 'Calculus I'),
+(5, 'Limits at Infinity and Asymptotes', 'Limits', 'Calculus I'),
 -- Derivatives
-(6, 'Limiting Definition of Derivatives', 'Derivatives'),
-(7, 'Chain, Product and Quotient Rules', 'Derivatives'),
-(8, 'Implicit Differentiation and Inverse Derivatives', 'Derivatives'),
-(9, 'Logarithmic Differentiation', 'Derivatives'),
-(10, 'Inverse Trig and Hyperbolic Functions', 'Derivatives'),
-(11, 'Indeterminate Forms Limits via L''Hospital Rule', 'Derivatives'),
+(6, 'Limiting Definition of Derivatives', 'Derivatives', 'Calculus I'),
+(7, 'Chain, Product and Quotient Rules', 'Derivatives', 'Calculus I'),
+(8, 'Implicit Differentiation and Inverse Derivatives', 'Derivatives', 'Calculus I'),
+(9, 'Logarithmic Differentiation', 'Derivatives', 'Calculus I'),
 -- Applications of Derivatives
-(12, 'Extreme Values, Monotonicity and Concavity', 'Applications'),
-(13, 'Applied Optimization', 'Applications'),
-(14, 'Approximation via Differentiation', 'Applications'),
--- Integration
-(15, 'Antiderivatives', 'Integration'),
-(16, 'Riemann Sum and Definite Integral', 'Integration'),
-(17, 'Fundamental Theorem of Calculus', 'Integration'),
-(18, 'Substitution Rules', 'Integration'),
-(19, 'Area Between Curves', 'Integration'),
-(20, 'Volume by Slicing', 'Integration'),
-(21, 'Volume by Cylindrical Shells', 'Integration'),
-(22, 'Integration by Parts', 'Integration'),
-(23, 'Partial Fractions', 'Integration'),
-(24, 'Improper Integrals', 'Integration'),
-(25, 'Arc Length', 'Integration'),
-(26, 'Surface Area', 'Integration'),
--- Series
-(27, 'Sequences', 'Series'),
-(28, 'Series', 'Series'),
-(29, 'Integral Tests', 'Series'),
-(30, 'Comparison Tests', 'Series'),
-(31, 'Alternating Series', 'Series'),
-(32, 'Absolute Convergence, Ratio and Root Test', 'Series'),
-(33, 'Power Series', 'Series'),
-(34, 'Taylor and MacLaurin Series', 'Series'),
-(35, 'Applications of Taylor Polynomials', 'Series'),
--- Differential Equations
-(36, 'Separable and Homogeneous ODE', 'Differential Equations'),
-(37, 'First Order Linear ODE', 'Differential Equations'),
-(38, 'Second Order Linear ODE', 'Differential Equations'),
-(39, 'Nonhomogeneous Linear ODE', 'Differential Equations'),
-(40, 'Series Solutions of ODE', 'Differential Equations');
+(10, 'Inverse Trig and Hyperbolic Functions', 'Applications of Derivatives', 'Calculus I'),
+(11, 'Indeterminate Forms Limits via L''Hospital Rule', 'Applications of Derivatives', 'Calculus I'),
+(12, 'Extreme Values, Monotonicity and Concavity', 'Applications of Derivatives', 'Calculus I'),
+(13, 'Applied Optimization', 'Applications of Derivatives', 'Calculus I'),
+(14, 'Approximation via Differentiation', 'Applications of Derivatives', 'Calculus I'),
+-- Integration (Basic)
+(15, 'Antiderivatives', 'Integration', 'Calculus I'),
+(16, 'Riemann Sum and Definite Integral', 'Integration', 'Calculus I'),
+(17, 'Fundamental Theorem of Calculus', 'Integration', 'Calculus I'),
+(18, 'Substitution Rules', 'Integration', 'Calculus I'),
+(19, 'Area Between Curves', 'Integration', 'Calculus I'),
+-- CALCULUS II
+-- Advanced Integration
+(20, 'Volume by Slicing', 'Advanced Integration', 'Calculus II'),
+(21, 'Volume by Cylindrical Shells', 'Advanced Integration', 'Calculus II'),
+(22, 'Integration by Parts', 'Advanced Integration', 'Calculus II'),
+(23, 'Partial Fractions', 'Advanced Integration', 'Calculus II'),
+(24, 'Improper Integrals', 'Advanced Integration', 'Calculus II'),
+(25, 'Arc Length', 'Advanced Integration', 'Calculus II'),
+(26, 'Surface Area', 'Advanced Integration', 'Calculus II'),
+-- Sequences and Series
+(27, 'Sequences', 'Sequences and Series', 'Calculus II'),
+(28, 'Series', 'Sequences and Series', 'Calculus II'),
+(29, 'Integral Tests', 'Sequences and Series', 'Calculus II'),
+(30, 'Comparison Tests', 'Sequences and Series', 'Calculus II'),
+(31, 'Alternating Series', 'Sequences and Series', 'Calculus II'),
+(32, 'Absolute Convergence, Ratio and Root Test', 'Sequences and Series', 'Calculus II'),
+(33, 'Power Series', 'Sequences and Series', 'Calculus II'),
+(34, 'Taylor and MacLaurin Series', 'Sequences and Series', 'Calculus II'),
+(35, 'Applications of Taylor Polynomials', 'Sequences and Series', 'Calculus II'),
+-- Ordinary Differential Equations
+(36, 'Separable and Homogeneous ODE', 'Ordinary Differential Equations', 'Calculus II'),
+(37, 'First Order Linear ODE', 'Ordinary Differential Equations', 'Calculus II'),
+(38, 'Second Order Linear ODE', 'Ordinary Differential Equations', 'Calculus II'),
+(39, 'Nonhomogeneous Linear ODE', 'Ordinary Differential Equations', 'Calculus II'),
+(40, 'Series Solutions of ODE', 'Ordinary Differential Equations', 'Calculus II');
 
 -- Indexes for common queries
 CREATE INDEX idx_problems_difficulty ON problems(difficulty);

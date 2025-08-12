@@ -28,13 +28,14 @@ Stores metadata about exam documents and problem sets.
 | updated_at | TIMESTAMPTZ | DEFAULT NOW() | Last update timestamp |
 
 ### 2. `topics`
-Reference table for mathematical topics.
+Reference table for mathematical topics organized by Calculus I/II curriculum.
 
 | Column | Type | Constraints | Description |
 |--------|------|------------|-------------|
 | id | INTEGER | PRIMARY KEY | Topic ID |
-| name | TEXT | UNIQUE, NOT NULL | Topic name |
-| category | TEXT | | Topic category (e.g., "Limits", "Derivatives", "Integration") |
+| subtopics | TEXT | UNIQUE, NOT NULL | Specific subtopic name |
+| main_topics | TEXT | | Main topic category (e.g., "Limits", "Derivatives", "Advanced Integration") |
+| course | TEXT | | Course level ("Calculus I" or "Calculus II") |
 | created_at | TIMESTAMPTZ | DEFAULT NOW() | Creation timestamp |
 
 ### 3. `problems`
@@ -99,14 +100,16 @@ Applied to:
 
 ## Predefined Topics
 
-The `topics` table is populated with 40 predefined calculus topics organized by category:
+The `topics` table is populated with 40 predefined calculus topics organized by Calculus I & II curriculum:
 
-### Foundations
+## CALCULUS I
+
+### Basics of Functions
 1. Variables, Functions and Graphs
 
 ### Limits
 2. Limits of Functions
-3. Continuity and IVT
+3. Continuity and Intermediate Value Theorem
 4. Indeterminate Forms Limits via Algebraic Manipulation
 5. Limits at Infinity and Asymptotes
 
@@ -115,10 +118,10 @@ The `topics` table is populated with 40 predefined calculus topics organized by 
 7. Chain, Product and Quotient Rules
 8. Implicit Differentiation and Inverse Derivatives
 9. Logarithmic Differentiation
+
+### Applications of Derivatives
 10. Inverse Trig and Hyperbolic Functions
 11. Indeterminate Forms Limits via L'Hospital Rule
-
-### Applications
 12. Extreme Values, Monotonicity and Concavity
 13. Applied Optimization
 14. Approximation via Differentiation
@@ -129,6 +132,14 @@ The `topics` table is populated with 40 predefined calculus topics organized by 
 17. Fundamental Theorem of Calculus
 18. Substitution Rules
 19. Area Between Curves
+
+---
+**ROUGH CUTOFF BETWEEN CALC I AND II**
+---
+
+## CALCULUS II
+
+### Advanced Integration
 20. Volume by Slicing
 21. Volume by Cylindrical Shells
 22. Integration by Parts
@@ -137,7 +148,7 @@ The `topics` table is populated with 40 predefined calculus topics organized by 
 25. Arc Length
 26. Surface Area
 
-### Series
+### Sequences and Series
 27. Sequences
 28. Series
 29. Integral Tests
@@ -148,7 +159,7 @@ The `topics` table is populated with 40 predefined calculus topics organized by 
 34. Taylor and MacLaurin Series
 35. Applications of Taylor Polynomials
 
-### Differential Equations
+### Ordinary Differential Equations
 36. Separable and Homogeneous ODE
 37. First Order Linear ODE
 38. Second Order Linear ODE
