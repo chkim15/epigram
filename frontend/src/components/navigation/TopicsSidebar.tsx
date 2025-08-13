@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Topic } from "@/types/database";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Loader2, ChevronDown, ChevronRight, ChevronsLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -78,67 +77,62 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     setExpandedSections(newExpanded);
   };
 
-  // Define the course structure
+  // Build course structure dynamically from database fields
   const getCourseStructure = (): Course[] => {
-    return [
-      {
-        id: 'calc1',
-        name: 'Calculus I',
-        sections: [
-          {
-            id: 'limits',
-            name: 'Limits and Continuity',
-            topics: topics.filter(t => [1, 2, 3, 4, 5, 11].includes(t.id))
-          },
-          {
-            id: 'derivatives',
-            name: 'Derivatives',
-            topics: topics.filter(t => [6, 7, 8, 9, 10].includes(t.id))
-          },
-          {
-            id: 'derivative-apps',
-            name: 'Applications of Derivatives',
-            topics: topics.filter(t => [12, 13, 14].includes(t.id))
-          },
-          {
-            id: 'basic-integration',
-            name: 'Basic Integration',
-            topics: topics.filter(t => [15, 16, 17, 18].includes(t.id))
-          },
-          {
-            id: 'integration-apps-basic',
-            name: 'Applications of Integration',
-            topics: topics.filter(t => [19, 20, 21].includes(t.id))
-          }
-        ]
-      },
-      {
-        id: 'calc2',
-        name: 'Calculus II',
-        sections: [
-          {
-            id: 'advanced-integration',
-            name: 'Advanced Integration',
-            topics: topics.filter(t => [22, 23, 24].includes(t.id))
-          },
-          {
-            id: 'integration-apps-advanced',
-            name: 'Applications of Integration',
-            topics: topics.filter(t => [25, 26].includes(t.id))
-          },
-          {
-            id: 'sequences-series',
-            name: 'Sequences and Series',
-            topics: topics.filter(t => [27, 28, 29, 30, 31, 32, 33, 34, 35].includes(t.id))
-          },
-          {
-            id: 'differential-equations',
-            name: 'Differential Equations',
-            topics: topics.filter(t => [36, 37, 38, 39, 40].includes(t.id))
-          }
-        ]
+    // Group topics by course
+    const courseGroups = topics.reduce((acc, topic) => {
+      const courseName = topic.course || 'Uncategorized';
+      if (!acc[courseName]) {
+        acc[courseName] = [];
       }
-    ];
+      acc[courseName].push(topic);
+      return acc;
+    }, {} as Record<string, Topic[]>);
+
+    // Build course structure
+    const courses: Course[] = [];
+    
+    // Process each course
+    Object.entries(courseGroups).forEach(([courseName, courseTopics]) => {
+      // Group topics by main_topics within this course
+      const sectionGroups = courseTopics.reduce((acc, topic) => {
+        const sectionName = topic.main_topics || 'Other';
+        if (!acc[sectionName]) {
+          acc[sectionName] = [];
+        }
+        acc[sectionName].push(topic);
+        return acc;
+      }, {} as Record<string, Topic[]>);
+
+      // Build sections for this course
+      const sections: Section[] = Object.entries(sectionGroups).map(([sectionName, sectionTopics]) => ({
+        id: sectionName.toLowerCase().replace(/\s+/g, '-'),
+        name: sectionName,
+        topics: sectionTopics.sort((a, b) => a.id - b.id)
+      }));
+
+      // Add course with its sections
+      courses.push({
+        id: courseName.toLowerCase().replace(/\s+/g, '-'),
+        name: courseName,
+        sections: sections.sort((a, b) => {
+          // Sort sections by the minimum topic ID in each section
+          // This ensures sections appear in the order they appear in the database
+          const minIdA = Math.min(...a.topics.map(t => t.id));
+          const minIdB = Math.min(...b.topics.map(t => t.id));
+          return minIdA - minIdB;
+        })
+      });
+    });
+
+    // Sort courses (Calculus I before Calculus II)
+    return courses.sort((a, b) => {
+      if (a.name === 'Calculus I') return -1;
+      if (b.name === 'Calculus I') return 1;
+      if (a.name === 'Calculus II') return -1;
+      if (b.name === 'Calculus II') return 1;
+      return a.name.localeCompare(b.name);
+    });
   };
 
   if (loading) {
@@ -170,9 +164,9 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   const courses = getCourseStructure();
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col min-h-0">
       {/* Header */}
-      <div className="border-b p-4 h-[73px] flex items-center justify-between">
+      <div className="p-4 h-[73px] flex items-center justify-between flex-shrink-0">
         <h2 className="font-semibold text-gray-900 dark:text-white">
           Company Name
         </h2>
@@ -189,7 +183,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
       </div>
 
       {/* Hierarchical Topics List */}
-      <ScrollArea className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="p-2">
           {courses.map((course) => (
             <div key={course.id} className="mb-2">
@@ -244,7 +238,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                                   onClick={() => onSelectTopic(topic.id)}
                                 >
                                   <span className="flex-1 leading-relaxed whitespace-normal break-words">
-                                    {topic.subtopics || topic.main_topics || `Topic ${topic.id}`}
+                                    {topic.subtopics || `Topic ${topic.id}`}
                                   </span>
                                 </Button>
                               ))}
@@ -259,7 +253,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

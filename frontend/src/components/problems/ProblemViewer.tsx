@@ -174,45 +174,9 @@ export default function ProblemViewer({}: ProblemViewerProps) {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header with Navigation */}
-      <div className="border-b bg-white p-4 dark:bg-gray-900 h-[73px] flex flex-col justify-center">
-        <div className="flex items-center justify-center">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={previousProblem}
-              disabled={!canGoPrevious()}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Problem {currentProblemIndex + 1} of {problemList.length}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={nextProblem}
-              disabled={!canGoNext()}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        {currentProblem?.difficulty && (
-          <div className="flex justify-center mt-2">
-            <Badge className={getDifficultyColor(currentProblem.difficulty)}>
-              {currentProblem.difficulty.replace('_', ' ')}
-            </Badge>
-          </div>
-        )}
-      </div>
-
+    <div className="flex h-full flex-col min-h-0">
       {/* Problem Content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-y-auto min-h-0 bg-white p-3">
         <div className="w-full space-y-6 min-w-0">
           {currentProblem && (
             <>
@@ -264,27 +228,6 @@ export default function ProblemViewer({}: ProblemViewerProps) {
                 </Card>
               )}
 
-              {/* Hint Section */}
-              <Collapsible open={showHint} onOpenChange={toggleHint}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <span className="flex items-center">
-                      Hint
-                    </span>
-                    {showHint ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <Card className="mt-2 w-full">
-                    <CardContent className="pt-6">
-                      <div className="prose max-w-none dark:prose-invert overflow-hidden break-words">
-                        <MathContent content="Try breaking down the problem step by step. Consider what you know and what you need to find." documentId={currentDocument?.document_id} />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CollapsibleContent>
-              </Collapsible>
-
               {/* Solution Section */}
               {currentProblem.solution_text && (
                 <Collapsible open={showSolution} onOpenChange={toggleSolution}>
@@ -316,6 +259,42 @@ export default function ProblemViewer({}: ProblemViewerProps) {
             </>
           )}
         </div>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="bg-white p-4 dark:bg-gray-900 h-[58px] flex flex-col justify-center flex-shrink-0">
+        <div className="flex items-center justify-center">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={previousProblem}
+              disabled={!canGoPrevious()}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Problem {currentProblemIndex + 1} of {problemList.length}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={nextProblem}
+              disabled={!canGoNext()}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        {currentProblem?.difficulty && (
+          <div className="flex justify-center mt-2">
+            <Badge className={getDifficultyColor(currentProblem.difficulty)}>
+              {currentProblem.difficulty.replace('_', ' ')}
+            </Badge>
+          </div>
+        )}
       </div>
     </div>
   );

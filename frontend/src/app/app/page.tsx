@@ -4,6 +4,8 @@ import { useState } from "react";
 import TopicsSidebar from "@/components/navigation/TopicsSidebar";
 import ProblemViewer from "@/components/problems/ProblemViewer";
 import ChatSidebar from "@/components/ai/ChatSidebar";
+import ResizablePanels from "@/components/ui/resizable-panels";
+import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -14,7 +16,7 @@ export default function AppPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-screen flex flex-col">
       {/* Mobile Header */}
       <div className="flex items-center justify-between border-b bg-white p-4 dark:bg-gray-900 lg:hidden">
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -44,9 +46,9 @@ export default function AppPage() {
       </div>
 
       {/* Desktop Layout */}
-      <div className="flex flex-1 w-full relative">
+      <div className="flex flex-1 w-full relative min-h-0">
         {/* Left Sidebar - Topics */}
-        <div className={`hidden ${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 flex-shrink-0 border-r bg-white dark:bg-gray-900 lg:flex flex-col overflow-hidden relative`}>
+        <div className={`hidden ${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 flex-shrink-0 border-r bg-white dark:bg-gray-900 lg:flex flex-col relative h-full`}>
           {isSidebarOpen && (
             <TopicsSidebar 
               selectedTopicId={selectedTopicId}
@@ -56,29 +58,25 @@ export default function AppPage() {
           )}
         </div>
 
-        {/* Expand Sidebar Button (when collapsed) */}
-        {!isSidebarOpen && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-4 top-4 z-20 hidden lg:flex"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        )}
+        {/* Main Content Area with Unified Header */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Unified Header - positioned to the right of sidebar */}
+          <UnifiedHeader 
+            className="hidden lg:block" 
+            isSidebarOpen={isSidebarOpen}
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
 
-        {/* Main Content Area - Always split 50/50 between Problems and AI */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Problem Viewer - Always exactly half of remaining space */}
-          <div className="flex-1 min-w-0 overflow-hidden relative transition-all duration-300 flex flex-col">
-            <ProblemViewer />
-          </div>
-
-          {/* AI Assistant - Always exactly half of remaining space */}
-          <div className="flex-1 min-w-0 border-l bg-white dark:bg-gray-900 relative overflow-hidden flex flex-col">
-            <ChatSidebar currentProblem={null} />
-          </div>
+          {/* Resizable Panels below header */}
+          <ResizablePanels
+            leftPanel={<ProblemViewer />}
+            rightPanel={<ChatSidebar currentProblem={null} />}
+            defaultLeftWidth={50}
+            minLeftWidth={25}
+            maxLeftWidth={75}
+            className="flex-1"
+            storageKey="main-panels-width"
+          />
         </div>
       </div>
     </div>
