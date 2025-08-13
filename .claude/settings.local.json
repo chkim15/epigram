@@ -1,11 +1,12 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__supabase__apply_migration",
+      "Bash(mkdir:*)"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase"
-  ],
-  "permissions": {
-    "allow": [
-      "mcp__supabase__apply_migration"
-    ]
-  }
+  ]
 }

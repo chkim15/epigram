@@ -5162,8 +5162,7 @@
                         comment,
                         version,
                         created_at,
-                        updated_at,
-                        topics:topic_id(name)
+                        updated_at
                     `)
                     .eq('document_id', docData.id)
                     .order('problem_id');
@@ -5205,7 +5204,7 @@
                     });
 
                     // Get topic as array (convert single topic_id to array format expected by frontend)
-                    const topics = problem.topics ? [problem.topic_id] : [];
+                    const topics = problem.topic_id ? [problem.topic_id] : [];
 
                     return {
                         id: problem.problem_id,
@@ -5228,6 +5227,16 @@
                         updated_at: problem.updated_at,
                         version: problem.version
                     };
+                });
+
+                // Sort problems numerically by problem number suffix
+                problems.sort((a, b) => {
+                    // Extract the problem number from the end of the ID (e.g., "p1", "p10", "p2")
+                    const getNumber = (id) => {
+                        const match = id.match(/_p(\d+)$/);
+                        return match ? parseInt(match[1]) : 0;
+                    };
+                    return getNumber(a.id) - getNumber(b.id);
                 });
 
                 // Return in expected format
@@ -5343,6 +5352,16 @@
                         updated_at: problem.updated_at,
                         version: problem.version
                     };
+                });
+
+                // Sort problems numerically by problem number suffix
+                transformedProblems.sort((a, b) => {
+                    // Extract the problem number from the end of the ID (e.g., "p1", "p10", "p2")
+                    const getNumber = (id) => {
+                        const match = id.match(/_p(\d+)$/);
+                        return match ? parseInt(match[1]) : 0;
+                    };
+                    return getNumber(a.id) - getNumber(b.id);
                 });
 
                 // Create a synthetic document for the topic

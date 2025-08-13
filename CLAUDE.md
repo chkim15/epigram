@@ -17,16 +17,21 @@ A Mathpix-powered PDF-to-JSON converter for extracting mathematical problems fro
 - Filters exam metadata (headers, footers, instructions) using pattern matching
 - Associates extracted images with problems using boundary detection and proximity analysis
 
-**Web Editor (`editor/problem_editor.html`)**
+**Local Editor (`editor/problem_editor.html`)**
 - Self-contained HTML file with embedded MathJax for LaTeX rendering
 - Real-time editing of problem text, answers, solutions, difficulty, and topics
 - Local storage persistence with automatic backup
 - Completion tracking with visual indicators
 
+**Database Editor (`editor/problem_editor_database.html`)**
+- Supabase-connected editor for persistent storage
+- Real-time database sync with conflict resolution
+- Multi-user editing capabilities
+- Structured topic management via topics.json
+
 **Launcher (`editor/open_editor.py`)**
-- Copies problems.json to working directory
-- Opens editor in default browser
-- Manages file paths for user convenience
+- Convenience script that opens local editor in browser
+- Handles file path management for JSON loading
 
 ## Development Commands
 
@@ -40,29 +45,45 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure Mathpix API credentials
+# Configure Mathpix API credentials in backend directory
 echo "MATHPIX_APP_ID=your_app_id" > .env
 echo "MATHPIX_APP_KEY=your_app_key" >> .env
 ```
 
 ### PDF Conversion
 ```bash
-# Basic conversion
+# From project root using convenience wrapper
+python convert.py --pdf "path/to/exam.pdf" --prefix "school_course_type_term_year" --output "storage/processed"
+
+# Direct backend usage
 python backend/src/converter/pdf_converter.py --pdf "path/to/exam.pdf" --prefix "school_course_type_term_year" --output "storage/processed"
 
 # Example with UPenn exam
-python backend/src/converter/pdf_converter.py --pdf "data/upenn/103finalf14.pdf" --prefix "upenn_math103_final_fall_2014" --output "storage/processed"
+python convert.py --pdf "storage/raw/upenn/103finalf14.pdf" --prefix "upenn_math103_final_fall_2014" --output "storage/processed"
 ```
 
 ### Editor Workflow
 ```bash
-# Quick launch - opens browser with editor
+# Quick launch - opens browser with local editor
 python editor/open_editor.py
 
-# Manual approach
+# Database-connected editor (requires Supabase setup)
+# Open editor/problem_editor_database.html in browser
+
+# Manual local workflow
 # 1. Open editor/problem_editor.html in browser
 # 2. Load JSON file via interface
-# 3. Edit and export
+# 3. Edit and export as problems_edited.json
+```
+
+### Database Management
+```bash
+# Apply Supabase migrations (if using database)
+# Run each migration file in supabase/migrations/ in order:
+# - 20250806024840_create_schema.sql
+# - 20250806024914_insert_topics.sql
+# - 20250806025445_insert_stanford_data.sql
+# - 20250806031517_insert_upenn_data.sql
 ```
 
 ## JSON Data Structure
@@ -135,23 +156,32 @@ mathpix/
 │   │   └── converter/
 │   │       ├── __init__.py
 │   │       └── pdf_converter.py
-│   └── requirements.txt
-├── frontend/                # Future web frontend
-├── editor/                  # Standalone editor
-│   ├── problem_editor.html
-│   ├── open_editor.py
+│   ├── requirements.txt
+│   └── sql/                # Database schema files
+│       └── schema_v2.sql
+├── convert.py              # Convenience wrapper for PDF conversion
+├── editor/                 # Editing interfaces
+│   ├── problem_editor.html          # Local editor
+│   ├── problem_editor_database.html # Database-connected editor
+│   ├── topics.json                  # Topic reference data
+│   ├── open_editor.py              # Editor launcher
 │   └── README_editor.md
-├── storage/                 # Processed data
-│   ├── processed/          # Generated JSON and images
+├── storage/                # File storage
+│   ├── processed/          # Converted JSON and extracted images
 │   │   └── [prefix]/
 │   │       ├── [prefix].json
 │   │       └── images/
-│   └── temp/               # Temporary files
-├── data/                   # Input PDFs
-│   ├── upenn/
-│   ├── mit/
-│   └── upload/
-└── problems.json          # Working copy
+│   ├── raw/               # Input PDF files
+│   │   ├── upenn/         # Institution-specific folders
+│   │   ├── mit/
+│   │   └── test/
+│   └── temp/              # Temporary processing files
+├── supabase/              # Database management
+│   └── migrations/        # SQL migration files
+│       ├── 20250806024840_create_schema.sql
+│       ├── 20250806024914_insert_topics.sql
+│       └── [other migrations]
+└── frontend/              # Future React/web frontend
 ```
 
 ## Processing New Exam Formats
@@ -185,18 +215,42 @@ Examples:
 
 ## Dependencies
 
+**Backend Python Requirements** (`backend/requirements.txt`):
 - **requests**: Mathpix API communication
 - **python-dotenv**: Environment variable management
-- **PyMuPDF (fitz)**: PDF to image conversion
-- **Pillow**: Image processing
-- **pytz**: Timezone handling for timestamps
-- **supabase**: Database integration (optional)
+- **PyMuPDF (fitz)**: PDF to image conversion and page extraction
+- **Pillow**: Image processing and manipulation
+- **pytz**: Timezone handling for timestamps in Eastern Time
+- **supabase**: Database integration for persistent storage (optional)
+
+**Frontend Dependencies** (CDN-loaded):
+- **Supabase JS Client**: Database connectivity for editor
+- **MathJax 3**: LaTeX mathematical notation rendering
+- **HTML5/CSS3/Vanilla JS**: No build process required
+
+## Database Schema
+
+The project uses Supabase PostgreSQL with the following key tables:
+
+**documents**: Exam metadata (id, school, course, problem_type, term, year)
+**problems**: Main problems with LaTeX text, solutions, difficulty, topic arrays
+**subproblems**: Normalized sub-questions (a, b, c parts) linked to main problems
+**topics**: Reference table with 40 predefined calculus topics
+
+Key features:
+- UUID primary keys for subproblems
+- Array columns for topics (integer IDs) and images (filenames)
+- Full-text search indexes on problem content
+- RLS policies for secure multi-user access
 
 ## Quality Assurance Checklist
 
-1. Verify PDF conversion captures all problems
-2. Check image associations are correct
-3. Validate LaTeX rendering in editor
-4. Confirm completion indicators work properly
-5. Test export/import functionality
-6. Verify problem numbering sequence
+1. Verify PDF conversion captures all problems without content loss
+2. Check image associations map correctly to problem boundaries
+3. Validate LaTeX rendering in both editor versions
+4. Confirm completion indicators work properly across browser sessions
+5. Test export/import functionality between local and database editors
+6. Verify problem numbering sequence maintains consistency
+7. Test database sync functionality if using Supabase editor
+8. Validate topic assignment accuracy using topics.json reference
+- Don't try to run npm run dev because it will be run manually.
