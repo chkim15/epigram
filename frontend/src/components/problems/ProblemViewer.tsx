@@ -198,8 +198,8 @@ export default function ProblemViewer({}: ProblemViewerProps) {
                       {subproblems.map((subproblem) => (
                         <Card key={subproblem.id} className="w-full max-w-full">
                           <CardContent className="pt-4">
-                            <div className="font-medium text-blue-600 dark:text-blue-400 mb-2">
-                              {subproblem.key}
+                            <div className="font-medium text-blue-600 dark:text-blue-400 mb-2 text-lg">
+                              {subproblem.key}.
                             </div>
                             <div className="prose max-w-none dark:prose-invert overflow-hidden break-words">
                               <MathContent content={subproblem.problem_text || ''} documentId={currentDocument?.document_id} />

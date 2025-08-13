@@ -37,18 +37,6 @@ export default function ResizeHandle({ onMouseDown, className }: ResizeHandlePro
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Visual divider line - always visible */}
-      <div className="absolute left-0 top-0 bottom-0 w-px bg-border" />
-      
-      {/* Hover indicator */}
-      <div
-        className={cn(
-          "absolute left-0 top-1/2 transform -translate-y-1/2",
-          "w-1 h-8 bg-gray-400 dark:bg-gray-500 rounded-full opacity-0",
-          "transition-opacity duration-150 ease-in-out",
-          (isHovered || isDragging) && "opacity-100"
-        )}
-      />
       
       {/* Dragging indicator - removed since we keep the same gray color */}
     </div>
