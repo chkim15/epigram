@@ -17,7 +17,7 @@ export default function UnifiedHeader({
 }: UnifiedHeaderProps) {
   return (
     <div className={cn(
-      "bg-white dark:bg-gray-900 h-[58px] flex flex-shrink-0 px-4",
+      "bg-white dark:bg-gray-900 h-[46px] flex flex-shrink-0 px-4",
       className
     )}>
       {/* Hamburger button when sidebar is collapsed */}
