@@ -56,13 +56,17 @@ export default function AppPage() {
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             />
           )}
+          {/* Bottom Sign in button */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-900">
+            <Button className="w-full">Sign in</Button>
+          </div>
         </div>
 
         {/* Main Content Area with Unified Header */}
         <div className="flex-1 flex flex-col min-h-0">
           {/* Unified Header - positioned to the right of sidebar */}
           <UnifiedHeader 
-            className="hidden lg:block" 
+            className="hidden lg:flex" 
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
@@ -70,7 +74,7 @@ export default function AppPage() {
           {/* Resizable Panels below header */}
           <ResizablePanels
             leftPanel={<ProblemViewer />}
-            rightPanel={<ChatSidebar currentProblem={null} />}
+            rightPanel={<ChatSidebar />}
             defaultLeftWidth={50}
             minLeftWidth={25}
             maxLeftWidth={75}

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-scroll-area": "^1.2.9",
@@ -22,6 +23,7 @@
     "katex": "^0.16.22",
     "lucide-react": "^0.539.0",
     "next": "15.4.6",
+    "openai": "^5.12.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-katex": "^3.1.0",

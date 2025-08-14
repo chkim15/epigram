@@ -4,10 +4,59 @@ import React from 'react';
 
 export function renderMath(text: string, documentId?: string): string {
   if (!text) return '';
+  
+  // Start with a clean copy of the text
+  let processed = text;
 
   // Process line breaks first (convert \\\\ to <br>)
-  let processed = text.replace(/\\\\\\\\/g, '<br>');
-  processed = processed.replace(/\\\\/g, '<br>');
+  processed = processed.replace(/\\\\\\\\/g, '<br>'); // Convert \\\\ to <br>
+  processed = processed.replace(/\\\\\\\\\\\\\\\\/g, '<br>'); // Convert \\\\\\\\ to <br>
+  processed = processed.replace(/\\\\/g, '<br>'); // Convert \\ to <br>
+
+  // Process markdown headers ### text
+  processed = processed.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+  processed = processed.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+  processed = processed.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+
+  // Handle markdown lists before processing bold text
+  // Convert bullet points (* at the start of a line or after line break)
+  processed = processed.replace(/^\*\s+(.+)$/gm, '<li>$1</li>');
+  
+  // Convert numbered lists (1. 2. etc at the start of a line)
+  processed = processed.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+  
+  // Wrap consecutive list items in ul/ol tags
+  let lines = processed.split('\n');
+  let inList = false;
+  let listType = '';
+  let result = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.startsWith('<li>')) {
+      if (!inList) {
+        // Check if it's from a numbered list by looking at original text pattern
+        const isNumbered = /^\d+\./.test(lines[i].replace('<li>', ''));
+        listType = isNumbered ? 'ol' : 'ul';
+        result.push(`<${listType}>`);
+        inList = true;
+      }
+      result.push(line);
+    } else {
+      if (inList) {
+        result.push(`</${listType}>`);
+        inList = false;
+      }
+      result.push(line);
+    }
+  }
+  if (inList) {
+    result.push(`</${listType}>`);
+  }
+  processed = result.join('\n');
+
+  // Handle bold text markdown **text** - convert to HTML
+  processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
   // Process images ![filename.png|size%] or ![filename.png]
   processed = processed.replace(/!\[([^\|\]]+)(?:\|([^\]]+))?\]/g, (match, imageName, size) => {
@@ -31,8 +80,21 @@ export function renderMath(text: string, documentId?: string): string {
     </div>`;
   });
 
-  // Process display math first ($$...$$)
-  processed = processed.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
+  // Handle infinity symbol (∞) - convert to \infty
+  processed = processed.replace(/∞/g, () => {
+    try {
+      return katex.renderToString('\\infty', {
+        throwOnError: false,
+        displayMode: false,
+        trust: true,
+      });
+    } catch (e) {
+      return '∞';
+    }
+  });
+
+  // Process display math first - $$...$$
+  processed = processed.replace(/\$\$([^$]+?)\$\$/g, (match, math) => {
     try {
       return katex.renderToString(math.trim(), {
         throwOnError: false,
@@ -40,13 +102,27 @@ export function renderMath(text: string, documentId?: string): string {
         trust: true,
       });
     } catch (e) {
-      console.error('KaTeX error (display):', e);
+      console.error('KaTeX error (display $$):', e);
       return match;
     }
   });
 
-  // Process inline math ($...$)
-  processed = processed.replace(/\$([^$]+)\$/g, (match, math) => {
+  // Process display math \[...\]
+  processed = processed.replace(/\\\[([^\]]*?)\\\]/g, (match, math) => {
+    try {
+      return katex.renderToString(math.trim(), {
+        throwOnError: false,
+        displayMode: true,
+        trust: true,
+      });
+    } catch (e) {
+      console.error('KaTeX error (display \\[\\]):', e);
+      return match;
+    }
+  });
+
+  // Process inline math \(...\) - simple version first
+  processed = processed.replace(/\\\(([^)]*?)\\\)/g, (match, math) => {
     try {
       return katex.renderToString(math.trim(), {
         throwOnError: false,
@@ -54,33 +130,21 @@ export function renderMath(text: string, documentId?: string): string {
         trust: true,
       });
     } catch (e) {
-      console.error('KaTeX error (inline):', e);
+      console.error('KaTeX error (inline \\(\\)):', e, 'Math content:', math);
       return match;
     }
   });
 
-  // Process LaTeX environments without delimiters
-  const environments = [
-    'align', 'align*', 'aligned', 
-    'equation', 'equation*',
-    'gather', 'gather*',
-    'cases', 'matrix', 'pmatrix', 'bmatrix', 'vmatrix', 'Vmatrix'
-  ];
-  
-  const envRegex = new RegExp(
-    `\\\\begin\\{(${environments.join('|')})\\}([\\s\\S]*?)\\\\end\\{\\1\\}`,
-    'g'
-  );
-
-  processed = processed.replace(envRegex, (match, env, content) => {
+  // Process inline math ($...$)
+  processed = processed.replace(/\$([^$]+?)\$/g, (match, math) => {
     try {
-      return katex.renderToString(`\\begin{${env}}${content}\\end{${env}}`, {
+      return katex.renderToString(math.trim(), {
         throwOnError: false,
-        displayMode: true,
+        displayMode: false,
         trust: true,
       });
     } catch (e) {
-      console.error('KaTeX error (environment):', e);
+      console.error('KaTeX error (inline $):', e);
       return match;
     }
   });

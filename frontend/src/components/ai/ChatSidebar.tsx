@@ -2,8 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -12,9 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Send, Bot, User, MessageCircle, FileText, BookOpen, FileSearch } from "lucide-react";
+import { Send, Bot, MessageCircle, FileText, BookOpen, FileSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Problem } from "@/types/database";
+import { useProblemStore } from "@/stores/problemStore";
+import { MathContent } from "@/lib/utils/katex";
 
 interface Message {
   id: string;
@@ -30,22 +29,25 @@ interface LLMModel {
   isPremium?: boolean;
 }
 
-interface ChatSidebarProps {
-  currentProblem: Problem | null;
-}
+interface ChatSidebarProps {}
 
-export default function ChatSidebar({ currentProblem }: ChatSidebarProps) {
+export default function ChatSidebar({}: ChatSidebarProps) {
+  // Get current problem from store
+  const { currentProblem, currentDocument } = useProblemStore();
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'notes' | 'solutions' | 'summary'>('chat');
-  const [selectedModel, setSelectedModel] = useState<string>('gpt-5-mini');
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
+  const [isStreaming, setIsStreaming] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Available LLM models
   const llmModels: LLMModel[] = [
     { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+    { id: 'gpt-5-nano', name: 'GPT-5 Nano' },
     { id: 'gpt-5-mini', name: 'GPT-5 Mini' },
   ];
   
@@ -55,12 +57,20 @@ export default function ChatSidebar({ currentProblem }: ChatSidebarProps) {
     return model ? model.name : 'Select model';
   };
 
-  // Auto-scroll to bottom when new messages are added
+  // Auto-scroll to bottom only for user messages, not during streaming
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    // Don't auto-scroll if we're currently streaming an AI response
+    if (!isStreaming) {
+      const scrollContainer = document.querySelector('.chat-messages-area');
+      if (scrollContainer && messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        // Only scroll for user messages
+        if (lastMessage.role === 'user') {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
+      }
     }
-  }, [messages]);
+  }, [messages, isStreaming]);
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -77,31 +87,120 @@ export default function ChatSidebar({ currentProblem }: ChatSidebarProps) {
     setInput('');
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call later)
-    setTimeout(() => {
-      const aiResponse: Message = {
+    try {
+      // Call the real API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          model: selectedModel,
+          conversationHistory: messages,
+          currentProblem: currentProblem || null,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      // Check if response is streaming (for GPT models) or regular JSON (for Gemini)
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType?.includes('text/stream-event')) {
+        // Handle streaming response
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        
+        // Set streaming flag to true
+        setIsStreaming(true);
+        
+        // Create initial AI message with empty content
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: '',
+          timestamp: new Date(),
+          model: selectedModel,
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+        
+        if (reader) {
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split('\n');
+              
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const data = JSON.parse(line.substring(6));
+                    if (data.content) {
+                      // Update the last message with new content
+                      setMessages(prev => 
+                        prev.map((msg, index) => 
+                          index === prev.length - 1 
+                            ? { ...msg, content: msg.content + data.content }
+                            : msg
+                        )
+                      );
+                    } else if (data.done) {
+                      // Stream is complete
+                      setIsStreaming(false);
+                      break;
+                    } else if (data.error) {
+                      throw new Error(data.error);
+                    }
+                  } catch (parseError) {
+                    console.warn('Failed to parse streaming data:', parseError);
+                  }
+                }
+              }
+            }
+          } finally {
+            reader.releaseLock();
+            setIsStreaming(false);
+          }
+        }
+      } else {
+        // Handle regular JSON response (Gemini)
+        const data = await response.json();
+        
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date(),
+          model: selectedModel,
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+      }
+    } catch (error) {
+      console.error('Failed to get AI response:', error);
+      
+      // Fallback error message
+      const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: getSimulatedResponse(userMessage.content),
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
         timestamp: new Date(),
+        model: selectedModel,
       };
-      setMessages(prev => [...prev, aiResponse]);
+      
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsLoading(false);
-    }, 1000 + Math.random() * 1000);
+    }
   };
 
-  const getSimulatedResponse = (userInput: string): string => {
-    const responses = [
-      "Great question! Let me break this down step by step for you.",
-      "I see what you're working on. Here's how I would approach this problem:",
-      "That's a common area where students get stuck. Let me explain the concept:",
-      "Good thinking! To solve this, we need to consider a few key principles:",
-      "This is an excellent example to practice with. Here's the method:",
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -116,9 +215,9 @@ export default function ChatSidebar({ currentProblem }: ChatSidebarProps) {
   ] as const;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="h-full flex flex-col min-h-0">
       {/* Navigation Tabs */}
-      <div className="flex bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl m-2 p-1">
+      <div className="flex-shrink-0 flex bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl m-2 p-1">
         {tabs.map((tab) => (
           <Button
             key={tab.id}
@@ -139,14 +238,14 @@ export default function ChatSidebar({ currentProblem }: ChatSidebarProps) {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 min-h-0">
         {activeTab === 'chat' && (
-          <div className="flex-1 flex flex-col">
-            {/* Messages Area */}
-            <div className="flex-1 relative">
+          <div className="h-full flex flex-col">
+            {/* Messages Area - Scrollable */}
+            <div className="flex-1 min-h-0 overflow-auto chat-messages-area">
               {messages.length === 0 && !isLoading ? (
                 /* AI Tutor Header - Perfectly centered when no messages */
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-full flex items-center justify-center">
                   <div className="text-center">
                     <Bot className="h-12 w-12 mx-auto text-gray-400 mb-2" />
                     <h3 className="text-lg font-medium text-gray-400">AI Tutor</h3>
@@ -154,72 +253,53 @@ export default function ChatSidebar({ currentProblem }: ChatSidebarProps) {
                 </div>
               ) : (
                 /* Messages when chat has started */
-                <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={cn(
-                          "flex",
-                          message.role === 'user' ? "justify-end" : "justify-start"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "max-w-[80%] rounded-lg px-3 py-2 text-sm",
-                            message.role === 'user'
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-                          )}
-                        >
-                          <div className="flex items-start space-x-2">
-                            {message.role === 'assistant' && (
-                              <Bot className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                            )}
-                            {message.role === 'user' && (
-                              <User className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                            )}
-                            <div className="flex-1">
-                              <p className="leading-relaxed">{message.content}</p>
-                              <p className="mt-1 text-xs opacity-70">
-                                {message.timestamp.toLocaleTimeString([], { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
-                              </p>
-                            </div>
+                <div className="p-4 space-y-4">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={cn(
+                        "flex",
+                        message.role === 'user' ? "justify-end" : "justify-start"
+                      )}
+                    >
+                      {message.role === 'user' ? (
+                        <div className="max-w-[80%] rounded-lg px-3 py-2 text-sm bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                          <p className="leading-relaxed">{message.content}</p>
+                        </div>
+                      ) : (
+                        <div className="max-w-[90%] w-full">
+                          <div className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100">
+                            <MathContent 
+                              content={message.content} 
+                              documentId={currentDocument?.document_id}
+                            />
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )}
+                    </div>
+                  ))}
 
-                    {isLoading && (
-                      <div className="flex justify-start">
-                        <div className="max-w-[80%] rounded-lg bg-gray-100 px-3 py-2 dark:bg-gray-800">
-                          <div className="flex items-center space-x-2">
-                            <Bot className="h-4 w-4 text-blue-600" />
-                            <div className="flex space-x-1">
-                              <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
-                              <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
-                              <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
-                            </div>
-                          </div>
-                        </div>
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="flex space-x-1">
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
                       </div>
-                    )}
-                  </div>
-                </ScrollArea>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
-            {/* Input */}
-            <div className="p-4">
+            {/* Fixed Input Area - Always Visible */}
+            <div className="flex-shrink-0 bg-white dark:bg-gray-900 p-4">
               <div className="relative">
                 <Textarea
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                   placeholder="Ask a question about math..."
                   className="min-h-[90px] resize-none w-full pr-12 pb-8 pt-3 rounded-2xl border border-gray-200 dark:border-gray-700 focus:border-gray-300 dark:focus:border-gray-600 bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-0"
                   rows={1}

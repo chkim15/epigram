@@ -253,4 +253,6 @@ Key features:
 6. Verify problem numbering sequence maintains consistency
 7. Test database sync functionality if using Supabase editor
 8. Validate topic assignment accuracy using topics.json reference
+
 - Don't try to run npm run dev because it will be run manually.
+- When you are asked to fix certain issues or features, focus only on the relevant pieces. Don't touch any other code that is not relevant.

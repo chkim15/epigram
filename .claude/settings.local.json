@@ -3,7 +3,8 @@
     "allow": [
       "mcp__supabase__apply_migration",
       "Bash(mkdir:*)"
-    ]
+    ],
+    "defaultMode": "acceptEdits"
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
