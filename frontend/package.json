@@ -24,9 +24,11 @@
     "lucide-react": "^0.539.0",
     "next": "15.4.6",
     "openai": "^5.12.2",
+    "pdfjs-dist": "^5.4.54",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-katex": "^3.1.0",
+    "react-pdf": "^10.0.1",
     "tailwind-merge": "^3.3.1",
     "zustand": "^5.0.7"
   },

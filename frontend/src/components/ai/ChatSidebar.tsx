@@ -14,6 +14,8 @@ import { Send, Bot, MessageCircle, FileText, BookOpen, FileSearch, X } from "luc
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
+import PDFViewer from "@/components/pdf/PDFViewer";
+import { getSamplePDFUrl } from "@/lib/utils/pdf";
 
 interface Message {
   id: string;
@@ -413,11 +415,11 @@ export default function ChatSidebar({}: ChatSidebarProps) {
 
         {/* Other tab content placeholders */}
         {activeTab === 'notes' && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-gray-500 dark:text-gray-400">
-              <FileText className="h-12 w-12 mx-auto mb-2" />
-              <p>Notes feature coming soon</p>
-            </div>
+          <div className="flex-1 min-h-0 h-full">
+            <PDFViewer 
+              pdfUrl={getSamplePDFUrl('sample.pdf')}
+              className="h-full"
+            />
           </div>
         )}
 
