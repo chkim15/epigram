@@ -14,7 +14,22 @@ import { Send, Bot, MessageCircle, FileText, BookOpen, FileSearch, X } from "luc
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
-import PDFViewer from "@/components/pdf/PDFViewer";
+import dynamic from 'next/dynamic';
+
+// Dynamically import PDFViewerSimple to avoid SSR issues
+const PDFViewerSimple = dynamic(
+  () => import('@/components/pdf/PDFViewerSimple'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center text-gray-500 dark:text-gray-400">
+          <p className="text-sm">Loading PDF viewer...</p>
+        </div>
+      </div>
+    )
+  }
+);
 import { getSamplePDFUrl } from "@/lib/utils/pdf";
 
 interface Message {
@@ -416,7 +431,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
         {/* Other tab content placeholders */}
         {activeTab === 'notes' && (
           <div className="flex-1 min-h-0 h-full">
-            <PDFViewer 
+            <PDFViewerSimple 
               pdfUrl={getSamplePDFUrl('sample.pdf')}
               className="h-full"
             />

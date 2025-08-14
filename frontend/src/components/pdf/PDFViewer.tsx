@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -11,23 +11,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import dynamic from 'next/dynamic';
+import { usePDFWorker } from './PDFWorkerContext';
+import { VirtualPDFPages } from './VirtualPDFPages';
 
-// Dynamically import PDF components to avoid SSR issues
+// Configure worker BEFORE any react-pdf imports
+if (typeof window !== 'undefined') {
+  import('react-pdf').then(({ pdfjs }) => {
+    if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+      pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
+    }
+  });
+}
+
+// Dynamically import Document to prevent auto-worker initialization
 const Document = dynamic(
   () => import('react-pdf').then((mod) => mod.Document),
   { ssr: false }
 );
-
-const Page = dynamic(
-  () => import('react-pdf').then((mod) => mod.Page),
-  { ssr: false }
-);
-
-// Set up PDF.js worker only on client side - EXACT working configuration
-if (typeof window !== 'undefined') {
-  const pdfjs = require('react-pdf').pdfjs;
-  pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-}
 
 
 interface PDFViewerProps {
@@ -43,13 +43,17 @@ interface PageWidthOption {
 
 export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState<boolean>(false);
   const [selectedPageWidth, setSelectedPageWidth] = useState<string>('page-width');
   const [containerWidth, setContainerWidth] = useState<number>(300);
+  const [containerHeight, setContainerHeight] = useState<number>(600);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Use the robust worker context
+  const { isReady: workerReady, isInitializing: workerInitializing, error: workerError, resetWorker } = usePDFWorker();
 
   // Page width options
   const pageWidthOptions: PageWidthOption[] = [
@@ -63,27 +67,24 @@ export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
     { id: '300', label: '300%', scale: 3.0 },
   ];
 
-  // Ensure component is mounted before rendering PDF
+  // Robust container size calculation - no layout dependencies
   useEffect(() => {
-    setIsMounted(true);
-    if (pdfUrl) {
-      console.log('PDF URL being loaded:', pdfUrl);
-    }
-  }, [pdfUrl]);
-
-  // Calculate container width on mount and resize
-  useEffect(() => {
-    const updateContainerWidth = () => {
-      const container = document.querySelector('.pdf-content-container');
-      if (container) {
-        const containerRect = container.getBoundingClientRect();
-        setContainerWidth(containerRect.width - 32); // Account for padding
+    const updateContainerSize = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerWidth(rect.width - 32); // Account for padding
+        setContainerHeight(rect.height);
       }
     };
 
-    updateContainerWidth();
-    window.addEventListener('resize', updateContainerWidth);
-    return () => window.removeEventListener('resize', updateContainerWidth);
+    updateContainerSize();
+    
+    const resizeObserver = new ResizeObserver(updateContainerSize);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
   }, []);
 
   const handlePageWidthChange = useCallback((value: string) => {
@@ -107,46 +108,16 @@ export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
     return 280; // Default width for percentage options
   }, [selectedPageWidth, containerWidth]);
 
-  // Set up intersection observer to track visible pages
-  useEffect(() => {
-    if (!numPages || numPages === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const newVisiblePages = new Set<number>();
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const pageNum = parseInt(entry.target.getAttribute('data-page-number') || '1');
-            newVisiblePages.add(pageNum);
-          }
-        });
-        
-        // Update current page number to the lowest visible page
-        if (newVisiblePages.size > 0) {
-          const lowestVisible = Math.min(...Array.from(newVisiblePages));
-          setPageNumber(lowestVisible);
-        }
-      },
-      {
-        root: document.querySelector('.pdf-content-container'),
-        rootMargin: '-50% 0px -50% 0px',
-        threshold: 0.1
-      }
-    );
-
-    // Observe all page elements after they're rendered
-    const timeoutId = setTimeout(() => {
-      const pageElements = document.querySelectorAll('.pdf-page');
-      pageElements.forEach(el => observer.observe(el));
-    }, 1000);
-
-    return () => {
-      clearTimeout(timeoutId);
-      observer.disconnect();
-    };
-  }, [numPages, setPageNumber]);
+  // Handle visible page changes from virtual scroller
+  const handleVisiblePagesChange = useCallback((visiblePages: number[]) => {
+    if (visiblePages.length > 0) {
+      // Update current page to the first visible page
+      setCurrentPage(Math.min(...visiblePages));
+    }
+  }, []);
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
+    console.log(`PDF loaded successfully: ${numPages} pages`);
     setNumPages(numPages);
     setLoading(false);
     setError(null);
@@ -159,14 +130,40 @@ export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
     setLoading(false);
   }, [pdfUrl]);
 
+  // Handle retry with worker reset
+  const handleRetry = useCallback(async () => {
+    setError(null);
+    setLoading(true);
+    if (workerError) {
+      await resetWorker();
+    }
+  }, [workerError, resetWorker]);
 
-  // Show loading until component is mounted
-  if (!isMounted) {
+
+  // Show worker initialization state
+  if (workerInitializing) {
     return (
       <div className={`flex items-center justify-center h-full ${className}`}>
         <div className="flex items-center space-x-2 text-gray-500">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="text-sm">Initializing PDF viewer...</span>
+          <span className="text-sm">Initializing PDF worker...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show worker error
+  if (workerError) {
+    return (
+      <div className={`flex items-center justify-center h-full text-red-500 ${className}`}>
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 mx-auto mb-2" />
+          <p className="text-sm mb-2">PDF worker failed to initialize</p>
+          <p className="text-xs text-gray-500 mb-4">{workerError}</p>
+          <Button variant="outline" size="sm" onClick={resetWorker}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Reset Worker
+          </Button>
         </div>
       </div>
     );
@@ -182,20 +179,15 @@ export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
     );
   }
 
+  // Show PDF loading error
   if (error) {
     return (
       <div className={`flex items-center justify-center h-full text-red-500 ${className}`}>
         <div className="text-center">
-          <p className="text-sm">{error}</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="mt-2"
-            onClick={() => {
-              setError(null);
-              setLoading(true);
-            }}
-          >
+          <AlertCircle className="h-12 w-12 mx-auto mb-2" />
+          <p className="text-sm mb-2">{error}</p>
+          <Button variant="outline" size="sm" onClick={handleRetry}>
+            <RefreshCw className="h-4 w-4 mr-2" />
             Retry
           </Button>
         </div>
@@ -205,12 +197,12 @@ export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
 
   return (
     <div className={`flex flex-col h-full ${className}`}>
-      {/* PDF Toolbar */}
-      <div className="flex items-center justify-center px-4 py-2 bg-white dark:bg-gray-900 flex-shrink-0">
+      {/* PDF Toolbar - Layout independent */}
+      <div className="flex items-center justify-center px-4 py-0 bg-white dark:bg-gray-900 flex-shrink-0">
         {/* Page counter and Page Width Selector */}
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            {loading ? '...' : `${pageNumber} / ${numPages}`}
+            {loading ? '...' : `${currentPage} / ${numPages}`}
           </span>
           
           <Select value={selectedPageWidth} onValueChange={handlePageWidthChange}>
@@ -228,10 +220,13 @@ export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
         </div>
       </div>
 
-      {/* PDF Content */}
-      <div className="flex-1 overflow-auto relative pdf-content-container">
+      {/* PDF Content - Layout independent with virtual scrolling */}
+      <div 
+        ref={containerRef}
+        className="flex-1 overflow-hidden relative pdf-content-container"
+      >
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900">
+          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-10">
             <div className="flex items-center space-x-2 text-gray-500">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm">Loading PDF...</span>
@@ -239,34 +234,37 @@ export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
           </div>
         )}
         
-        <div className="flex flex-col items-center p-4 space-y-4">
-          <Document
-            file={pdfUrl}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={onDocumentLoadError}
-            loading=""
-            error=""
-            className={loading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}
-          >
-            {/* Render all pages */}
-            {Array.from(new Array(numPages), (_, index) => (
-              <div
-                key={`page-container-${index + 1}`}
-                data-page-number={index + 1}
-                className="pdf-page"
-              >
-                <Page
-                  pageNumber={index + 1}
-                  scale={selectedPageWidth === 'page-width' ? undefined : scale}
-                  width={getPageWidth()}
-                  className="shadow-lg max-w-full border border-gray-200 dark:border-gray-700 rounded-lg mb-4"
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                />
-              </div>
-            ))}
-          </Document>
-        </div>
+        {workerReady && pdfUrl && (
+          <div className="h-full">
+            <Document
+              file={pdfUrl}
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={onDocumentLoadError}
+              loading=""
+              error=""
+              className={loading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}
+            >
+              <VirtualPDFPages
+                numPages={numPages}
+                scale={scale}
+                width={getPageWidth()}
+                selectedPageWidth={selectedPageWidth}
+                containerHeight={containerHeight}
+                onVisiblePagesChange={handleVisiblePagesChange}
+                className="mb-4"
+              />
+            </Document>
+          </div>
+        )}
+        
+        {!workerReady && (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
+              <p className="text-sm">Waiting for PDF worker...</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
