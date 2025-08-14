@@ -28,6 +28,7 @@ interface ChatRequest {
     difficulty?: string;
     topics?: any;
   };
+  image?: string; // Base64 image data
 }
 
 // System prompts for math-focused conversations
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body: ChatRequest = await req.json();
-    const { message, model, conversationHistory, currentProblem } = body;
+    const { message, model, conversationHistory, currentProblem, image } = body;
 
     console.log('Request body parsed:', { message: message?.substring(0, 50), model });
 
@@ -104,13 +105,13 @@ export async function POST(req: NextRequest) {
       case 'gemini-2.5-pro':
         console.log('Calling Gemini API with model:', model);
         // Gemini now returns a streaming response
-        return await handleGeminiRequest(message, conversationHistory, systemPrompt, model);
+        return await handleGeminiRequest(message, conversationHistory, systemPrompt, model, image);
       
       case 'gpt-5-mini':
       case 'gpt-5-nano':
         console.log('Calling OpenAI API...');
         // OpenAI returns a streaming response (with fallback to non-streaming)
-        return await handleOpenAIRequest(message, conversationHistory, systemPrompt, model);
+        return await handleOpenAIRequest(message, conversationHistory, systemPrompt, model, image);
       
       default:
         console.error('Invalid model:', model);
@@ -133,7 +134,8 @@ async function handleGeminiRequest(
   message: string, 
   conversationHistory: ChatMessage[], 
   systemPrompt: string,
-  modelName: string
+  modelName: string,
+  image?: string
 ): Promise<Response> {
   try {
     console.log('Initializing Gemini model:', modelName);
@@ -171,8 +173,23 @@ Student: ${message}
 
 Tutor:`;
 
+    // Prepare the content for Gemini
+    let contentParts: any[] = [{ text: fullPrompt }];
+    
+    // Add image if provided
+    if (image) {
+      // Remove data:image/jpeg;base64, or similar prefix
+      const base64Data = image.replace(/^data:image\/[^;]+;base64,/, '');
+      contentParts.push({
+        inlineData: {
+          data: base64Data,
+          mimeType: image.match(/^data:image\/([^;]+)/)?.[1] ? `image/${image.match(/^data:image\/([^;]+)/)?.[1]}` : 'image/jpeg'
+        }
+      });
+    }
+
     console.log('Sending streaming request to Gemini...');
-    const result = await model.generateContentStream(fullPrompt);
+    const result = await model.generateContentStream(contentParts);
     console.log('Gemini streaming started');
     
     // Create a readable stream to send back to the client
@@ -233,7 +250,8 @@ async function handleOpenAIRequest(
   message: string,
   conversationHistory: ChatMessage[],
   systemPrompt: string,
-  model: string
+  model: string,
+  image?: string
 ): Promise<Response> {
   try {
     console.log('OpenAI API request starting...');
@@ -263,11 +281,29 @@ async function handleOpenAIRequest(
       });
     }
 
-    // Add current message
-    messages.push({
+    // Add current message with optional image
+    const currentMessage: any = {
       role: 'user',
       content: message
-    });
+    };
+    
+    // Add image if provided for GPT models
+    if (image) {
+      currentMessage.content = [
+        {
+          type: 'text',
+          text: message
+        },
+        {
+          type: 'image_url',
+          image_url: {
+            url: image
+          }
+        }
+      ];
+    }
+    
+    messages.push(currentMessage);
 
     console.log('Messages array length:', messages.length);
     console.log('System prompt length:', systemPrompt.length);

@@ -18,12 +18,12 @@ export default function AppPage() {
   return (
     <div className="w-full h-screen flex flex-col">
       {/* Mobile Header */}
-      <div className="flex items-center justify-between border-b bg-white p-4 dark:bg-gray-900 lg:hidden">
+      <div className="flex items-center justify-between border-b bg-white h-14 px-4 dark:bg-gray-900 lg:hidden">
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <button className="cursor-pointer h-10 w-10 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
               <Menu className="h-5 w-5" />
-            </Button>
+            </button>
           </SheetTrigger>
           <SheetContent side="left" className="w-80 p-0">
             <SheetHeader className="sr-only">
@@ -58,7 +58,7 @@ export default function AppPage() {
           )}
           {/* Bottom Sign in button */}
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-900">
-            <Button className="w-full">Sign in</Button>
+            <Button className="w-full cursor-pointer">Sign in</Button>
           </div>
         </div>
 

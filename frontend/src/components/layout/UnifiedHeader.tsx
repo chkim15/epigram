@@ -22,14 +22,12 @@ export default function UnifiedHeader({
     )}>
       {/* Hamburger button when sidebar is collapsed */}
       {!isSidebarOpen && onToggleSidebar && (
-        <div className="flex items-center h-full">
-          <button
-            onClick={onToggleSidebar}
-            className="mr-4 h-9 w-9 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-          </button>
-        </div>
+        <button
+          onClick={onToggleSidebar}
+          className="mr-4 mt-1 h-8 w-8 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+        >
+          <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+        </button>
       )}
       {/* Flexible spacer to push right-side actions */}
       <div className="flex-1" />

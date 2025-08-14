@@ -192,89 +192,123 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
             variant="ghost"
             size="icon"
             onClick={onToggleSidebar}
-            className="h-8 w-8"
+            className="h-8 w-8 cursor-pointer"
           >
             <ChevronsLeft className="h-4 w-4" />
           </Button>
         )}
       </div>
 
-      {/* Hierarchical Topics List */}
+      {/* Main Menu Structure */}
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="p-2">
-          {courses.map((course) => (
-            <div key={course.id} className="mb-2">
-              <Collapsible 
-                open={expandedCourses.has(course.id)} 
-                onOpenChange={() => toggleCourse(course.id)}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start py-2 px-3 font-medium"
-                  >
-                    <span className="flex-1 text-left">{course.name}</span>
-                    {expandedCourses.has(course.id) ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="ml-4 space-y-1">
-                    {['Calculus II', 'Calculus III', 'Linear Algebra', 'Probability/Statistics'].includes(course.name) ? (
-                      <div className="py-3 px-3 text-sm text-gray-500 dark:text-gray-400 italic">
-                        Coming soon
-                      </div>
-                    ) : (
-                      course.sections.map((section) => (
-                        <div key={section.id}>
-                          <Collapsible
-                            open={expandedSections.has(section.id)}
-                            onOpenChange={() => toggleSection(section.id)}
+          {/* Create Practice Section */}
+          <div className="mb-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
+              onClick={() => {
+                // TODO: Navigate to Create Practice page
+                console.log('Navigate to Create Practice page');
+              }}
+            >
+              <span className="flex-1 text-left">Create Practice</span>
+            </Button>
+          </div>
+
+          {/* Study by Course Section */}
+          <div className="mb-2">
+            <Collapsible 
+              defaultOpen
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
+                >
+                  <span className="flex-1 text-left">Study by Course</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="ml-4 space-y-1">
+                  {courses.map((course) => (
+                    <div key={course.id} className="mb-2">
+                      <Collapsible 
+                        open={expandedCourses.has(course.id)} 
+                        onOpenChange={() => toggleCourse(course.id)}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start py-2 px-3 font-medium cursor-pointer"
                           >
-                            <CollapsibleTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                className="w-full justify-start py-1.5 px-3 text-sm"
-                              >
-                                <span className="flex-1 text-left">{section.name}</span>
-                                {expandedSections.has(section.id) ? (
-                                  <ChevronDown className="h-3 w-3" />
-                                ) : (
-                                  <ChevronRight className="h-3 w-3" />
-                                )}
-                              </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                              <div className="ml-4 space-y-1">
-                                {section.topics.map((topic) => (
-                                  <Button
-                                    key={topic.id}
-                                    variant={selectedTopicId === topic.id ? "default" : "ghost"}
-                                    className={cn(
-                                      "w-full justify-start text-left h-auto py-2 px-3 text-xs",
-                                      selectedTopicId === topic.id && "bg-blue-600 text-white hover:bg-blue-700"
-                                    )}
-                                    onClick={() => onSelectTopic(topic.id)}
-                                  >
-                                    <span className="flex-1 leading-relaxed whitespace-normal break-words">
-                                      {topic.subtopics || `Topic ${topic.id}`}
-                                    </span>
-                                  </Button>
-                                ))}
+                            <span className="flex-1 text-left">{course.name}</span>
+                            {expandedCourses.has(course.id) ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="ml-1 space-y-1">
+                            {['Calculus II', 'Calculus III', 'Linear Algebra', 'Probability/Statistics'].includes(course.name) ? (
+                              <div className="py-3 px-3 text-sm text-gray-500 dark:text-gray-400 italic">
+                                Coming soon
                               </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          ))}
+                            ) : (
+                              course.sections.map((section) => (
+                                <div key={section.id}>
+                                  <Collapsible
+                                    open={expandedSections.has(section.id)}
+                                    onOpenChange={() => toggleSection(section.id)}
+                                  >
+                                    <CollapsibleTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        className="w-full justify-start py-1.5 px-3 text-sm cursor-pointer"
+                                      >
+                                        <span className="flex-1 text-left">{section.name}</span>
+                                        {expandedSections.has(section.id) ? (
+                                          <ChevronDown className="h-3 w-3" />
+                                        ) : (
+                                          <ChevronRight className="h-3 w-3" />
+                                        )}
+                                      </Button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                      <div className="ml-1 space-y-1">
+                                        {section.topics.map((topic) => (
+                                          <Button
+                                            key={topic.id}
+                                            variant={selectedTopicId === topic.id ? "default" : "ghost"}
+                                            className={cn(
+                                              "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer",
+                                              selectedTopicId === topic.id && "bg-blue-600 text-white hover:bg-blue-700"
+                                            )}
+                                            onClick={() => onSelectTopic(topic.id)}
+                                          >
+                                            <span className="flex-1 leading-relaxed whitespace-normal break-words">
+                                              {topic.subtopics || `Topic ${topic.id}`}
+                                            </span>
+                                          </Button>
+                                        ))}
+                                      </div>
+                                    </CollapsibleContent>
+                                  </Collapsible>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         </div>
       </div>
     </div>

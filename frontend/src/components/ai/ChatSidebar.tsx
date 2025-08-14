@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Send, Bot, MessageCircle, FileText, BookOpen, FileSearch } from "lucide-react";
+import { Send, Bot, MessageCircle, FileText, BookOpen, FileSearch, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
@@ -21,6 +21,7 @@ interface Message {
   content: string;
   timestamp: Date;
   model?: string;
+  image?: string; // Base64 image data
 }
 
 interface LLMModel {
@@ -41,6 +42,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
   const [activeTab, setActiveTab] = useState<'chat' | 'notes' | 'solutions' | 'summary'>('chat');
   const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [pastedImage, setPastedImage] = useState<{ url: string; file: File } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Available LLM models
@@ -73,7 +75,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
   }, [messages, isStreaming]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !pastedImage) || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -81,10 +83,12 @@ export default function ChatSidebar({}: ChatSidebarProps) {
       content: input.trim(),
       timestamp: new Date(),
       model: selectedModel,
+      image: pastedImage?.url,
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setPastedImage(null);
     setIsLoading(true);
 
     try {
@@ -99,6 +103,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
           model: selectedModel,
           conversationHistory: messages,
           currentProblem: currentProblem || null,
+          image: userMessage.image,
         }),
       });
 
@@ -207,6 +212,32 @@ export default function ChatSidebar({}: ChatSidebarProps) {
     }
   };
 
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          // Convert to base64 for preview
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64 = event.target?.result as string;
+            setPastedImage({ url: base64, file });
+          };
+          reader.readAsDataURL(file);
+        }
+        break;
+      }
+    }
+  };
+
+  const removeImage = () => {
+    setPastedImage(null);
+  };
+
   const tabs = [
     { id: 'chat', label: 'Chat', icon: MessageCircle },
     { id: 'notes', label: 'Notes', icon: FileText },
@@ -224,7 +255,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
             variant="ghost"
             size="sm"
             className={cn(
-              "flex-1 text-xs h-8 rounded-lg transition-all",
+              "flex-1 text-xs h-8 rounded-lg transition-all cursor-pointer",
               activeTab === tab.id 
                 ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white" 
                 : "hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
@@ -300,17 +331,49 @@ export default function ChatSidebar({}: ChatSidebarProps) {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  onPaste={handlePaste}
                   placeholder="Ask a question about math..."
-                  className="min-h-[90px] resize-none w-full pr-12 pb-8 pt-3 rounded-2xl border border-gray-200 dark:border-gray-700 focus:border-gray-300 dark:focus:border-gray-600 bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                  className={cn(
+                    "chat-input-textarea resize-none w-full pr-12 pb-8 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400",
+                    pastedImage ? "min-h-[140px] pt-16" : "min-h-[90px] pt-3"
+                  )}
+                  style={{
+                    outline: 'none',
+                    boxShadow: 'none',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.outline = 'none';
+                    e.target.style.boxShadow = 'none';
+                  }}
                   rows={1}
                 />
+                
+                {/* Image Preview Inside Input */}
+                {pastedImage && (
+                  <div className="absolute top-3 left-3 right-14">
+                    <div className="relative inline-block">
+                      <img 
+                        src={pastedImage.url} 
+                        alt="Pasted image" 
+                        className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 object-cover"
+                      />
+                      <button
+                        onClick={removeImage}
+                        className="absolute -top-1 -right-1 bg-gray-800 dark:bg-gray-700 text-white rounded-full p-0.5 hover:bg-gray-900 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                        aria-label="Remove image"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
                 
                 {/* LLM Model Selector - Inside the input box */}
                 <div className="absolute bottom-2 left-3">
                   <Select value={selectedModel} onValueChange={setSelectedModel}>
                     <SelectTrigger 
                       size="sm"
-                      className="!border-none !shadow-none !h-6 px-2 py-0 text-xs text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100/50 dark:hover:bg-gray-700/30 focus:!border-none focus:!outline-none focus:!ring-0 focus:!ring-offset-0 font-normal rounded-full transition-colors"
+                      className="!border-none !shadow-none !h-6 px-2 py-0 text-xs text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100/50 dark:hover:bg-gray-700/30 focus:!border-none focus:!outline-none focus:!ring-0 focus:!ring-offset-0 font-normal rounded-full transition-colors cursor-pointer"
                     >
                       <SelectValue placeholder="Select model">
                         {getModelDisplayName(selectedModel)}
@@ -337,9 +400,9 @@ export default function ChatSidebar({}: ChatSidebarProps) {
                 
                 <Button
                   onClick={handleSendMessage}
-                  disabled={!input.trim() || isLoading}
+                  disabled={(!input.trim() && !pastedImage) || isLoading}
                   size="icon"
-                  className="absolute right-2 bottom-2 h-8 w-8 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600"
+                  className="absolute right-2 bottom-2 h-8 w-8 rounded-lg bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed"
                 >
                   <Send className="h-4 w-4" />
                 </Button>

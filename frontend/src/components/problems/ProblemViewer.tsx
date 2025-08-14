@@ -270,6 +270,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
               size="sm"
               onClick={previousProblem}
               disabled={!canGoPrevious()}
+              className="cursor-pointer disabled:cursor-not-allowed"
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
@@ -282,6 +283,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
               size="sm"
               onClick={nextProblem}
               disabled={!canGoNext()}
+              className="cursor-pointer disabled:cursor-not-allowed"
             >
               Next
               <ChevronRight className="h-4 w-4" />
