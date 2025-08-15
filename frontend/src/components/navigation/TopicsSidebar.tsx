@@ -222,9 +222,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
           {/* Study by Course Section */}
           <div className="mb-2">
-            <Collapsible 
-              defaultOpen
-            >
+            <Collapsible>
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"

@@ -341,7 +341,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
             </div>
 
             {/* Fixed Input Area - Always Visible */}
-            <div className="flex-shrink-0 bg-white dark:bg-gray-900 p-4">
+            <div className="flex-shrink-0 bg-white dark:bg-gray-900 px-2 py-2">
               <div className="relative">
                 <Textarea
                   ref={textareaRef}
