@@ -142,11 +142,11 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1800px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -154,28 +154,10 @@
             overflow: hidden;
         }
 
-        .header {
-            background: white;
-            color: #333;
-            padding: 30px;
-            text-align: center;
-            border-bottom: 1px solid #e9ecef;
-        }
 
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0;
-            font-weight: 300;
-            color: #333;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
 
         .controls {
-            padding: 20px 30px;
+            padding: 20px 15px;
             background: #f8f9fa;
             border-bottom: 1px solid #e9ecef;
             display: flex;
@@ -283,7 +265,7 @@
 
         .add-problem-btn {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 16px;
             background: #007bff;
             color: white;
             border: none;
@@ -370,7 +352,7 @@
 
         .editor-panel {
             flex: 1;
-            padding: 30px;
+            padding: 15px;
             overflow-y: auto;
             max-height: 600px;
         }
@@ -671,6 +653,71 @@
         .topic-tag .remove {
             font-weight: bold;
             font-size: 14px;
+        }
+
+        /* Toast notification styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 300px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.error {
+            background-color: #dc3545;
+        }
+
+        .toast.success {
+            background-color: #28a745;
+        }
+
+        .toast.fadeOut {
+            animation: slideOut 0.3s ease-in forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .toast-icon {
+            font-size: 16px;
+            flex-shrink: 0;
         }
 
         .subproblems-container {
@@ -1148,7 +1195,7 @@
             background: #28a745;
             color: white;
             border: none;
-            padding: 15px 20px;
+            padding: 14px 20px;
             width: 100%;
             cursor: pointer;
             font-size: 14px;
@@ -1169,10 +1216,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Math Problems Database Editor</h1>
-        </div>
-
         <div class="controls">
             <input type="file" id="fileInput" class="file-input" accept=".json">
             <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
@@ -1194,11 +1237,14 @@
             <div class="sidebar">
                 <div id="problemList" class="problem-list">
                     <div class="no-problem" style="padding: 40px 20px; text-align: center; color: #6c757d;">
-                        <h3 style="margin-bottom: 10px; color: #495057;">No File Loaded</h3>
-                        <p>Load a JSON file to start editing</p>
+                        <h3 style="margin-bottom: 10px; color: #495057;">No Data Loaded</h3>
                     </div>
                 </div>
                 <div class="add-problem-container">
+                    <button class="add-problem-btn" onclick="showAddDocumentModal()" title="Add New Document" style="background: #17a2b8; margin-bottom: 10px;">
+                        <span class="add-problem-icon">📄</span>
+                        <span class="add-problem-text">Add Document</span>
+                    </button>
                     <button class="add-problem-btn" onclick="addNewProblem()" title="Add New Problem">
                         <span class="add-problem-icon">+</span>
                         <span class="add-problem-text">Add Problem</span>
@@ -1226,6 +1272,63 @@
             <div class="stat-item">
                 <div class="stat-number" id="incompleteProblems">0</div>
                 <div class="stat-label">Incomplete</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Document Modal -->
+    <div id="addDocumentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📄 Create New Document</h2>
+                <span class="close" onclick="closeAddDocumentModal()">&times;</span>
+            </div>
+            
+            <div style="padding: 20px 0;">
+                <div class="form-group">
+                    <label class="form-label">School</label>
+                    <input type="text" id="docSchool" class="form-control" placeholder="e.g. upenn, harvard, mcgill, mit, berkeley">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Course</label>
+                    <input type="text" id="docCourse" class="form-control" placeholder="e.g. math103, stat101">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Problem Type <span style="color: red;">*</span></label>
+                    <select id="docProblemType" class="form-control" required>
+                        <option value="">Select problem type...</option>
+                        <option value="CCE">College-level Course Exam (CCE)</option>
+                        <option value="HR">Homework/Recitation (HR)</option>
+                        <option value="LNT">Lecture Notes/Textbook (LNT)</option>
+                        <option value="GRE">GRE Math Subject Test (GRE)</option>
+                        <option value="OGSEE">Other graduate school entrance exams (OGSEE)</option>
+                        <option value="CMC">College math competition (CMC)</option>
+                        <option value="HSMC">High School math competition (HSMC)</option>
+                        <option value="PHDPE">PhD Preliminary Exam (PHDPE)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Term</label>
+                    <input type="text" id="docTerm" class="form-control" placeholder="e.g. fall, spring, summer">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Year</label>
+                    <input type="number" id="docYear" class="form-control" placeholder="e.g. 2024, 2025" min="1900" max="2100">
+                </div>
+                
+                <div class="form-group" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px; margin-bottom: 10px;">
+                    <label class="form-label" style="margin-bottom: 5px;">Generated Document ID:</label>
+                    <div id="generatedDocId" style="font-family: monospace; font-size: 14px; color: #007bff; font-weight: bold;">-</div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="padding-top: 10px;">
+                <button class="btn btn-secondary" onclick="closeAddDocumentModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createNewDocument()">Create Document</button>
             </div>
         </div>
     </div>
@@ -1283,6 +1386,7 @@
         let currentProblemIndex = -1;
         let originalData = null;
         let imageBasePath = '';
+        let currentDocumentId = null; // Track the current document ID for problem generation
         
         // Supabase configuration
         const SUPABASE_URL = 'https://sionddqweckwednamaeb.supabase.co';
@@ -1454,13 +1558,13 @@
                 // Handle differently based on data source
                 let problemsToUpdate = [];
                 
-                if (dataSourceType === 'json') {
-                    // For JSON files: Upload ALL problems regardless of changes
+                if (dataSourceType === 'json' || dataSourceType === 'new_document') {
+                    // For JSON files and new documents: Upload ALL problems regardless of changes
                     problemsToUpdate = problemsData.problems.map((problem, index) => ({
                         index: index,
                         problemId: problem.id
                     }));
-                    console.log(`Processing all ${problemsToUpdate.length} problems from JSON file`);
+                    console.log(`Processing all ${problemsToUpdate.length} problems from ${dataSourceType === 'new_document' ? 'new document' : 'JSON file'}`);
                 } else {
                     // For database-loaded data: Only update changed problems
                     const changedProblems = detectChangedProblems();
@@ -1480,13 +1584,19 @@
                 // Handle document creation/lookup based on data source
                 let documentUuid;
                 
-                if (dataSourceType === 'json') {
-                    // For JSON files: Create document first (or get existing one)
+                if (dataSourceType === 'json' || dataSourceType === 'new_document') {
+                    // For JSON files and new documents: Create document first (or get existing one)
                     console.log('Ensuring document exists in database...');
                     const documentResult = await insertDocumentWorking(problemsData.document);
                     if (documentResult.data && documentResult.data.length > 0) {
                         documentUuid = documentResult.data[0].id;
                         console.log(`Document created/updated: ${problemsData.document.id} -> ${documentUuid}`);
+                        
+                        // If this was a new document, update the data source type to database
+                        if (dataSourceType === 'new_document') {
+                            dataSourceType = 'database';
+                            document.getElementById('fileInfo').textContent = `Document: ${problemsData.document.id}`;
+                        }
                     } else {
                         throw new Error('Failed to create/update document in database');
                     }
@@ -1665,6 +1775,12 @@
                         problemsData = JSON.parse(e.target.result);
                         originalData = JSON.parse(e.target.result);
                         dataSourceType = 'json'; // Mark as JSON file source
+                        // Set currentDocumentId if document exists in loaded data
+                        if (problemsData.document && problemsData.document.id) {
+                            currentDocumentId = problemsData.document.id;
+                        } else {
+                            currentDocumentId = null;
+                        }
                         loadProblems();
                         currentFileName = file.name.replace('.json', '');
                         originalFileName = file.name;
@@ -1761,17 +1877,28 @@
 
         function addNewProblem() {
             if (!problemsData) {
-                showError('No document loaded. Please load a JSON file first.');
+                showError('No document loaded. Please load a JSON file or create a new document first.');
                 return;
             }
 
-            // Generate a unique problem ID
+            // Generate a unique problem ID based on document
             let newProblemId = '';
             let counter = 1;
-            do {
-                newProblemId = `new_problem_${counter}`;
-                counter++;
-            } while (problemsData.problems.some(p => p.id === newProblemId));
+            
+            if (currentDocumentId || (problemsData.document && problemsData.document.id)) {
+                // Use document ID pattern
+                const docId = currentDocumentId || problemsData.document.id;
+                do {
+                    newProblemId = `${docId}_p${counter}`;
+                    counter++;
+                } while (problemsData.problems.some(p => p.id === newProblemId));
+            } else {
+                // Fallback to generic pattern
+                do {
+                    newProblemId = `new_problem_${counter}`;
+                    counter++;
+                } while (problemsData.problems.some(p => p.id === newProblemId));
+            }
 
             // Create new problem template
             const newProblem = {
@@ -1787,7 +1914,7 @@
                 math_approach: null,
                 reasoning_type: null,
                 comment: '',
-                importance: 1,
+                importance: null,
                 subproblems: {}
             };
 
@@ -1824,7 +1951,7 @@
             localStorage.setItem('problemsData', JSON.stringify(problemsData));
             
             // Show success message
-            showSuccess('New problem added successfully!');
+            // showSuccess('New problem added successfully!');
         }
 
         function updateProblemId(newId) {
@@ -3322,26 +3449,51 @@
             showSuccess(`Data exported successfully as ${exportFileName}!`);
         }
 
-        function showError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.textContent = message;
-            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.main-content'));
+        // Create toast container if it doesn't exist
+        function ensureToastContainer() {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            return container;
+        }
+
+        function showToast(message, type) {
+            const container = ensureToastContainer();
             
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Add icon based on type
+            const icon = type === 'error' ? '❌' : '✅';
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <span>${message}</span>
+            `;
+            
+            // Add to container
+            container.appendChild(toast);
+            
+            // Auto-remove after 2 seconds with fade out animation
             setTimeout(() => {
-                errorDiv.remove();
-            }, 5000);
+                toast.classList.add('fadeOut');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300); // Wait for animation to complete
+            }, 2000);
+        }
+
+        function showError(message) {
+            showToast(message, 'error');
         }
 
         function showSuccess(message) {
-            const successDiv = document.createElement('div');
-            successDiv.className = 'success';
-            successDiv.textContent = message;
-            document.querySelector('.container').insertBefore(successDiv, document.querySelector('.main-content'));
-            
-            setTimeout(() => {
-                successDiv.remove();
-            }, 3000);
+            showToast(message, 'success');
         }
 
         async function updateDatabase() {
@@ -3885,7 +4037,7 @@
                 // Refresh the display
                 refreshImageDisplay(context);
                 
-                showSuccess(`Image "${imageFileName}" removed from JSON successfully!`);
+                // showSuccess(`Image "${imageFileName}" removed from JSON successfully!`);
             }
         }
 
@@ -3919,7 +4071,7 @@
                 // Refresh the subproblems section
                 refreshSubproblemsSection();
                 
-                showSuccess(`Image "${imageFileName}" removed from subproblem ${subproblemKey} successfully!`);
+                // showSuccess(`Image "${imageFileName}" removed from subproblem ${subproblemKey} successfully!`);
             }
         }
 
@@ -4832,6 +4984,184 @@
             }
         }
 
+        // ===== ADD DOCUMENT FUNCTIONALITY =====
+        function showAddDocumentModal() {
+            const modal = document.getElementById('addDocumentModal');
+            modal.style.display = 'block';
+            // Clear form fields
+            document.getElementById('docSchool').value = '';
+            document.getElementById('docCourse').value = '';
+            document.getElementById('docProblemType').value = '';
+            document.getElementById('docTerm').value = '';
+            document.getElementById('docYear').value = '';
+            updateGeneratedDocId();
+        }
+
+        function closeAddDocumentModal() {
+            const modal = document.getElementById('addDocumentModal');
+            modal.style.display = 'none';
+        }
+
+        function updateGeneratedDocId() {
+            const school = document.getElementById('docSchool').value.trim().toLowerCase().replace(/\s+/g, '_');
+            const course = document.getElementById('docCourse').value.trim().toLowerCase().replace(/\s+/g, '_');
+            const problemType = document.getElementById('docProblemType').value.toLowerCase();
+            const term = document.getElementById('docTerm').value.trim().toLowerCase().replace(/\s+/g, '_');
+            const year = document.getElementById('docYear').value.trim();
+            
+            // Build document ID from non-empty fields
+            const parts = [];
+            if (school) parts.push(school);
+            if (course) parts.push(course);
+            if (problemType) parts.push(problemType);
+            if (term) parts.push(term);
+            if (year) parts.push(year);
+            
+            const docId = parts.length > 0 ? parts.join('_') : '-';
+            document.getElementById('generatedDocId').textContent = docId;
+        }
+
+        // Add event listeners for real-time document ID preview
+        document.addEventListener('DOMContentLoaded', function() {
+            const fields = ['docSchool', 'docCourse', 'docProblemType', 'docTerm', 'docYear'];
+            fields.forEach(fieldId => {
+                const element = document.getElementById(fieldId);
+                if (element) {
+                    element.addEventListener('input', updateGeneratedDocId);
+                    element.addEventListener('change', updateGeneratedDocId);
+                }
+            });
+        });
+
+        async function createNewDocument() {
+            const school = document.getElementById('docSchool').value.trim();
+            const course = document.getElementById('docCourse').value.trim();
+            const problemType = document.getElementById('docProblemType').value;
+            const term = document.getElementById('docTerm').value.trim();
+            const year = document.getElementById('docYear').value.trim();
+            
+            // Validate required field
+            if (!problemType) {
+                showError('Problem Type is required');
+                return;
+            }
+            
+            // Generate document ID
+            const parts = [];
+            if (school) parts.push(school.toLowerCase().replace(/\s+/g, '_'));
+            if (course) parts.push(course.toLowerCase().replace(/\s+/g, '_'));
+            parts.push(problemType.toLowerCase());
+            if (term) parts.push(term.toLowerCase().replace(/\s+/g, '_'));
+            if (year) parts.push(year);
+            
+            const documentId = parts.join('_');
+            
+            try {
+                // Check if document already exists in database
+                const { data: existingDoc, error: checkError } = await supabase
+                    .from('documents')
+                    .select('document_id')
+                    .eq('document_id', documentId)
+                    .single();
+                
+                if (existingDoc) {
+                    // Document exists, load it from database
+                    // showSuccess(`Document '${documentId}' already exists. Loading from database...`);
+                    
+                    // Close modal first
+                    closeAddDocumentModal();
+                    
+                    // Load the existing document
+                    try {
+                        const documentData = await loadDocumentFromDatabase(documentId);
+                        
+                        if (documentData) {
+                            // Replace current data with loaded document
+                            problemsData = documentData;
+                            originalData = JSON.parse(JSON.stringify(documentData));
+                            
+                            // Set currentDocumentId for problem generation
+                            currentDocumentId = documentData.document ? documentData.document.id : documentId;
+                            
+                            // Update UI
+                            displayProblemsList();
+                            updateStats();
+                            
+                            // Update file info
+                            document.getElementById('fileInfo').textContent = `Loaded: ${documentId}`;
+                            currentFileName = documentId;
+                            originalFileName = documentId;
+                            dataSourceType = 'database'; // Mark as database source
+                            
+                            // Save to localStorage
+                            localStorage.setItem('problemsData', JSON.stringify(problemsData));
+                            localStorage.setItem('currentFileName', currentFileName);
+                            localStorage.setItem('originalFileName', originalFileName);
+                            
+                            // showSuccess(`Document '${documentId}' loaded successfully! You can now add more problems.`);
+                            
+                            // Automatically show the add problem interface
+                            setTimeout(() => {
+                                addNewProblem();
+                            }, 500);
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error loading existing document:', error);
+                        showError('Error loading existing document: ' + error.message);
+                    }
+                    
+                    return; // Exit early since we loaded existing document
+                }
+                
+                // If we get here, document doesn't exist, proceed with creating new one
+                if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
+                    throw checkError;
+                }
+                
+            } catch (error) {
+                console.error('Error checking document existence:', error);
+                showError('Error checking document existence: ' + error.message);
+                return;
+            }
+            
+            // Create document object (but don't save to database yet)
+            const newDocument = {
+                id: documentId,
+                school: school || null,
+                course: course || null,
+                problem_type: problemType,
+                term: term || null,
+                year: year ? parseInt(year) : null,
+                total_problems: 0,
+                created_at: new Date().toISOString()
+            };
+            
+            // Set up problemsData for the new document (in memory only)
+            problemsData = {
+                document: newDocument,
+                problems: []
+            };
+            
+            originalData = JSON.parse(JSON.stringify(problemsData));
+            currentDocumentId = documentId;
+            dataSourceType = 'new_document'; // Mark as new document not yet in database
+            
+            // Update UI
+            document.getElementById('fileInfo').textContent = `Document: ${documentId} (not saved to database)`;
+            loadProblems();
+            
+            // Close modal
+            closeAddDocumentModal();
+            
+            // showSuccess(`Document '${documentId}' created locally! Add problems and click 'Update Database' to save.`);
+            
+            // Automatically show the add problem interface
+            setTimeout(() => {
+                addNewProblem();
+            }, 500);
+        }
+
         // ===== READ DATABASE FUNCTIONALITY =====
         let selectedDocumentId = null;
         let selectedTopic = null;
@@ -5101,6 +5431,9 @@
                     // Replace current data with loaded document
                     problemsData = documentData;
                     originalData = JSON.parse(JSON.stringify(documentData)); // Deep copy for change detection
+                    
+                    // Set currentDocumentId for problem generation
+                    currentDocumentId = documentData.document ? documentData.document.id : selectedDocumentId;
                     
                     // Update UI
                     displayProblemsList();
@@ -5609,7 +5942,7 @@
                     const file = files[i];
                     
                     // Generate automatic filename with sequential numbering
-                    const filename = `p${problemNumber}_solution_${initialCount + i + 1}.${getFileExtension(file.name)}`;
+                    const filename = `p${problemNumber}_upload_${initialCount + i + 1}.${getFileExtension(file.name)}`;
                     
                     // Upload to Supabase Storage
                     const { error: uploadError } = await supabase.storage
@@ -5639,13 +5972,13 @@
                 const uploadedNames = [];
                 for (let i = 0; i < files.length; i++) {
                     const existingCount = problem.solution.images.length - files.length + i;
-                    uploadedNames.push(`p${problemNumber}_solution_${existingCount + 1}.${getFileExtension(files[i].name)}`);
+                    uploadedNames.push(`p${problemNumber}_upload_${existingCount + 1}.${getFileExtension(files[i].name)}`);
                 }
-                showSuccess(`${files.length} image(s) uploaded successfully: ${uploadedNames.join(', ')}`);
+                // showSuccess(`${files.length} image(s) uploaded successfully: ${uploadedNames.join(', ')}`);
                 
             } catch (error) {
                 console.error('Error uploading images:', error);
-                showError('Error uploading images: ' + error.message);
+                // showError('Error uploading images: ' + error.message);
             }
 
             // Clear the input
@@ -5696,7 +6029,7 @@
             // Save changes
             localStorage.setItem('problemsData', JSON.stringify(problemsData));
             
-            showSuccess('Image removed from solution');
+            // showSuccess('Image removed from solution');
         }
 
         function extractProblemNumber(problemId) {
