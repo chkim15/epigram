@@ -258,7 +258,7 @@
         }
 
         .sidebar {
-            width: 300px;
+            width: 210px;
             background: #f8f9fa;
             border-right: 1px solid #e9ecef;
             max-height: 600px;
@@ -1720,7 +1720,7 @@
                     listItem.onclick = () => selectProblem(index);
                     
                     listItem.innerHTML = `
-                        <div class="problem-id">${problem.id}</div>
+                        <div class="problem-id">${formatProblemDisplayName(problem.id)}</div>
                         <div class="problem-status ${isComplete ? 'complete' : 'incomplete'}">
                         </div>
                     `;
@@ -5705,6 +5705,22 @@
             return match ? match[1] : '1';
         }
 
+        function formatProblemDisplayName(problemId) {
+            // Convert problem ID like "upenn_math103_final_fall_2021_p1" to "Problem 1"
+            // Handle special cases like "new_problem_1" or IDs that don't match the pattern
+            if (problemId.startsWith('new_problem_')) {
+                return problemId; // Keep new problem IDs as-is for now
+            }
+            
+            const match = problemId.match(/_p(\d+)$/);
+            if (match) {
+                return `Problem ${match[1]}`;
+            }
+            
+            // Fallback: return the original ID if it doesn't match expected pattern
+            return problemId;
+        }
+
         function getFileExtension(filename) {
             return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
         }
@@ -5794,7 +5810,7 @@
                     
                     const problemId = document.createElement('div');
                     problemId.className = 'problem-id';
-                    problemId.textContent = problem.id;
+                    problemId.textContent = formatProblemDisplayName(problem.id);
                     
                     const problemStatus = document.createElement('div');
                     problemStatus.className = 'problem-status';
