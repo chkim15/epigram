@@ -97,6 +97,10 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
       // Group topics by main_topics within this course
       const sectionGroups = courseTopics.reduce((acc, topic) => {
         const sectionName = topic.main_topics || 'Other';
+        // Filter out "Basics of Functions" section
+        if (sectionName === 'Basics of Functions') {
+          return acc;
+        }
         if (!acc[sectionName]) {
           acc[sectionName] = [];
         }

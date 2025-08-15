@@ -132,7 +132,7 @@ export const VirtualPDFPages: React.FC<VirtualPDFPagesProps> = ({
           pageNumber={pageNumber}
           scale={selectedPageWidth === 'page-width' ? undefined : scale}
           width={width}
-          className={`shadow-lg max-w-full border border-gray-200 dark:border-gray-700 rounded-lg ${className}`}
+          className={`max-w-full ${className}`}
           renderTextLayer={false}
           renderAnnotationLayer={false}
           onLoadSuccess={() => handlePageLoadSuccess(pageNumber)}

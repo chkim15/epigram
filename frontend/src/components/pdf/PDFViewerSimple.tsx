@@ -55,7 +55,9 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
   const [error, setError] = useState<string | null>(null);
   const [selectedPageWidth, setSelectedPageWidth] = useState<string>('page-width');
   const [containerWidth, setContainerWidth] = useState<number>(300);
-  const [actualPageWidth, setActualPageWidth] = useState<number>(0);
+  // Debounced width prevents rapid re-renders while resizing split panes
+  const [debouncedWidth, setDebouncedWidth] = useState<number>(300);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -97,6 +99,12 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
     return () => resizeObserver.disconnect();
   }, []);
 
+  // Debounce containerWidth updates to avoid flicker while dragging resizer
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedWidth(containerWidth), 120);
+    return () => clearTimeout(id);
+  }, [containerWidth]);
+
   const handlePageWidthChange = useCallback((value: string) => {
     setSelectedPageWidth(value);
     const option = pageWidthOptions.find(opt => opt.id === value);
@@ -122,21 +130,21 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
   // Calculate the width to pass to Page component
   const getPageWidth = useCallback(() => {
     if (selectedPageWidth === 'page-width') {
-      return containerWidth;
+      return debouncedWidth;
     }
     return 280;
-  }, [selectedPageWidth, containerWidth]);
+  }, [selectedPageWidth, debouncedWidth]);
 
   // Calculate the actual display scale for percentage display
   const getDisplayScale = useCallback(() => {
-    if (selectedPageWidth === 'page-width' && actualPageWidth > 0) {
-      // For page width, calculate actual scale based on rendered page width
-      // PDF.js renders at 96 DPI by default, so a typical page is ~612px wide
-      // The actual scale is the ratio of rendered width to this base width
-      return actualPageWidth / 612; // Standard PDF page width at 96 DPI
+    if (selectedPageWidth === 'page-width' && debouncedWidth > 0) {
+      // For page width, calculate the scale based on container width
+      // Use 280px as the base reference width (this is what 100% scale uses)
+      // So if container is 560px, the scale should be 2.0 (200%)
+      return debouncedWidth / 280;
     }
     return scale;
-  }, [selectedPageWidth, actualPageWidth, scale]);
+  }, [selectedPageWidth, debouncedWidth, scale]);
 
   // Track visible pages during scroll
   useEffect(() => {
@@ -181,15 +189,6 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
     setNumPages(numPages);
     setLoading(false);
     setError(null);
-    
-    // Calculate actual page width after a brief delay to let the page render
-    setTimeout(() => {
-      const pageElement = document.querySelector('.react-pdf__Page');
-      if (pageElement) {
-        const pageRect = pageElement.getBoundingClientRect();
-        setActualPageWidth(pageRect.width);
-      }
-    }, 500);
   }, []);
 
   const onDocumentLoadError = useCallback((error: Error) => {
@@ -504,7 +503,7 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
                   pageNumber={index + 1}
                   scale={selectedPageWidth === 'page-width' ? undefined : scale}
                   width={getPageWidth()}
-                  className="shadow-lg max-w-full rounded-lg mb-4"
+                  className="max-w-full mb-4"
                   renderTextLayer={showSearch}
                   renderAnnotationLayer={false}
                 />
