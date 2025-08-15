@@ -181,7 +181,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
           {currentProblem && (
             <>
               {/* Main Problem */}
-              <Card className="w-full">
+              <Card className="w-full border-0 shadow-none">
                 <CardHeader>
                   <CardTitle className="text-lg">Problem {currentProblemIndex + 1}</CardTitle>
                 </CardHeader>
@@ -196,7 +196,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
                   {subproblems.length > 0 && (
                     <div className="space-y-4">
                       {subproblems.map((subproblem) => (
-                        <Card key={subproblem.id} className="w-full max-w-full">
+                        <Card key={subproblem.id} className="w-full max-w-full border-0 shadow-none">
                           <CardContent className="pt-4">
                             <div className="font-medium text-blue-600 dark:text-blue-400 mb-2 text-lg">
                               {subproblem.key}.
@@ -214,7 +214,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
 
               {/* Answer */}
               {currentProblem.correct_answer && (
-                <Card className="w-full">
+                <Card className="w-full border-0 shadow-none">
                   <CardHeader>
                     <CardTitle className="text-lg text-green-600 dark:text-green-400">
                       Answer

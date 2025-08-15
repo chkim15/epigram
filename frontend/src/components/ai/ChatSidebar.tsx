@@ -307,7 +307,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
                       key={message.id}
                       className={cn(
                         "flex",
-                        message.role === 'user' ? "justify-end" : "justify-start"
+                        message.role === 'user' ? "justify-end" : "justify-center"
                       )}
                     >
                       {message.role === 'user' ? (
@@ -315,7 +315,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
                           <p className="leading-relaxed">{message.content}</p>
                         </div>
                       ) : (
-                        <div className="max-w-[90%] w-full">
+                        <div className="max-w-[94%] w-full">
                           <div className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100">
                             <MathContent 
                               content={message.content} 
@@ -328,7 +328,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
                   ))}
 
                   {isLoading && (
-                    <div className="flex justify-start">
+                    <div className="flex justify-center">
                       <div className="flex space-x-1">
                         <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
                         <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>

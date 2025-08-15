@@ -20,7 +20,8 @@ export function renderMath(text: string, documentId?: string): string {
 
   // Handle markdown lists before processing bold text
   // Convert bullet points (* at the start of a line or after line break)
-  processed = processed.replace(/^\*\s+(.+)$/gm, '<li>$1</li>');
+  // Handle both "* text" and "*text" formats
+  processed = processed.replace(/^\*\s*(.+)$/gm, '<li>$1</li>');
   
   // Convert numbered lists (1. 2. etc at the start of a line)
   processed = processed.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
@@ -55,8 +56,12 @@ export function renderMath(text: string, documentId?: string): string {
   }
   processed = result.join('\n');
 
-  // Handle bold text markdown **text** - convert to HTML
+  // Handle bold/italic text markdown
+  // **text** for bold
   processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // *text* for italic/emphasis (but not at line start to avoid conflict with bullets)
+  // Use negative lookbehind to ensure * is not at the start of a line
+  processed = processed.replace(/(?<!^|\n)\*([^*\n]+)\*/g, '<em>$1</em>');
 
   // Process images ![filename.png|size%] or ![filename.png]
   processed = processed.replace(/!\[([^\|\]]+)(?:\|([^\]]+))?\]/g, (match, imageName, size) => {

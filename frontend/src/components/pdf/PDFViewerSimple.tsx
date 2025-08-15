@@ -146,43 +146,55 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
     return scale;
   }, [selectedPageWidth, debouncedWidth, scale]);
 
-  // Track visible pages during scroll
+  // Track visible page using scroll + rAF for reliability during resize/scroll
   useEffect(() => {
     if (!numPages || numPages === 0) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visiblePages = new Set<number>();
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const pageNum = parseInt(entry.target.getAttribute('data-page-number') || '1');
-            visiblePages.add(pageNum);
-          }
-        });
-        
-        if (visiblePages.size > 0) {
-          const lowestVisible = Math.min(...Array.from(visiblePages));
-          setCurrentPage(lowestVisible);
-        }
-      },
-      {
-        root: containerRef.current,
-        rootMargin: '-50% 0px -50% 0px',
-        threshold: 0.1
-      }
-    );
+    const container = containerRef.current;
+    if (!container) return;
 
-    // Wait a moment for pages to render
-    const timeoutId = setTimeout(() => {
-      const pageElements = document.querySelectorAll('.pdf-page');
-      pageElements.forEach(el => observer.observe(el));
-    }, 500);
+    let ticking = false;
+
+    const updateCurrent = () => {
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      const containerCenter = containerRect.height / 2;
+      const pages = Array.from(container.querySelectorAll('.pdf-page')) as HTMLElement[];
+      if (pages.length === 0) return;
+
+      let bestIndex = 0;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      pages.forEach((el, idx) => {
+        const rect = el.getBoundingClientRect();
+        const pageCenter = (rect.top - containerRect.top) + rect.height / 2;
+        const distance = Math.abs(pageCenter - containerCenter);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = idx;
+        }
+      });
+      setCurrentPage(bestIndex + 1);
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          updateCurrent();
+          ticking = false;
+        });
+      }
+    };
+
+    container.addEventListener('scroll', onScroll, { passive: true });
+    // Initial compute after pages render
+    const initId = setTimeout(updateCurrent, 300);
 
     return () => {
-      clearTimeout(timeoutId);
-      observer.disconnect();
+      clearTimeout(initId);
+      container.removeEventListener('scroll', onScroll as EventListener);
     };
-  }, [numPages]);
+  }, [numPages, debouncedWidth, showSearch]);
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     console.log(`PDF loaded successfully: ${numPages} pages`);
