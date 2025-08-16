@@ -7,8 +7,102 @@ export function renderMath(text: string, documentId?: string): string {
   
   // Start with a clean copy of the text
   let processed = text;
+  
+  // First, decode HTML entities like &gt; to > (only in browser context)
+  if (typeof document !== 'undefined') {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = processed;
+    processed = tempDiv.textContent || tempDiv.innerText || '';
+  } else {
+    // Simple server-side fallback for common entities
+    processed = processed.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+  }
 
-  // Process line breaks first (convert \\\\ to <br>)
+  // IMPORTANT: Process math FIRST before handling line breaks, 
+  // otherwise we'll break LaTeX array/matrix environments that use \\
+  
+  // Process display math first - $$...$$ (including multi-line content)
+  processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
+    try {
+      return katex.renderToString(math.trim(), {
+        throwOnError: false,
+        displayMode: true,
+        trust: true,
+      });
+    } catch (e) {
+      console.error('KaTeX error (display $$):', e);
+      return match;
+    }
+  });
+
+  // Process display math \[...\]
+  processed = processed.replace(/\\\[([\s\S]*?)\\\]/g, (match, math) => {
+    try {
+      return katex.renderToString(math.trim(), {
+        throwOnError: false,
+        displayMode: true,
+        trust: true,
+      });
+    } catch (e) {
+      console.error('KaTeX error (display \\[\\]):', e);
+      return match;
+    }
+  });
+
+  // Process inline math \(...\) - handle multi-line content
+  processed = processed.replace(/\\\(([\s\S]*?)\\\)/g, (match, math) => {
+    try {
+      return katex.renderToString(math.trim(), {
+        throwOnError: false,
+        displayMode: false,
+        trust: true,
+      });
+    } catch (e) {
+      console.error('KaTeX error (inline \\(\\)):', e, 'Math content:', math);
+      return match;
+    }
+  });
+
+  // Process inline math ($...$) - but be careful with escaped dollar signs
+  // First protect escaped dollar signs \$ by temporarily replacing them
+  processed = processed.replace(/\\\$/g, '___ESCAPED_DOLLAR___');
+  
+  // Now process math between single dollar signs
+  // Use a more careful regex that doesn't match across multiple dollar signs
+  processed = processed.replace(/\$([^\$\n]+?)\$/g, (match, math) => {
+    // Check if this contains escaped dollar signs
+    if (math.includes('___ESCAPED_DOLLAR___')) {
+      // This is not a math expression, it's literal text with dollar signs
+      // Just return the content without the outer $ delimiters and restore escaped dollars
+      return math.replace(/___ESCAPED_DOLLAR___/g, '$');
+    }
+    
+    try {
+      return katex.renderToString(math.trim(), {
+        throwOnError: false,
+        displayMode: false,
+        trust: true,
+      });
+    } catch (e) {
+      console.error('KaTeX error (inline $):', e);
+      return match;
+    }
+  });
+  
+  // Restore any remaining escaped dollar signs as literal $ (without the backslash)
+  processed = processed.replace(/___ESCAPED_DOLLAR___/g, '$');
+
+  // NOW process text formatting and line breaks (after math is done)
+  
+  // Process common LaTeX text commands that might appear outside math mode
+  // Handle \textbf{...}, \textit{...}, \emph{...}, etc.
+  processed = processed.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
+  processed = processed.replace(/\\textit\{([^}]+)\}/g, '<em>$1</em>');
+  processed = processed.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
+  processed = processed.replace(/\\underline\{([^}]+)\}/g, '<u>$1</u>');
+  processed = processed.replace(/\\text\{([^}]+)\}/g, '$1'); // Plain \text{...}
+  
+  // Process line breaks (convert \\\\ to <br>) - AFTER math processing
   processed = processed.replace(/\\\\\\\\/g, '<br>'); // Convert \\\\ to <br>
   processed = processed.replace(/\\\\\\\\\\\\\\\\/g, '<br>'); // Convert \\\\\\\\ to <br>
   processed = processed.replace(/\\\\/g, '<br>'); // Convert \\ to <br>
@@ -95,62 +189,6 @@ export function renderMath(text: string, documentId?: string): string {
       });
     } catch (e) {
       return '∞';
-    }
-  });
-
-  // Process display math first - $$...$$
-  processed = processed.replace(/\$\$([^$]+?)\$\$/g, (match, math) => {
-    try {
-      return katex.renderToString(math.trim(), {
-        throwOnError: false,
-        displayMode: true,
-        trust: true,
-      });
-    } catch (e) {
-      console.error('KaTeX error (display $$):', e);
-      return match;
-    }
-  });
-
-  // Process display math \[...\]
-  processed = processed.replace(/\\\[([^\]]*?)\\\]/g, (match, math) => {
-    try {
-      return katex.renderToString(math.trim(), {
-        throwOnError: false,
-        displayMode: true,
-        trust: true,
-      });
-    } catch (e) {
-      console.error('KaTeX error (display \\[\\]):', e);
-      return match;
-    }
-  });
-
-  // Process inline math \(...\) - simple version first
-  processed = processed.replace(/\\\(([^)]*?)\\\)/g, (match, math) => {
-    try {
-      return katex.renderToString(math.trim(), {
-        throwOnError: false,
-        displayMode: false,
-        trust: true,
-      });
-    } catch (e) {
-      console.error('KaTeX error (inline \\(\\)):', e, 'Math content:', math);
-      return match;
-    }
-  });
-
-  // Process inline math ($...$)
-  processed = processed.replace(/\$([^$]+?)\$/g, (match, math) => {
-    try {
-      return katex.renderToString(math.trim(), {
-        throwOnError: false,
-        displayMode: false,
-        trust: true,
-      });
-    } catch (e) {
-      console.error('KaTeX error (inline $):', e);
-      return match;
     }
   });
 

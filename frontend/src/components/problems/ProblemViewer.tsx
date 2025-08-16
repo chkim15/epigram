@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import { Problem, Subproblem } from "@/types/database";
+import { Problem, Subproblem, Document } from "@/types/database";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
   });
 
   const [subproblems, setSubproblems] = useState<Subproblem[]>([]);
+  const [allDocuments, setAllDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
     fetchAllProblems();
@@ -56,14 +57,53 @@ export default function ProblemViewer({}: ProblemViewerProps) {
 
   useEffect(() => {
     if (currentProblem) {
+      console.log('Current problem changed:', {
+        problemId: currentProblem.id,
+        problemDocumentId: currentProblem.document_id,
+        allDocumentsCount: allDocuments.length
+      });
+      
       fetchSubproblems(currentProblem.id);
+      
+      // Update current document based on the current problem's document_id
+      if (allDocuments.length > 0) {
+        const problemDocument = allDocuments.find(doc => doc.id === currentProblem.document_id);
+        if (problemDocument) {
+          setCurrentDocument(problemDocument);
+          console.log('Updated document for problem:', {
+            problemId: currentProblem.id,
+            problemNumber: currentProblem.problem_id,
+            documentId: problemDocument.document_id,
+            documentPrimaryId: problemDocument.id
+          });
+        } else {
+          console.warn('No document found for problem document_id:', currentProblem.document_id);
+        }
+      } else {
+        console.warn('Documents not loaded yet');
+      }
     }
-  }, [currentProblem]);
+  }, [currentProblem, allDocuments]);
 
   const fetchAllProblems = async () => {
     try {
       setLoading(true);
       console.log('Fetching ALL problems from database...');
+      
+      // First fetch documents data
+      const { data: documentsData, error: documentsError } = await supabase
+        .from('documents')
+        .select('*');
+
+      if (documentsError) {
+        console.error('Error fetching documents:', documentsError);
+      }
+
+      // Store all documents
+      if (documentsData && documentsData.length > 0) {
+        setAllDocuments(documentsData);
+        console.log('Loaded documents:', documentsData);
+      }
       
       // Fetch ALL problems from ALL documents with topics
       const { data: problemsData, error: problemsError } = await supabase
@@ -81,22 +121,16 @@ export default function ProblemViewer({}: ProblemViewerProps) {
       if (problemsError) throw problemsError;
 
       console.log(`Found ${problemsData?.length || 0} total problems from all documents`);
-      
-      // Fetch documents data for reference
-      const { data: documentsData, error: documentsError } = await supabase
-        .from('documents')
-        .select('*');
-
-      if (documentsError) {
-        console.error('Error fetching documents:', documentsError);
-      }
-
-      // Set the first document as current (can be updated when switching problems)
-      if (documentsData && documentsData.length > 0) {
-        setCurrentDocument(documentsData[0]);
-      }
 
       setProblemList(problemsData || []);
+      
+      // Set initial document based on first problem
+      if (problemsData && problemsData.length > 0 && documentsData && documentsData.length > 0) {
+        const firstProblemDoc = documentsData.find(doc => doc.id === problemsData[0].document_id);
+        if (firstProblemDoc) {
+          setCurrentDocument(firstProblemDoc);
+        }
+      }
     } catch (err) {
       console.error('Error fetching problems:', err);
     } finally {
@@ -173,7 +207,14 @@ export default function ProblemViewer({}: ProblemViewerProps) {
               {/* Main Problem */}
               <Card className="w-full border-0 shadow-none">
                 <CardHeader>
-                  <CardTitle className="text-lg">Problem {currentProblemIndex + 1}</CardTitle>
+                  <CardTitle className="text-lg">
+                    Problem {currentProblemIndex + 1}
+                    {currentDocument?.document_id && (
+                      <span className="ml-2 text-sm text-gray-400 dark:text-gray-500 font-normal">
+                        ({currentDocument.document_id})
+                      </span>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {currentProblem.problem_text && (
