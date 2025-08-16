@@ -1,0 +1,382 @@
+{
+  "document": {
+    "id": "upenn_math103_cce_spring_2018",
+    "school": "upenn",
+    "course": "math103",
+    "problem_type": "cce",
+    "term": "spring",
+    "year": "2018",
+    "total_problems": 15,
+    "created_at": "2025-08-15 19:35:31"
+  },
+  "problems": [
+    {
+      "id": "upenn_math103_cce_spring_2018_p1",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p2",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Find the sum $ A+B+C $, where $$ A=\\lim _{x \\rightarrow \\infty} \\arctan \\left(\\ln \\left(x^{2}+1\\right)\\right), \\quad B=\\lim _{x \\rightarrow 1} \\frac{x^{2}-1}{3 x^{2}-4 x+1}, \\quad C=\\lim _{x \\rightarrow \\infty} \\frac{1}{1+\\frac{1}{1+\\frac{1}{x}}} $$",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p3",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Find the constants $ a $ and $ b $ such that the following function is continuous. $ f(x)=\\left\\{\\begin{array}{cc}2 a x+b & x \\leq 1 b x^{2}+27 & x \\geq 5\\end{array}\\right. $",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p4",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Let $$ f(x)=\\frac{-2}{x} $$ Find $ f^{\\prime}(x) $ using the definition of the derivative. 4",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p5",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Let $ f(x)=\\frac{x^{3}-5}{x^{2}-3} $ Find $ f^{\\prime}(1) $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p6",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Let $ f(x)=8 \\sin ^{3}\\left(e^{x}\\right) $. Find $ f^{\\prime}\\left(\\ln \\left(\\frac{\\pi}{3}\\right)\\right) $ 6",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p7",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Pick any number in the interval $ [0,5] $. The value of the function $$ f(x)=\\frac{10}{2 x^{2}-8 x+9} $$ evaluated at your chosen number is the score you will get for this problem. 7",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p8",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Below is the graph of a function called $$ f(x) . $$",
+      "subproblems": {
+        "a": {
+          "problem_text": "On the interval $ [a, b] $ how many critical numbers does $ f(x) $ have? Explain",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        },
+        "b": {
+          "problem_text": "On the interval $ [a, b] $ how many inflection points does $ f(x) $ have? Explain 8",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        }
+      },
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p8_1.png",
+        "p8_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p9",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Unrelated to the previous question Below is the graph of a derivative called $$ g^{\\prime}(x) $$ On the interval $ [a, b] $ how many inflection points does the function $ g(x) $ have? Explain 9",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p9_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p10",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Evaluate the limit $ \\lim _{x \\rightarrow 0}(\\cos (x))^{\\frac{3}{x^{2}}} $",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p11",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "A rectangle $ R $ has one side on the x -axis and two of its vertices on the graph of $ y=e^{-2 x^{2}} $. Find the largest possible area for $ R $. In the interest of time, you can skip the work proving that you have an absolute extreme value. 11",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p11_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p12",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Let $$ f^{\\prime}(x)=3 x^{3}+x $$",
+      "subproblems": {
+        "a": {
+          "problem_text": "Find the $ x $-values of all local extrema",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        },
+        "b": {
+          "problem_text": "If $ f(1)=0 $, find $ f(\\sqrt{2}) $ 12",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        }
+      },
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p13",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Evaluate the definite integral",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p14",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_spring_2018_p15",
+      "doc_id": "upenn_math103_cce_spring_2018",
+      "problem_text": "Evaluate",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    }
+  ]
+}

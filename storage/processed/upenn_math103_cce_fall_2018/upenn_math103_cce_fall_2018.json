@@ -1,0 +1,357 @@
+{
+  "document": {
+    "id": "upenn_math103_cce_fall_2018",
+    "school": "upenn",
+    "course": "math103",
+    "problem_type": "cce",
+    "term": "fall",
+    "year": "2018",
+    "total_problems": 14,
+    "created_at": "2025-08-15 19:36:30"
+  },
+  "problems": [
+    {
+      "id": "upenn_math103_cce_fall_2018_p1",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Let $$ L=\\lim _{x \\rightarrow 0} \\frac{e^{x}-x-1}{x^{2}} $$ and let $$ M=\\lim _{x \\rightarrow 1^{-}} \\frac{1+x}{1-x} $$ Which of the following statements is true?",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p1_1.png",
+        "p1_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p2",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "What is the distance from the point $ (1,1) $ to the line $ y=3 x+1 $ ?",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p2_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p3",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "$ \\sqrt{5} / 2 $ Page 3 Let $ f(x)=(2 x+1)^{4}-24 x^{2}+5 x $. Which of the following statements is true?",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p3_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p4",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Let $ f(x)=3 x^{\\frac{2}{3}}-x $. Find the $ x $-coordinates of all local and absolute maxima and minima for $ f $. You may assume without justification that $ \\lim _{x \\rightarrow-\\infty} f(x)=+\\infty $ and $ \\lim _{x \\rightarrow \\infty} f(x)=-\\infty $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p4_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p5",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Suppose $$ f(x)=\\left\\{\\begin{array}{ll} \\frac{c \\sqrt{x}-c}{x-1} & x&gt;1 \\\\ x-c & x \\leq 1 \\end{array}\\right. $$ What value of $ c $ makes $ f $ continuous everywhere?",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p6",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Using the definition, calculate the derivative $ f^{\\prime}(1) $ if $$ f(x)=2+\\sqrt{1+3 x} $$ Page 7",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p7",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "The curves $ y=x^{2}+a x+b $ and $ y=x^{2}-c x+1 $ have a common tangent at the point $ (1,3) $. Find $ a, b $ and $ c $. Page 8",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p7_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p8",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Find the line that is normal to the curve $$ x \\sin 2 y=y \\cos 2 x $$ at the point $ \\left(\\frac{\\pi}{4}, \\frac{\\pi}{2}\\right) $. Page 9",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p8_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p9",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Water is flowing at a rate of $ 150 \\pi \\mathrm{~m}^{3} / \\mathrm{min} $ from a shallow concrete conical reservoir (vertex down) of base radius 25 m and height 5 m .",
+      "subproblems": {
+        "a": {
+          "problem_text": "How fast is the water level falling when the water is 2 m deep?",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        },
+        "b": {
+          "problem_text": "How fast is the radius of the water's surface changing then? Page 10",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        }
+      },
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p9_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p10",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Use linearization to approximate the value of the function $ f(x)=\\frac{x}{x+1} $ at $ x=1.2 $. Page 11",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p10_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p11",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Estimate the area under the graph of $ f(x)=\\frac{36}{(x+1)^{2}} $ between $ x=0 $ and $ x=4 $ using 4 rectangles and the left endpoint method.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p11_1.png",
+        "p11_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p12",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Let $$ L=\\int_{0}^{4} \\frac{36}{(x+1)^{2}} d x $$ and let $$ M=\\int_{0}^{\\ln 6} e^{2 x} d x $$ Find $ L \\cdot M $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p12_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p13",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Let $$ L=\\int_{0}^{\\frac{\\pi}{3}} \\frac{\\sin x}{(\\cos x)^{5}} d x $$ and let $$ M=\\int_{1}^{4} \\frac{(\\sqrt{x}-1)^{2}}{\\sqrt{x}} d x $$ Find $ L \\cdot M $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p13_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2018_p14",
+      "doc_id": "upenn_math103_cce_fall_2018",
+      "problem_text": "Find the shaded area between the curves $ y=-x^{2} $ and $ y=-x^{3}+6 x $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p14_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    }
+  ]
+}

@@ -10,10 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Send, Bot, MessageCircle, FileText, BookOpen, FileSearch, X } from "lucide-react";
+import { Send, MessageCircle, FileText, BookOpen, FileSearch, X, SquarePen, MessagesSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
+import { supabase } from "@/lib/supabase/client";
+import { Subproblem } from "@/types/database";
 import dynamic from 'next/dynamic';
 
 // Dynamically import PDFViewerSimple to avoid SSR issues
@@ -56,10 +58,11 @@ export default function ChatSidebar({}: ChatSidebarProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'notes' | 'solutions' | 'summary'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'notes' | 'solutions' | 'comments'>('chat');
   const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
   const [isStreaming, setIsStreaming] = useState(false);
   const [pastedImage, setPastedImage] = useState<{ url: string; file: File } | null>(null);
+  const [currentSubproblems, setCurrentSubproblems] = useState<Subproblem[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Available LLM models
@@ -75,6 +78,35 @@ export default function ChatSidebar({}: ChatSidebarProps) {
     const model = llmModels.find(m => m.id === modelId);
     return model ? model.name : 'Select model';
   };
+
+  // Fetch subproblems when current problem changes
+  useEffect(() => {
+    const fetchSubproblems = async () => {
+      if (currentProblem?.id) {
+        try {
+          const { data, error } = await supabase
+            .from('subproblems')
+            .select('*')
+            .eq('problem_id', currentProblem.id)
+            .order('key');
+
+          if (error) {
+            console.error('Error fetching subproblems:', error);
+            setCurrentSubproblems([]);
+          } else {
+            setCurrentSubproblems(data || []);
+          }
+        } catch (err) {
+          console.error('Error fetching subproblems:', err);
+          setCurrentSubproblems([]);
+        }
+      } else {
+        setCurrentSubproblems([]);
+      }
+    };
+
+    fetchSubproblems();
+  }, [currentProblem]);
 
   // Auto-scroll to bottom only for user messages, not during streaming
   useEffect(() => {
@@ -120,6 +152,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
           model: selectedModel,
           conversationHistory: messages,
           currentProblem: currentProblem || null,
+          subproblems: currentSubproblems || [],
           image: userMessage.image,
         }),
       });
@@ -229,6 +262,14 @@ export default function ChatSidebar({}: ChatSidebarProps) {
     }
   };
 
+  const handleExampleClick = (question: string) => {
+    setInput(question);
+    // Trigger send message after setting input
+    setTimeout(() => {
+      handleSendMessage();
+    }, 0);
+  };
+
   const handlePaste = async (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -255,11 +296,17 @@ export default function ChatSidebar({}: ChatSidebarProps) {
     setPastedImage(null);
   };
 
+  const exampleQuestions = [
+    "Help me solve this problem one step at a time.",
+    "What concepts do I need to review for this problem?",
+    "Help me understand this problem visually."
+  ];
+
   const tabs = [
     { id: 'chat', label: 'Chat', icon: MessageCircle },
     { id: 'notes', label: 'Notes', icon: FileText },
     { id: 'solutions', label: 'Solutions', icon: BookOpen },
-    { id: 'summary', label: 'Summary', icon: FileSearch }
+    { id: 'comments', label: 'Comments', icon: FileSearch }
   ] as const;
 
   return (
@@ -288,15 +335,41 @@ export default function ChatSidebar({}: ChatSidebarProps) {
       {/* Content Area */}
       <div className="flex-1 min-h-0">
         {activeTab === 'chat' && (
-          <div className="h-full flex flex-col">
+          <div className="h-full flex flex-col relative">
+            {/* New Chat Icon - Only show when messages exist */}
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 left-2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 z-10 cursor-pointer"
+                onClick={() => {
+                  setMessages([]);
+                  setInput('');
+                }}
+                title="Start new chat"
+              >
+                <SquarePen className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              </Button>
+            )}
             {/* Messages Area - Scrollable */}
             <div className="flex-1 min-h-0 overflow-auto chat-messages-area">
               {messages.length === 0 && !isLoading ? (
                 /* AI Tutor Header - Perfectly centered when no messages */
                 <div className="h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <Bot className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                    <h3 className="text-lg font-medium text-gray-400">AI Tutor</h3>
+                  <div className="text-center max-w-md px-4">
+                    <MessagesSquare className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                    <h3 className="text-lg font-medium text-gray-300 mb-6">AI Tutor</h3>
+                    <div className="space-y-2">
+                      {exampleQuestions.map((question, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleExampleClick(question)}
+                          className="block w-full text-left px-3 py-2 text-sm rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
+                        >
+                          {question}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -311,7 +384,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
                       )}
                     >
                       {message.role === 'user' ? (
-                        <div className="max-w-[80%] rounded-lg px-3 py-2 text-sm bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        <div className="max-w-[80%] rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100">
                           <p className="leading-relaxed">{message.content}</p>
                         </div>
                       ) : (
@@ -349,7 +422,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   onPaste={handlePaste}
-                  placeholder="Ask a question about math..."
+                  placeholder="Ask questions about math"
                   className={cn(
                     "chat-input-textarea resize-none w-full pr-12 pb-8 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400",
                     pastedImage ? "min-h-[140px] pt-16" : "min-h-[90px] pt-3"
@@ -447,11 +520,11 @@ export default function ChatSidebar({}: ChatSidebarProps) {
           </div>
         )}
 
-        {activeTab === 'summary' && (
+        {activeTab === 'comments' && (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-gray-500 dark:text-gray-400">
               <FileSearch className="h-12 w-12 mx-auto mb-2" />
-              <p>Summary feature coming soon</p>
+              <p>Comments feature coming soon</p>
             </div>
           </div>
         )}

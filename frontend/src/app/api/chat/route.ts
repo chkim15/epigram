@@ -28,6 +28,12 @@ interface ChatRequest {
     difficulty?: string;
     topics?: any;
   };
+  subproblems?: Array<{
+    id: string;
+    key: string;
+    problem_text: string;
+    solution_text?: string;
+  }>;
   image?: string; // Base64 image data
 }
 
@@ -45,13 +51,27 @@ When a student asks about a specific problem, analyze it thoroughly and provide 
 
 Keep responses concise but comprehensive, focusing on mathematical understanding rather than just getting the right answer.`;
 
-const PROBLEM_CONTEXT_PROMPT = (problem: any) => `
+const PROBLEM_CONTEXT_PROMPT = (problem: any, subproblems?: any[]) => {
+  let contextPrompt = `
 CURRENT PROBLEM BEING VIEWED:
-${problem.problem_text ? `Problem: ${problem.problem_text}` : ''}
-${problem.difficulty ? `Difficulty: ${problem.difficulty}` : ''}
+${problem.problem_text ? `Problem: ${problem.problem_text}` : ''}`;
+
+  // Add subproblems if they exist
+  if (subproblems && subproblems.length > 0) {
+    contextPrompt += '\n\nParts:';
+    subproblems.forEach(sub => {
+      contextPrompt += `\n${sub.key}. ${sub.problem_text || ''}`;
+    });
+  }
+
+  contextPrompt += `
+${problem.difficulty ? `\nDifficulty: ${problem.difficulty}` : ''}
 ${problem.topics ? `Topics: ${JSON.stringify(problem.topics)}` : ''}
 
-IMPORTANT: The student is currently viewing this specific problem. When they ask questions, they are likely referring to THIS problem unless they specify otherwise. You can reference parts of this problem directly in your explanations. If they ask about "this problem" or "the problem", they mean the one shown above.`;
+IMPORTANT: The student is currently viewing this specific problem${subproblems && subproblems.length > 0 ? ' with multiple parts' : ''}. When they ask questions, they are likely referring to THIS problem unless they specify otherwise. You can reference specific parts of this problem directly in your explanations. If they ask about "this problem" or "the problem", they mean the one shown above.`;
+
+  return contextPrompt;
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -75,7 +95,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body: ChatRequest = await req.json();
-    const { message, model, conversationHistory, currentProblem, image } = body;
+    const { message, model, conversationHistory, currentProblem, subproblems, image } = body;
 
     console.log('Request body parsed:', { message: message?.substring(0, 50), model });
 
@@ -92,10 +112,11 @@ export async function POST(req: NextRequest) {
       problem_text: currentProblem.problem_text?.substring(0, 100) + '...',
       difficulty: currentProblem.difficulty
     } : null);
+    console.log('API received subproblems:', subproblems?.length || 0);
 
     // Prepare system prompt with problem context if available
     const systemPrompt = currentProblem 
-      ? MATH_SYSTEM_PROMPT + '\n\n' + PROBLEM_CONTEXT_PROMPT(currentProblem)
+      ? MATH_SYSTEM_PROMPT + '\n\n' + PROBLEM_CONTEXT_PROMPT(currentProblem, subproblems)
       : MATH_SYSTEM_PROMPT;
 
     console.log('Model selected:', model);

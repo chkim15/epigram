@@ -63,35 +63,9 @@ export default function ProblemViewer({}: ProblemViewerProps) {
   const fetchAllProblems = async () => {
     try {
       setLoading(true);
-      console.log('Fetching problems from database...');
+      console.log('Fetching ALL problems from database...');
       
-      // First get the document to find the document_id
-      const { data: documentsData, error: documentsError } = await supabase
-        .from('documents')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (documentsError) {
-        console.error('Error fetching documents:', documentsError);
-        throw documentsError;
-      }
-
-      console.log('Found documents:', documentsData);
-
-      if (!documentsData || documentsData.length === 0) {
-        console.log('No documents found');
-        setProblemList([]);
-        return;
-      }
-
-      // Use the first (most recent) document
-      const document = documentsData[0];
-      console.log('Using document:', document);
-      
-      // Set current document in store
-      setCurrentDocument(document);
-
-      // Fetch problems with topics using the same pattern as the editor
+      // Fetch ALL problems from ALL documents with topics
       const { data: problemsData, error: problemsError } = await supabase
         .from('problems')
         .select(`
@@ -99,14 +73,29 @@ export default function ProblemViewer({}: ProblemViewerProps) {
           math_approach, reasoning_type, topic_id, difficulty, importance,
           comment, version, created_at, updated_at, topics:topic_id(subtopics, main_topics)
         `)
-        .eq('document_id', document.id)
+        .order('document_id')
         .order('problem_id');
 
       console.log('Database response:', { problemsData, problemsError });
 
       if (problemsError) throw problemsError;
 
-      console.log(`Found ${problemsData?.length || 0} problems`);
+      console.log(`Found ${problemsData?.length || 0} total problems from all documents`);
+      
+      // Fetch documents data for reference
+      const { data: documentsData, error: documentsError } = await supabase
+        .from('documents')
+        .select('*');
+
+      if (documentsError) {
+        console.error('Error fetching documents:', documentsError);
+      }
+
+      // Set the first document as current (can be updated when switching problems)
+      if (documentsData && documentsData.length > 0) {
+        setCurrentDocument(documentsData[0]);
+      }
+
       setProblemList(problemsData || []);
     } catch (err) {
       console.error('Error fetching problems:', err);

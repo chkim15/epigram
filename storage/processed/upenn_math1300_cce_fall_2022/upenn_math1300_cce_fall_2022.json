@@ -1,0 +1,320 @@
+{
+  "document": {
+    "id": "upenn_math1300_cce_fall_2022",
+    "school": "upenn",
+    "course": "math1300",
+    "problem_type": "cce",
+    "term": "fall",
+    "year": "2022",
+    "total_problems": 10,
+    "created_at": "2025-08-15 19:30:04"
+  },
+  "problems": [
+    {
+      "id": "upenn_math1300_cce_fall_2022_p1",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "Evaluate the limits",
+      "subproblems": {
+        "a": {
+          "problem_text": "$ \\lim _{x \\rightarrow-1} \\frac{8 \\sqrt{x+5}-16}{x+1} $",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        },
+        "b": {
+          "problem_text": "$ \\lim _{h \\rightarrow 0} \\frac{\\sin (x+h) \\cos (x+h)-\\sin x \\cos x}{h} $",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        }
+      },
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1300_cce_fall_2022_p2",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "Evaluate the limit below $$ \\lim _{x \\rightarrow 0} \\frac{1-\\cos (4 x)}{(x+1) \\ln (x+1)-x} $$",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1300_cce_fall_2022_p3",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "Tell whether the following statements are True or False. If true, then prove that the statement is true. If false, then provide a counterexample.",
+      "subproblems": {
+        "a": {
+          "problem_text": "If $ f(x) $ is an even function, then $ f^{\\prime}(x) $ is an odd function.",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        },
+        "b": {
+          "problem_text": "The equation $ \\sqrt[3]{x}+x=1 $ has a solution on the interval ( 0,1 ).",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        }
+      },
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1300_cce_fall_2022_p4",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "",
+      "subproblems": {
+        "a": {
+          "problem_text": "Let $$ \\begin{array}{l} f(x)=e^{\\cos x}-\\ln (5 x+11)+\\sec (3 x)-\\arctan \\left(x^{2}\\right)+\\sinh (\\sqrt{x}) \\\\ \\text { Find } f^{\\prime}(x) \\end{array} $$",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        },
+        "b": {
+          "problem_text": "Evaluate the following $$ \\int\\left(\\frac{1}{e^{x}}+4 \\sqrt{x}-\\csc ^{2} x+\\frac{12}{x^{7}}+\\pi\\right) d x $$",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        }
+      },
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1300_cce_fall_2022_p5",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "Consider a cube of variable size. (The edge length is increasing.) Assume that the volume of the cube is increasing at the rate of 10 $ \\mathrm{cm}^{3} / $ minute. How fast is the surface area increasing when the edge length is 8 cm ? PenniD\\# $ \\square $",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1300_cce_fall_2022_p6",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "Find $ x&gt;0 $ such that the curve $ x^{3}+y^{3}=6 x y $ has a horizontal tangent line.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p6_2.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1300_cce_fall_2022_p7",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "Let $$ f(x)=\\frac{10 x}{x^{2}+1} $$ Find the absolute maximum value and absolute minimum value of $ f(x) $ on the interval $ [-3,2] $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1300_cce_fall_2022_p8",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "Alex wants to build a rectangular wooden fence to enclose an area of 80 square feet. Inside, there is a partition made of wire mesh. The wooden fencing costs $ \\$ 2 $ per foot and the wire mesh costs $ \\$ 1 $ per foot. Find the dimensions of the fence that minimizes the cost. Make sure that you verify that this is a minimum.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p8_2.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1300_cce_fall_2022_p9",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "",
+      "subproblems": {
+        "a": {
+          "problem_text": "Find the value of $ a $ so that the function below is continuous on the interval $ -1 \\leq x \\leq 9 $. $$ f(x)=\\left\\{\\begin{array}{cc} |x-3|, & -1 \\leq x&lt;5 \\\\ a x-\\frac{1}{2}, & 5 \\leq x \\leq 9 \\end{array}\\right. $$",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        },
+        "b": {
+          "problem_text": "Using the function from part a, evaluate the integral below $$ \\int_{-1}^{9} f(x) d x $$",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        }
+      },
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1300_cce_fall_2022_p10",
+      "doc_id": "upenn_math1300_cce_fall_2022",
+      "problem_text": "Evaluate the integral $$ \\int_{1}^{4} \\frac{36}{\\sqrt{x}(1+\\sqrt{x})^{3}} d x $$ PenniD\\# Scrap Paper DO NOT TEAR OFF THIS PAGE If you intend for anything written on this page to be graded, you must signify so in a very obvious way on the page with the original problem statement and you must label your work here with the proper question number. Otherwise, this page will be ignored when grading. PenniD\\# Scrap Paper DO NOT TEAR OFF THIS PAGE If you intend for anything written on this page to be graded, you must signify so in a very obvious way on the page with the original problem statement and you must label your work here with the proper question number. Otherwise, this page will be ignored when grading.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    }
+  ]
+}

@@ -1,0 +1,310 @@
+{
+  "document": {
+    "id": "upenn_math103_cce_fall_2014",
+    "school": "upenn",
+    "course": "math103",
+    "problem_type": "cce",
+    "term": "fall",
+    "year": "2014",
+    "total_problems": 14,
+    "created_at": "2025-08-15 19:34:06"
+  },
+  "problems": [
+    {
+      "id": "upenn_math103_cce_fall_2014_p1",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "The point $ (1,1) $ is on the graph of $ x y^{2}+y x^{2}=2 $ What is $ \\frac{d y}{d x} $ at this point?",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p2",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "Sometimes an antiderivative can't be described using functions you already know. An example of this is $ \\sin \\left(x^{2}\\right) $. The physicist Augustin-Jean Fresnel invented a new function Fresnel ( $ x $ ) with the property that $$ (\\text { Fresnel }(x))^{\\prime}=\\sin \\left(x^{2}\\right) . $$ What is $ \\frac{d}{d x}\\left(\\operatorname{Fresnel}\\left(x^{2}\\right)\\right) ? $",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p3",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "An ant is moving along the curve $ y=\\sqrt{x} $ so that the ant's $ x $-coordinate is increasing at a rate of 2 units per second. When the $ x $-coodinate of the ant is 1 , how fast is the distance between the ant and the origin increasing? 1 )",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p4",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "For the function $ f(x)=\\ln \\left(x+\\sqrt{x^{2}+4}\\right) $ find $ f^{\\prime}(2 \\sqrt{3}) $",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p5",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "For the function $ f(x)=x e^{x} $ find $ f^{\\prime \\prime}(2) $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p6",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "For the function $ f(x)=\\frac{x^{2}-2 x+6}{x-3} $ Let $ A= $ the local maximum value of $ f(x) $ and $ B= $ the local minimum value of $ f(x) $ Calculate the value of $ A+B $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p7",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "Find the absolute minimum value of $ f(x)=\\frac{4}{3} \\sqrt[3]{x}+\\frac{16}{3 x^{2 / 3}} $ on the interval $ [1,27] $",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p8",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "Evaluate $$ \\lim _{x \\rightarrow 0} \\frac{6 \\ln (\\cos x)}{3 x^{2}} $$",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p9",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "A builder wishes to fence in $ 30,000 \\mathrm{~m}^{2} $ of land in a rectangular shape. For security reasons, the fence along the front part of the land will cost $ \\$ 50 $ per meter, while the fence for the other three sides will cost $ \\$ 10 $ per meter. How much of each type of fence should the builder buy to minimize the cost of the fence?",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": "$ m $ of the $ \\$ 50 $ per meter fence. $ m $ of the $ \\$ 10 $ per meter fence.",
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p10",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "Find the value of the sum $$ \\sum_{k=1}^{12}\\left(\\frac{k^{3}}{13^{2}}-\\frac{k^{2}}{26}\\right) $$",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p11",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "Find the area of the shaded region below",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [
+        "p11_1.png"
+      ],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p12",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "Evaluate the integral $ \\int_{0}^{\\frac{1}{2}} \\frac{\\arcsin (x)}{\\sqrt{1-x^{2}}} d x $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p13",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "Define $ G(x)=\\int_{x}^{x^{2}} \\frac{1}{t} \\sin \\left(\\frac{\\pi t}{2}\\right) d t $ Find $ G^{\\prime}(-1) $.",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math103_cce_fall_2014_p14",
+      "doc_id": "upenn_math103_cce_fall_2014",
+      "problem_text": "Find $$ \\int_{-1}^{1} x^{2} \\sin ^{5}(\\pi x) d x $$",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    }
+  ]
+}

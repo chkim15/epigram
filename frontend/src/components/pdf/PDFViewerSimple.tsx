@@ -50,6 +50,7 @@ interface PageWidthOption {
 export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [hasInitialized, setHasInitialized] = useState<boolean>(false);
   const [scale, setScale] = useState<number>(1.0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,13 +174,20 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
           bestIndex = idx;
         }
       });
-      setCurrentPage(bestIndex + 1);
+      // Only update if we've initialized or if we're not on page 1
+      // This prevents the initial jump from page 1 to page 6
+      if (hasInitialized || bestIndex + 1 !== numPages) {
+        setCurrentPage(bestIndex + 1);
+      }
     };
 
     const onScroll = () => {
       if (!ticking) {
         ticking = true;
         requestAnimationFrame(() => {
+          if (!hasInitialized) {
+            setHasInitialized(true);
+          }
           updateCurrent();
           ticking = false;
         });
@@ -187,8 +195,11 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
     };
 
     container.addEventListener('scroll', onScroll, { passive: true });
-    // Initial compute after pages render
-    const initId = setTimeout(updateCurrent, 300);
+    // Initial compute after pages render - mark as initialized
+    const initId = setTimeout(() => {
+      setHasInitialized(true);
+      updateCurrent();
+    }, 300);
 
     return () => {
       clearTimeout(initId);
