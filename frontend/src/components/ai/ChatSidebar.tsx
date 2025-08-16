@@ -49,7 +49,7 @@ interface LLMModel {
   isPremium?: boolean;
 }
 
-interface ChatSidebarProps {}
+type ChatSidebarProps = Record<string, never>
 
 export default function ChatSidebar({}: ChatSidebarProps) {
   // Get current problem from store

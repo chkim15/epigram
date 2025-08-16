@@ -26,7 +26,7 @@ interface ChatRequest {
     problem_text: string;
     solution_text?: string;
     difficulty?: string;
-    topics?: any;
+    topics?: unknown;
   };
   subproblems?: Array<{
     id: string;
@@ -51,7 +51,9 @@ When a student asks about a specific problem, analyze it thoroughly and provide 
 
 Keep responses concise but comprehensive, focusing on mathematical understanding rather than just getting the right answer.`;
 
-const PROBLEM_CONTEXT_PROMPT = (problem: any, subproblems?: any[]) => {
+const PROBLEM_CONTEXT_PROMPT = (problem: ChatRequest['currentProblem'], subproblems?: ChatRequest['subproblems']) => {
+  if (!problem) return '';
+  
   let contextPrompt = `
 CURRENT PROBLEM BEING VIEWED:
 ${problem.problem_text ? `Problem: ${problem.problem_text}` : ''}`;
@@ -194,19 +196,24 @@ Student: ${message}
 
 Tutor:`;
 
-    // Prepare the content for Gemini
-    let contentParts: any[] = [{ text: fullPrompt }];
+    // Prepare the content for Gemini - use proper types
+    let contentParts;
     
     // Add image if provided
     if (image) {
       // Remove data:image/jpeg;base64, or similar prefix
       const base64Data = image.replace(/^data:image\/[^;]+;base64,/, '');
-      contentParts.push({
-        inlineData: {
-          data: base64Data,
-          mimeType: image.match(/^data:image\/([^;]+)/)?.[1] ? `image/${image.match(/^data:image\/([^;]+)/)?.[1]}` : 'image/jpeg'
+      contentParts = [
+        { text: fullPrompt },
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: image.match(/^data:image\/([^;]+)/)?.[1] ? `image/${image.match(/^data:image\/([^;]+)/)?.[1]}` : 'image/jpeg'
+          }
         }
-      });
+      ];
+    } else {
+      contentParts = fullPrompt;
     }
 
     console.log('Sending streaming request to Gemini...');
@@ -247,22 +254,23 @@ Tutor:`;
       },
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Gemini API Error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
     });
     
-    if (error.message?.includes('API key')) {
+    if (errorMessage.includes('API key')) {
       throw new Error('Invalid Gemini API key');
-    } else if (error.message?.includes('quota')) {
+    } else if (errorMessage.includes('quota')) {
       throw new Error('Gemini API quota exceeded');
-    } else if (error.message?.includes('blocked')) {
+    } else if (errorMessage.includes('blocked')) {
       throw new Error('Request was blocked by Gemini safety filters');
     } else {
-      throw new Error(`Gemini API error: ${error.message || 'Unknown error'}`);
+      throw new Error(`Gemini API error: ${errorMessage || 'Unknown error'}`);
     }
   }
 }
@@ -288,8 +296,11 @@ async function handleOpenAIRequest(
     const openaiModel = modelMap[model] || 'gpt-5-nano';
     console.log('Using OpenAI model:', openaiModel);
 
-    // Build messages array for OpenAI
-    const messages: any[] = [
+    // Build messages array for OpenAI with proper types
+    const messages: Array<{
+      role: 'system' | 'user' | 'assistant';
+      content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
+    }> = [
       { role: 'system', content: systemPrompt }
     ];
 
@@ -297,13 +308,16 @@ async function handleOpenAIRequest(
     const recentHistory = conversationHistory.slice(-10);
     for (const msg of recentHistory) {
       messages.push({
-        role: msg.role,
+        role: msg.role as 'user' | 'assistant',
         content: msg.content
       });
     }
 
     // Add current message with optional image
-    const currentMessage: any = {
+    const currentMessage: {
+      role: 'user' | 'assistant';
+      content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
+    } = {
       role: 'user',
       content: message
     };
@@ -334,7 +348,8 @@ async function handleOpenAIRequest(
     try {
       const stream = await openai.chat.completions.create({
         model: openaiModel,
-        messages,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        messages: messages as any,
         max_completion_tokens: 4000,
         stream: true,
       });
@@ -375,6 +390,7 @@ async function handleOpenAIRequest(
         },
       });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (streamError: any) {
       // If streaming fails (e.g., organization not verified), fallback to non-streaming
       if (streamError?.message?.includes('stream') || streamError?.message?.includes('organization')) {
@@ -382,7 +398,8 @@ async function handleOpenAIRequest(
         
         const completion = await openai.chat.completions.create({
           model: openaiModel,
-          messages,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          messages: messages as any,
           max_completion_tokens: 4000,
           stream: false,
         });
@@ -406,6 +423,7 @@ async function handleOpenAIRequest(
       }
     }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('OpenAI API Error:', error);
     console.error('Error details:', {

@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ProblemViewerProps {}
+type ProblemViewerProps = Record<string, never>
 
 export default function ProblemViewer({}: ProblemViewerProps) {
   const {

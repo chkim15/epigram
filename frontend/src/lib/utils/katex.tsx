@@ -121,10 +121,10 @@ export function renderMath(text: string, documentId?: string): string {
   processed = processed.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
   
   // Wrap consecutive list items in ul/ol tags
-  let lines = processed.split('\n');
+  const lines = processed.split('\n');
   let inList = false;
   let listType = '';
-  let result = [];
+  const result = [];
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -187,7 +187,7 @@ export function renderMath(text: string, documentId?: string): string {
         displayMode: false,
         trust: true,
       });
-    } catch (e) {
+    } catch {
       return '∞';
     }
   });
