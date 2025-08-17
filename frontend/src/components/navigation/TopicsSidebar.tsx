@@ -188,8 +188,8 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     <div className="flex h-full flex-col min-h-0">
       {/* Header */}
       <div className="p-4 h-[73px] flex items-center justify-between flex-shrink-0">
-        <h2 className="font-semibold text-gray-900 dark:text-white">
-          Company Name
+        <h2 className="font-bold text-xl text-gray-900 dark:text-white">
+          epigram
         </h2>
         {onToggleSidebar && (
           <Button

@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
 
 // Initialize AI clients
-const client = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_API_KEY!,
-});
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
-// Cache models to avoid re-initialization
-const modelCache = new Map();
 
 // Types
 interface ChatMessage {
@@ -141,21 +137,17 @@ async function handleGeminiRequest(
     
     const geminiModel = geminiModelMap[modelName] || 'gemini-2.5-flash';
     
-    // Prepare generation config with thinking disabled for Flash
-    const generationConfig: any = {
-      temperature: 0.7,
-      topK: 1,  // Minimum for fastest generation
-      topP: 0.8,
-      maxOutputTokens: modelName === 'gemini-2.5-pro' ? 4096 : 2048, // Balanced token limits
-      candidateCount: 1,
-    };
-    
-    // Add thinking configuration - disable for Flash, let Pro auto-calibrate
-    if (modelName === 'gemini-2.5-flash') {
-      generationConfig.thinkingConfig = {
-        thinkingBudget: 0  // Disable thinking for Flash to match 2.0 speed
-      };
-    }
+    // Get the generative model
+    const model = genAI.getGenerativeModel({ 
+      model: geminiModel,
+      generationConfig: {
+        temperature: 0.7,
+        topK: 1,  // Minimum for fastest generation
+        topP: 0.8,
+        maxOutputTokens: modelName === 'gemini-2.5-pro' ? 4096 : 2048, // Balanced token limits
+        candidateCount: 1,
+      }
+    });
 
     // Build minimal context for speed
     const contextMessages = conversationHistory
@@ -168,7 +160,7 @@ async function handleGeminiRequest(
       ? `${systemPrompt}\n\nRecent:\n${contextMessages}\n\nStudent: ${message}\nTutor:`
       : `${systemPrompt}\n\nStudent: ${message}\nTutor:`;
 
-    // Prepare the content for the new SDK format
+    // Prepare the content for the SDK
     let contents;
     
     // Add image if provided
@@ -177,37 +169,30 @@ async function handleGeminiRequest(
       const base64Data = image.replace(/^data:image\/[^;]+;base64,/, '');
       const mimeType = image.match(/^data:image\/([^;]+)/)?.[1] ? `image/${image.match(/^data:image\/([^;]+)/)?.[1]}` : 'image/jpeg';
       
-      contents = [{
-        role: 'user' as const,
-        parts: [
-          { text: fullPrompt },
-          {
-            inlineData: {
-              data: base64Data,
-              mimeType: mimeType
-            }
+      contents = [
+        { text: fullPrompt },
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: mimeType
           }
-        ]
-      }];
+        }
+      ];
     } else {
       // For simple text, we can pass just the string
       contents = fullPrompt;
     }
 
-    // Generate content with the new SDK
-    const result = await client.models.generateContentStream({
-      model: geminiModel,
-      contents: contents,
-      config: generationConfig,
-    });
+    // Generate content stream
+    const result = await model.generateContentStream(contents);
     
     // Create a readable stream to send back to the client
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of result) {
-            const chunkText = chunk.text;
+          for await (const chunk of result.stream) {
+            const chunkText = chunk.text();
             if (chunkText) {
               // Send the content chunk as Server-Sent Events format
               const data = `data: ${JSON.stringify({ content: chunkText })}\n\n`;

@@ -8,8 +8,36 @@ import Link from "next/link";
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur dark:bg-gray-950/80 dark:border-gray-800">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo and Nav Links */}
+            <div className="flex items-center gap-12">
+              <h1 className="font-bold text-xl text-gray-900 dark:text-white">epigram</h1>
+              
+              <nav className="flex items-center gap-12">
+                <span className="text-sm text-gray-500 cursor-default">
+                  Pricing
+                </span>
+                <span className="text-sm text-gray-500 cursor-default">
+                  Careers
+                </span>
+              </nav>
+            </div>
+            
+            {/* Open App Button */}
+            <Link href="/app">
+              <Button size="default" className="cursor-pointer">
+                Open App
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
-      <section className="relative px-4 py-20 sm:px-6 lg:px-8">
+      <section className="relative px-4 py-40 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -17,19 +45,18 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
               Master Calculus Through
               <span className="text-blue-600 dark:text-blue-400"> Active Practice</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 dark:text-gray-300">
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-500 dark:text-gray-300">
               Stop watching boring lectures. Start solving real problems with AI-powered guidance 
               and instant feedback. Learn calculus the way it should be taught.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link href="/app">
-                <Button size="lg" className="group cursor-pointer">
+                <Button size="lg" className="cursor-pointer text-xl px-8 py-6">
                   Open App
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
             </div>
@@ -40,7 +67,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-16 rounded-xl overflow-hidden shadow-lg"
+            className="mt-32 rounded-xl overflow-hidden shadow-lg"
           >
             <img 
               src="/demo.png" 
@@ -64,7 +91,7 @@ export default function LandingPage() {
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
               Why Students Choose Our Platform
             </h2>
-            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
+            <p className="mt-4 text-lg text-gray-500 dark:text-gray-300">
               Built for motivated students who want results
             </p>
           </motion.div>
@@ -85,7 +112,7 @@ export default function LandingPage() {
                 <h3 className="mt-4 font-semibold text-gray-900 dark:text-white">
                   {benefit.title}
                 </h3>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
                   {benefit.description}
                 </p>
               </motion.div>

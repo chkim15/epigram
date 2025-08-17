@@ -20,14 +20,17 @@ export default function UnifiedHeader({
       "bg-white dark:bg-gray-900 h-[46px] flex flex-shrink-0 px-4 items-center w-full",
       className
     )}>
-      {/* Hamburger button when sidebar is collapsed */}
+      {/* Hamburger button and logo when sidebar is collapsed */}
       {!isSidebarOpen && onToggleSidebar && (
-        <button
-          onClick={onToggleSidebar}
-          className="mr-4 mt-1 h-8 w-8 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-        >
-          <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-        </button>
+        <>
+          <button
+            onClick={onToggleSidebar}
+            className="mr-3 mt-1 h-8 w-8 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+          >
+            <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+          </button>
+          <h1 className="font-bold text-xl text-gray-900 dark:text-white">epigram</h1>
+        </>
       )}
       {/* Flexible spacer to push right-side actions */}
       <div className="flex-1" />

@@ -40,7 +40,7 @@ export default function AppPage() {
           </SheetContent>
         </Sheet>
 
-        <h1 className="font-semibold">Math Learning Platform</h1>
+        <h1 className="font-bold text-xl">epigram</h1>
 
         <div className="w-6 h-6" />
       </div>
