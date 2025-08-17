@@ -27,7 +27,7 @@ export default function LandingPage() {
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link href="/app">
-                <Button size="lg" className="group">
+                <Button size="lg" className="group cursor-pointer">
                   Open App
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
@@ -40,20 +40,13 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-16 rounded-xl border bg-white p-8 shadow-lg dark:bg-gray-900"
+            className="mt-16 rounded-xl overflow-hidden shadow-lg"
           >
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Example Problem</div>
-            <div className="mt-4 text-lg">
-              Find the derivative of <span className="font-mono">f(x) = x³ + 2x² - 5x + 3</span>
-            </div>
-            <div className="mt-4 flex gap-2">
-              <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                Derivatives
-              </span>
-              <span className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-800 dark:bg-green-900 dark:text-green-200">
-                Easy
-              </span>
-            </div>
+            <img 
+              src="/demo.png" 
+              alt="Example calculus problem with AI-powered solution" 
+              className="w-full h-auto"
+            />
           </motion.div>
         </div>
       </section>
@@ -120,7 +113,7 @@ export default function LandingPage() {
             <Button 
               size="lg" 
               variant="secondary"
-              className="mt-8 bg-white text-blue-600 hover:bg-gray-100 dark:bg-gray-900 dark:text-blue-400"
+              className="mt-8 bg-white text-blue-600 hover:bg-gray-100 dark:bg-gray-900 dark:text-blue-400 cursor-pointer"
             >
               Start Learning Now
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -140,8 +133,8 @@ const benefits = [
   },
   {
     icon: Zap,
-    title: "AI-Powered Help",
-    description: "Get unstuck instantly with contextual hints and step-by-step solutions."
+    title: "Learning-focused AI",
+    description: "Work through problems interactively with guided questions that build real understanding."
   },
   {
     icon: Target,

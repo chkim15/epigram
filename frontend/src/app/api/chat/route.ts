@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
 
 // Initialize AI clients
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+const client = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_API_KEY!,
+});
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
+
+// Cache models to avoid re-initialization
+const modelCache = new Map();
 
 // Types
 interface ChatMessage {
@@ -37,47 +42,27 @@ interface ChatRequest {
   image?: string; // Base64 image data
 }
 
-// System prompts for math-focused conversations
-const MATH_SYSTEM_PROMPT = `You are an expert mathematics tutor specializing in calculus and advanced mathematics. Your role is to:
-
-1. Help students understand mathematical concepts clearly and intuitively
-2. Break down complex problems into manageable steps
-3. Provide clear explanations with logical reasoning
-4. Use appropriate mathematical notation when helpful
-5. Encourage mathematical thinking and problem-solving strategies
-6. Be patient and supportive while maintaining academic rigor
-
-When a student asks about a specific problem, analyze it thoroughly and provide step-by-step guidance. If they're stuck, offer hints rather than complete solutions to promote learning.
-
-Keep responses concise but comprehensive, focusing on mathematical understanding rather than just getting the right answer.`;
+// Simplified system prompt for speed
+const MATH_SYSTEM_PROMPT = `You are a math tutor helping with calculus. Be clear, concise, and helpful. Break down problems step-by-step.`;
 
 const PROBLEM_CONTEXT_PROMPT = (problem: ChatRequest['currentProblem'], subproblems?: ChatRequest['subproblems']) => {
   if (!problem) return '';
   
-  let contextPrompt = `
-CURRENT PROBLEM BEING VIEWED:
-${problem.problem_text ? `Problem: ${problem.problem_text}` : ''}`;
-
-  // Add subproblems if they exist
+  // Simplified context for speed
+  let contextPrompt = `\nProblem: ${problem.problem_text?.substring(0, 500) || ''}`;
+  
   if (subproblems && subproblems.length > 0) {
-    contextPrompt += '\n\nParts:';
-    subproblems.forEach(sub => {
-      contextPrompt += `\n${sub.key}. ${sub.problem_text || ''}`;
-    });
+    contextPrompt += '\nParts: ' + subproblems.map(s => s.key).join(', ');
   }
-
-  contextPrompt += `
-${problem.difficulty ? `\nDifficulty: ${problem.difficulty}` : ''}
-${problem.topics ? `Topics: ${JSON.stringify(problem.topics)}` : ''}
-
-IMPORTANT: The student is currently viewing this specific problem${subproblems && subproblems.length > 0 ? ' with multiple parts' : ''}. When they ask questions, they are likely referring to THIS problem unless they specify otherwise. You can reference specific parts of this problem directly in your explanations. If they ask about "this problem" or "the problem", they mean the one shown above.`;
-
+  
   return contextPrompt;
 };
 
+// Use Node runtime for better compatibility with Google AI SDK
+export const runtime = 'nodejs';
+
 export async function POST(req: NextRequest) {
   try {
-    console.log('Chat API called');
     
     // Check environment variables
     if (!process.env.GOOGLE_API_KEY) {
@@ -99,8 +84,6 @@ export async function POST(req: NextRequest) {
     const body: ChatRequest = await req.json();
     const { message, model, conversationHistory, currentProblem, subproblems, image } = body;
 
-    console.log('Request body parsed:', { message: message?.substring(0, 50), model });
-
     if (!message || !model) {
       return NextResponse.json(
         { error: 'Message and model are required' },
@@ -108,33 +91,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Debug logging
-    console.log('API received currentProblem:', currentProblem ? {
-      id: currentProblem.id,
-      problem_text: currentProblem.problem_text?.substring(0, 100) + '...',
-      difficulty: currentProblem.difficulty
-    } : null);
-    console.log('API received subproblems:', subproblems?.length || 0);
 
     // Prepare system prompt with problem context if available
     const systemPrompt = currentProblem 
       ? MATH_SYSTEM_PROMPT + '\n\n' + PROBLEM_CONTEXT_PROMPT(currentProblem, subproblems)
       : MATH_SYSTEM_PROMPT;
 
-    console.log('Model selected:', model);
 
     switch (model) {
       case 'gemini-2.5-flash':
       case 'gemini-2.5-pro':
-        console.log('Calling Gemini API with model:', model);
-        // Gemini now returns a streaming response
-        return await handleGeminiRequest(message, conversationHistory, systemPrompt, model, image);
+            return await handleGeminiRequest(message, conversationHistory, systemPrompt, model, image);
       
       case 'gpt-5-mini':
       case 'gpt-5-nano':
-        console.log('Calling OpenAI API...');
-        // OpenAI returns a streaming response (with fallback to non-streaming)
-        return await handleOpenAIRequest(message, conversationHistory, systemPrompt, model, image);
+            return await handleOpenAIRequest(message, conversationHistory, systemPrompt, model, image);
       
       default:
         console.error('Invalid model:', model);
@@ -161,72 +132,82 @@ async function handleGeminiRequest(
   image?: string
 ): Promise<Response> {
   try {
-    console.log('Initializing Gemini model:', modelName);
     
     // Map frontend model names to Gemini API model names
     const geminiModelMap: Record<string, string> = {
-      'gemini-2.5-flash': 'gemini-2.0-flash-exp',
-      'gemini-2.5-pro': 'gemini-2.0-pro-exp'
+      'gemini-2.5-flash': 'gemini-2.5-flash',  // Using standard model name
+      'gemini-2.5-pro': 'gemini-2.5-pro'
     };
     
-    const geminiModel = geminiModelMap[modelName] || 'gemini-2.0-flash-exp';
-    console.log('Using Gemini API model:', geminiModel);
+    const geminiModel = geminiModelMap[modelName] || 'gemini-2.5-flash';
     
-    const model = genAI.getGenerativeModel({ 
-      model: geminiModel,
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: modelName === 'gemini-2.5-pro' ? 4096 : 2048, // Pro gets more tokens
-      }
-    });
+    // Prepare generation config with thinking disabled for Flash
+    const generationConfig: any = {
+      temperature: 0.7,
+      topK: 1,  // Minimum for fastest generation
+      topP: 0.8,
+      maxOutputTokens: modelName === 'gemini-2.5-pro' ? 4096 : 2048, // Balanced token limits
+      candidateCount: 1,
+    };
+    
+    // Add thinking configuration - disable for Flash, let Pro auto-calibrate
+    if (modelName === 'gemini-2.5-flash') {
+      generationConfig.thinkingConfig = {
+        thinkingBudget: 0  // Disable thinking for Flash to match 2.0 speed
+      };
+    }
 
-    // Build conversation context
+    // Build minimal context for speed
     const contextMessages = conversationHistory
-      .slice(-10) // Keep last 10 messages for context
-      .map(msg => `${msg.role === 'user' ? 'Student' : 'Tutor'}: ${msg.content}`)
+      .slice(-2) // Only last 2 messages for minimum latency
+      .map(msg => `${msg.role === 'user' ? 'Student' : 'Tutor'}: ${msg.content.substring(0, 200)}`)
       .join('\n');
 
-    const fullPrompt = `${systemPrompt}
+    // Minimal prompt for speed
+    const fullPrompt = contextMessages 
+      ? `${systemPrompt}\n\nRecent:\n${contextMessages}\n\nStudent: ${message}\nTutor:`
+      : `${systemPrompt}\n\nStudent: ${message}\nTutor:`;
 
-${contextMessages ? `Previous conversation:\n${contextMessages}\n` : ''}
-
-Student: ${message}
-
-Tutor:`;
-
-    // Prepare the content for Gemini - use proper types
-    let contentParts;
+    // Prepare the content for the new SDK format
+    let contents;
     
     // Add image if provided
     if (image) {
       // Remove data:image/jpeg;base64, or similar prefix
       const base64Data = image.replace(/^data:image\/[^;]+;base64,/, '');
-      contentParts = [
-        { text: fullPrompt },
-        {
-          inlineData: {
-            data: base64Data,
-            mimeType: image.match(/^data:image\/([^;]+)/)?.[1] ? `image/${image.match(/^data:image\/([^;]+)/)?.[1]}` : 'image/jpeg'
+      const mimeType = image.match(/^data:image\/([^;]+)/)?.[1] ? `image/${image.match(/^data:image\/([^;]+)/)?.[1]}` : 'image/jpeg';
+      
+      contents = [{
+        role: 'user' as const,
+        parts: [
+          { text: fullPrompt },
+          {
+            inlineData: {
+              data: base64Data,
+              mimeType: mimeType
+            }
           }
-        }
-      ];
+        ]
+      }];
     } else {
-      contentParts = fullPrompt;
+      // For simple text, we can pass just the string
+      contents = fullPrompt;
     }
 
-    console.log('Sending streaming request to Gemini...');
-    const result = await model.generateContentStream(contentParts);
-    console.log('Gemini streaming started');
+    // Generate content with the new SDK
+    const result = await client.models.generateContentStream({
+      model: geminiModel,
+      contents: contents,
+      config: generationConfig,
+    });
     
     // Create a readable stream to send back to the client
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
+          for await (const chunk of result) {
+            const chunkText = chunk.text;
             if (chunkText) {
               // Send the content chunk as Server-Sent Events format
               const data = `data: ${JSON.stringify({ content: chunkText })}\n\n`;
@@ -251,6 +232,7 @@ Tutor:`;
         'Content-Type': 'text/stream-event',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no', // Disable proxy buffering for immediate streaming
       },
     });
 
@@ -304,8 +286,8 @@ async function handleOpenAIRequest(
       { role: 'system', content: systemPrompt }
     ];
 
-    // Add conversation history (last 10 messages)
-    const recentHistory = conversationHistory.slice(-10);
+    // Minimal history for speed
+    const recentHistory = conversationHistory.slice(-2);
     for (const msg of recentHistory) {
       messages.push({
         role: msg.role as 'user' | 'assistant',
@@ -350,8 +332,9 @@ async function handleOpenAIRequest(
         model: openaiModel,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         messages: messages as any,
-        max_completion_tokens: 4000,
+        max_completion_tokens: 4000, // Proper response length
         stream: true,
+        temperature: 0.7,
       });
 
       console.log('OpenAI streaming API call successful');
@@ -387,6 +370,7 @@ async function handleOpenAIRequest(
           'Content-Type': 'text/stream-event',
           'Cache-Control': 'no-cache',
           'Connection': 'keep-alive',
+          'X-Accel-Buffering': 'no', // Disable proxy buffering for immediate streaming
         },
       });
 
@@ -400,8 +384,9 @@ async function handleOpenAIRequest(
           model: openaiModel,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           messages: messages as any,
-          max_completion_tokens: 4000,
+          max_completion_tokens: 4000, // Proper response length
           stream: false,
+          temperature: 0.7,
         });
 
         console.log('OpenAI non-streaming API call successful');
