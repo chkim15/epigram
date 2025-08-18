@@ -1505,12 +1505,7 @@
         }
         
         async function insertProblemWorking(problem, documentUuid) {
-            // Get topic_id from topics array (expecting single value now)
-            let topicId = null;
-            if (problem.topics && problem.topics.length > 0) {
-                topicId = problem.topics[0]; // Take first topic ID
-            }
-            
+            // Prepare the payload without topic_ids (since we'll use junction table)
             const payload = {
                 problem_id: problem.id,
                 document_id: documentUuid,
@@ -1518,9 +1513,8 @@
                 correct_answer: problem.correct_answer || null,
                 hint: problem.hint || null,
                 solution_text: problem.solution && problem.solution.text ? problem.solution.text : null,
-                math_approach: problem.math_approach || null,
-                reasoning_type: problem.reasoning_type || null,
-                topic_id: topicId,
+                math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
+                reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                 difficulty: problem.difficulty || null,
                 importance: problem.importance || null,
                 comment: problem.comment || null,
@@ -1534,6 +1528,32 @@
                 .select();
             
             if (error) throw new Error(`Problem insert failed: ${error.message}`);
+            
+            // Now handle topics through junction table
+            if (data && data.length > 0 && problem.topics && problem.topics.length > 0) {
+                const problemUuid = data[0].id;
+                
+                // Delete existing topic relationships (for update case)
+                await supabase
+                    .from('problem_topics')
+                    .delete()
+                    .eq('problem_id', problemUuid);
+                
+                // Insert new topic relationships
+                const topicRelations = problem.topics.map(topicId => ({
+                    problem_id: problemUuid,
+                    topic_id: topicId
+                }));
+                
+                const { error: topicError } = await supabase
+                    .from('problem_topics')
+                    .insert(topicRelations);
+                
+                if (topicError) {
+                    console.error('Failed to insert topic relationships:', topicError);
+                }
+            }
+            
             return { data };
         }
 
@@ -1681,9 +1701,8 @@
                                 correct_answer: problem.correct_answer,
                                 hint: problem.hint,
                                 solution_text: problem.solution?.text,
-                                math_approach: problem.math_approach,
-                                reasoning_type: problem.reasoning_type,
-                                topic_id: problem.topics && problem.topics.length > 0 ? problem.topics[0] : null,
+                                math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
+                                reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                                 difficulty: problem.difficulty,
                                 importance: problem.importance,
                                 comment: problem.comment,
@@ -1699,6 +1718,39 @@
                             
                             if (updateError) {
                                 throw updateError;
+                            }
+                            
+                            // Update topics through junction table
+                            // First get the problem UUID
+                            const { data: problemData, error: problemError } = await supabase
+                                .from('problems')
+                                .select('id')
+                                .eq('problem_id', problem.id)
+                                .single();
+                            
+                            if (!problemError && problemData) {
+                                // Delete existing topic associations
+                                await supabase
+                                    .from('problem_topics')
+                                    .delete()
+                                    .eq('problem_id', problemData.id);
+                                
+                                // Insert new topic associations
+                                const topics = Array.isArray(problem.topics) ? problem.topics : [];
+                                if (topics.length > 0) {
+                                    const topicInserts = topics.map(topicId => ({
+                                        problem_id: problemData.id,
+                                        topic_id: topicId
+                                    }));
+                                    
+                                    const { error: topicsError } = await supabase
+                                        .from('problem_topics')
+                                        .insert(topicInserts);
+                                    
+                                    if (topicsError) {
+                                        console.error('Failed to update topics:', topicsError);
+                                    }
+                                }
                             }
                         }
                         
@@ -1855,8 +1907,17 @@
                     if (problem.solution && !problem.solution.text) problem.solution.text = null;
                     if (problem.solution && !problem.solution.images) problem.solution.images = [];
                     if (!problem.subproblems) problem.subproblems = {};
-                    if (!problem.math_approach) problem.math_approach = null;
-                    if (!problem.reasoning_type) problem.reasoning_type = null;
+                    // Convert single values to arrays for backward compatibility
+                    if (!problem.math_approach) {
+                        problem.math_approach = [];
+                    } else if (!Array.isArray(problem.math_approach)) {
+                        problem.math_approach = problem.math_approach ? [problem.math_approach] : [];
+                    }
+                    if (!problem.reasoning_type) {
+                        problem.reasoning_type = [];
+                    } else if (!Array.isArray(problem.reasoning_type)) {
+                        problem.reasoning_type = problem.reasoning_type ? [problem.reasoning_type] : [];
+                    }
                     if (!problem.images) problem.images = [];
                     if (problem.included === undefined) problem.included = true;  // Default to included
                     
@@ -1964,8 +2025,8 @@
                 images: [],
                 difficulty: '',
                 topics: [],
-                math_approach: null,
-                reasoning_type: null,
+                math_approach: [],
+                reasoning_type: [],
                 comment: '',
                 importance: null,
                 subproblems: {}
@@ -2715,24 +2776,36 @@
         }
 
 
-        function generateApproachButtons(approach) {
+        function generateApproachButtons(approaches) {
             const availableApproaches = ['Algebraic', 'Geometric', 'Combinatorial', 'Approximation', 'Intuitive', 'Algorithmic', 'Logical', 'Symmetric', 'Statistical', 'Nontraditional'];
             
-            return availableApproaches.map(availableApproach => `
-                <button class="approach-btn ${approach && approach.toLowerCase() === availableApproach.toLowerCase() ? 'selected' : ''}" onclick="toggleApproach('${availableApproach}')">
-                    ${availableApproach}
-                </button>
-            `).join('');
+            // Ensure approaches is an array
+            const selectedApproaches = Array.isArray(approaches) ? approaches : (approaches ? [approaches] : []);
+            
+            return availableApproaches.map(availableApproach => {
+                const isSelected = selectedApproaches.some(a => a && a.toLowerCase() === availableApproach.toLowerCase());
+                return `
+                    <button class="approach-btn ${isSelected ? 'selected' : ''}" onclick="toggleApproach('${availableApproach}')">
+                        ${availableApproach}
+                    </button>
+                `;
+            }).join('');
         }
 
-        function generateReasoningButtons(reasoning) {
+        function generateReasoningButtons(reasonings) {
             const availableReasonings = ['Proof-based', 'Example Construction', 'Counterexample Construction', 'Computational', 'Conceptual', 'Application-based'];
             
-            return availableReasonings.map(availableReasoning => `
-                <button class="reasoning-btn ${reasoning && reasoning.toLowerCase() === availableReasoning.toLowerCase() ? 'selected' : ''}" onclick="toggleReasoning('${availableReasoning}')">
-                    ${availableReasoning}
-                </button>
-            `).join('');
+            // Ensure reasonings is an array
+            const selectedReasonings = Array.isArray(reasonings) ? reasonings : (reasonings ? [reasonings] : []);
+            
+            return availableReasonings.map(availableReasoning => {
+                const isSelected = selectedReasonings.some(r => r && r.toLowerCase() === availableReasoning.toLowerCase());
+                return `
+                    <button class="reasoning-btn ${isSelected ? 'selected' : ''}" onclick="toggleReasoning('${availableReasoning}')">
+                        ${availableReasoning}
+                    </button>
+                `;
+            }).join('');
         }
 
         function updateProblem(field, value) {
@@ -2890,9 +2963,21 @@
             console.log('addTopicById called with ID:', topicId);
             
             if (currentProblemIndex >= 0 && problemsData && problemsData.problems) {
-                // Set only one topic (replace existing)
-                problemsData.problems[currentProblemIndex].topics = [topicId];
-                console.log('Topic set:', topicId);
+                // Initialize topics array if it doesn't exist
+                if (!problemsData.problems[currentProblemIndex].topics) {
+                    problemsData.problems[currentProblemIndex].topics = [];
+                }
+                
+                // Check if topic already exists
+                const topics = problemsData.problems[currentProblemIndex].topics;
+                if (!topics.includes(topicId)) {
+                    // Add the topic to the array (allow multiple topics)
+                    topics.push(topicId);
+                    console.log('Topic added:', topicId, 'Total topics:', topics.length);
+                } else {
+                    console.log('Topic already selected:', topicId);
+                }
+                
                 updateTopicsList();
                 
                 // Clear search and hide dropdown
@@ -3152,48 +3237,64 @@
 
         function toggleApproach(approach) {
             if (currentProblemIndex >= 0) {
-                const currentApproach = problemsData.problems[currentProblemIndex].math_approach;
-                const approachLower = approach.toLowerCase();
+                let currentApproaches = problemsData.problems[currentProblemIndex].math_approach;
                 
-                if (currentApproach && currentApproach.toLowerCase() === approachLower) {
-                    // Remove approach (deselect)
-                    problemsData.problems[currentProblemIndex].math_approach = null;
-                } else {
-                    // Set new approach
-                    problemsData.problems[currentProblemIndex].math_approach = approachLower;
+                // Ensure it's an array
+                if (!Array.isArray(currentApproaches)) {
+                    currentApproaches = currentApproaches ? [currentApproaches] : [];
                 }
                 
+                const approachLower = approach.toLowerCase();
+                const index = currentApproaches.findIndex(a => a && a.toLowerCase() === approachLower);
+                
+                if (index > -1) {
+                    // Remove approach (deselect)
+                    currentApproaches.splice(index, 1);
+                } else {
+                    // Add approach (select)
+                    currentApproaches.push(approachLower);
+                }
+                
+                problemsData.problems[currentProblemIndex].math_approach = currentApproaches;
                 updateApproachButtons();
             }
         }
 
         function updateApproachButtons() {
             const approachButtons = document.getElementById('approachButtons');
-            const approach = problemsData.problems[currentProblemIndex].math_approach || null;
-            approachButtons.innerHTML = generateApproachButtons(approach);
+            const approaches = problemsData.problems[currentProblemIndex].math_approach || [];
+            approachButtons.innerHTML = generateApproachButtons(approaches);
         }
 
         function toggleReasoning(reasoning) {
             if (currentProblemIndex >= 0) {
-                const currentReasoning = problemsData.problems[currentProblemIndex].reasoning_type;
-                const reasoningLower = reasoning.toLowerCase();
+                let currentReasonings = problemsData.problems[currentProblemIndex].reasoning_type;
                 
-                if (currentReasoning && currentReasoning.toLowerCase() === reasoningLower) {
-                    // Remove reasoning (deselect)
-                    problemsData.problems[currentProblemIndex].reasoning_type = null;
-                } else {
-                    // Set new reasoning
-                    problemsData.problems[currentProblemIndex].reasoning_type = reasoningLower;
+                // Ensure it's an array
+                if (!Array.isArray(currentReasonings)) {
+                    currentReasonings = currentReasonings ? [currentReasonings] : [];
                 }
                 
+                const reasoningLower = reasoning.toLowerCase();
+                const index = currentReasonings.findIndex(r => r && r.toLowerCase() === reasoningLower);
+                
+                if (index > -1) {
+                    // Remove reasoning (deselect)
+                    currentReasonings.splice(index, 1);
+                } else {
+                    // Add reasoning (select)
+                    currentReasonings.push(reasoningLower);
+                }
+                
+                problemsData.problems[currentProblemIndex].reasoning_type = currentReasonings;
                 updateReasoningButtons();
             }
         }
 
         function updateReasoningButtons() {
             const reasoningButtons = document.querySelector('.reasoning-buttons');
-            const reasoning = problemsData.problems[currentProblemIndex].reasoning_type || null;
-            reasoningButtons.innerHTML = generateReasoningButtons(reasoning);
+            const reasonings = problemsData.problems[currentProblemIndex].reasoning_type || [];
+            reasoningButtons.innerHTML = generateReasoningButtons(reasonings);
         }
 
 
@@ -5486,14 +5587,14 @@
                     // Batch fetch all problems for all documents
                     const { data: allProblems, error: problemsError } = await supabase
                         .from('problems')
-                        .select('id, problem_id, document_id, problem_text, correct_answer, solution_text, difficulty, topic_id, included')
+                        .select('id, problem_id, document_id, problem_text, correct_answer, solution_text, difficulty, included')
                         .in('document_id', documentIds);
                     
                     if (problemsError) {
                         console.error('Error fetching problems:', problemsError);
                     }
                     
-                    // Get all problem IDs for batch fetching subproblems
+                    // Get all problem IDs for batch fetching subproblems and topics
                     const problemIds = allProblems ? allProblems.map(p => p.id) : [];
                     
                     // Batch fetch all subproblems for all problems
@@ -5506,6 +5607,25 @@
                         
                         if (!subproblemsError && subproblemsData) {
                             allSubproblems = subproblemsData;
+                        }
+                    }
+                    
+                    // Batch fetch all topics from junction table
+                    let topicsByProblem = {};
+                    if (problemIds.length > 0) {
+                        const { data: topicsData, error: topicsError } = await supabase
+                            .from('problem_topics')
+                            .select('problem_id, topic_id')
+                            .in('problem_id', problemIds);
+                        
+                        if (!topicsError && topicsData) {
+                            // Group topics by problem_id
+                            topicsData.forEach(pt => {
+                                if (!topicsByProblem[pt.problem_id]) {
+                                    topicsByProblem[pt.problem_id] = [];
+                                }
+                                topicsByProblem[pt.problem_id].push(pt.topic_id);
+                            });
                         }
                     }
                     
@@ -5550,7 +5670,7 @@
                                 correct_answer: problem.correct_answer,
                                 solution: { text: problem.solution_text },
                                 difficulty: problem.difficulty,
-                                topics: problem.topic_id ? [problem.topic_id] : [],
+                                topics: topicsByProblem[problem.id] || [],
                                 subproblems: {}
                             };
                             
@@ -5720,7 +5840,7 @@
 
                 if (docError) throw docError;
 
-                // Get problems with topics
+                // Get problems (without topics for now)
                 const { data: problemsData, error: problemsError } = await supabase
                     .from('problems')
                     .select(`
@@ -5732,7 +5852,6 @@
                         solution_text,
                         math_approach,
                         reasoning_type,
-                        topic_id,
                         difficulty,
                         importance,
                         comment,
@@ -5760,6 +5879,25 @@
                     subproblemsData = subs || [];
                 }
 
+                // Get topics from junction table
+                let problemTopics = {};
+                if (problemIds.length > 0) {
+                    const { data: topicsData, error: topicsError } = await supabase
+                        .from('problem_topics')
+                        .select('problem_id, topic_id')
+                        .in('problem_id', problemIds);
+                    
+                    if (topicsError) throw topicsError;
+                    
+                    // Group topics by problem_id
+                    topicsData?.forEach(pt => {
+                        if (!problemTopics[pt.problem_id]) {
+                            problemTopics[pt.problem_id] = [];
+                        }
+                        problemTopics[pt.problem_id].push(pt.topic_id);
+                    });
+                }
+
                 // Transform to JSON format
                 const problems = problemsData.map(problem => {
                     // Get subproblems for this problem
@@ -5780,8 +5918,8 @@
                         };
                     });
 
-                    // Get topic as array (convert single topic_id to array format expected by frontend)
-                    const topics = problem.topic_id ? [problem.topic_id] : [];
+                    // Get topics from junction table mapping
+                    const topics = problemTopics[problem.id] || [];
 
                     return {
                         id: problem.problem_id,
@@ -5797,8 +5935,8 @@
                         images: [], // Images are stored in Supabase storage
                         difficulty: problem.difficulty,
                         topics: topics,
-                        math_approach: problem.math_approach,
-                        reasoning_type: problem.reasoning_type,
+                        math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
+                        reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                         comment: problem.comment,
                         importance: problem.importance,
                         updated_at: problem.updated_at,
@@ -5923,8 +6061,8 @@
                         images: [],
                         difficulty: problem.difficulty,
                         topics: [selectedTopic],
-                        math_approach: problem.math_approach,
-                        reasoning_type: problem.reasoning_type,
+                        math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
+                        reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                         comment: problem.comment,
                         importance: problem.importance,
                         updated_at: problem.updated_at,
@@ -6040,13 +6178,27 @@
             // Compare main problem fields
             const fieldsToCompare = [
                 'problem_text', 'correct_answer', 'hint', 
-                'difficulty', 'math_approach', 'reasoning_type', 'comment', 'importance'
+                'difficulty', 'comment', 'importance'
             ];
             
             for (const field of fieldsToCompare) {
                 if (current[field] !== original[field]) {
                     return true;
                 }
+            }
+            
+            // Compare math_approach array
+            const currentApproaches = JSON.stringify((Array.isArray(current.math_approach) ? current.math_approach : (current.math_approach ? [current.math_approach] : [])).sort());
+            const originalApproaches = JSON.stringify((Array.isArray(original.math_approach) ? original.math_approach : (original.math_approach ? [original.math_approach] : [])).sort());
+            if (currentApproaches !== originalApproaches) {
+                return true;
+            }
+            
+            // Compare reasoning_type array
+            const currentReasonings = JSON.stringify((Array.isArray(current.reasoning_type) ? current.reasoning_type : (current.reasoning_type ? [current.reasoning_type] : [])).sort());
+            const originalReasonings = JSON.stringify((Array.isArray(original.reasoning_type) ? original.reasoning_type : (original.reasoning_type ? [original.reasoning_type] : [])).sort());
+            if (currentReasonings !== originalReasonings) {
+                return true;
             }
             
             // Compare included field (treat undefined as true)
@@ -6362,8 +6514,17 @@
                     if (problem.solution && !problem.solution.text) problem.solution.text = null;
                     if (problem.solution && !problem.solution.images) problem.solution.images = [];
                     if (!problem.subproblems) problem.subproblems = {};
-                    if (!problem.math_approach) problem.math_approach = null;
-                    if (!problem.reasoning_type) problem.reasoning_type = null;
+                    // Convert single values to arrays for backward compatibility
+                    if (!problem.math_approach) {
+                        problem.math_approach = [];
+                    } else if (!Array.isArray(problem.math_approach)) {
+                        problem.math_approach = problem.math_approach ? [problem.math_approach] : [];
+                    }
+                    if (!problem.reasoning_type) {
+                        problem.reasoning_type = [];
+                    } else if (!Array.isArray(problem.reasoning_type)) {
+                        problem.reasoning_type = problem.reasoning_type ? [problem.reasoning_type] : [];
+                    }
                     if (!problem.images) problem.images = [];
                     if (problem.included === undefined) problem.included = true;  // Default to included
                     
