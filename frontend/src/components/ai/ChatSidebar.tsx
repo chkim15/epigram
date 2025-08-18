@@ -332,7 +332,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {activeTab === 'chat' && (
           <div className="h-full flex flex-col relative">
             {/* New Chat Icon - Only show when messages exist */}
@@ -351,7 +351,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
               </Button>
             )}
             {/* Messages Area - Scrollable */}
-            <div className="flex-1 min-h-0 overflow-auto chat-messages-area">
+            <div className="flex-1 min-h-0 overflow-auto custom-scrollbar">
               {messages.length === 0 && !isLoading ? (
                 /* AI Tutor Header - Perfectly centered when no messages */
                 <div className="h-full flex items-center justify-center">
@@ -511,19 +511,47 @@ export default function ChatSidebar({}: ChatSidebarProps) {
         )}
 
         {activeTab === 'solutions' && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-gray-500 dark:text-gray-400">
-              <BookOpen className="h-12 w-12 mx-auto mb-2" />
-              <p>Solutions feature coming soon</p>
-            </div>
+          <div className="h-full overflow-y-auto custom-scrollbar">
+            {(currentProblem?.solution_text || currentSubproblems.some(sp => sp.solution_text)) ? (
+              <div className="p-4 space-y-6">
+                {currentProblem?.solution_text && (
+                  <div className="prose max-w-none dark:prose-invert">
+                    <MathContent content={currentProblem.solution_text} documentId={currentDocument?.document_id} />
+                  </div>
+                )}
+                {currentSubproblems.length > 0 && currentSubproblems.some(sp => sp.solution_text) && (
+                  <div className="space-y-4">
+                    {currentSubproblems.filter(sp => sp.solution_text).map((subproblem) => (
+                      <div key={subproblem.id}>
+                        <div className="font-medium text-blue-600 dark:text-blue-400 mb-2">
+                          Part {subproblem.key}
+                        </div>
+                        <div className="prose max-w-none dark:prose-invert">
+                          <MathContent content={subproblem.solution_text || ''} documentId={currentDocument?.document_id} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center p-4">
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  <BookOpen className="h-12 w-12 mx-auto mb-2" />
+                  <p>No solution available for this problem</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'comments' && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-gray-500 dark:text-gray-400">
-              <FileSearch className="h-12 w-12 mx-auto mb-2" />
-              <p>Comments feature coming soon</p>
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center text-gray-500 dark:text-gray-400">
+                <FileSearch className="h-12 w-12 mx-auto mb-2" />
+                <p>Comments feature coming soon</p>
+              </div>
             </div>
           </div>
         )}
