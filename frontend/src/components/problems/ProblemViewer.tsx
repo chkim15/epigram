@@ -105,14 +105,16 @@ export default function ProblemViewer({}: ProblemViewerProps) {
         console.log('Loaded documents:', documentsData);
       }
       
-      // Fetch ALL problems from ALL documents with topics
+      // Fetch ALL problems from ALL documents
+      // Note: We'll fetch topics separately if needed to avoid complex joins
       const { data: problemsData, error: problemsError } = await supabase
         .from('problems')
         .select(`
           id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
-          math_approach, reasoning_type, topic_id, difficulty, importance,
-          comment, version, created_at, updated_at, topics:topic_id(subtopics, main_topics)
+          math_approach, reasoning_type, difficulty, importance,
+          comment, version, created_at, updated_at, included
         `)
+        .eq('included', true)  // Only fetch included problems (not soft deleted)
         .order('document_id')
         .order('problem_id');
 

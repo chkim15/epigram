@@ -4,10 +4,11 @@
 This document describes the simplified database schema for the Mathpix calculus problem platform. The schema is designed to store mathematical problems from exams and assignments with direct field storage for hints, solutions, approaches, and reasoning types (no longer using separate tables).
 
 ## Key Changes from v1
-- **Removed tables**: `domains`, `approaches`, `reasoning_types`, `problem_hints`, `problem_solutions`, `problem_topics`
-- **Added direct fields**: `hint`, `solution_text`, `math_approach`, `reasoning_type` in `problems` and `subproblems`
-- **Simplified topics**: Direct foreign key relationship (many-to-one) instead of junction table
-- **Single values only**: All fields store single text values, not arrays
+- **Removed tables**: `domains`, `approaches`, `reasoning_types`, `problem_hints`, `problem_solutions`
+- **Added direct fields**: `hint`, `solution_text` in `problems` and `subproblems`
+- **Array fields**: `math_approach` and `reasoning_type` now support multiple values as TEXT[]
+- **Topics**: Many-to-many relationship via `problem_topics` junction table
+- **Soft deletion**: Added `included` column for excluding problems without deletion
 
 ## Tables
 
@@ -39,7 +40,7 @@ Reference table for mathematical topics organized by Calculus I/II curriculum.
 | created_at | TIMESTAMPTZ | DEFAULT NOW() | Creation timestamp |
 
 ### 3. `problems`
-Main problems table with direct fields for hint, solution, approach, and reasoning.
+Main problems table with direct fields for hint, solution, and array fields for approaches and reasoning.
 
 | Column | Type | Constraints | Description |
 |--------|------|------------|-------------|
@@ -50,13 +51,13 @@ Main problems table with direct fields for hint, solution, approach, and reasoni
 | correct_answer | TEXT | | Expected answer |
 | hint | TEXT | | Single hint text (nullable) |
 | solution_text | TEXT | | Single solution text (nullable) |
-| math_approach | TEXT | | Mathematical approach (algebraic, geometric, etc.) |
-| reasoning_type | TEXT | | Type of reasoning (proof-based, computational, etc.) |
-| topic_id | INTEGER | FOREIGN KEY → topics(id), ON DELETE SET NULL | Direct reference to topic |
+| math_approach | TEXT[] | | Array of mathematical approaches (algebraic, geometric, etc.) |
+| reasoning_type | TEXT[] | | Array of reasoning types (proof-based, computational, etc.) |
 | difficulty | TEXT | CHECK IN ('easy', 'medium', 'hard', 'very_hard') | Difficulty level |
 | importance | INTEGER | CHECK (1-3) | Importance rating |
 | comment | TEXT | | Editorial comments |
 | version | TEXT | DEFAULT 'v1' | Version identifier |
+| included | BOOLEAN | DEFAULT true | Whether problem is included (soft deletion) |
 | created_at | TIMESTAMPTZ | DEFAULT NOW() | Creation timestamp |
 | updated_at | TIMESTAMPTZ | DEFAULT NOW() | Last update timestamp |
 
@@ -77,17 +78,26 @@ Stores subproblems (e.g., problem 1a, 1b, 1c) with direct hint and solution fiel
 
 **Unique Constraint:** (problem_id, key)
 
+### 5. `problem_topics`
+Junction table for many-to-many relationship between problems and topics.
+
+| Column | Type | Constraints | Description |
+|--------|------|------------|-------------|
+| problem_id | UUID | FOREIGN KEY → problems(id), ON DELETE CASCADE | Reference to problem |
+| topic_id | INTEGER | FOREIGN KEY → topics(id), ON DELETE CASCADE | Reference to topic |
+| created_at | TIMESTAMPTZ | DEFAULT NOW() | Creation timestamp |
+
+**Primary Key:** (problem_id, topic_id)
+
 ## Indexes
 
 - `idx_problems_document_id` on problems(document_id)
-- `idx_problems_topic_id` on problems(topic_id)
 - `idx_subproblems_problem_id` on subproblems(problem_id)
-- `idx_images_problem_id` on images(problem_id)
-- `idx_images_subproblem_id` on images(subproblem_id)
+- `idx_problem_topics_problem_id` on problem_topics(problem_id)
+- `idx_problem_topics_topic_id` on problem_topics(topic_id)
 - `idx_problems_difficulty` on problems(difficulty)
-- `idx_problems_math_approach` on problems(math_approach)
-- `idx_problems_reasoning_type` on problems(reasoning_type)
 - `idx_problems_importance` on problems(importance)
+- `idx_problems_included` on problems(included)
 
 ## Triggers
 
@@ -192,12 +202,12 @@ The `reasoning_type` field accepts these predefined values:
 
 ## Design Decisions
 
-1. **Simplified storage**: Direct fields replace junction tables for single-value data
+1. **Hybrid storage**: Direct fields for single values, arrays for multiple selections, junction table for referential integrity
 2. **UUID vs Text IDs**: UUIDs are used for internal references while text IDs provide human-readable identifiers
 3. **Nullable problem_text**: Allows for problems that only contain subproblems
-4. **Direct topic relationship**: Many-to-one relationship via foreign key instead of junction table
-5. **Single values**: All hint, solution, approach, and reasoning fields store single text values
-6. **No arrays**: Eliminated array storage in favor of simple text fields
+4. **Many-to-many topics**: Junction table maintains referential integrity with topics reference table
+5. **Array fields**: `math_approach` and `reasoning_type` support multiple values as TEXT arrays
+6. **Soft deletion**: `included` column allows excluding problems without data loss
 
 ## JSON Structure Alignment
 
@@ -212,9 +222,10 @@ This schema directly maps to the JSON structure:
         "text": "single solution text",      // → problems.solution_text  
         "images": ["img1.png"]             // → images table
       },
-      "math_approach": "algebraic",         // → problems.math_approach
-      "reasoning_type": "computational",    // → problems.reasoning_type
-      "topics": [1]                         // → problems.topic_id (single value)
+      "math_approach": ["algebraic", "geometric"],  // → problems.math_approach (array)
+      "reasoning_type": ["computational"],          // → problems.reasoning_type (array)
+      "topics": [1, 2, 3],                          // → problem_topics junction table
+      "included": true                              // → problems.included
     }
   ]
 }
@@ -238,12 +249,16 @@ CREATE POLICY "Allow authenticated write" ON documents
 
 The complete SQL to create this schema can be found in `/backend/sql/schema_v2.sql`
 
-## Migration from v1 to v2
+## Migration to Current Schema
 
-To migrate existing data from the old normalized structure:
+To migrate to the current structure:
 
 1. **Backup existing data**
-2. **Extract single values** from arrays in old tables
-3. **Migrate topics** from junction table to direct foreign key
-4. **Drop old tables** and create new schema
-5. **Insert migrated data** into new structure
+2. **Convert single values to arrays** for `math_approach` and `reasoning_type`
+3. **Create junction table** for problem-topic relationships
+4. **Migrate topic data** from direct foreign key to junction table
+5. **Add `included` column** with default value true
+6. **Apply indexes** for performance optimization
+
+Migration scripts available in `/supabase/migrations/`:
+- `20250118_add_problem_topics_junction.sql` - Creates junction table and migrates data

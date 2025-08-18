@@ -38,18 +38,27 @@ export interface Database {
           correct_answer: string | null;
           hint: string | null;
           solution_text: string | null;
-          math_approach: string | null;
-          reasoning_type: string | null;
-          topic_id: number | null;
+          math_approach: string[] | null;
+          reasoning_type: string[] | null;
           difficulty: string | null;
           importance: string | null;
           comment: string | null;
           version: string;
+          included: boolean;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['problems']['Row'], 'created_at' | 'updated_at'>;
+        Insert: Omit<Database['public']['Tables']['problems']['Row'], 'created_at' | 'updated_at' | 'included'> & { included?: boolean };
         Update: Partial<Database['public']['Tables']['problems']['Insert']>;
+      };
+      problem_topics: {
+        Row: {
+          problem_id: string;
+          topic_id: number;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['problem_topics']['Row'], 'created_at'>;
+        Update: Partial<Database['public']['Tables']['problem_topics']['Insert']>;
       };
       subproblems: {
         Row: {
@@ -72,5 +81,6 @@ export interface Database {
 
 export type Topic = Database['public']['Tables']['topics']['Row'];
 export type Problem = Database['public']['Tables']['problems']['Row'];
+export type ProblemTopic = Database['public']['Tables']['problem_topics']['Row'];
 export type Subproblem = Database['public']['Tables']['subproblems']['Row'];
 export type Document = Database['public']['Tables']['documents']['Row'];

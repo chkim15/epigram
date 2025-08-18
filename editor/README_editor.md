@@ -10,7 +10,10 @@ A comprehensive web interface for editing and managing math problems database. T
 - **Correct Answer**: Select the correct answer from available options
 - **Solution**: Write detailed solution steps
 - **Difficulty Level**: Assign Easy, Medium, or Hard difficulty
-- **Topics**: Add/remove topic tags for categorization
+- **Topics**: Add/remove multiple topic tags for categorization (many-to-many)
+- **Mathematical Approach**: Select multiple approaches (Algebraic, Geometric, etc.)
+- **Type of Reasoning**: Select multiple reasoning types (Computational, Proof-based, etc.)
+- **Exclude/Include**: Mark problems as excluded without deleting them
 
 ### 🔒 **Protected Fields**
 - **Problem ID**: Read-only (cannot be modified)

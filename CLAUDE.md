@@ -247,7 +247,8 @@ python editor/open_editor.py
 The project uses Supabase PostgreSQL with the following key tables:
 
 **documents**: Exam metadata (id, school, course, problem_type, term, year)
-**problems**: Main problems with LaTeX text, solutions, difficulty, topic arrays
+**problems**: Main problems with LaTeX text, solutions, difficulty, arrays for approaches/reasoning, soft deletion flag
+**problem_topics**: Junction table for many-to-many relationship between problems and topics
 **subproblems**: Normalized sub-questions (a, b, c parts) linked to main problems
 **topics**: Reference table with 40 predefined calculus topics
 
@@ -259,7 +260,13 @@ supabase/migrations/20250806024840_create_schema.sql
 supabase/migrations/20250806024914_insert_topics.sql
 supabase/migrations/20250806025445_insert_stanford_data.sql
 supabase/migrations/20250806031517_insert_upenn_data.sql
+supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table for topics
 ```
+
+**Key Schema Features:**
+- `math_approach` and `reasoning_type` are TEXT[] arrays (multiple selections)
+- Topics use many-to-many relationship via `problem_topics` junction table
+- `included` BOOLEAN column for soft deletion (exclude without removing)
 
 ---
 
@@ -287,7 +294,10 @@ supabase/migrations/20250806031517_insert_upenn_data.sql
       "solution": "detailed steps",
       "images": ["file1.png"],
       "difficulty": "easy|medium|hard",
-      "topics": ["calculus", "derivatives"],
+      "topics": [1, 2, 3],  // Topic IDs (many-to-many via junction table)
+      "math_approach": ["algebraic", "geometric"],  // Array of approaches
+      "reasoning_type": ["computational"],  // Array of reasoning types
+      "included": true,  // Soft deletion flag
       "subproblems": [
         {
           "id": "subproblem_uuid",
