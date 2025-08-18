@@ -99,8 +99,7 @@ export async function POST(req: NextRequest) {
       case 'gemini-2.5-pro':
             return await handleGeminiRequest(message, conversationHistory, systemPrompt, model, image);
       
-      case 'gpt-5-mini':
-      case 'gpt-5-nano':
+      case 'gpt-4o-mini':
             return await handleOpenAIRequest(message, conversationHistory, systemPrompt, model, image);
       
       default:
@@ -256,11 +255,10 @@ async function handleOpenAIRequest(
     
     // Map our model names to OpenAI model names
     const modelMap: Record<string, string> = {
-      'gpt-5-mini': 'gpt-5-mini',
-      'gpt-5-nano': 'gpt-5-nano',
+      'gpt-4o-mini': 'gpt-4o-mini',
     };
 
-    const openaiModel = modelMap[model] || 'gpt-5-nano';
+    const openaiModel = modelMap[model] || 'gpt-4o-mini';
     console.log('Using OpenAI model:', openaiModel);
 
     // Build messages array for OpenAI with proper types
@@ -407,11 +405,11 @@ async function handleOpenAIRequest(
       headers: error?.response?.headers
     });
     
-    // More specific error handling for GPT-5
+    // More specific error handling for OpenAI
     if (error?.status === 401) {
       throw new Error('OpenAI API key is invalid or expired');
     } else if (error?.status === 403) {
-      throw new Error('Access denied - API key may not have GPT-5 access');
+      throw new Error('Access denied - API key may not have model access');
     } else if (error?.status === 404) {
       throw new Error(`Model not found - check model name spelling: ${model}`);
     } else if (error?.status === 429) {

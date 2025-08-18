@@ -350,6 +350,16 @@
             margin-right: 4px;
         }
 
+        .problem-status.excluded {
+            background: #dc3545;
+            color: white;
+        }
+
+        .problem-status.excluded::before {
+            content: "✗";
+            margin-right: 4px;
+        }
+
         .editor-panel {
             flex: 1;
             padding: 15px;
@@ -904,7 +914,7 @@
             gap: 10px;
         }
 
-        .remove-problem-btn {
+        .exclude-problem-btn {
             background: #dc3545;
             color: white;
             border: none;
@@ -915,8 +925,16 @@
             font-weight: 500;
         }
 
-        .remove-problem-btn:hover {
+        .exclude-problem-btn:hover {
             background: #c82333;
+        }
+        
+        .exclude-problem-btn.include {
+            background: #28a745;
+        }
+        
+        .exclude-problem-btn.include:hover {
+            background: #218838;
         }
 
         .stats {
@@ -1123,6 +1141,9 @@
             border-bottom: 1px solid #e9ecef;
             cursor: pointer;
             transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .document-item:last-child {
@@ -1142,6 +1163,25 @@
             font-weight: 600;
             color: #333;
             margin-bottom: 5px;
+        }
+        
+        .document-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: #ffc107;
+            color: #212529;
+            flex-shrink: 0;
+        }
+
+        .document-status.complete {
+            background: #28a745;
+            color: white;
+        }
+
+        .document-status.complete::before {
+            content: "✓";
+            margin-right: 4px;
         }
 
         .document-details {
@@ -1484,7 +1524,8 @@
                 difficulty: problem.difficulty || null,
                 importance: problem.importance || null,
                 comment: problem.comment || null,
-                version: problem.version || 'v1'
+                version: problem.version || 'v1',
+                included: problem.included !== false  // Default to true if not specified
             };
             
             const { data, error } = await supabase
@@ -1647,7 +1688,8 @@
                                 importance: problem.importance,
                                 comment: problem.comment,
                                 version: newVersion,
-                                updated_at: new Date().toISOString()
+                                updated_at: new Date().toISOString(),
+                                included: problem.included !== false  // Default to true if not specified
                             };
                             
                             const { error: updateError } = await supabase
@@ -1816,6 +1858,7 @@
                     if (!problem.math_approach) problem.math_approach = null;
                     if (!problem.reasoning_type) problem.reasoning_type = null;
                     if (!problem.images) problem.images = [];
+                    if (problem.included === undefined) problem.included = true;  // Default to included
                     
                     
                     // Convert topic names to IDs if needed
@@ -1831,13 +1874,23 @@
                     }
                     
                     const isComplete = isProblemComplete(problem);
+                    const isExcluded = problem.included === false;
                     const listItem = document.createElement('div');
                     listItem.className = 'problem-item';
                     listItem.onclick = () => selectProblem(index);
                     
+                    let statusClass;
+                    if (isExcluded) {
+                        statusClass = 'excluded';
+                    } else if (isComplete) {
+                        statusClass = 'complete';
+                    } else {
+                        statusClass = 'incomplete';
+                    }
+                    
                     listItem.innerHTML = `
                         <div class="problem-id">${formatProblemDisplayName(problem.id)}</div>
-                        <div class="problem-status ${isComplete ? 'complete' : 'incomplete'}">
+                        <div class="problem-status ${statusClass}">
                         </div>
                     `;
                     
@@ -2003,12 +2056,16 @@
             const editorPanel = document.querySelector('.editor-panel');
             const isTextAnswer = !problem.answer_options;
             
+            const isExcluded = problem.included === false;
+            const buttonText = isExcluded ? 'Include Problem' : 'Exclude Problem';
+            const buttonClass = isExcluded ? 'exclude-problem-btn include' : 'exclude-problem-btn';
+            
             editorPanel.innerHTML = `
                 <div class="form-group">
                     <label class="form-label">Problem ID</label>
                     <div class="problem-id-container">
                         <input type="text" class="form-control problem-id-input" value="${problem.id}" ${problem.id.startsWith('new_problem_') ? '' : 'readonly'} onchange="updateProblemId(this.value)" style="flex: 1;">
-                        <button class="remove-problem-btn" onclick="removeProblem()">Remove Problem</button>
+                        <button class="${buttonClass}" onclick="toggleProblemInclusion()">${buttonText}</button>
                     </div>
                 </div>
 
@@ -3140,30 +3197,31 @@
         }
 
 
-        function removeProblem() {
-            if (currentProblemIndex >= 0 && confirm('Are you sure you want to remove this entire problem? This action cannot be undone.')) {
-                // Remove the problem from the array
-                problemsData.problems.splice(currentProblemIndex, 1);
+        function toggleProblemInclusion() {
+            if (currentProblemIndex >= 0) {
+                const problem = problemsData.problems[currentProblemIndex];
+                
+                // Toggle the included flag
+                problem.included = problem.included === false ? true : false;
                 
                 // Update localStorage
                 localStorage.setItem('problemsData', JSON.stringify(problemsData));
                 
-                // Reload the problems list
-                loadProblems();
+                // Update the button text and style
+                const button = document.querySelector('.exclude-problem-btn');
+                if (problem.included === false) {
+                    button.textContent = 'Include Problem';
+                    button.classList.add('include');
+                } else {
+                    button.textContent = 'Exclude Problem';
+                    button.classList.remove('include');
+                }
                 
-                // Reset current index
-                currentProblemIndex = -1;
+                // Update the problem status in the sidebar
+                updateProblemStatus();
                 
-                // Show no problem selected
-                const editorPanel = document.querySelector('.editor-panel');
-                editorPanel.innerHTML = `
-                    <div id="noProblem" class="no-problem">
-                        <h3>No Problem Selected</h3>
-                        <p>Select a problem from the sidebar to start editing</p>
-                    </div>
-                `;
-                
-                showSuccess('Problem removed successfully!');
+                const action = problem.included === false ? 'excluded' : 'included';
+                showSuccess(`Problem ${action} successfully!`);
             }
         }
 
@@ -3303,11 +3361,21 @@
             if (currentProblemIndex >= 0) {
                 const problem = problemsData.problems[currentProblemIndex];
                 const isComplete = isProblemComplete(problem);
+                const isExcluded = problem.included === false;
                 
                 const problemItem = document.querySelectorAll('.problem-item')[currentProblemIndex];
                 const statusElement = problemItem.querySelector('.problem-status');
                 
-                statusElement.className = `problem-status ${isComplete ? 'complete' : 'incomplete'}`;
+                let statusClass;
+                if (isExcluded) {
+                    statusClass = 'excluded';
+                } else if (isComplete) {
+                    statusClass = 'complete';
+                } else {
+                    statusClass = 'incomplete';
+                }
+                
+                statusElement.className = `problem-status ${statusClass}`;
                 statusElement.textContent = ''; // No text, just icons
                 
                 updateStats();
@@ -3323,10 +3391,19 @@
             problemsData.problems.forEach((problem, index) => {
                 if (problemItems[index]) {
                     const isComplete = isProblemComplete(problem);
+                    const isExcluded = problem.included === false;
                     const statusElement = problemItems[index].querySelector('.problem-status');
                     
                     if (statusElement) {
-                        statusElement.className = `problem-status ${isComplete ? 'complete' : 'incomplete'}`;
+                        let statusClass;
+                        if (isExcluded) {
+                            statusClass = 'excluded';
+                        } else if (isComplete) {
+                            statusClass = 'complete';
+                        } else {
+                            statusClass = 'incomplete';
+                        }
+                        statusElement.className = `problem-status ${statusClass}`;
                         statusElement.textContent = ''; // No text, just icons
                     }
                 }
@@ -3341,40 +3418,88 @@
                               (problem.subproblems && Object.keys(problem.subproblems).length > 0 && 
                                Object.values(problem.subproblems).some(sp => sp && sp.problem_text && sp.problem_text.trim()));
             
+            // Check if there are subproblems
+            const hasSubproblems = problem.subproblems && 
+                                   Object.keys(problem.subproblems).length > 0 &&
+                                   Object.values(problem.subproblems).some(sp => sp && sp.problem_text && sp.problem_text.trim());
+            
             // Handle solution object format - check if solution has actual content
             let hasSolution = false;
             if (problem.solution) {
                 if (typeof problem.solution === 'string' && problem.solution.trim()) {
                     hasSolution = true;
-                } else if (problem.solution.text) {
+                } else if (problem.solution.text !== null && problem.solution.text !== undefined) {
                     if (Array.isArray(problem.solution.text)) {
                         hasSolution = problem.solution.text.some(text => text && text.trim());
-                    } else if (typeof problem.solution.text === 'string') {
-                        hasSolution = problem.solution.text.trim().length > 0;
+                    } else if (typeof problem.solution.text === 'string' && problem.solution.text.trim()) {
+                        hasSolution = true;
                     }
                 }
             }
             
+            // When there are subproblems, check if they have solutions instead
+            if (hasSubproblems && !hasSolution) {
+                // Check if at least one subproblem has a solution
+                const subproblemHasSolution = Object.values(problem.subproblems).some(sp => {
+                    if (sp && sp.solution) {
+                        if (typeof sp.solution === 'string' && sp.solution.trim()) {
+                            return true;
+                        } else if (sp.solution.text) {
+                            if (Array.isArray(sp.solution.text)) {
+                                return sp.solution.text.some(text => text && text.trim());
+                            } else if (typeof sp.solution.text === 'string') {
+                                return sp.solution.text.trim().length > 0;
+                            }
+                        }
+                    }
+                    return false;
+                });
+                
+                // Check if at least one subproblem has a correct answer
+                const subproblemHasAnswer = Object.values(problem.subproblems).some(sp => 
+                    sp && sp.correct_answer && sp.correct_answer.trim()
+                );
+                
+                // If subproblems have solutions and answers, consider the problem complete
+                // even without main problem solution and answer
+                if (subproblemHasSolution && subproblemHasAnswer) {
+                    return hasContent &&
+                           problem.difficulty && 
+                           problem.topics && Array.isArray(problem.topics) &&
+                           problem.topics.length > 0;
+                }
+            }
+            
+            // Original requirements for problems without subproblems or 
+            // when subproblems don't have their own solutions/answers
+            const hasCorrectAnswer = problem.correct_answer && 
+                                    (typeof problem.correct_answer === 'string' ? problem.correct_answer.trim() : problem.correct_answer);
+            
             return hasContent &&
-                   problem.correct_answer && 
+                   hasCorrectAnswer && 
                    hasSolution && 
                    problem.difficulty && 
                    problem.topics && Array.isArray(problem.topics) &&
-                   problem.topics.length > 0 &&
-                   true; // Domain removed
+                   problem.topics.length > 0;
                    // Note: math_approach and reasoning_type are now optional
         }
 
         function updateStats() {
             if (!problemsData) return;
 
-            const total = problemsData.problems.length;
-            const completed = problemsData.problems.filter(p => isProblemComplete(p)).length;
+            // Count only included problems
+            const includedProblems = problemsData.problems.filter(p => p.included !== false);
+            const excludedProblems = problemsData.problems.filter(p => p.included === false);
+            
+            const total = includedProblems.length;
+            const completed = includedProblems.filter(p => isProblemComplete(p)).length;
             const incomplete = total - completed;
 
             document.getElementById('totalProblems').textContent = total;
             document.getElementById('completedProblems').textContent = completed;
             document.getElementById('incompleteProblems').textContent = incomplete;
+            
+            // Excluded problems are not counted in the stats
             document.getElementById('stats').style.display = 'flex';
         }
 
@@ -5355,12 +5480,124 @@
                 }
 
                 if (documents && documents.length > 0) {
+                    // Fetch ALL problems and subproblems in batch queries for performance
+                    const documentIds = documents.map(d => d.id);
+                    
+                    // Batch fetch all problems for all documents
+                    const { data: allProblems, error: problemsError } = await supabase
+                        .from('problems')
+                        .select('id, problem_id, document_id, problem_text, correct_answer, solution_text, difficulty, topic_id, included')
+                        .in('document_id', documentIds);
+                    
+                    if (problemsError) {
+                        console.error('Error fetching problems:', problemsError);
+                    }
+                    
+                    // Get all problem IDs for batch fetching subproblems
+                    const problemIds = allProblems ? allProblems.map(p => p.id) : [];
+                    
+                    // Batch fetch all subproblems for all problems
+                    let allSubproblems = [];
+                    if (problemIds.length > 0) {
+                        const { data: subproblemsData, error: subproblemsError } = await supabase
+                            .from('subproblems')
+                            .select('problem_id, key, problem_text, correct_answer, solution_text')
+                            .in('problem_id', problemIds);
+                        
+                        if (!subproblemsError && subproblemsData) {
+                            allSubproblems = subproblemsData;
+                        }
+                    }
+                    
+                    // Create a map for quick lookup
+                    const problemsByDocument = {};
+                    const subproblemsByProblem = {};
+                    
+                    // Group problems by document
+                    if (allProblems) {
+                        allProblems.forEach(problem => {
+                            if (!problemsByDocument[problem.document_id]) {
+                                problemsByDocument[problem.document_id] = [];
+                            }
+                            problemsByDocument[problem.document_id].push(problem);
+                        });
+                    }
+                    
+                    // Group subproblems by problem
+                    allSubproblems.forEach(subproblem => {
+                        if (!subproblemsByProblem[subproblem.problem_id]) {
+                            subproblemsByProblem[subproblem.problem_id] = [];
+                        }
+                        subproblemsByProblem[subproblem.problem_id].push(subproblem);
+                    });
+                    
+                    // Now process each document with the pre-fetched data
+                    const documentsWithCompletion = documents.map(doc => {
+                        const problems = problemsByDocument[doc.id] || [];
+                        
+                        // Only count included problems
+                        const includedProblems = problems.filter(p => p.included !== false);
+                        let completedCount = 0;
+                        let totalCount = includedProblems.length;
+                        
+                        for (const problem of includedProblems) {
+                            // Get subproblems for this problem from our map
+                            const subproblems = subproblemsByProblem[problem.id] || [];
+                            
+                            // Convert database format to our problem format for checking
+                            const problemObj = {
+                                problem_text: problem.problem_text,
+                                correct_answer: problem.correct_answer,
+                                solution: { text: problem.solution_text },
+                                difficulty: problem.difficulty,
+                                topics: problem.topic_id ? [problem.topic_id] : [],
+                                subproblems: {}
+                            };
+                            
+                            // Add subproblems if they exist
+                            if (subproblems.length > 0) {
+                                subproblems.forEach(sp => {
+                                    problemObj.subproblems[sp.key] = {
+                                        problem_text: sp.problem_text,
+                                        correct_answer: sp.correct_answer,
+                                        solution: { text: sp.solution_text }
+                                    };
+                                });
+                            }
+                            
+                            // Check if this problem is complete using our existing function logic
+                            if (isProblemCompleteForDocument(problemObj)) {
+                                completedCount++;
+                            }
+                        }
+                        
+                        const isComplete = totalCount > 0 && completedCount === totalCount;
+                        return { ...doc, isComplete, completedCount, totalCount };
+                    });
+                    
+                    // Sort documents: incomplete first, then complete
+                    documentsWithCompletion.sort((a, b) => {
+                        if (a.isComplete === b.isComplete) {
+                            // If both have same completion status, sort by creation date (newest first)
+                            return new Date(b.created_at) - new Date(a.created_at);
+                        }
+                        // Incomplete documents come first
+                        return a.isComplete ? 1 : -1;
+                    });
+                    
                     let html = '<div class="document-list">';
                     
-                    documents.forEach(doc => {
+                    documentsWithCompletion.forEach(doc => {
+                        const statusClass = doc.isComplete ? 'complete' : '';
+                        const statusText = doc.isComplete ? '' : `${doc.completedCount}/${doc.totalCount}`;
+                        
                         html += `
                             <div class="document-item" data-document-id="${doc.document_id}" onclick="selectDocument('${doc.document_id}')">
-                                <div class="document-title">${doc.document_id}</div>
+                                <div>
+                                    <div class="document-title">${doc.document_id}</div>
+                                    <div class="document-details">${doc.school || ''} ${doc.course || ''} ${doc.term || ''} ${doc.year || ''}</div>
+                                </div>
+                                <div class="document-status ${statusClass}">${statusText}</div>
                             </div>
                         `;
                     });
@@ -5374,6 +5611,12 @@
                 console.error('Error loading documents:', error);
                 container.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc3545;">Error loading documents: ' + error.message + '</div>';
             }
+        }
+        
+        // Helper function to check if a problem is complete (similar to isProblemComplete but for document checking)
+        function isProblemCompleteForDocument(problem) {
+            // Use the main isProblemComplete function to ensure consistency
+            return isProblemComplete(problem);
         }
 
         function selectDocument(documentId) {
@@ -5495,7 +5738,8 @@
                         comment,
                         version,
                         created_at,
-                        updated_at
+                        updated_at,
+                        included
                     `)
                     .eq('document_id', docData.id)
                     .order('problem_id');
@@ -5558,7 +5802,8 @@
                         comment: problem.comment,
                         importance: problem.importance,
                         updated_at: problem.updated_at,
-                        version: problem.version
+                        version: problem.version,
+                        included: problem.included !== false  // Default to true if not specified
                     };
                 });
 
@@ -5683,7 +5928,8 @@
                         comment: problem.comment,
                         importance: problem.importance,
                         updated_at: problem.updated_at,
-                        version: problem.version
+                        version: problem.version,
+                        included: problem.included !== false  // Default to true if not specified
                     };
                 });
 
@@ -5801,6 +6047,13 @@
                 if (current[field] !== original[field]) {
                     return true;
                 }
+            }
+            
+            // Compare included field (treat undefined as true)
+            const currentIncluded = current.included !== false;
+            const originalIncluded = original.included !== false;
+            if (currentIncluded !== originalIncluded) {
+                return true;
             }
 
             // Compare solution text
@@ -6112,6 +6365,7 @@
                     if (!problem.math_approach) problem.math_approach = null;
                     if (!problem.reasoning_type) problem.reasoning_type = null;
                     if (!problem.images) problem.images = [];
+                    if (problem.included === undefined) problem.included = true;  // Default to included
                     
                     // Convert topic names to IDs if needed
                     if (problem.topics && Array.isArray(problem.topics)) {
