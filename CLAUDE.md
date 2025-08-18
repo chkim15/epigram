@@ -313,6 +313,30 @@ supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table f
 
 ---
 
+## RECENT FRONTEND CHANGES (January 2025)
+
+### TypeScript Type Updates (`src/types/database.ts`)
+- Removed `topic_id` from problems table type (no longer exists)
+- Changed `math_approach` from `string | null` to `string[] | null` (now an array)
+- Changed `reasoning_type` from `string | null` to `string[] | null` (now an array)
+- Added `included: boolean` field for soft deletion support
+- Added `problem_topics` junction table type for many-to-many topic relationships
+
+### ProblemViewer Component Updates (`src/components/problems/ProblemViewer.tsx`)
+- Removed `topic_id` from database queries (column no longer exists)
+- Added filter for `included = true` to exclude soft-deleted problems
+- Simplified query to avoid complex nested joins with topics
+- Topics can be fetched separately from `problem_topics` junction table if needed
+
+### Landing Page Redirect (`src/app/page.tsx`)
+- Temporarily redirects from `/` to `/app` using Next.js `redirect()`
+- Original landing page code preserved in comments for future use
+- To restore: Remove redirect code and uncomment the original component
+
+### Store Updates (`src/stores/problemStore.ts`)
+- No changes needed - uses updated Problem type automatically
+- Handles arrays for `math_approach` and `reasoning_type` through type system
+
 ## COMMON ISSUES & SOLUTIONS
 
 ### Build & Deployment Issues

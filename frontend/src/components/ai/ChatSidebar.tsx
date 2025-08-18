@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Send, MessageCircle, FileText, BookOpen, FileSearch, X, SquarePen, MessagesSquare } from "lucide-react";
+import { Send, FileText, BookOpen, MessageSquare, X, SquarePen, MessagesSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
@@ -302,10 +302,10 @@ export default function ChatSidebar({}: ChatSidebarProps) {
   ];
 
   const tabs = [
-    { id: 'chat', label: 'Chat', icon: MessageCircle },
+    { id: 'chat', label: 'Chat', icon: MessagesSquare },
     { id: 'notes', label: 'Notes', icon: FileText },
     { id: 'solutions', label: 'Solutions', icon: BookOpen },
-    { id: 'comments', label: 'Comments', icon: FileSearch }
+    { id: 'comments', label: 'Comments', icon: MessageSquare }
   ] as const;
 
   return (
@@ -546,13 +546,40 @@ export default function ChatSidebar({}: ChatSidebarProps) {
         )}
 
         {activeTab === 'comments' && (
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center text-gray-500 dark:text-gray-400">
-                <FileSearch className="h-12 w-12 mx-auto mb-2" />
-                <p>Comments feature coming soon</p>
+          <div className="h-full overflow-y-auto custom-scrollbar">
+            {(currentProblem?.comment || currentSubproblems.some(sp => sp.comment)) ? (
+              <div className="p-4 space-y-6">
+                {currentProblem?.comment && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Main Problem</h3>
+                    <div className="prose max-w-none dark:prose-invert">
+                      <MathContent content={currentProblem.comment} documentId={currentDocument?.document_id} />
+                    </div>
+                  </div>
+                )}
+                {currentSubproblems.length > 0 && currentSubproblems.some(sp => sp.comment) && (
+                  <div className="space-y-4">
+                    {currentSubproblems.filter(sp => sp.comment).map((subproblem) => (
+                      <div key={subproblem.id}>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Part {subproblem.key}
+                        </h3>
+                        <div className="prose max-w-none dark:prose-invert">
+                          <MathContent content={subproblem.comment || ''} documentId={currentDocument?.document_id} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+            ) : (
+              <div className="h-full flex items-center justify-center p-4">
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-2" />
+                  <p>No comments available for this problem</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
