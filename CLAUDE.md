@@ -327,6 +327,19 @@ supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table f
 - Added filter for `included = true` to exclude soft-deleted problems
 - Simplified query to avoid complex nested joins with topics
 - Topics can be fetched separately from `problem_topics` junction table if needed
+- **Answer section removed** - No longer displays correct answers
+- **Difficulty badge repositioned** - Now appears next to problem number instead of at bottom
+- **Document ID moved** - Now positioned to the far right using `ml-auto`
+- **Solution moved to Solutions tab** - Solutions no longer shown inline, accessed via dedicated tab
+
+### ChatSidebar Component Updates (`src/components/ai/ChatSidebar.tsx`)
+- **Solutions tab now functional** - Displays main problem solutions and subproblem solutions
+- **Comments tab connected** - Shows comments from problems table `comment` column
+- **Improved empty states** - Better messaging and icons for empty content
+- **Icon updates**:
+  - Chat tab: Uses `MessagesSquare` (AI Tutor icon)
+  - Comments tab: Uses `MessageSquare` (more relevant than FileSearch)
+- **Consistent scrollbar styling** - All tabs use `custom-scrollbar` class for uniform appearance
 
 ### Landing Page Redirect (`src/app/page.tsx`)
 - Temporarily redirects from `/` to `/app` using Next.js `redirect()`
@@ -336,6 +349,15 @@ supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table f
 ### Store Updates (`src/stores/problemStore.ts`)
 - No changes needed - uses updated Problem type automatically
 - Handles arrays for `math_approach` and `reasoning_type` through type system
+- Removed unused `showSolution` and `toggleSolution` states (solutions now in tab)
+
+### UI/UX Improvements
+- **Consistent scrollbars** - Applied `custom-scrollbar` class to:
+  - ProblemViewer main content area
+  - TopicsSidebar (left navigation)
+  - All ChatSidebar tabs (Chat, Notes, Solutions, Comments)
+- **Scrollbar design** - Thin 8px gray scrollbars with rounded corners across entire app
+- **Proper overflow handling** - Fixed scrolling issues in Solutions and Comments tabs
 
 ## COMMON ISSUES & SOLUTIONS
 
@@ -397,7 +419,7 @@ python convert.py --pdf "exam.pdf" --prefix "test" --output "storage/processed"
 ## FILE ORGANIZATION
 
 ```
-mathpix/
+epigram/
 ├── backend/                 # Python PDF processing
 │   ├── src/
 │   │   └── converter/

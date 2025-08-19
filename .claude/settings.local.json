@@ -8,6 +8,7 @@
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "supabase"
+    "supabase",
+    "shadcn-ui"
   ]
 }

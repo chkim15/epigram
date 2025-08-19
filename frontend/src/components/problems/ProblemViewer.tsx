@@ -43,6 +43,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
 
   const [subproblems, setSubproblems] = useState<Subproblem[]>([]);
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
+  const [answers, setAnswers] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     fetchAllProblems();
@@ -57,6 +58,9 @@ export default function ProblemViewer({}: ProblemViewerProps) {
       });
       
       fetchSubproblems(currentProblem.id);
+      
+      // Clear answers when problem changes
+      setAnswers({});
       
       // Update current document based on the current problem's document_id
       if (allDocuments.length > 0) {
@@ -160,6 +164,19 @@ export default function ProblemViewer({}: ProblemViewerProps) {
     }
   };
 
+  const handleAnswerChange = (key: string, value: string) => {
+    setAnswers(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleTextareaResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
 
   if (isLoading) {
     return (
@@ -223,17 +240,46 @@ export default function ProblemViewer({}: ProblemViewerProps) {
                     </div>
                   )}
                   
+                  {/* Answer input for main problem (only if no subproblems) */}
+                  {subproblems.length === 0 && (
+                    <div className="mt-4">
+                      <textarea
+                        className="w-full min-h-[100px] p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                        placeholder="Type your answer here..."
+                        value={answers['main'] || ''}
+                        onChange={(e) => {
+                          handleAnswerChange('main', e.target.value);
+                          handleTextareaResize(e);
+                        }}
+                        onInput={handleTextareaResize}
+                      />
+                    </div>
+                  )}
+                  
                   {/* Subproblems inside main card */}
                   {subproblems.length > 0 && (
                     <div className="space-y-4">
                       {subproblems.map((subproblem) => (
-                        <Card key={subproblem.id} className="w-full max-w-full border-0 shadow-none">
-                          <CardContent className="pt-4">
+                        <Card key={subproblem.id} className="w-full max-w-full border-0 shadow-none py-3 gap-0">
+                          <CardContent className="px-0">
                             <div className="font-medium text-blue-600 dark:text-blue-400 mb-2 text-lg">
                               {subproblem.key}.
                             </div>
                             <div className="prose max-w-none dark:prose-invert overflow-hidden break-words">
                               <MathContent content={subproblem.problem_text || ''} documentId={currentDocument?.document_id} />
+                            </div>
+                            {/* Answer input for subproblem */}
+                            <div className="mt-4">
+                              <textarea
+                                className="w-full min-h-[100px] p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                                placeholder="Type your answer here..."
+                                value={answers[`sub_${subproblem.key}`] || ''}
+                                onChange={(e) => {
+                                  handleAnswerChange(`sub_${subproblem.key}`, e.target.value);
+                                  handleTextareaResize(e);
+                                }}
+                                onInput={handleTextareaResize}
+                              />
                             </div>
                           </CardContent>
                         </Card>
