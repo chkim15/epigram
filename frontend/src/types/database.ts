@@ -75,6 +75,68 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['subproblems']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['subproblems']['Insert']>;
       };
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['users']['Row'], 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['users']['Insert']>;
+      };
+      user_answers: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          subproblem_id: string | null;
+          answer_text: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_answers']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['user_answers']['Insert']>;
+      };
+      user_chats: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          message: string;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_chats']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['user_chats']['Insert']>;
+      };
+      user_problem_progress: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          is_completed: boolean;
+          is_bookmarked: boolean;
+          last_accessed: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_problem_progress']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['user_problem_progress']['Insert']>;
+      };
+      user_preferences: {
+        Row: {
+          id: string;
+          user_id: string;
+          dark_mode: boolean;
+          preferred_ai_model: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_preferences']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['user_preferences']['Insert']>;
+      };
     };
   };
 }
@@ -84,3 +146,8 @@ export type Problem = Database['public']['Tables']['problems']['Row'];
 export type ProblemTopic = Database['public']['Tables']['problem_topics']['Row'];
 export type Subproblem = Database['public']['Tables']['subproblems']['Row'];
 export type Document = Database['public']['Tables']['documents']['Row'];
+export type User = Database['public']['Tables']['users']['Row'];
+export type UserAnswer = Database['public']['Tables']['user_answers']['Row'];
+export type UserChat = Database['public']['Tables']['user_chats']['Row'];
+export type UserProblemProgress = Database['public']['Tables']['user_problem_progress']['Row'];
+export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];

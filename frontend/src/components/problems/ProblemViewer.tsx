@@ -212,7 +212,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
     <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
       <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
       {/* Problem Content */}
-      <div className="flex-1 overflow-y-auto min-h-0 bg-white p-3 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-gray-900 p-3 custom-scrollbar">
         <div className="w-full space-y-6 min-w-0">
           {currentProblem && (
             <>

@@ -29,7 +29,10 @@ export default function UnifiedHeader({
           >
             <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
           </button>
-          <h1 className="font-bold text-xl text-gray-900 dark:text-white">epigram</h1>
+          <div className="flex items-center gap-2">
+            <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8" />
+            <h1 className="font-bold text-xl text-gray-900 dark:text-white">Epigram</h1>
+          </div>
         </>
       )}
       {/* Flexible spacer to push right-side actions */}

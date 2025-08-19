@@ -118,6 +118,7 @@ frontend/
 │           ├── katex.tsx          # LaTeX rendering utilities
 │           └── pdf.ts             # PDF helper functions
 ├── public/
+│   ├── epigram_logo.svg          # Company logo (32x32 display)
 │   ├── demo.png                  # Landing page demo image
 │   └── problems.json             # Static problem data
 ├── package.json
@@ -358,6 +359,12 @@ supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table f
   - All ChatSidebar tabs (Chat, Notes, Solutions, Comments)
 - **Scrollbar design** - Thin 8px gray scrollbars with rounded corners across entire app
 - **Proper overflow handling** - Fixed scrolling issues in Solutions and Comments tabs
+- **Logo and Branding** - Added Epigram logo (32x32 SVG) next to company name in:
+  - TopicsSidebar header
+  - Mobile header
+  - UnifiedHeader (when sidebar is collapsed)
+- **Favicon** - SVG logo configured as favicon via metadata
+- **Dark mode support** - Fixed white backgrounds in ProblemViewer and toggle switch
 
 ## COMMON ISSUES & SOLUTIONS
 

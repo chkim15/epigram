@@ -75,6 +75,12 @@
             // Convert \textbf{...} to HTML bold
             text = text.replace(/\\textbf\{([^}]+)\}/g, '<b>$1</b>');
             
+            // Convert \textit{...} to HTML italic
+            text = text.replace(/\\textit\{([^}]+)\}/g, '<i>$1</i>');
+            
+            // Convert \emph{...} to HTML emphasis (italic)
+            text = text.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
+            
             // Convert \dne to "Does Not Exist" (DNE)
             text = text.replace(/\\dne/g, 'DNE');
             

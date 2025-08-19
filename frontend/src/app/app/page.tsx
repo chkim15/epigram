@@ -1,19 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import TopicsSidebar from "@/components/navigation/TopicsSidebar";
 import ProblemViewer from "@/components/problems/ProblemViewer";
 import ChatSidebar from "@/components/ai/ChatSidebar";
 import ResizablePanels from "@/components/ui/resizable-panels";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
+import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function AppPage() {
+  const router = useRouter();
+  const { user, isAuthenticated, checkAuth, isLoading } = useAuthStore();
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   return (
     <div className="w-full h-screen flex flex-col">
@@ -40,7 +49,10 @@ export default function AppPage() {
           </SheetContent>
         </Sheet>
 
-        <h1 className="font-bold text-xl">epigram</h1>
+        <div className="flex items-center gap-2">
+          <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8" />
+          <h1 className="font-bold text-xl">Epigram</h1>
+        </div>
 
         <div className="w-6 h-6" />
       </div>
@@ -56,9 +68,18 @@ export default function AppPage() {
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             />
           )}
-          {/* Bottom Sign in button */}
+          {/* Bottom Auth Section */}
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
-            <Button className="w-full cursor-pointer">Sign in</Button>
+            {isAuthenticated && user ? (
+              <UserProfileDropdown user={user} />
+            ) : (
+              <Button 
+                className="w-full cursor-pointer"
+                onClick={() => router.push('/auth/signin')}
+              >
+                Sign in
+              </Button>
+            )}
           </div>
         </div>
 

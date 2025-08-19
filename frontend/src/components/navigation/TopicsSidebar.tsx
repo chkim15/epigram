@@ -188,9 +188,12 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     <div className="flex h-full flex-col min-h-0">
       {/* Header */}
       <div className="p-4 h-[73px] flex items-center justify-between flex-shrink-0">
-        <h2 className="font-bold text-xl text-gray-900 dark:text-white">
-          epigram
-        </h2>
+        <div className="flex items-center gap-2">
+          <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8" />
+          <h2 className="font-bold text-xl text-gray-900 dark:text-white">
+            Epigram
+          </h2>
+        </div>
         {onToggleSidebar && (
           <Button
             variant="ghost"
