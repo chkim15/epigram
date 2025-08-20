@@ -155,6 +155,9 @@ npm run lint
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
+# Supabase Service Role Key - Required for admin operations (account deletion)
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
 # AI API Keys (Server-side only - no NEXT_PUBLIC prefix)
 GOOGLE_API_KEY=your_google_ai_key
 OPENAI_API_KEY=your_openai_key
@@ -316,6 +319,35 @@ supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table f
 
 ## RECENT FRONTEND CHANGES (January 2025)
 
+### Authentication & User Management (January 2025)
+
+**Settings Modal Implementation (`src/components/settings/SettingsModal.tsx`)**
+- Complete settings modal with three tabs: Account, Personalization, Account Management
+- Account tab displays user information (Name, Email, Date Created, School, Courses)
+- Account Management tab includes account deletion functionality
+- Blur background overlay (`bg-gray-900/50 backdrop-blur-lg`) for modal backdrop
+- Always opens to Account tab regardless of previous state
+
+**Account Deletion System**
+- Server-side API endpoint (`src/app/api/delete-account/route.ts`) using Supabase admin API
+- Client-side deletion functions in auth store and auth client
+- Confirmation dialog with proper blur background styling
+- Requires `SUPABASE_SERVICE_ROLE_KEY` environment variable for admin operations
+- **IMPORTANT**: Must add `SUPABASE_SERVICE_ROLE_KEY` to both local `.env.local` and Vercel environment variables
+
+**Email Verification Flow Updates**
+- Removed auto-polling for email confirmation in verify-email page
+- Fixed redirect flow: signup → email verification → confirmation → signin
+- Added email conflict prevention to prevent duplicate accounts between Google OAuth and email signup
+- Removed password confirmation field from signup for improved UX
+- Changed sign-out redirect from signin page to app page
+
+**Authentication UI Improvements**
+- Fixed Suspense boundary issues with `useSearchParams()` in signin page
+- Proper TypeScript types replacing `any` with `AuthError`, `User`, `Session`
+- Enhanced error handling with helpful user messages
+- User profile dropdown connected to settings modal
+
 ### TypeScript Type Updates (`src/types/database.ts`)
 - Removed `topic_id` from problems table type (no longer exists)
 - Changed `math_approach` from `string | null` to `string[] | null` (now an array)
@@ -396,6 +428,7 @@ supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table f
 - Ensure GitHub repository is connected in Vercel dashboard
 - Check build logs for TypeScript errors (warnings won't block deployment)
 - Environment variables must be added in Vercel dashboard settings
+- **Critical**: Add `SUPABASE_SERVICE_ROLE_KEY` to Vercel environment variables for account deletion to work in production
 
 ### Development Tips
 
@@ -484,6 +517,60 @@ epigram/
 
 ---
 
+## COMMON ESLINT BUILD ERRORS & FIXES
+
+### TypeScript Type Errors
+
+**Problem**: `@typescript-eslint/no-explicit-any` errors prevent builds when using `any` type.
+
+**Solution**: Import and use proper types from installed packages:
+```typescript
+// ❌ BAD - Using any type
+interface AuthState {
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+}
+
+// ✅ GOOD - Using proper Supabase types
+import { AuthError } from '@supabase/supabase-js';
+interface AuthState {
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+}
+```
+
+**Common Supabase Types to Import**:
+- `User`, `Session`, `AuthError` from `@supabase/supabase-js`
+- `AuthChangeEvent` for auth state change listeners
+
+### React Unescaped Entities
+
+**Problem**: Apostrophes and quotes in JSX text need proper escaping.
+
+**Solution**: Use HTML entities:
+```tsx
+// ❌ BAD
+<p>Don't have an account?</p>
+
+// ✅ GOOD
+<p>Don&apos;t have an account?</p>
+```
+
+### Unused Variables & Imports
+
+**Problem**: ESLint flags unused imports and variables as errors.
+
+**Solution**: Remove unused imports and variables, or add missing dependencies:
+```typescript
+// Remove unused imports
+// ❌ import { Button } from '@/components/ui/button';  // Never used
+
+// Add missing useEffect dependencies
+useEffect(() => {
+  checkAuth();
+}, [checkAuth]);  // ✅ Include all dependencies
+```
+
+---
+
 ## IMPORTANT NOTES FOR CLAUDE CODE
 
 - Don't run `npm run dev` automatically - it will be run manually by the user
@@ -493,3 +580,4 @@ epigram/
 - Clear Next.js cache (`.next` folder) when encountering module errors
 - Environment variables without `NEXT_PUBLIC_` prefix are server-side only
 - Test builds locally with `npm run build` before deployment
+- **ALWAYS fix TypeScript type errors properly** - never use `any` when proper types exist

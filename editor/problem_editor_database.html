@@ -1408,7 +1408,7 @@
                         <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #666; pointer-events: none;">
                             🔍
                         </div>
-                        <div id="modalTopicDropdown" class="topic-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; max-height: 200px; overflow-y: auto; z-index: 1000;">
+                        <div id="modalTopicDropdown" class="topic-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #007bff; border-top: none; border-radius: 0 0 8px 8px; max-height: 300px; overflow-y: auto; z-index: 10000; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
                         </div>
                     </div>
                     <div id="selectedTopicDisplay" style="margin-top: 8px; font-size: 12px; color: #666;"></div>
@@ -1726,8 +1726,7 @@
                                 throw updateError;
                             }
                             
-                            // Update topics through junction table
-                            // First get the problem UUID
+                            // Get the problem UUID once for all operations
                             const { data: problemData, error: problemError } = await supabase
                                 .from('problems')
                                 .select('id')
@@ -1735,17 +1734,20 @@
                                 .single();
                             
                             if (!problemError && problemData) {
+                                const problemUuid = problemData.id;
+                                
+                                // 1. Update topics through junction table
                                 // Delete existing topic associations
                                 await supabase
                                     .from('problem_topics')
                                     .delete()
-                                    .eq('problem_id', problemData.id);
+                                    .eq('problem_id', problemUuid);
                                 
                                 // Insert new topic associations
                                 const topics = Array.isArray(problem.topics) ? problem.topics : [];
                                 if (topics.length > 0) {
                                     const topicInserts = topics.map(topicId => ({
-                                        problem_id: problemData.id,
+                                        problem_id: problemUuid,
                                         topic_id: topicId
                                     }));
                                     
@@ -1757,24 +1759,31 @@
                                         console.error('Failed to update topics:', topicsError);
                                     }
                                 }
-                            }
-                        }
-                        
-                        // Update subproblems if they exist
-                        if (problem.subproblems && Object.keys(problem.subproblems).length > 0) {
-                            // Get the problem UUID from database
-                            const { data: problemData, error: problemError } = await supabase
-                                .from('problems')
-                                .select('id')
-                                .eq('problem_id', problem.id)
-                                .single();
                                 
-                            if (!problemError) {
-                                const problemUuid = problemData.id;
+                                // 2. Update subproblems - ALWAYS delete and re-insert
+                                console.log(`Updating subproblems for problem ${problem.id}`);
                                 
-                                // Delete existing subproblems and insert new ones (simpler than selective update)
-                                await supabase.from('subproblems').delete().eq('problem_id', problemUuid);
-                                await insertSubproblemsWorking(problem.subproblems, problemUuid);
+                                // Always delete ALL existing subproblems first
+                                const { error: deleteError } = await supabase
+                                    .from('subproblems')
+                                    .delete()
+                                    .eq('problem_id', problemUuid);
+                                
+                                if (deleteError) {
+                                    console.error(`Failed to delete subproblems for problem ${problem.id}:`, deleteError);
+                                } else {
+                                    console.log(`Deleted existing subproblems for problem ${problem.id}`);
+                                }
+                                
+                                // Then insert new ones if they exist
+                                if (problem.subproblems && Object.keys(problem.subproblems).length > 0) {
+                                    console.log(`Inserting ${Object.keys(problem.subproblems).length} subproblems for problem ${problem.id}`);
+                                    await insertSubproblemsWorking(problem.subproblems, problemUuid);
+                                } else {
+                                    console.log(`No subproblems to insert for problem ${problem.id}`);
+                                }
+                            } else {
+                                console.error(`Failed to get problem UUID for ${problem.id}:`, problemError);
                             }
                         }
                         
@@ -1821,46 +1830,46 @@
         // Load topics data - embedded to avoid fetch issues
         function loadTopics() {
             availableTopics = [
-                {"id": 1, "name": "Variables, Functions and Graphs"},
-                {"id": 2, "name": "Limits of Functions"},
-                {"id": 3, "name": "Continuity and IVT"},
-                {"id": 4, "name": "Indeterminate Forms Limits via Algebraic Manipulation"},
-                {"id": 5, "name": "Limits at Infinity and Asymptotes"},
-                {"id": 6, "name": "Limiting Definition of Derivatives"},
-                {"id": 7, "name": "Chain, Product and Quotient Rules"},
-                {"id": 8, "name": "Implicit Differentiation and Inverse Derivatives"},
-                {"id": 9, "name": "Logarithmic Differentiation"},
-                {"id": 10, "name": "Inverse Trig and Hyperbolic Functions"},
-                {"id": 11, "name": "Indeterminate Forms Limits via L'Hospital Rule"},
-                {"id": 12, "name": "Extreme Values, Monotonicity and Concavity"},
-                {"id": 13, "name": "Applied Optimization"},
-                {"id": 14, "name": "Approximation via Differentiation"},
-                {"id": 15, "name": "Antiderivatives"},
-                {"id": 16, "name": "Riemann Sum and Definite Integral"},
-                {"id": 17, "name": "Fundamental Theorem of Calculus"},
-                {"id": 18, "name": "Substitution Rules"},
-                {"id": 19, "name": "Area Between Curves"},
-                {"id": 20, "name": "Volume by Slicing"},
-                {"id": 21, "name": "Volume by Cylindrical Shells"},
-                {"id": 22, "name": "Integration by Parts"},
-                {"id": 23, "name": "Partial Fractions"},
-                {"id": 24, "name": "Improper Integrals"},
-                {"id": 25, "name": "Arc Length"},
-                {"id": 26, "name": "Surface Area"},
-                {"id": 27, "name": "Sequences"},
-                {"id": 28, "name": "Series"},
-                {"id": 29, "name": "Integral Tests"},
-                {"id": 30, "name": "Comparison Tests"},
-                {"id": 31, "name": "Alternating Series"},
-                {"id": 32, "name": "Absolute Convergence, Ratio and Root Test"},
-                {"id": 33, "name": "Power Series"},
-                {"id": 34, "name": "Taylor and MacLaurin Series"},
-                {"id": 35, "name": "Applications of Taylor Polynomials"},
-                {"id": 36, "name": "Separable and Homogeneous ODE"},
-                {"id": 37, "name": "First Order Linear ODE"},
-                {"id": 38, "name": "Second Order Linear ODE"},
-                {"id": 39, "name": "Nonhomogeneous Linear ODE"},
-                {"id": 40, "name": "Series Solutions of ODE"}
+                {"id": 1, "subtopics": "Variables, Functions and Graphs"},
+                {"id": 2, "subtopics": "Limits of Functions"},
+                {"id": 3, "subtopics": "Continuity and IVT"},
+                {"id": 4, "subtopics": "Indeterminate Forms Limits via Algebraic Manipulation"},
+                {"id": 5, "subtopics": "Limits at Infinity and Asymptotes"},
+                {"id": 6, "subtopics": "Limiting Definition of Derivatives"},
+                {"id": 7, "subtopics": "Chain, Product and Quotient Rules"},
+                {"id": 8, "subtopics": "Implicit Differentiation and Inverse Derivatives"},
+                {"id": 9, "subtopics": "Logarithmic Differentiation"},
+                {"id": 10, "subtopics": "Inverse Trig and Hyperbolic Functions"},
+                {"id": 11, "subtopics": "Indeterminate Forms Limits via L'Hospital Rule"},
+                {"id": 12, "subtopics": "Extreme Values, Monotonicity and Concavity"},
+                {"id": 13, "subtopics": "Applied Optimization"},
+                {"id": 14, "subtopics": "Approximation via Differentiation"},
+                {"id": 15, "subtopics": "Antiderivatives"},
+                {"id": 16, "subtopics": "Riemann Sum and Definite Integral"},
+                {"id": 17, "subtopics": "Fundamental Theorem of Calculus"},
+                {"id": 18, "subtopics": "Substitution Rules"},
+                {"id": 19, "subtopics": "Area Between Curves"},
+                {"id": 20, "subtopics": "Volume by Slicing"},
+                {"id": 21, "subtopics": "Volume by Cylindrical Shells"},
+                {"id": 22, "subtopics": "Integration by Parts"},
+                {"id": 23, "subtopics": "Partial Fractions"},
+                {"id": 24, "subtopics": "Improper Integrals"},
+                {"id": 25, "subtopics": "Arc Length"},
+                {"id": 26, "subtopics": "Surface Area"},
+                {"id": 27, "subtopics": "Sequences"},
+                {"id": 28, "subtopics": "Series"},
+                {"id": 29, "subtopics": "Integral Tests"},
+                {"id": 30, "subtopics": "Comparison Tests"},
+                {"id": 31, "subtopics": "Alternating Series"},
+                {"id": 32, "subtopics": "Absolute Convergence, Ratio and Root Test"},
+                {"id": 33, "subtopics": "Power Series"},
+                {"id": 34, "subtopics": "Taylor and MacLaurin Series"},
+                {"id": 35, "subtopics": "Applications of Taylor Polynomials"},
+                {"id": 36, "subtopics": "Separable and Homogeneous ODE"},
+                {"id": 37, "subtopics": "First Order Linear ODE"},
+                {"id": 38, "subtopics": "Second Order Linear ODE"},
+                {"id": 39, "subtopics": "Nonhomogeneous Linear ODE"},
+                {"id": 40, "subtopics": "Series Solutions of ODE"}
             ];
             console.log('Topics loaded:', availableTopics.length);
         }
@@ -2674,7 +2683,7 @@
 
             return topicIds.map(topicId => {
                 const topic = availableTopics.find(t => t.id === topicId);
-                const displayName = topic ? topic.name : `Topic ${topicId}`;
+                const displayName = topic ? (topic.subtopics || topic.name) : `Topic ${topicId}`;
                 return `
                     <div class="topic-tag" onclick="removeTopic(${topicId})">
                         ${displayName}
@@ -5402,7 +5411,16 @@
         async function showReadDatabaseModal() {
             const modal = document.getElementById('readDatabaseModal');
             modal.style.display = 'block';
-            await loadTopicsInModal();
+            
+            // Use the already loaded topics from loadTopics() instead of loading from database
+            if (availableTopics && availableTopics.length > 0) {
+                allTopics = availableTopics;
+                console.log('Using pre-loaded topics:', allTopics.length);
+            } else {
+                // Fallback to loading from database if needed
+                await loadTopicsInModal();
+            }
+            
             await setFilterMode('document'); // Start with document mode
         }
 
@@ -5432,6 +5450,20 @@
                 topicBtn.className = 'btn btn-primary';
                 topicSelector.style.display = 'block';
                 document.getElementById('documentListContainer').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Select a topic above to see relevant problems.</div>';
+                
+                // Make sure topics are loaded and populate the dropdown
+                if (allTopics.length === 0) {
+                    // Topics not loaded yet, load them
+                    await loadTopicsInModal();
+                }
+                
+                // Populate the dropdown with all topics
+                if (allTopics.length > 0) {
+                    const dropdown = document.getElementById('modalTopicDropdown');
+                    populateModalTopicDropdown(allTopics);
+                    // Don't show it yet, wait for user to focus on input
+                    dropdown.style.display = 'none';
+                }
             }
             
             // Reset selections
@@ -5440,7 +5472,7 @@
             selectedTopicInSearch = null;
             
             // Clear topic search
-            const searchInput = document.getElementById('topicSearchInput');
+            const searchInput = document.getElementById('modalTopicSearchInput');
             const selectedDisplay = document.getElementById('selectedTopicDisplay');
             if (searchInput) searchInput.value = '';
             if (selectedDisplay) selectedDisplay.innerHTML = '';
@@ -5453,18 +5485,37 @@
 
         async function loadTopicsInModal() {
             try {
+                console.log('Loading topics from database...');
                 const { data: topics, error } = await supabase
                     .from('topics')
-                    .select('id, name')
+                    .select('*')  // Select all columns
                     .order('id'); // Order by ID to match editor ordering
                 
                 if (error) throw error;
                 
-                allTopics = topics;
-                populateModalTopicDropdown(topics);
+                console.log('Topics loaded:', topics ? topics.length : 0);
+                allTopics = topics || [];
+                
+                // Only populate if we have topics
+                if (allTopics.length > 0) {
+                    populateModalTopicDropdown(allTopics);
+                } else {
+                    console.warn('No topics found in database');
+                    // Show a message in the dropdown
+                    const dropdown = document.getElementById('modalTopicDropdown');
+                    if (dropdown) {
+                        dropdown.innerHTML = '<div style="padding: 10px; color: #666;">No topics found in database</div>';
+                    }
+                }
                 
             } catch (error) {
                 console.error('Error loading topics:', error);
+                allTopics = [];
+                // Show error in dropdown
+                const dropdown = document.getElementById('modalTopicDropdown');
+                if (dropdown) {
+                    dropdown.innerHTML = '<div style="padding: 10px; color: #dc3545;">Error loading topics</div>';
+                }
             }
         }
 
@@ -5472,45 +5523,83 @@
             const dropdown = document.getElementById('modalTopicDropdown');
             dropdown.innerHTML = '';
             
+            console.log('Populating dropdown with', topics.length, 'topics');
+            
             topics.forEach(topic => {
                 const option = document.createElement('div');
                 option.className = 'topic-option';
+                option.style.cssText = 'padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s;';
                 option.dataset.topicId = topic.id;
+                
+                // Add hover effect
+                option.onmouseover = () => {
+                    option.style.backgroundColor = '#f8f9fa';
+                };
+                option.onmouseout = () => {
+                    option.style.backgroundColor = 'white';
+                };
+                
                 option.onmousedown = (e) => {
                     e.preventDefault(); // Prevent blur event
-                    selectTopicFromDropdown(topic.id, topic.name);
+                    selectTopicFromDropdown(topic.id, topic.subtopics || topic.name);
                 };
                 
                 option.innerHTML = `
-                    <span class="topic-option-id">${topic.id}.</span>
-                    <span>${topic.name}</span>
+                    <span class="topic-option-id" style="font-size: 11px; color: #999; margin-right: 8px;">${topic.id}.</span>
+                    <span>${topic.subtopics || topic.name}</span>
                 `;
                 
                 dropdown.appendChild(option);
             });
+            
+            console.log('Dropdown populated, innerHTML length:', dropdown.innerHTML.length);
         }
 
         function filterTopicsInModal() {
             const searchInput = document.getElementById('modalTopicSearchInput');
+            const dropdown = document.getElementById('modalTopicDropdown');
             const query = searchInput.value.toLowerCase();
             
+            console.log('Filtering topics with query:', query, 'allTopics:', allTopics.length);
+            
+            let topicsToShow;
             if (query === '') {
-                populateModalTopicDropdown(allTopics);
-                return;
+                topicsToShow = allTopics;
+            } else {
+                topicsToShow = allTopics.filter(topic => {
+                    const topicName = (topic.subtopics || topic.name || '').toLowerCase();
+                    return topicName.includes(query) || 
+                           topic.id.toString().includes(query);
+                });
             }
             
-            const filteredTopics = allTopics.filter(topic => 
-                topic.name.toLowerCase().includes(query) || 
-                topic.id.toString().includes(query)
-            );
-            
-            populateModalTopicDropdown(filteredTopics);
-            showModalTopicDropdown();
+            if (topicsToShow.length > 0) {
+                populateModalTopicDropdown(topicsToShow);
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.innerHTML = '<div style="padding: 10px; color: #666;">No topics match your search</div>';
+                dropdown.style.display = 'block';
+            }
         }
 
         function showModalTopicDropdown() {
+            console.log('showModalTopicDropdown called, allTopics:', allTopics.length);
             const dropdown = document.getElementById('modalTopicDropdown');
-            dropdown.style.display = 'block';
+            
+            // Always populate the dropdown when showing
+            if (allTopics.length > 0) {
+                populateModalTopicDropdown(allTopics);
+                dropdown.style.display = 'block';
+            } else {
+                // If no topics loaded yet, try loading them
+                console.log('No topics loaded, attempting to load...');
+                loadTopicsInModal().then(() => {
+                    if (allTopics.length > 0) {
+                        populateModalTopicDropdown(allTopics);
+                        dropdown.style.display = 'block';
+                    }
+                });
+            }
         }
 
         function hideModalTopicDropdown() {
@@ -5544,16 +5633,16 @@
             }
             
             try {
-                // Just check if problems exist for this topic
-                const { data: problems, error } = await supabase
-                    .from('problems')
-                    .select('id')
+                // Check if problems exist for this topic using the junction table
+                const { data: problemTopics, error } = await supabase
+                    .from('problem_topics')
+                    .select('problem_id')
                     .eq('topic_id', topicId)
                     .limit(1);
                 
                 if (error) throw error;
                 
-                if (problems && problems.length > 0) {
+                if (problemTopics && problemTopics.length > 0) {
                     selectedTopic = topicId;
                     container.innerHTML = '<div style="text-align: center; padding: 20px; color: #28a745;">✓ Topic selected. Click "Load Problems" to load all related problems.</div>';
                     document.getElementById('loadDocumentBtn').innerHTML = 'Load Problems';
@@ -5993,6 +6082,21 @@
                 document.getElementById('loadDocumentBtn').innerHTML = '⏳ Loading...';
                 document.getElementById('loadDocumentBtn').disabled = true;
 
+                // First get all problem IDs for this topic from the junction table
+                const { data: problemTopics, error: topicsError } = await supabase
+                    .from('problem_topics')
+                    .select('problem_id')
+                    .eq('topic_id', selectedTopic);
+
+                if (topicsError) throw topicsError;
+
+                if (!problemTopics || problemTopics.length === 0) {
+                    showError('No problems found for the selected topic');
+                    return;
+                }
+
+                const problemIdsFromTopic = problemTopics.map(pt => pt.problem_id);
+
                 // Get all problems for this topic with their associated documents
                 const { data: problems, error: problemsError } = await supabase
                     .from('problems')
@@ -6000,7 +6104,7 @@
                         *,
                         documents:document_id(*)
                     `)
-                    .eq('topic_id', selectedTopic)
+                    .in('id', problemIdsFromTopic)
                     .order('problem_id');
 
                 if (problemsError) throw problemsError;
@@ -6022,6 +6126,25 @@
                     
                     if (subError) throw subError;
                     subproblemsData = subs || [];
+                }
+
+                // Get all topics for these problems from the junction table
+                let topicsByProblem = {};
+                if (problemIds.length > 0) {
+                    const { data: allTopicsData, error: allTopicsError } = await supabase
+                        .from('problem_topics')
+                        .select('problem_id, topic_id')
+                        .in('problem_id', problemIds);
+                    
+                    if (!allTopicsError && allTopicsData) {
+                        // Group topics by problem_id
+                        allTopicsData.forEach(pt => {
+                            if (!topicsByProblem[pt.problem_id]) {
+                                topicsByProblem[pt.problem_id] = [];
+                            }
+                            topicsByProblem[pt.problem_id].push(pt.topic_id);
+                        });
+                    }
                 }
 
                 // Get topic name for display
@@ -6066,7 +6189,7 @@
                         },
                         images: [],
                         difficulty: problem.difficulty,
-                        topics: [selectedTopic],
+                        topics: topicsByProblem[problem.id] || [selectedTopic],  // Use all topics for this problem
                         math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
                         reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                         comment: problem.comment,
