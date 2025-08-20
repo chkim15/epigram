@@ -63,7 +63,7 @@ export const PDFWorkerProvider: React.FC<PDFWorkerProviderProps> = ({ children }
         await loadingTask.promise.catch(() => {
           // Expected to fail with invalid PDF, but worker should initialize
         });
-      } catch (error) {
+      } catch {
         // Expected - we just want to trigger worker initialization
       }
 

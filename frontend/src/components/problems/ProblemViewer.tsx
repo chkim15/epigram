@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import { Problem, Subproblem, Document } from "@/types/database";
+import { Subproblem, Document } from "@/types/database";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
 import { Button } from "@/components/ui/button";

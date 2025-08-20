@@ -1,20 +1,30 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
-import { Button } from '@/components/ui/button';
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signIn, signInWithGoogle, isLoading } = useAuthStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for confirmation success or error
+    if (searchParams.get('confirmed') === 'true') {
+      setSuccessMessage('Email confirmed successfully! You can now sign in.');
+    } else if (searchParams.get('error') === 'confirmation_failed') {
+      setError('Email confirmation failed. Please try again or contact support.');
+    }
+  }, [searchParams]);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +60,7 @@ export default function SignInPage() {
             Welcome back
           </h1>
           <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
-            Let's continue your learning journey.
+            Let&apos;s continue your learning journey.
           </p>
 
           {/* Google Sign In */}
@@ -139,6 +149,13 @@ export default function SignInPage() {
               </Link>
             </div>
 
+            {/* Success message */}
+            {successMessage && (
+              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm">
+                {successMessage}
+              </div>
+            )}
+
             {/* Error message */}
             {error && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
@@ -158,7 +175,7 @@ export default function SignInPage() {
 
           {/* Sign up link */}
           <p className="mt-6 text-center text-gray-600 dark:text-gray-400">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link
               href="/auth/signup"
               className="text-gray-900 dark:text-white font-medium hover:underline"

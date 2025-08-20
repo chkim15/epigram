@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Problem, Topic, Document } from '@/types/database';
+import { Problem, Document } from '@/types/database';
 
 interface ProblemStore {
   // Current state

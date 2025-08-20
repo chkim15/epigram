@@ -13,10 +13,8 @@ export default function SignUpPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<React.ReactNode | null>(null);
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,11 +25,6 @@ export default function SignUpPage() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
@@ -39,12 +32,29 @@ export default function SignUpPage() {
 
     const { error } = await signUp(email, password, fullName);
     if (error) {
-      setError(error.message);
+      // Handle existing account error specially
+      if (error.message.includes('account with this email already exists')) {
+        setError(
+          <>
+            An account with this email already exists.
+            <br />
+            Try signing in with{' '}
+            <button 
+              onClick={handleGoogleSignIn}
+              className="underline font-medium text-current hover:no-underline cursor-pointer"
+              type="button"
+            >
+              Google
+            </button>
+            .
+          </>
+        );
+      } else {
+        setError(error.message);
+      }
     } else {
-      setSuccess(true);
-      setTimeout(() => {
-        router.push('/app');
-      }, 2000);
+      // Redirect to email verification page with the user's email
+      router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
     }
   };
 
@@ -155,23 +165,6 @@ export default function SignUpPage() {
               </button>
             </div>
 
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
-                disabled={isLoading}
-              />
-            </div>
-
-            {/* Success message */}
-            {success && (
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm">
-                Account created successfully! Redirecting...
-              </div>
-            )}
 
             {/* Error message */}
             {error && (

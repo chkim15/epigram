@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User } from '@supabase/supabase-js';
+import { User, AuthError } from '@supabase/supabase-js';
 import { auth } from '@/lib/auth/client';
 
 interface AuthState {
@@ -10,11 +10,12 @@ interface AuthState {
   // Actions
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: AuthError | { message: string; code: string } | null }>;
   signOut: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  deleteAccount: () => Promise<{ error: { message: string } | null }>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -50,7 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   signUp: async (email, password, fullName) => {
     set({ isLoading: true });
     const { data, error } = await auth.signUpWithEmail(email, password, fullName);
-    if (!error && data.user) {
+    if (!error && data && data.user) {
       set({ user: data.user, isAuthenticated: true });
     }
     set({ isLoading: false });
@@ -71,5 +72,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       isAuthenticated: !!user,
       isLoading: false 
     });
+  },
+
+  deleteAccount: async () => {
+    set({ isLoading: true });
+    const { error } = await auth.deleteAccount();
+    if (!error) {
+      // Clear user state after successful deletion
+      set({ user: null, isAuthenticated: false });
+    }
+    set({ isLoading: false });
+    return { error };
   },
 }));

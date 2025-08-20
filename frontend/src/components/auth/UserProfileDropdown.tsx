@@ -4,9 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Settings, CreditCard, Moon, LogOut, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import { User } from '@supabase/supabase-js';
+import SettingsModal from '@/components/settings/SettingsModal';
 
 interface UserProfileDropdownProps {
-  user: any;
+  user: User;
 }
 
 export default function UserProfileDropdown({ user }: UserProfileDropdownProps) {
@@ -14,6 +16,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   const { signOut } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get user initials for avatar
@@ -33,12 +36,10 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
     return user?.user_metadata?.full_name || user?.email || 'User';
   };
 
-  // Get avatar URL - check both user_metadata and raw_user_meta_data
+  // Get avatar URL - check user_metadata for avatar
   const getAvatarUrl = () => {
     return user?.user_metadata?.avatar_url || 
            user?.user_metadata?.picture || 
-           user?.raw_user_meta_data?.avatar_url ||
-           user?.raw_user_meta_data?.picture ||
            null;
   };
 
@@ -63,7 +64,12 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/auth/signin');
+    router.push('/app');
+  };
+
+  const handleSettingsClick = () => {
+    setIsSettingsOpen(true);
+    setIsOpen(false); // Close dropdown when opening settings
   };
 
   return (
@@ -99,10 +105,10 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
       {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
-          {/* Settings - Disabled */}
+          {/* Settings */}
           <button
-            disabled
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-gray-400 dark:text-gray-500 cursor-not-allowed text-sm"
+            onClick={handleSettingsClick}
+            className="w-full flex items-center gap-2 px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
           >
             <Settings className="w-3.5 h-3.5" />
             <span>Settings</span>
@@ -145,6 +151,12 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
           </button>
         </div>
       )}
+
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
     </div>
   );
 }

@@ -15,14 +15,14 @@ import { useAuthStore } from "@/stores/authStore";
 
 export default function AppPage() {
   const router = useRouter();
-  const { user, isAuthenticated, checkAuth, isLoading } = useAuthStore();
+  const { user, isAuthenticated, checkAuth } = useAuthStore();
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
   return (
     <div className="w-full h-screen flex flex-col">

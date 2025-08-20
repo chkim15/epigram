@@ -9,7 +9,6 @@ interface ResizeHandleProps {
 }
 
 export default function ResizeHandle({ onMouseDown, className }: ResizeHandleProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -34,8 +33,6 @@ export default function ResizeHandle({ onMouseDown, className }: ResizeHandlePro
         className
       )}
       onMouseDown={handleMouseDown}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       
       {/* Dragging indicator - removed since we keep the same gray color */}
