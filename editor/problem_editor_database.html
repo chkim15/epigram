@@ -1941,8 +1941,8 @@
                     if (problem.topics && Array.isArray(problem.topics)) {
                         problem.topics = problem.topics.map(topic => {
                             if (typeof topic === 'string') {
-                                // Find topic by name and convert to ID
-                                const foundTopic = availableTopics.find(t => t.name === topic);
+                                // Find topic by name (subtopics field) and convert to ID
+                                const foundTopic = availableTopics.find(t => t.subtopics === topic);
                                 return foundTopic ? foundTopic.id : topic;
                             }
                             return topic; // Already an ID
@@ -2683,7 +2683,7 @@
 
             return topicIds.map(topicId => {
                 const topic = availableTopics.find(t => t.id === topicId);
-                const displayName = topic ? (topic.subtopics || topic.name) : `Topic ${topicId}`;
+                const displayName = topic ? (topic.subtopics || `Topic ${topicId}`) : `Topic ${topicId}`;
                 return `
                     <div class="topic-tag" onclick="removeTopic(${topicId})">
                         ${displayName}
@@ -2898,6 +2898,7 @@
             const searchTerm = searchInput.value.toLowerCase();
             console.log('Search term:', searchTerm);
             console.log('Available topics:', availableTopics.length);
+            console.log('First topic structure:', availableTopics.length > 0 ? availableTopics[0] : 'No topics');
             
             // Get current topic IDs, default to empty array if no problem selected
             const currentTopicIds = (currentProblemIndex >= 0 && problemsData && problemsData.problems) 
@@ -2913,7 +2914,7 @@
             } else {
                 // Filter by search term
                 filteredTopics = availableTopics.filter(topic => 
-                    topic.name.toLowerCase().includes(searchTerm) && 
+                    (topic.subtopics || '').toLowerCase().includes(searchTerm) && 
                     !currentTopicIds.includes(topic.id)
                 );
             }
@@ -2922,7 +2923,7 @@
             
             dropdown.innerHTML = filteredTopics.map(topic => `
                 <div class="topics-dropdown-item" onmousedown="addTopicById(${topic.id})">
-                    ${topic.name}
+                    ${topic.subtopics || `Topic ${topic.id}`}
                 </div>
             `).join('');
             
@@ -2933,6 +2934,13 @@
 
         function showTopicsDropdown() {
             console.log('showTopicsDropdown called');
+            
+            // Ensure topics are loaded
+            if (availableTopics.length === 0) {
+                console.log('Topics not loaded, loading now...');
+                loadTopics();
+            }
+            
             const dropdown = document.getElementById('topicsDropdown');
             if (!dropdown) {
                 console.log('dropdown element not found');
@@ -5541,12 +5549,12 @@
                 
                 option.onmousedown = (e) => {
                     e.preventDefault(); // Prevent blur event
-                    selectTopicFromDropdown(topic.id, topic.subtopics || topic.name);
+                    selectTopicFromDropdown(topic.id, topic.subtopics || `Topic ${topic.id}`);
                 };
                 
                 option.innerHTML = `
                     <span class="topic-option-id" style="font-size: 11px; color: #999; margin-right: 8px;">${topic.id}.</span>
-                    <span>${topic.subtopics || topic.name}</span>
+                    <span>${topic.subtopics || `Topic ${topic.id}`}</span>
                 `;
                 
                 dropdown.appendChild(option);
@@ -5567,7 +5575,7 @@
                 topicsToShow = allTopics;
             } else {
                 topicsToShow = allTopics.filter(topic => {
-                    const topicName = (topic.subtopics || topic.name || '').toLowerCase();
+                    const topicName = (topic.subtopics || '').toLowerCase();
                     return topicName.includes(query) || 
                            topic.id.toString().includes(query);
                 });
@@ -6150,11 +6158,11 @@
                 // Get topic name for display
                 const { data: topicData, error: topicError } = await supabase
                     .from('topics')
-                    .select('name')
+                    .select('subtopics')
                     .eq('id', selectedTopic)
                     .single();
                 
-                const topicName = topicData?.name || 'Unknown Topic';
+                const topicName = topicData?.subtopics || 'Unknown Topic';
 
                 // Transform to JSON format
                 const transformedProblems = problems.map(problem => {
@@ -6661,8 +6669,8 @@
                     if (problem.topics && Array.isArray(problem.topics)) {
                         problem.topics = problem.topics.map(topic => {
                             if (typeof topic === 'string') {
-                                // Find topic by name and convert to ID
-                                const foundTopic = availableTopics.find(t => t.name === topic);
+                                // Find topic by name (subtopics field) and convert to ID
+                                const foundTopic = availableTopics.find(t => t.subtopics === topic);
                                 return foundTopic ? foundTopic.id : topic;
                             }
                             return topic;
