@@ -69,7 +69,8 @@ export default function ChatSidebar({}: ChatSidebarProps) {
   const llmModels: LLMModel[] = [
     { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
     { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
-    { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+    { id: 'gpt-5-mini', name: 'GPT-5 Mini' },
+    { id: 'gpt-5', name: 'GPT-5' },
   ];
   
   // Get the display name for the selected model
@@ -473,7 +474,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
                         <SelectItem 
                           key={model.id} 
                           value={model.id}
-                          className="text-xs hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700"
+                          className="text-xs hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 cursor-pointer"
                         >
                           <div className="flex items-center justify-between w-full">
                             <span>{model.name}</span>

@@ -4,9 +4,9 @@ import OpenAI from 'openai';
 
 // Initialize AI clients
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+
+// Configure OpenAI client - supports both Azure and regular OpenAI
+let openai: OpenAI | null = null;
 
 
 // Types
@@ -69,8 +69,8 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    if (!process.env.OPENAI_API_KEY) {
-      console.error('OPENAI_API_KEY is not set');
+    if (!process.env.AZURE_OPENAI_API_KEY && !process.env.OPENAI_API_KEY) {
+      console.error('Neither AZURE_OPENAI_API_KEY nor OPENAI_API_KEY is set');
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },
         { status: 500 }
@@ -99,7 +99,8 @@ export async function POST(req: NextRequest) {
       case 'gemini-2.5-pro':
             return await handleGeminiRequest(message, conversationHistory, systemPrompt, model, image);
       
-      case 'gpt-4o-mini':
+      case 'gpt-5':
+      case 'gpt-5-mini':
             return await handleOpenAIRequest(message, conversationHistory, systemPrompt, model, image);
       
       default:
@@ -250,16 +251,58 @@ async function handleOpenAIRequest(
 ): Promise<Response> {
   try {
     console.log('OpenAI API request starting...');
-    console.log('API Key exists:', !!process.env.OPENAI_API_KEY);
-    console.log('API Key length:', process.env.OPENAI_API_KEY?.length);
+    const apiKey = process.env.AZURE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    const isAzure = !!process.env.AZURE_OPENAI_API_KEY;
+    console.log('Using Azure OpenAI:', isAzure);
+    console.log('API Key exists:', !!apiKey);
+    console.log('API Key length:', apiKey?.length);
+    
+    // Configure Azure OpenAI client based on the model
+    if (isAzure && process.env.AZURE_OPENAI_ENDPOINT) {
+      // Determine which deployment to use based on the model
+      let deploymentName: string;
+      if (model === 'gpt-5') {
+        deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5 || 'gpt-5-chat';
+      } else {
+        deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-5-mini';
+      }
+      
+      const azureBaseURL = `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${deploymentName}`;
+      console.log('Azure OpenAI Configuration:', {
+        endpoint: process.env.AZURE_OPENAI_ENDPOINT,
+        deployment: deploymentName,
+        model: model,
+        baseURL: azureBaseURL,
+        fullChatURL: `${azureBaseURL}/chat/completions?api-version=2025-04-01-preview`,
+      });
+      
+      openai = new OpenAI({
+        apiKey: process.env.AZURE_OPENAI_API_KEY!,
+        baseURL: azureBaseURL,
+        defaultQuery: { 'api-version': '2025-04-01-preview' },
+        defaultHeaders: { 
+          'api-key': process.env.AZURE_OPENAI_API_KEY!,
+        },
+      });
+    } else if (process.env.OPENAI_API_KEY) {
+      // Regular OpenAI configuration
+      openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+    } else {
+      throw new Error('No OpenAI API key configured');
+    }
     
     // Map our model names to OpenAI model names
+    // For Azure, the model is determined by the deployment name in the URL
+    // But we still need to pass a model parameter (it will be ignored)
     const modelMap: Record<string, string> = {
-      'gpt-4o-mini': 'gpt-4o-mini',
+      'gpt-5': 'gpt-5-chat',
+      'gpt-5-mini': 'gpt-5-mini',
     };
 
-    const openaiModel = modelMap[model] || 'gpt-4o-mini';
-    console.log('Using OpenAI model:', openaiModel);
+    const openaiModel = isAzure ? modelMap[model] || 'gpt-5-mini' : (modelMap[model] || 'gpt-5-mini');
+    console.log('Using model:', openaiModel, '(Azure uses deployment from URL)');
 
     // Build messages array for OpenAI with proper types
     const messages: Array<{
@@ -317,7 +360,8 @@ async function handleOpenAIRequest(
         messages: messages as any,
         max_completion_tokens: 4000, // Proper response length
         stream: true,
-        temperature: 0.7,
+        // GPT-5 models may only support default temperature of 1
+        ...(model !== 'gpt-5-mini' && model !== 'gpt-5' && { temperature: 0.7 }),
       });
 
       console.log('OpenAI streaming API call successful');
@@ -369,7 +413,8 @@ async function handleOpenAIRequest(
           messages: messages as any,
           max_completion_tokens: 4000, // Proper response length
           stream: false,
-          temperature: 0.7,
+          // GPT-5 models may only support default temperature of 1
+          ...(model !== 'gpt-5-mini' && model !== 'gpt-5' && { temperature: 0.7 }),
         });
 
         console.log('OpenAI non-streaming API call successful');

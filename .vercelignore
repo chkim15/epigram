@@ -1,0 +1,6 @@
+# Ignore everything except when manually deploying
+# This effectively disables auto-deploy from git pushes
+# Remove this file or comment out to re-enable auto-deploy
+
+# Uncomment the line below to disable all automatic builds
+# *

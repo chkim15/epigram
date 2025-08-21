@@ -1189,10 +1189,46 @@
             content: "✓";
             margin-right: 4px;
         }
+        
+        .document-status.excluded {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .document-status.excluded::before {
+            content: "✗";
+            margin-right: 4px;
+        }
 
         .document-details {
             font-size: 14px;
             color: #666;
+        }
+        
+        .document-exclude-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .document-exclude-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+        
+        .document-exclude-btn.include {
+            background: #28a745;
+        }
+        
+        .document-exclude-btn.include:hover {
+            background: #218838;
         }
 
         .modal-footer {
@@ -5758,6 +5794,9 @@
                     const documentsWithCompletion = documents.map(doc => {
                         const problems = problemsByDocument[doc.id] || [];
                         
+                        // Check if all problems are excluded
+                        const allExcluded = problems.length > 0 && problems.every(p => p.included === false);
+                        
                         // Only count included problems
                         const includedProblems = problems.filter(p => p.included !== false);
                         let completedCount = 0;
@@ -5795,29 +5834,51 @@
                         }
                         
                         const isComplete = totalCount > 0 && completedCount === totalCount;
-                        return { ...doc, isComplete, completedCount, totalCount };
+                        return { ...doc, isComplete, completedCount, totalCount, allExcluded, documentUuid: doc.id };
                     });
                     
-                    // Sort documents: incomplete first, then complete
+                    // Sort documents: incomplete first, then complete, then excluded
                     documentsWithCompletion.sort((a, b) => {
+                        // Excluded documents go to the bottom
+                        if (a.allExcluded !== b.allExcluded) {
+                            return a.allExcluded ? 1 : -1;
+                        }
+                        
+                        // Among non-excluded, sort by completion status
                         if (a.isComplete === b.isComplete) {
                             // If both have same completion status, sort by creation date (newest first)
                             return new Date(b.created_at) - new Date(a.created_at);
                         }
-                        // Incomplete documents come first
+                        // Incomplete documents come before complete ones
                         return a.isComplete ? 1 : -1;
                     });
                     
                     let html = '<div class="document-list">';
                     
                     documentsWithCompletion.forEach(doc => {
-                        const statusClass = doc.isComplete ? 'complete' : '';
-                        const statusText = doc.isComplete ? '' : `${doc.completedCount}/${doc.totalCount}`;
+                        let statusClass = '';
+                        let statusText = '';
+                        
+                        if (doc.allExcluded) {
+                            statusClass = 'excluded';
+                            statusText = '';
+                        } else if (doc.isComplete) {
+                            statusClass = 'complete';
+                            statusText = '';
+                        } else {
+                            statusText = `${doc.completedCount}/${doc.totalCount}`;
+                        }
+                        
+                        const excludeButtonText = doc.allExcluded ? 'Include' : 'Exclude';
+                        const excludeButtonClass = doc.allExcluded ? 'document-exclude-btn include' : 'document-exclude-btn';
                         
                         html += `
-                            <div class="document-item" data-document-id="${doc.document_id}" onclick="selectDocument('${doc.document_id}')">
-                                <div>
-                                    <div class="document-title">${doc.document_id}</div>
+                            <div class="document-item" data-document-id="${doc.document_id}" data-document-uuid="${doc.documentUuid}" onclick="selectDocument('${doc.document_id}')">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center;">
+                                        <span class="document-title">${doc.document_id}</span>
+                                        <button class="${excludeButtonClass}" onclick="event.stopPropagation(); toggleDocumentExclusion('${doc.documentUuid}', ${doc.allExcluded})">${excludeButtonText}</button>
+                                    </div>
                                     <div class="document-details">${doc.school || ''} ${doc.course || ''} ${doc.term || ''} ${doc.year || ''}</div>
                                 </div>
                                 <div class="document-status ${statusClass}">${statusText}</div>
@@ -5868,6 +5929,38 @@
             
             selectedDocumentId = null; // Clear document selection
             document.getElementById('loadDocumentBtn').disabled = false;
+        }
+
+        async function toggleDocumentExclusion(documentUuid, currentlyExcluded) {
+            try {
+                // Check admin password before proceeding
+                if (!checkAdminPassword()) {
+                    return;
+                }
+                
+                // Update all problems in this document
+                const newIncludedValue = currentlyExcluded ? true : false;
+                
+                const { error } = await supabase
+                    .from('problems')
+                    .update({ included: newIncludedValue })
+                    .eq('document_id', documentUuid);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                // Show success message
+                const action = currentlyExcluded ? 'included' : 'excluded';
+                showSuccess(`All problems in document have been ${action}`);
+                
+                // Reload the document list to reflect changes
+                await loadDocumentList();
+                
+            } catch (error) {
+                console.error('Error toggling document exclusion:', error);
+                showError(`Failed to update document: ${error.message}`);
+            }
         }
 
         async function loadSelectedItem() {
