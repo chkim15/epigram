@@ -2516,11 +2516,19 @@
                         solutions = Array.isArray(problem.solution.text) ? problem.solution.text : [problem.solution.text];
                     }
                 }
-                // Add single solution element
+                // Add solution elements (main solution starts from index 1)
                 if (problem.solution && problem.solution.text) {
-                    const elem = document.getElementById(`solutionRendered_single`);
+                    const elem = document.getElementById(`solutionRendered_1`);
                     if (elem) elementsToRender.push(elem);
                 }
+                
+                // Add additional solution elements if they exist
+                const problemId = problem.id;
+                const additionalSols = additionalSolutions[problemId] || [];
+                additionalSols.forEach((_, index) => {
+                    const elem = document.getElementById(`solutionRendered_${index + 2}`); // Start from 2
+                    if (elem) elementsToRender.push(elem);
+                });
                 
                 // Add hint element (single)
                 if (problem.hint) {
