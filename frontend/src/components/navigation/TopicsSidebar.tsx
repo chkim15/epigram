@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Loader2, ChevronDown, ChevronRight, ChevronsLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface Course {
   id: string;
@@ -188,12 +189,12 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     <div className="flex h-full flex-col min-h-0">
       {/* Header */}
       <div className="p-4 h-[73px] flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-2">
+        <Link href="/app" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
           <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8" />
           <h2 className="font-bold text-xl text-gray-900 dark:text-white">
             Epigram
           </h2>
-        </div>
+        </Link>
         {onToggleSidebar && (
           <Button
             variant="ghost"

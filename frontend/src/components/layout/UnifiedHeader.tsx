@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface UnifiedHeaderProps {
   className?: string;
@@ -29,10 +30,10 @@ export default function UnifiedHeader({
           >
             <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
           </button>
-          <div className="flex items-center gap-2">
+          <Link href="/app" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
             <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8" />
             <h1 className="font-bold text-xl text-gray-900 dark:text-white">Epigram</h1>
-          </div>
+          </Link>
         </>
       )}
       {/* Flexible spacer to push right-side actions */}

@@ -1467,6 +1467,8 @@
         let problemsData = null;
         let currentProblemIndex = -1;
         let originalData = null;
+        let originalAdditionalSolutions = {};  // Store original state of additional solutions
+        let originalAdditionalSubproblemSolutions = {};  // Store original state of additional subproblem solutions
         let imageBasePath = '';
         let currentDocumentId = null; // Track the current document ID for problem generation
         
@@ -1546,6 +1548,51 @@
             return { data };
         }
         
+        // Helper function to insert solutions to the solutions table
+        async function insertSolutionsWorking(solutions, problemId, subproblemId = null) {
+            if (!solutions || solutions.length === 0) {
+                return;
+            }
+            
+            const solutionData = solutions.map((solutionText, index) => ({
+                problem_id: problemId,
+                subproblem_id: subproblemId,
+                solution_text: solutionText,
+                solution_order: index
+            }));
+            
+            // Delete existing solutions first (for update case)
+            if (problemId) {
+                const { error: deleteError } = await supabase
+                    .from('solutions')
+                    .delete()
+                    .eq('problem_id', problemId);
+                
+                if (deleteError) {
+                    console.error('Failed to delete existing solutions:', deleteError);
+                }
+            } else if (subproblemId) {
+                const { error: deleteError } = await supabase
+                    .from('solutions')
+                    .delete()
+                    .eq('subproblem_id', subproblemId);
+                
+                if (deleteError) {
+                    console.error('Failed to delete existing subproblem solutions:', deleteError);
+                }
+            }
+            
+            // Insert new solutions
+            const { data, error } = await supabase
+                .from('solutions')
+                .insert(solutionData)
+                .select();
+            
+            if (error) {
+                console.error('Failed to insert solutions:', error);
+            }
+        }
+        
         async function insertProblemWorking(problem, documentUuid) {
             // Prepare the payload without topic_ids (since we'll use junction table)
             const payload = {
@@ -1554,7 +1601,7 @@
                 problem_text: problem.problem_text || null,
                 correct_answer: problem.correct_answer || null,
                 hint: problem.hint || null,
-                solution_text: problem.solution && problem.solution.text ? problem.solution.text : null,
+                // solution_text: problem.solution && problem.solution.text ? problem.solution.text : null,  // NO LONGER INSERT - use solutions table
                 math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
                 reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                 difficulty: problem.difficulty || null,
@@ -1596,6 +1643,32 @@
                 }
             }
             
+            // Handle multiple solutions if available
+            if (data && data.length > 0) {
+                const problemUuid = data[0].id;
+                
+                // Prepare solutions array (primary solution + additional solutions)
+                const allSolutions = [];
+                
+                // Add primary solution
+                if (problem.solution && problem.solution.text) {
+                    allSolutions.push(problem.solution.text);
+                }
+                
+                // Add additional solutions if they exist
+                const additionalSols = additionalSolutions[problem.id];
+                if (additionalSols && additionalSols.length > 0) {
+                    const validSols = additionalSols.filter(sol => sol && sol.trim());
+                    allSolutions.push(...validSols);
+                }
+                
+                // Insert all solutions to the solutions table
+                if (allSolutions.length > 0) {
+                    // FIXED: Use problemUuid (the actual UUID) instead of problem.id (string identifier)
+                    await insertSolutionsWorking(allSolutions, problemUuid, null);
+                }
+            }
+            
             return { data };
         }
 
@@ -1608,7 +1681,7 @@
                     problem_text: subproblem.problem_text || null,
                     correct_answer: subproblem.correct_answer || null,
                     hint: subproblem.hint || null,
-                    solution_text: subproblem.solution && subproblem.solution.text ? subproblem.solution.text : null,
+                    // solution_text: subproblem.solution && subproblem.solution.text ? subproblem.solution.text : null,  // NO LONGER INSERT - use solutions table
                     comment: subproblem.comment || null
                 });
             }
@@ -1620,6 +1693,35 @@
                     .select();
                 
                 if (error) throw new Error(`Subproblems insert failed: ${error.message}`);
+                
+                // Handle multiple solutions for each subproblem
+                if (data && data.length > 0) {
+                    for (const insertedSubproblem of data) {
+                        const subproblemKey = insertedSubproblem.key;
+                        const subproblemUuid = insertedSubproblem.id;
+                        const originalSubproblem = subproblems[subproblemKey];
+                        
+                        // Prepare solutions array (primary solution + additional solutions)
+                        const allSolutions = [];
+                        
+                        // Add primary solution
+                        if (originalSubproblem.solution && originalSubproblem.solution.text) {
+                            allSolutions.push(originalSubproblem.solution.text);
+                        }
+                        
+                        // Add additional solutions if they exist
+                        const additionalSols = additionalSubproblemSolutions[subproblemKey];
+                        if (additionalSols && additionalSols.length > 0) {
+                            allSolutions.push(...additionalSols.filter(sol => sol && sol.trim()));
+                        }
+                        
+                        // Insert all solutions to the solutions table
+                        if (allSolutions.length > 0) {
+                            await insertSolutionsWorking(allSolutions, null, subproblemUuid);
+                        }
+                    }
+                }
+                
                 return { data };
             }
             return { data: [] };
@@ -1742,7 +1844,7 @@
                                 problem_text: problem.problem_text,
                                 correct_answer: problem.correct_answer,
                                 hint: problem.hint,
-                                solution_text: problem.solution?.text,
+                                // solution_text: problem.solution?.text,  // NO LONGER UPDATE solution_text - use solutions table instead
                                 math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
                                 reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                                 difficulty: problem.difficulty,
@@ -1796,27 +1898,64 @@
                                     }
                                 }
                                 
-                                // 2. Update subproblems - ALWAYS delete and re-insert
-                                console.log(`Updating subproblems for problem ${problem.id}`);
+                                // 2. Update solutions table (ONLY place where solutions are stored now)
+                                // Prepare all solutions
+                                const allSolutions = [];
+                                
+                                // Add primary solution
+                                if (problem.solution && problem.solution.text) {
+                                    allSolutions.push(problem.solution.text);
+                                }
+                                
+                                // Add additional solutions
+                                const additionalSols = additionalSolutions[problem.id];
+                                if (additionalSols && additionalSols.length > 0) {
+                                    allSolutions.push(...additionalSols.filter(sol => sol && sol.trim()));
+                                }
+                                
+                                // Delete existing solutions and insert new ones
+                                const { data: deletedSolutionData, error: deleteSolutionError } = await supabase
+                                    .from('solutions')
+                                    .delete()
+                                    .eq('problem_id', problemUuid)
+                                    .select();
+                                
+                                if (deleteSolutionError) {
+                                    console.error('Failed to delete existing solutions:', deleteSolutionError);
+                                }
+                                
+                                if (allSolutions.length > 0) {
+                                    const solutionInserts = allSolutions.map((solutionText, index) => ({
+                                        problem_id: problemUuid,
+                                        solution_text: solutionText,
+                                        solution_order: index
+                                    }));
+                                    
+                                    const { data: solutionData, error: solutionsError } = await supabase
+                                        .from('solutions')
+                                        .insert(solutionInserts)
+                                        .select();
+                                    
+                                    if (solutionsError) {
+                                        console.error('Failed to update solutions:', solutionsError);
+                                    }
+                                }
+                                
+                                // 3. Update subproblems - ALWAYS delete and re-insert
                                 
                                 // Always delete ALL existing subproblems first
-                                const { error: deleteError } = await supabase
+                                const { error: deleteSubproblemError } = await supabase
                                     .from('subproblems')
                                     .delete()
                                     .eq('problem_id', problemUuid);
                                 
-                                if (deleteError) {
-                                    console.error(`Failed to delete subproblems for problem ${problem.id}:`, deleteError);
-                                } else {
-                                    console.log(`Deleted existing subproblems for problem ${problem.id}`);
+                                if (deleteSubproblemError) {
+                                    console.error(`Failed to delete subproblems for problem ${problem.id}:`, deleteSubproblemError);
                                 }
                                 
                                 // Then insert new ones if they exist
                                 if (problem.subproblems && Object.keys(problem.subproblems).length > 0) {
-                                    console.log(`Inserting ${Object.keys(problem.subproblems).length} subproblems for problem ${problem.id}`);
                                     await insertSubproblemsWorking(problem.subproblems, problemUuid);
-                                } else {
-                                    console.log(`No subproblems to insert for problem ${problem.id}`);
                                 }
                             } else {
                                 console.error(`Failed to get problem UUID for ${problem.id}:`, problemError);
@@ -1834,6 +1973,8 @@
                 // Update originalData to reflect the new state
                 if (successfulUpdates > 0) {
                     originalData = JSON.parse(JSON.stringify(problemsData));
+                    originalAdditionalSolutions = JSON.parse(JSON.stringify(additionalSolutions));
+                    originalAdditionalSubproblemSolutions = JSON.parse(JSON.stringify(additionalSubproblemSolutions));
                     
                     // Save to localStorage
                     localStorage.setItem('problemsData', JSON.stringify(problemsData));
@@ -4587,8 +4728,15 @@
             }
         }
 
-        // NEW: Single-value solution functions
+        // Store additional solutions in memory (beyond the first one)
+        let additionalSolutions = {};  // Key: problem_id, Value: array of solutions
+        
+        // NEW: Multiple solutions support
         function generateSolutionSection(solution) {
+            const problem = problemsData.problems[currentProblemIndex];
+            const problemId = problem?.id;
+            const currentAdditionalSolutions = additionalSolutions[problemId] || [];
+            
             let solutionText = '';
             if (solution) {
                 if (typeof solution === 'string') {
@@ -4598,72 +4746,191 @@
                 }
             }
             
+            // Generate HTML for additional solutions
+            let additionalSolutionsHTML = '';
+            currentAdditionalSolutions.forEach((sol, index) => {
+                additionalSolutionsHTML += generateAdditionalSolution(sol, index + 2); // Start from solution 2
+            });
+            
             return `
-                <div class="solution-item" style="margin-bottom: 15px; position: relative;">
-                    <div class="solution-display" id="solutionDisplay_single" style="${solutionText ? '' : 'display: none;'}">
-                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSingleSolutionEdit()">
-                            <div id="solutionRendered_single">${preprocessLatexLists(solutionText)}</div>
+                <div class="solutions-container">
+                    <!-- Solution 1 (Primary - synced with solution_text field) -->
+                    <div class="solution-item" style="margin-bottom: 15px; position: relative; border: 2px solid #e9ecef; border-radius: 8px; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <label style="font-weight: 600; color: #495057;">Solution 1</label>
                         </div>
-                    </div>
-                    <div class="solution-edit" id="solutionEdit_single" style="${solutionText ? 'display: none;' : ''}">
-                        <textarea class="form-control" id="solutionTextarea_single" onblur="saveSingleSolutionEdit()" style="width: 100%; min-height: 100px; resize: vertical; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${solutionText ? solutionText.replace(/"/g, '&quot;') : ''}</textarea>
-                    </div>
-                    
-                    <!-- Solution Image Upload Section (Always Visible) -->
-                    <div class="solution-image-upload" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-                        <label style="font-size: 12px; color: #6c757d; margin-bottom: 5px; display: block;">Solution Images</label>
-                        <input type="file" id="solutionImageUpload" multiple accept="image/*" style="display: none;" onchange="handleSolutionImageUpload(event)">
-                        <button type="button" class="btn btn-sm" onclick="triggerSolutionImageUpload()" style="background: #17a2b8; color: white; font-size: 12px; padding: 6px 12px;">
-                            📷 Upload Images
+                        <div class="solution-display" id="solutionDisplay_1" style="${solutionText ? '' : 'display: none;'}">
+                            <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSolutionEdit(1)">
+                                <div id="solutionRendered_1">${preprocessLatexLists(solutionText)}</div>
+                            </div>
+                        </div>
+                        <div class="solution-edit" id="solutionEdit_1" style="${solutionText ? 'display: none;' : ''}">
+                            <textarea class="form-control" id="solutionTextarea_1" onblur="saveSolutionEdit(1)" style="width: 100%; min-height: 100px; resize: vertical; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${solutionText ? solutionText.replace(/"/g, '&quot;') : ''}</textarea>
+                        </div>
+                        
+                        <!-- Additional Solutions (within the same container) -->
+                        <div id="additionalSolutionsContainer">
+                            ${additionalSolutionsHTML}
+                        </div>
+                        
+                        <!-- Add Solution Button (positioned after all solutions) -->
+                        <button type="button" class="btn btn-success" onclick="addNewSolution()" style="width: auto; padding: 8px 16px; font-size: 13px; margin-top: 15px; margin-bottom: 15px;">
+                            + Add Solution
                         </button>
-                        <div id="solutionImagePreview" style="margin-top: 10px;">
-                            ${generateSolutionImagePreview(solution)}
+                        
+                        <!-- Solution Image Upload Section (Always Visible - moved to bottom) -->
+                        <div class="solution-image-upload" style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                            <label style="font-size: 12px; color: #6c757d; margin-bottom: 5px; display: block;">Images</label>
+                            <input type="file" id="solutionImageUpload" multiple accept="image/*" style="display: none;" onchange="handleSolutionImageUpload(event)">
+                            <button type="button" class="btn btn-sm" onclick="triggerSolutionImageUpload()" style="background: #17a2b8; color: white; font-size: 12px; padding: 6px 12px;">
+                                📷 Upload Images
+                            </button>
+                            <div id="solutionImagePreview" style="margin-top: 10px;">
+                                ${generateSolutionImagePreview(solution)}
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
         }
-
-        function toggleSingleSolutionEdit() {
-            const display = document.getElementById('solutionDisplay_single');
-            const edit = document.getElementById('solutionEdit_single');
-            const textarea = document.getElementById('solutionTextarea_single');
-            
-            display.style.display = 'none';
-            edit.style.display = 'block';
-            textarea.focus();
+        
+        function generateAdditionalSolution(solutionText, solutionNumber) {
+            return `
+                <div class="solution-item" id="solution_${solutionNumber}" style="margin-bottom: 15px; position: relative; border: 2px solid #e9ecef; border-radius: 8px; padding: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <label style="font-weight: 600; color: #495057;">Solution ${solutionNumber}</label>
+                        <button type="button" class="btn btn-sm" onclick="removeSolution(${solutionNumber})" style="background: #dc3545; color: white; font-size: 12px; padding: 4px 8px;">
+                            Remove
+                        </button>
+                    </div>
+                    <div class="solution-display" id="solutionDisplay_${solutionNumber}" style="${solutionText ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSolutionEdit(${solutionNumber})">
+                            <div id="solutionRendered_${solutionNumber}">${preprocessLatexLists(solutionText)}</div>
+                        </div>
+                    </div>
+                    <div class="solution-edit" id="solutionEdit_${solutionNumber}" style="${solutionText ? 'display: none;' : ''}">
+                        <textarea class="form-control" id="solutionTextarea_${solutionNumber}" onblur="saveSolutionEdit(${solutionNumber})" style="width: 100%; min-height: 100px; resize: vertical; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${solutionText ? solutionText.replace(/"/g, '&quot;') : ''}</textarea>
+                    </div>
+                </div>
+            `;
         }
-
-        function saveSingleSolutionEdit() {
-            const textarea = document.getElementById('solutionTextarea_single');
-            const display = document.getElementById('solutionDisplay_single');
-            const edit = document.getElementById('solutionEdit_single');
-            const rendered = document.getElementById('solutionRendered_single');
+        
+        function addNewSolution() {
+            const problem = problemsData.problems[currentProblemIndex];
+            if (!problem) return;
             
-            const newValue = textarea.value.trim();
-            
-            // Update the data
-            if (currentProblemIndex >= 0) {
-                if (!problemsData.problems[currentProblemIndex].solution) {
-                    problemsData.problems[currentProblemIndex].solution = { text: null, images: [] };
-                }
-                problemsData.problems[currentProblemIndex].solution.text = newValue || null;
+            const problemId = problem.id;
+            if (!additionalSolutions[problemId]) {
+                additionalSolutions[problemId] = [];
             }
             
-            // Update the display
-            if (newValue) {
-                rendered.innerHTML = preprocessLatexLists(newValue);
-                display.style.display = 'block';
-                edit.style.display = 'none';
-                
-                // Re-render LaTeX
+            // Add empty solution
+            additionalSolutions[problemId].push('');
+            
+            // Re-render solutions container
+            const container = document.getElementById('solutionsContainer');
+            if (container) {
+                container.innerHTML = generateSolutionSection(problem.solution);
+                // Trigger MathJax re-render
                 if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]);
+                    MathJax.typesetPromise();
                 }
-            } else {
+            }
+        }
+        
+        function removeSolution(solutionNumber) {
+            const problem = problemsData.problems[currentProblemIndex];
+            if (!problem) return;
+            
+            const problemId = problem.id;
+            const solutionIndex = solutionNumber - 2; // Adjust for 0-based array
+            
+            if (additionalSolutions[problemId] && additionalSolutions[problemId][solutionIndex] !== undefined) {
+                additionalSolutions[problemId].splice(solutionIndex, 1);
+                
+                // Re-render solutions container
+                const container = document.getElementById('solutionsContainer');
+                if (container) {
+                    container.innerHTML = generateSolutionSection(problem.solution);
+                    // Trigger MathJax re-render
+                    if (window.MathJax) {
+                        MathJax.typesetPromise();
+                    }
+                }
+            }
+        }
+        
+        function toggleSolutionEdit(solutionNumber) {
+            const display = document.getElementById(`solutionDisplay_${solutionNumber}`);
+            const edit = document.getElementById(`solutionEdit_${solutionNumber}`);
+            const textarea = document.getElementById(`solutionTextarea_${solutionNumber}`);
+            
+            if (display && edit && textarea) {
                 display.style.display = 'none';
                 edit.style.display = 'block';
+                textarea.focus();
             }
+        }
+        
+        function saveSolutionEdit(solutionNumber) {
+            const textarea = document.getElementById(`solutionTextarea_${solutionNumber}`);
+            const display = document.getElementById(`solutionDisplay_${solutionNumber}`);
+            const edit = document.getElementById(`solutionEdit_${solutionNumber}`);
+            const rendered = document.getElementById(`solutionRendered_${solutionNumber}`);
+            
+            if (!textarea || !display || !edit || !rendered) {
+                return;
+            }
+            
+            const newValue = textarea.value;
+            
+            if (solutionNumber === 1) {
+                // Update primary solution (NO LONGER synced with solution_text field)
+                // Just update in memory, will be saved to solutions table on database update
+                const problem = problemsData.problems[currentProblemIndex];
+                if (problem) {
+                    if (!problem.solution) {
+                        problem.solution = { text: null, images: [] };
+                    }
+                    problem.solution.text = newValue || null;
+                }
+            } else {
+                // Update additional solution
+                const problem = problemsData.problems[currentProblemIndex];
+                if (problem) {
+                    const problemId = problem.id;
+                    // Solution 2 should be index 0 in additionalSolutions array (first additional)
+                    // Solution 3 should be index 1, etc.
+                    const solutionIndex = solutionNumber - 2;
+                    if (!additionalSolutions[problemId]) {
+                        additionalSolutions[problemId] = [];
+                    }
+                    // Ensure array is large enough
+                    while (additionalSolutions[problemId].length <= solutionIndex) {
+                        additionalSolutions[problemId].push('');
+                    }
+                    additionalSolutions[problemId][solutionIndex] = newValue;
+                }
+            }
+            
+            // Update display
+            rendered.innerHTML = preprocessLatexLists(newValue);
+            display.style.display = newValue ? 'block' : 'none';
+            edit.style.display = 'none';
+            
+            // Trigger MathJax re-render
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+        
+        // Keep these for backward compatibility
+        function toggleSingleSolutionEdit() {
+            toggleSolutionEdit(1);
+        }
+        
+        function saveSingleSolutionEdit() {
+            saveSolutionEdit(1);
         }
 
         // Generate solutions section with individual boxes
@@ -4698,7 +4965,7 @@
                     <div class="solution-edit" id="solutionEdit_${index}" style="${sol ? 'display: none;' : ''}">
                         <textarea class="form-control" id="solutionTextarea_${index}" onblur="saveSolutionEdit(${index})" style="width: 100%; min-height: 100px; resize: vertical; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${sol ? sol.replace(/"/g, '&quot;') : ''}</textarea>
                     </div>
-                    <button class="btn" onclick="removeSolution(${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
+                    <button class="btn" onclick="removeSolutionOld_DEPRECATED(${index})" type="button" style="position: absolute; top: -20px; right: 0px; background: #dc3545; color: white; font-size: 12px; padding: 4px 8px; border: none; border-radius: 4px; z-index: 10;">Remove</button>
                 </div>
             `).join('');
         }
@@ -4731,7 +4998,10 @@
             }
         }
 
-        function removeSolution(index) {
+        // Renamed to avoid conflict with the new removeSolution function
+        function removeSolutionOld_DEPRECATED(index) {
+            // This function is deprecated and should not be used
+            // Use the newer removeSolution(solutionNumber) function instead
             if (currentProblemIndex >= 0) {
                 let problem = problemsData.problems[currentProblemIndex];
                 if (problem.solution && problem.solution.text && Array.isArray(problem.solution.text)) {
@@ -4788,7 +5058,9 @@
             autoResizeTextarea(textarea);
         }
 
-        function saveSolutionEdit(index) {
+        function saveSolutionEditOld_DEPRECATED(index) {
+            // This function is deprecated and should not be used
+            // Use the newer saveSolutionEdit(solutionNumber) function instead
             const textarea = document.getElementById(`solutionTextarea_${index}`);
             const display = document.getElementById(`solutionDisplay_${index}`);
             const edit = document.getElementById(`solutionEdit_${index}`);
@@ -5190,8 +5462,13 @@
             }
         }
 
-        // NEW: Single-value subproblem solution functions
+        // Store additional solutions for subproblems
+        let additionalSubproblemSolutions = {};  // Key: subproblem_key, Value: array of solutions
+        
+        // NEW: Multiple solutions support for subproblems
         function generateSubproblemSolutionSection(solution, subproblemKey) {
+            const currentAdditionalSolutions = additionalSubproblemSolutions[subproblemKey] || [];
+            
             let solutionText = '';
             if (solution) {
                 if (typeof solution === 'string') {
@@ -5201,72 +5478,173 @@
                 }
             }
             
+            // Generate HTML for additional solutions
+            let additionalSolutionsHTML = '';
+            currentAdditionalSolutions.forEach((sol, index) => {
+                additionalSolutionsHTML += generateAdditionalSubproblemSolution(sol, subproblemKey, index + 2); // Start from solution 2
+            });
+            
             return `
-                <div class="solution-item" style="margin-bottom: 15px; position: relative;">
-                    <div class="solution-display" id="subSolutionDisplay_${subproblemKey}_single" style="${solutionText ? '' : 'display: none;'}">
-                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSubproblemSingleSolutionEdit('${subproblemKey}')">
-                            <div id="subSolutionRendered_${subproblemKey}_single">${preprocessLatexLists(solutionText)}</div>
+                <div class="subproblem-solutions-container">
+                    <!-- Solution 1 (Primary - synced with solution_text field) -->
+                    <div class="solution-item" style="margin-bottom: 10px; position: relative; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-weight: 600; color: #495057; font-size: 11px;">Solution 1</label>
+                        </div>
+                        <div class="solution-display" id="subSolutionDisplay_${subproblemKey}_1" style="${solutionText ? '' : 'display: none;'}">
+                            <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSubproblemSolutionEdit('${subproblemKey}', 1)">
+                                <div id="subSolutionRendered_${subproblemKey}_1">${preprocessLatexLists(solutionText)}</div>
+                            </div>
+                        </div>
+                        <div class="solution-edit" id="subSolutionEdit_${subproblemKey}_1" style="${solutionText ? 'display: none;' : ''}">
+                            <textarea class="form-control" id="subSolutionTextarea_${subproblemKey}_1" onblur="saveSubproblemSolutionEdit('${subproblemKey}', 1)" style="width: 100%; min-height: 60px; resize: vertical; font-size: 12px; padding: 10px; border: 1px solid #e9ecef; border-radius: 4px;" placeholder="Enter a solution...">${solutionText ? solutionText.replace(/"/g, '&quot;') : ''}</textarea>
                         </div>
                     </div>
-                    <div class="solution-edit" id="subSolutionEdit_${subproblemKey}_single" style="${solutionText ? 'display: none;' : ''}">
-                        <textarea class="form-control" id="subSolutionTextarea_${subproblemKey}_single" onblur="saveSubproblemSingleSolutionEdit('${subproblemKey}')" style="width: 100%; min-height: 80px; resize: vertical; font-size: 12px; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;" placeholder="Enter a solution...">${solutionText ? solutionText.replace(/"/g, '&quot;') : ''}</textarea>
+                    
+                    <!-- Additional Solutions Container -->
+                    <div id="additionalSubproblemSolutionsContainer_${subproblemKey}">
+                        ${additionalSolutionsHTML}
                     </div>
+                    
+                    <!-- Add Solution Button -->
+                    <button type="button" class="btn btn-sm" onclick="addNewSubproblemSolution('${subproblemKey}')" style="background: #28a745; color: white; font-size: 11px; padding: 4px 8px; width: auto;">
+                        + Add Solution
+                    </button>
                 </div>
             `;
         }
 
-        function toggleSubproblemSingleSolutionEdit(key) {
-            const display = document.getElementById(`subSolutionDisplay_${key}_single`);
-            const edit = document.getElementById(`subSolutionEdit_${key}_single`);
-            const textarea = document.getElementById(`subSolutionTextarea_${key}_single`);
+        function generateAdditionalSubproblemSolution(solutionText, subproblemKey, solutionNumber) {
+            return `
+                <div class="solution-item" id="subSolution_${subproblemKey}_${solutionNumber}" style="margin-bottom: 10px; position: relative; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-weight: 600; color: #495057; font-size: 11px;">Solution ${solutionNumber}</label>
+                        <button type="button" class="btn btn-sm" onclick="removeSubproblemSolution('${subproblemKey}', ${solutionNumber})" style="background: #dc3545; color: white; font-size: 10px; padding: 2px 6px;">
+                            Remove
+                        </button>
+                    </div>
+                    <div class="solution-display" id="subSolutionDisplay_${subproblemKey}_${solutionNumber}" style="${solutionText ? '' : 'display: none;'}">
+                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSubproblemSolutionEdit('${subproblemKey}', ${solutionNumber})">
+                            <div id="subSolutionRendered_${subproblemKey}_${solutionNumber}">${preprocessLatexLists(solutionText)}</div>
+                        </div>
+                    </div>
+                    <div class="solution-edit" id="subSolutionEdit_${subproblemKey}_${solutionNumber}" style="${solutionText ? 'display: none;' : ''}">
+                        <textarea class="form-control" id="subSolutionTextarea_${subproblemKey}_${solutionNumber}" onblur="saveSubproblemSolutionEdit('${subproblemKey}', ${solutionNumber})" style="width: 100%; min-height: 60px; resize: vertical; font-size: 12px; padding: 10px; border: 1px solid #e9ecef; border-radius: 4px;" placeholder="Enter a solution...">${solutionText ? solutionText.replace(/"/g, '&quot;') : ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function addNewSubproblemSolution(subproblemKey) {
+            if (!additionalSubproblemSolutions[subproblemKey]) {
+                additionalSubproblemSolutions[subproblemKey] = [];
+            }
             
-            display.style.display = 'none';
-            edit.style.display = 'block';
-            textarea.focus();
+            // Add empty solution
+            additionalSubproblemSolutions[subproblemKey].push('');
+            
+            // Re-render solutions container
+            const problem = problemsData.problems[currentProblemIndex];
+            const subproblem = problem?.subproblems?.[subproblemKey];
+            const container = document.getElementById(`subproblemSolutionsContainer_${subproblemKey}`);
+            if (container && subproblem) {
+                container.innerHTML = generateSubproblemSolutionSection(subproblem.solution, subproblemKey);
+                // Trigger MathJax re-render
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
+            }
+        }
+        
+        function removeSubproblemSolution(subproblemKey, solutionNumber) {
+            const solutionIndex = solutionNumber - 2; // Adjust for 0-based array
+            
+            if (additionalSubproblemSolutions[subproblemKey] && additionalSubproblemSolutions[subproblemKey][solutionIndex] !== undefined) {
+                additionalSubproblemSolutions[subproblemKey].splice(solutionIndex, 1);
+                
+                // Re-render solutions container
+                const problem = problemsData.problems[currentProblemIndex];
+                const subproblem = problem?.subproblems?.[subproblemKey];
+                const container = document.getElementById(`subproblemSolutionsContainer_${subproblemKey}`);
+                if (container && subproblem) {
+                    container.innerHTML = generateSubproblemSolutionSection(subproblem.solution, subproblemKey);
+                    // Trigger MathJax re-render
+                    if (window.MathJax) {
+                        MathJax.typesetPromise();
+                    }
+                }
+            }
+        }
+        
+        function toggleSubproblemSolutionEdit(subproblemKey, solutionNumber) {
+            const display = document.getElementById(`subSolutionDisplay_${subproblemKey}_${solutionNumber}`);
+            const edit = document.getElementById(`subSolutionEdit_${subproblemKey}_${solutionNumber}`);
+            const textarea = document.getElementById(`subSolutionTextarea_${subproblemKey}_${solutionNumber}`);
+            
+            if (display && edit && textarea) {
+                display.style.display = 'none';
+                edit.style.display = 'block';
+                textarea.focus();
+            }
+        }
+        
+        function saveSubproblemSolutionEdit(subproblemKey, solutionNumber) {
+            const textarea = document.getElementById(`subSolutionTextarea_${subproblemKey}_${solutionNumber}`);
+            const display = document.getElementById(`subSolutionDisplay_${subproblemKey}_${solutionNumber}`);
+            const edit = document.getElementById(`subSolutionEdit_${subproblemKey}_${solutionNumber}`);
+            const rendered = document.getElementById(`subSolutionRendered_${subproblemKey}_${solutionNumber}`);
+            
+            if (!textarea || !display || !edit || !rendered) return;
+            
+            const newValue = textarea.value;
+            
+            if (solutionNumber === 1) {
+                // Update primary solution (NO LONGER synced with solution_text field)
+                if (currentProblemIndex >= 0) {
+                    if (!problemsData.problems[currentProblemIndex].subproblems) {
+                        problemsData.problems[currentProblemIndex].subproblems = {};
+                    }
+                    if (!problemsData.problems[currentProblemIndex].subproblems[subproblemKey]) {
+                        problemsData.problems[currentProblemIndex].subproblems[subproblemKey] = {
+                            problem_text: '',
+                            correct_answer: '',
+                            hint: null,
+                            solution: { text: null, images: [] },
+                            images: []
+                        };
+                    }
+                    if (!problemsData.problems[currentProblemIndex].subproblems[subproblemKey].solution) {
+                        problemsData.problems[currentProblemIndex].subproblems[subproblemKey].solution = { text: null, images: [] };
+                    }
+                    problemsData.problems[currentProblemIndex].subproblems[subproblemKey].solution.text = newValue || null;
+                }
+            } else {
+                // Update additional solution
+                const solutionIndex = solutionNumber - 2;
+                if (!additionalSubproblemSolutions[subproblemKey]) {
+                    additionalSubproblemSolutions[subproblemKey] = [];
+                }
+                additionalSubproblemSolutions[subproblemKey][solutionIndex] = newValue;
+            }
+            
+            // Update display
+            rendered.innerHTML = preprocessLatexLists(newValue);
+            display.style.display = newValue ? 'block' : 'none';
+            edit.style.display = 'none';
+            
+            // Trigger MathJax re-render
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+        
+        // Keep these for backward compatibility
+        function toggleSubproblemSingleSolutionEdit(key) {
+            toggleSubproblemSolutionEdit(key, 1);
         }
 
         function saveSubproblemSingleSolutionEdit(key) {
-            const textarea = document.getElementById(`subSolutionTextarea_${key}_single`);
-            const display = document.getElementById(`subSolutionDisplay_${key}_single`);
-            const edit = document.getElementById(`subSolutionEdit_${key}_single`);
-            const rendered = document.getElementById(`subSolutionRendered_${key}_single`);
-            
-            const newValue = textarea.value.trim();
-            
-            // Update the data
-            if (currentProblemIndex >= 0) {
-                if (!problemsData.problems[currentProblemIndex].subproblems) {
-                    problemsData.problems[currentProblemIndex].subproblems = {};
-                }
-                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
-                    problemsData.problems[currentProblemIndex].subproblems[key] = {
-                        problem_text: '',
-                        correct_answer: '',
-                        hint: null,
-                        solution: { text: null, images: [] },
-                        images: []
-                    };
-                }
-                if (!problemsData.problems[currentProblemIndex].subproblems[key].solution) {
-                    problemsData.problems[currentProblemIndex].subproblems[key].solution = { text: null, images: [] };
-                }
-                problemsData.problems[currentProblemIndex].subproblems[key].solution.text = newValue || null;
-            }
-            
-            // Update the display
-            if (newValue) {
-                rendered.innerHTML = preprocessLatexLists(newValue);
-                display.style.display = 'block';
-                edit.style.display = 'none';
-                
-                // Re-render LaTeX
-                if (window.MathJax) {
-                    MathJax.typesetPromise([rendered]);
-                }
-            } else {
-                display.style.display = 'none';
-                edit.style.display = 'block';
-            }
+            saveSubproblemSolutionEdit(key, 1);
         }
 
         // ===== ADD DOCUMENT FUNCTIONALITY =====
@@ -5990,6 +6368,8 @@
                     // Replace current data with loaded document
                     problemsData = documentData;
                     originalData = JSON.parse(JSON.stringify(documentData)); // Deep copy for change detection
+                    originalAdditionalSolutions = JSON.parse(JSON.stringify(additionalSolutions)); // Deep copy of additional solutions
+                    originalAdditionalSubproblemSolutions = JSON.parse(JSON.stringify(additionalSubproblemSolutions)); // Deep copy of subproblem solutions
                     
                     // Set currentDocumentId for problem generation
                     currentDocumentId = documentData.document ? documentData.document.id : selectedDocumentId;
@@ -6093,7 +6473,40 @@
                         problemTopics[pt.problem_id].push(pt.topic_id);
                     });
                 }
+                
+                // NEW: Get solutions from solutions table
+                let problemSolutions = {};
+                let subproblemSolutions = {};
+                if (problemIds.length > 0) {
+                    const { data: solutionsData, error: solutionsError } = await supabase
+                        .from('solutions')
+                        .select('*')
+                        .or(`problem_id.in.(${problemIds.join(',')}),subproblem_id.in.(${subproblemsData.map(s => s.id).join(',')})`)
+                        .order('solution_order');
+                    
+                    if (!solutionsError && solutionsData) {
+                        // Group solutions by problem_id or subproblem_id
+                        solutionsData.forEach(sol => {
+                            if (sol.problem_id) {
+                                if (!problemSolutions[sol.problem_id]) {
+                                    problemSolutions[sol.problem_id] = [];
+                                }
+                                problemSolutions[sol.problem_id].push(sol);
+                            } else if (sol.subproblem_id) {
+                                if (!subproblemSolutions[sol.subproblem_id]) {
+                                    subproblemSolutions[sol.subproblem_id] = [];
+                                }
+                                subproblemSolutions[sol.subproblem_id].push(sol);
+                            }
+                        });
+                        console.log('Loaded solutions from database:', { problemSolutions, subproblemSolutions });
+                    }
+                }
 
+                // Clear existing additional solutions before loading new ones
+                additionalSolutions = {};
+                additionalSubproblemSolutions = {};
+                
                 // Transform to JSON format
                 const problems = problemsData.map(problem => {
                     // Get subproblems for this problem
@@ -6101,12 +6514,26 @@
                     const subproblemsObj = {};
                     
                     subprobs.forEach(sub => {
+                        // Handle solutions for this subproblem
+                        const subSolutions = subproblemSolutions[sub.id] || [];
+                        let primarySubSolution = sub.solution_text; // Use legacy field as fallback
+                        
+                        if (subSolutions.length > 0) {
+                            // Use first solution from solutions table as primary
+                            primarySubSolution = subSolutions[0].solution_text;
+                            
+                            // Store additional solutions (2nd onwards) in additionalSubproblemSolutions
+                            if (subSolutions.length > 1) {
+                                additionalSubproblemSolutions[sub.key] = subSolutions.slice(1).map(s => s.solution_text);
+                            }
+                        }
+                        
                         subproblemsObj[sub.key] = {
                             problem_text: sub.problem_text,
                             correct_answer: sub.correct_answer,
                             hint: sub.hint,
                             solution: {
-                                text: sub.solution_text,
+                                text: primarySubSolution,
                                 images: [] // Images are stored in Supabase storage, not database
                             },
                             images: [], // Will be populated from storage if needed
@@ -6116,6 +6543,22 @@
 
                     // Get topics from junction table mapping
                     const topics = problemTopics[problem.id] || [];
+                    
+                    // Handle solutions for this problem
+                    const mainSolutions = problemSolutions[problem.id] || [];
+                    let primarySolution = problem.solution_text; // Use legacy field as fallback
+                    
+                    if (mainSolutions.length > 0) {
+                        // Use first solution from solutions table as primary
+                        primarySolution = mainSolutions[0].solution_text;
+                        
+                        // Store additional solutions (2nd onwards) in additionalSolutions
+                        if (mainSolutions.length > 1) {
+                            // FIXED: Use problem.problem_id (the string ID) as key, not problem.id (the UUID)
+                            // This matches how we access it elsewhere in the code
+                            additionalSolutions[problem.problem_id] = mainSolutions.slice(1).map(s => s.solution_text);
+                        }
+                    }
 
                     return {
                         id: problem.problem_id,
@@ -6125,7 +6568,7 @@
                         correct_answer: problem.correct_answer,
                         hint: problem.hint,
                         solution: {
-                            text: problem.solution_text,
+                            text: primarySolution,
                             images: [] // Images are stored in Supabase storage
                         },
                         images: [], // Images are stored in Supabase storage
@@ -6442,6 +6885,19 @@
             if (current.solution?.text !== original.solution?.text) {
                 return true;
             }
+            
+            // Compare additional solutions (NEW: Check for changes in additionalSolutions array)
+            const currentAdditionalSols = additionalSolutions[current.id] || [];
+            const originalAdditionalSols = originalAdditionalSolutions[current.id] || [];
+            
+            // Compare the arrays - if they're different, the problem has changed
+            if (JSON.stringify(currentAdditionalSols) !== JSON.stringify(originalAdditionalSols)) {
+                console.log(`Problem ${current.id} solutions changed:`, {
+                    original: originalAdditionalSols,
+                    current: currentAdditionalSols
+                });
+                return true;
+            }
 
             // Compare topics (convert to string for comparison since they're arrays)
             const currentTopics = JSON.stringify((current.topics || []).sort());
@@ -6491,6 +6947,15 @@
                 
                 // Compare subproblem solution text
                 if (currentSub.solution?.text !== originalSub.solution?.text) {
+                    return true;
+                }
+                
+                // Compare additional subproblem solutions (NEW: Check for changes in additionalSubproblemSolutions array)
+                const currentAdditionalSubSols = additionalSubproblemSolutions[key] || [];
+                const originalAdditionalSubSols = originalAdditionalSubproblemSolutions[key] || [];
+                
+                // Compare the arrays - if they're different, the problem has changed
+                if (JSON.stringify(currentAdditionalSubSols) !== JSON.stringify(originalAdditionalSubSols)) {
                     return true;
                 }
             }
@@ -6807,6 +7272,7 @@
                 showError('Error displaying problems list: ' + error.message);
             }
         }
+
 
     </script>
 </body>

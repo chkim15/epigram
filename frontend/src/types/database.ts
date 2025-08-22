@@ -137,6 +137,19 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['user_preferences']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['user_preferences']['Insert']>;
       };
+      solutions: {
+        Row: {
+          id: string;  // UUID
+          problem_id: string | null;  // UUID reference to problems.id
+          subproblem_id: string | null;  // UUID reference to subproblems.id
+          solution_text: string;
+          solution_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['solutions']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['solutions']['Insert']>;
+      };
     };
   };
 }
@@ -151,3 +164,4 @@ export type UserAnswer = Database['public']['Tables']['user_answers']['Row'];
 export type UserChat = Database['public']['Tables']['user_chats']['Row'];
 export type UserProblemProgress = Database['public']['Tables']['user_problem_progress']['Row'];
 export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
+export type Solution = Database['public']['Tables']['solutions']['Row'];

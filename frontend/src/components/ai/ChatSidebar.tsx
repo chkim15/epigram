@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
-import { Subproblem } from "@/types/database";
+import { Subproblem, Solution, Problem, Document } from "@/types/database";
 import dynamic from 'next/dynamic';
 
 // Dynamically import PDFViewerSimple to avoid SSR issues
@@ -47,6 +47,191 @@ interface LLMModel {
   id: string;
   name: string;
   isPremium?: boolean;
+}
+
+// Solutions Tab Component
+interface SolutionsTabProps {
+  currentProblem: Problem | null;
+  currentSubproblems: Subproblem[];
+  currentDocument: Document | null;
+}
+
+function SolutionsTab({ currentProblem, currentSubproblems, currentDocument }: SolutionsTabProps) {
+  const [problemSolutions, setProblemSolutions] = useState<Solution[]>([]);
+  const [subproblemSolutions, setSubproblemSolutions] = useState<{ [key: string]: Solution[] }>({});
+  const [selectedProblemSolution, setSelectedProblemSolution] = useState(0);
+  const [selectedSubproblemSolutions, setSelectedSubproblemSolutions] = useState<{ [key: string]: number }>({});
+  const [loading, setLoading] = useState(true);
+
+  // Fetch solutions when problem changes
+  useEffect(() => {
+    async function fetchSolutions() {
+      if (!currentProblem) {
+        setProblemSolutions([]);
+        setSubproblemSolutions({});
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      
+      // Fetch main problem solutions
+      console.log('Fetching solutions for problem ID:', currentProblem.id);
+      const { data: mainSolutions, error: mainError } = await supabase
+        .from('solutions')
+        .select('*')
+        .eq('problem_id', currentProblem.id)
+        .order('solution_order', { ascending: true });
+
+      console.log('Main solutions query result:', { mainSolutions, mainError });
+      
+      if (!mainError && mainSolutions) {
+        // If no solutions in new table, use legacy solution_text
+        console.log('Legacy solution_text:', currentProblem.solution_text);
+        if (mainSolutions.length === 0 && currentProblem.solution_text) {
+          setProblemSolutions([{
+            id: 'legacy',
+            problem_id: currentProblem.id,
+            subproblem_id: null,
+            solution_text: currentProblem.solution_text,
+            solution_order: 0,
+            created_at: currentProblem.created_at,
+            updated_at: currentProblem.updated_at
+          }]);
+        } else {
+          setProblemSolutions(mainSolutions);
+        }
+      }
+
+      // Fetch subproblem solutions
+      const subSolutions: { [key: string]: Solution[] } = {};
+      for (const subproblem of currentSubproblems) {
+        const { data: sols, error: subError } = await supabase
+          .from('solutions')
+          .select('*')
+          .eq('subproblem_id', subproblem.id)
+          .order('solution_order', { ascending: true });
+
+        if (!subError && sols) {
+          // If no solutions in new table, use legacy solution_text
+          if (sols.length === 0 && subproblem.solution_text) {
+            subSolutions[subproblem.key] = [{
+              id: `legacy-${subproblem.id}`,
+              problem_id: null,
+              subproblem_id: subproblem.id,
+              solution_text: subproblem.solution_text,
+              solution_order: 0,
+              created_at: subproblem.created_at,
+              updated_at: subproblem.created_at
+            }];
+          } else {
+            subSolutions[subproblem.key] = sols;
+          }
+        }
+      }
+      setSubproblemSolutions(subSolutions);
+      setLoading(false);
+    }
+
+    fetchSolutions();
+  }, [currentProblem, currentSubproblems]);
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center p-4">
+        <div className="text-center text-gray-500 dark:text-gray-400">
+          <p>Loading solutions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const hasSolutions = problemSolutions.length > 0 || Object.values(subproblemSolutions).some(sols => sols.length > 0);
+
+  if (!hasSolutions) {
+    return (
+      <div className="h-full flex items-center justify-center p-4">
+        <div className="text-center text-gray-500 dark:text-gray-400">
+          <BookOpen className="h-12 w-12 mx-auto mb-2" />
+          <p>No solution available for this problem</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full overflow-y-auto custom-scrollbar">
+      <div className="p-4 space-y-6">
+        {/* Main Problem Solutions */}
+        {problemSolutions.length > 0 && (
+          <div>
+            {problemSolutions.length > 1 && (
+              <div className="flex gap-2 mb-3">
+                {problemSolutions.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedProblemSolution(index)}
+                    className={cn(
+                      "px-3 py-1 text-sm rounded-md transition-colors",
+                      selectedProblemSolution === index
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    )}
+                  >
+                    Solution {index + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="prose max-w-none dark:prose-invert">
+              <MathContent 
+                content={problemSolutions[selectedProblemSolution]?.solution_text || ''} 
+                documentId={currentDocument?.document_id} 
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Subproblem Solutions */}
+        {Object.entries(subproblemSolutions).map(([key, solutions]) => {
+          if (solutions.length === 0) return null;
+          const selectedIndex = selectedSubproblemSolutions[key] || 0;
+          
+          return (
+            <div key={key}>
+              <div className="font-medium text-blue-600 dark:text-blue-400 mb-2">
+                Part {key}
+              </div>
+              {solutions.length > 1 && (
+                <div className="flex gap-2 mb-3">
+                  {solutions.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedSubproblemSolutions(prev => ({ ...prev, [key]: index }))}
+                      className={cn(
+                        "px-3 py-1 text-sm rounded-md transition-colors",
+                        selectedIndex === index
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      )}
+                    >
+                      Solution {index + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="prose max-w-none dark:prose-invert">
+                <MathContent 
+                  content={solutions[selectedIndex]?.solution_text || ''} 
+                  documentId={currentDocument?.document_id} 
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 type ChatSidebarProps = Record<string, never>
@@ -512,38 +697,11 @@ export default function ChatSidebar({}: ChatSidebarProps) {
         )}
 
         {activeTab === 'solutions' && (
-          <div className="h-full overflow-y-auto custom-scrollbar">
-            {(currentProblem?.solution_text || currentSubproblems.some(sp => sp.solution_text)) ? (
-              <div className="p-4 space-y-6">
-                {currentProblem?.solution_text && (
-                  <div className="prose max-w-none dark:prose-invert">
-                    <MathContent content={currentProblem.solution_text} documentId={currentDocument?.document_id} />
-                  </div>
-                )}
-                {currentSubproblems.length > 0 && currentSubproblems.some(sp => sp.solution_text) && (
-                  <div className="space-y-4">
-                    {currentSubproblems.filter(sp => sp.solution_text).map((subproblem) => (
-                      <div key={subproblem.id}>
-                        <div className="font-medium text-blue-600 dark:text-blue-400 mb-2">
-                          Part {subproblem.key}
-                        </div>
-                        <div className="prose max-w-none dark:prose-invert">
-                          <MathContent content={subproblem.solution_text || ''} documentId={currentDocument?.document_id} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center p-4">
-                <div className="text-center text-gray-500 dark:text-gray-400">
-                  <BookOpen className="h-12 w-12 mx-auto mb-2" />
-                  <p>No solution available for this problem</p>
-                </div>
-              </div>
-            )}
-          </div>
+          <SolutionsTab 
+            currentProblem={currentProblem}
+            currentSubproblems={currentSubproblems}
+            currentDocument={currentDocument}
+          />
         )}
 
         {activeTab === 'comments' && (
