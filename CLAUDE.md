@@ -397,6 +397,10 @@ supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table f
   - UnifiedHeader (when sidebar is collapsed)
 - **Favicon** - SVG logo configured as favicon via metadata
 - **Dark mode support** - Fixed white backgrounds in ProblemViewer and toggle switch
+- **Hover Effects & Cursor Guidelines** - All interactive elements should have proper cursor styling:
+  - Use `cursor-pointer` class for all clickable buttons, tabs, and interactive elements
+  - Solution navigation tabs use black activation color (`bg-black`) instead of blue
+  - Consistent hover states across all UI components for better user experience
 
 ## COMMON ISSUES & SOLUTIONS
 

@@ -172,9 +172,9 @@ function SolutionsTab({ currentProblem, currentSubproblems, currentDocument }: S
                     key={index}
                     onClick={() => setSelectedProblemSolution(index)}
                     className={cn(
-                      "px-3 py-1 text-sm rounded-md transition-colors",
+                      "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                       selectedProblemSolution === index
-                        ? "bg-blue-600 text-white"
+                        ? "bg-black text-white"
                         : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                     )}
                   >
@@ -209,9 +209,9 @@ function SolutionsTab({ currentProblem, currentSubproblems, currentDocument }: S
                       key={index}
                       onClick={() => setSelectedSubproblemSolutions(prev => ({ ...prev, [key]: index }))}
                       className={cn(
-                        "px-3 py-1 text-sm rounded-md transition-colors",
+                        "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                         selectedIndex === index
-                          ? "bg-blue-600 text-white"
+                          ? "bg-black text-white"
                           : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                       )}
                     >
