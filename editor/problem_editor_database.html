@@ -1393,6 +1393,11 @@
                 </div>
                 
                 <div class="form-group">
+                    <label class="form-label">Problem Type 2</label>
+                    <input type="text" id="docProblemType2" class="form-control" placeholder="e.g. -f, -m, -p">
+                </div>
+                
+                <div class="form-group">
                     <label class="form-label">Term</label>
                     <input type="text" id="docTerm" class="form-control" placeholder="e.g. fall, spring, summer">
                 </div>
@@ -5655,6 +5660,7 @@
             document.getElementById('docSchool').value = '';
             document.getElementById('docCourse').value = '';
             document.getElementById('docProblemType').value = '';
+            document.getElementById('docProblemType2').value = '';
             document.getElementById('docTerm').value = '';
             document.getElementById('docYear').value = '';
             updateGeneratedDocId();
@@ -5669,6 +5675,7 @@
             const school = document.getElementById('docSchool').value.trim().toLowerCase().replace(/\s+/g, '_');
             const course = document.getElementById('docCourse').value.trim().toLowerCase().replace(/\s+/g, '_');
             const problemType = document.getElementById('docProblemType').value.toLowerCase();
+            const problemType2 = document.getElementById('docProblemType2').value.trim();
             const term = document.getElementById('docTerm').value.trim().toLowerCase().replace(/\s+/g, '_');
             const year = document.getElementById('docYear').value.trim();
             
@@ -5676,7 +5683,14 @@
             const parts = [];
             if (school) parts.push(school);
             if (course) parts.push(course);
-            if (problemType) parts.push(problemType);
+            if (problemType) {
+                // Combine problem type with problem type 2 if both exist
+                if (problemType2) {
+                    parts.push(problemType + problemType2);
+                } else {
+                    parts.push(problemType);
+                }
+            }
             if (term) parts.push(term);
             if (year) parts.push(year);
             
@@ -5686,7 +5700,7 @@
 
         // Add event listeners for real-time document ID preview
         document.addEventListener('DOMContentLoaded', function() {
-            const fields = ['docSchool', 'docCourse', 'docProblemType', 'docTerm', 'docYear'];
+            const fields = ['docSchool', 'docCourse', 'docProblemType', 'docProblemType2', 'docTerm', 'docYear'];
             fields.forEach(fieldId => {
                 const element = document.getElementById(fieldId);
                 if (element) {
@@ -5700,6 +5714,7 @@
             const school = document.getElementById('docSchool').value.trim();
             const course = document.getElementById('docCourse').value.trim();
             const problemType = document.getElementById('docProblemType').value;
+            const problemType2 = document.getElementById('docProblemType2').value.trim();
             const term = document.getElementById('docTerm').value.trim();
             const year = document.getElementById('docYear').value.trim();
             
@@ -5713,7 +5728,12 @@
             const parts = [];
             if (school) parts.push(school.toLowerCase().replace(/\s+/g, '_'));
             if (course) parts.push(course.toLowerCase().replace(/\s+/g, '_'));
-            parts.push(problemType.toLowerCase());
+            // Combine problem type with problem type 2 if both exist
+            if (problemType2) {
+                parts.push(problemType.toLowerCase() + problemType2);
+            } else {
+                parts.push(problemType.toLowerCase());
+            }
             if (term) parts.push(term.toLowerCase().replace(/\s+/g, '_'));
             if (year) parts.push(year);
             

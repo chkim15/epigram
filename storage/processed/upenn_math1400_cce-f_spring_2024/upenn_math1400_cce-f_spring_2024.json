@@ -1,0 +1,205 @@
+{
+  "document": {
+    "id": "upenn_math1400_cce-f_spring_2024",
+    "school": "upenn",
+    "course": "math1400",
+    "problem_type": "cce-f",
+    "term": "spring",
+    "year": "2024",
+    "total_problems": 8,
+    "created_at": "2025-08-22 16:27:50"
+  },
+  "problems": [
+    {
+      "id": "upenn_math1400_cce-f_spring_2024_p1",
+      "doc_id": "upenn_math1400_cce-f_spring_2024",
+      "problem_text": "Evaluate the integral $ \\int_{-1}^{1} x e^{x} d x $ Penn ID: Math 1400 5/9/24",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1400_cce-f_spring_2024_p2",
+      "doc_id": "upenn_math1400_cce-f_spring_2024",
+      "problem_text": "Suppose $ \\left.f(x)=4+2(x+1)-(x+1)^{2}+O\\left((x+1)^{4}\\right)\\right) $ and $ \\left.g(x)=1-(x+1)^{2}+O\\left((x+1)^{5}\\right)\\right) $. Find a Taylor approximation centered at $ x=-1 $ for the function $$ h(x)=\\frac{f(x) g(x)-4}{x+1} $$ Your answer should be as precise as possible with the available information, and should include the best-possible error term using big- $ O $ notation. Penn ID: Math 1400 5/9/24",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1400_cce-f_spring_2024_p3",
+      "doc_id": "upenn_math1400_cce-f_spring_2024",
+      "problem_text": "Evaluate $ \\int \\frac{27 e^{4 x}}{\\sqrt{4+9 e^{2 x}}} d x $ Penn ID: Math 1400 5/9/24",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1400_cce-f_spring_2024_p4",
+      "doc_id": "upenn_math1400_cce-f_spring_2024",
+      "problem_text": "",
+      "subproblems": {
+        "a": {
+          "problem_text": "Set up an integral expression for the surface area obtained by rotating $ y=\\cos (2 x) $ about the $ y $-axis for $ \\frac{\\pi}{4} \\leq x \\leq \\frac{\\pi}{2} $",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        },
+        "b": {
+          "problem_text": "Set up an integral expression for the average value of the function $ \\sinh (x) $ on this surface. You do not need to evaluate the integrals. Penn ID: Math 1400 5/9/24",
+          "correct_answer": null,
+          "hint": null,
+          "solution": {
+            "text": null,
+            "images": []
+          },
+          "images": [],
+          "comment": null
+        }
+      },
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1400_cce-f_spring_2024_p5",
+      "doc_id": "upenn_math1400_cce-f_spring_2024",
+      "problem_text": "Does the integral $ \\int_{1}^{\\infty} \\frac{1}{x^{2}+x} d x $ converge or diverge? Penn ID: Math 1400 5/9/24",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1400_cce-f_spring_2024_p6",
+      "doc_id": "upenn_math1400_cce-f_spring_2024",
+      "problem_text": "If you flip a fair coin twice, the probability of Heads twice is $ \\frac{1}{4} $, the probability of Heads once is $ \\frac{1}{2} $, and the probability of Heads no times is $ \\frac{1}{4} $. Find the expectation and variance for the number of times Heads appears. Penn ID: Math 1400 5/9/24",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1400_cce-f_spring_2024_p7",
+      "doc_id": "upenn_math1400_cce-f_spring_2024",
+      "problem_text": "Define a sequence by $ a_{1}=27 $, and $ a_{k+1}=\\sqrt[3]{a_{k}} $ for all $ k \\geq 1 $. Does $ \\sum_{k=1}^{\\infty} a_{k} $ converge or diverge? Explain. You might find it helpful to compute $ \\lim _{k \\rightarrow \\infty} a_{k} $. Penn ID: Math 1400 5/9/24 Penn ID: Math 1400 5/9/24",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": null,
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    },
+    {
+      "id": "upenn_math1400_cce-f_spring_2024_p8",
+      "doc_id": "upenn_math1400_cce-f_spring_2024",
+      "problem_text": "digit Penn ID number on every sheet of this quiz, in the designated place. If you do not know your Penn ID number, you may write MMDDMMDD, where MM is the two-digit month and DD is the two-digit day of your birthday. Do not write your name on any page of this quiz other than this cover sheet. - You will have two hours to complete this quiz. - There are eight problems. Each problem is worth the same number of points. If your quiz is missing one or more problems, notify your proctor immediately. - Please write in pencil (preferred), or else a dark color of ink such as blue or black. - to justify your solutions. Wrong solutions may receive partial credit for progress towards a correct",
+      "subproblems": {},
+      "correct_answer": null,
+      "hint": null,
+      "solution": {
+        "text": "Correct answers without justification may be denied credit. - You must write all work that you wish to have graded on the quiz itself, and no additional paper is allowed. However, you may use the blank pages at the end for additional work. If you want some of your work on the back cover to be considered, you must leave a note on the page with the problem that instructs the grader to look there. - If your exam was printed single-sided, write only on the front of each sheet. No work on the back of any page will be graded. - You may use one duoble-sided sheet of handwritten notes. If you use a note sheet, write your name on the note sheet and turn it in with your quiz. - No calculators or other resources are permitted. - By signing below, you agree that you are turning in your own work and that you have completely followed Penn's code of academic integrity. Signature: Penn ID: Math 1400 5/9/24 Determine if the following series converges or diverges. Be sure to show work that fully justifies your answer. $$ \\sum_{n=1}^{\\infty} \\frac{(2 n)!}{n^{2 n}} $$",
+        "images": []
+      },
+      "images": [],
+      "difficulty": null,
+      "topics": [],
+      "math_approach": null,
+      "reasoning_type": null,
+      "comment": null,
+      "importance": null,
+      "updated_at": null,
+      "version": "raw"
+    }
+  ]
+}
