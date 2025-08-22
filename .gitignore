@@ -4,8 +4,7 @@
 .env.*.local
 
 # Storage directories
-storage/temp/
-storage/processed/*.json
+storage/
 temp/
 
 # Root level JSON files (keep data files in version control)

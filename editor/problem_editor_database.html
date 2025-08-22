@@ -84,6 +84,27 @@
             // Convert \dne to "Does Not Exist" (DNE)
             text = text.replace(/\\dne/g, 'DNE');
             
+            // Convert LaTeX spacing commands to HTML spacing
+            // \quad = 1em space
+            text = text.replace(/\\quad\b/g, '<span style="margin-left: 1em;"></span>');
+            
+            // \qquad = 2em space  
+            text = text.replace(/\\qquad\b/g, '<span style="margin-left: 2em;"></span>');
+            
+            // \hspace{length} - convert various length units
+            text = text.replace(/\\hspace\{([^}]+)\}/g, function(match, length) {
+                // Handle different units: em, ex, px, pt, cm, mm, in
+                if (length.match(/^\d*\.?\d+(em|ex|px|pt|cm|mm|in)$/)) {
+                    return `<span style="margin-left: ${length};"></span>`;
+                }
+                // If no unit specified, assume em
+                if (length.match(/^\d*\.?\d+$/)) {
+                    return `<span style="margin-left: ${length}em;"></span>`;
+                }
+                // Return original if unrecognized format
+                return match;
+            });
+            
             // Convert \\ to line breaks (but not inside math expressions)
             text = text.replace(/\\\\(?![a-zA-Z])/g, '<br>');
             
