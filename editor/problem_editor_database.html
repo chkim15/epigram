@@ -1511,6 +1511,18 @@
                 </div>
             </div>
             
+            <!-- Document Search Box (visible when in document mode, hidden in topic mode) -->
+            <div id="documentSearchContainer" style="margin-bottom: 15px; padding: 0 20px; display: block;">
+                <div style="position: relative;">
+                    <input type="text" id="documentSearchInput" class="form-control" placeholder="Search documents by ID (e.g., upenn_math104)..." 
+                           style="padding: 10px 40px 10px 12px; border: 2px solid #e9ecef; border-radius: 8px; width: 100%; font-size: 14px;"
+                           oninput="filterDocumentList()">
+                    <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999; pointer-events: none;">
+                        🔍
+                    </div>
+                </div>
+            </div>
+            
             <div id="documentListContainer">
                 <div style="text-align: center; padding: 20px; color: #666;">
                     Loading documents...
@@ -5917,6 +5929,7 @@
         let selectedDocumentId = null;
         let selectedTopic = null;
         let currentFilterMode = 'document'; // 'document' or 'topic'
+        let allDocumentsData = []; // Store all documents for filtering
 
         async function showReadDatabaseModal() {
             const modal = document.getElementById('readDatabaseModal');
@@ -5949,16 +5962,23 @@
             const documentBtn = document.getElementById('filterDocumentBtn');
             const topicBtn = document.getElementById('filterTopicBtn');
             const topicSelector = document.getElementById('topicSelector');
+            const documentSearchContainer = document.getElementById('documentSearchContainer');
             
             if (mode === 'document') {
                 documentBtn.className = 'btn btn-primary';
                 topicBtn.className = 'btn btn-secondary';
                 topicSelector.style.display = 'none';
+                // Show document search box
+                documentSearchContainer.style.display = 'block';
+                // Clear search input and load all documents
+                document.getElementById('documentSearchInput').value = '';
                 await loadDocumentList();
             } else {
                 documentBtn.className = 'btn btn-secondary';
                 topicBtn.className = 'btn btn-primary';
                 topicSelector.style.display = 'block';
+                // Hide document search box
+                documentSearchContainer.style.display = 'none';
                 document.getElementById('documentListContainer').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Select a topic above to see relevant problems.</div>';
                 
                 // Make sure topics are loaded and populate the dropdown
@@ -6319,41 +6339,11 @@
                         return a.isComplete ? 1 : -1;
                     });
                     
-                    let html = '<div class="document-list">';
+                    // Store documents for filtering
+                    allDocumentsData = documentsWithCompletion;
                     
-                    documentsWithCompletion.forEach(doc => {
-                        let statusClass = '';
-                        let statusText = '';
-                        
-                        if (doc.allExcluded) {
-                            statusClass = 'excluded';
-                            statusText = '';
-                        } else if (doc.isComplete) {
-                            statusClass = 'complete';
-                            statusText = '';
-                        } else {
-                            statusText = `${doc.completedCount}/${doc.totalCount}`;
-                        }
-                        
-                        const excludeButtonText = doc.allExcluded ? 'Include' : 'Exclude';
-                        const excludeButtonClass = doc.allExcluded ? 'document-exclude-btn include' : 'document-exclude-btn';
-                        
-                        html += `
-                            <div class="document-item" data-document-id="${doc.document_id}" data-document-uuid="${doc.documentUuid}" onclick="selectDocument('${doc.document_id}')">
-                                <div style="flex: 1;">
-                                    <div style="display: flex; align-items: center;">
-                                        <span class="document-title">${doc.document_id}</span>
-                                        <button class="${excludeButtonClass}" onclick="event.stopPropagation(); toggleDocumentExclusion('${doc.documentUuid}', ${doc.allExcluded})">${excludeButtonText}</button>
-                                    </div>
-                                    <div class="document-details">${doc.school || ''} ${doc.course || ''} ${doc.term || ''} ${doc.year || ''}</div>
-                                </div>
-                                <div class="document-status ${statusClass}">${statusText}</div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += '</div>';
-                    container.innerHTML = html;
+                    // Display documents (will be filtered if search term exists)
+                    displayDocuments(documentsWithCompletion);
                 } else {
                     container.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No documents found in database.</div>';
                 }
@@ -6367,6 +6357,72 @@
         function isProblemCompleteForDocument(problem) {
             // Use the main isProblemComplete function to ensure consistency
             return isProblemComplete(problem);
+        }
+        
+        // Display filtered or unfiltered documents
+        function displayDocuments(documents) {
+            const container = document.getElementById('documentListContainer');
+            
+            if (!documents || documents.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No documents match your search.</div>';
+                return;
+            }
+            
+            let html = '<div class="document-list">';
+            
+            documents.forEach(doc => {
+                let statusClass = '';
+                let statusText = '';
+                
+                if (doc.allExcluded) {
+                    statusClass = 'excluded';
+                    statusText = '';
+                } else if (doc.isComplete) {
+                    statusClass = 'complete';
+                    statusText = '';
+                } else {
+                    statusText = `${doc.completedCount}/${doc.totalCount}`;
+                }
+                
+                const excludeButtonText = doc.allExcluded ? 'Include' : 'Exclude';
+                const excludeButtonClass = doc.allExcluded ? 'document-exclude-btn include' : 'document-exclude-btn';
+                
+                html += `
+                    <div class="document-item" data-document-id="${doc.document_id}" data-document-uuid="${doc.documentUuid}" onclick="selectDocument('${doc.document_id}')">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center;">
+                                <span class="document-title">${doc.document_id}</span>
+                                <button class="${excludeButtonClass}" onclick="event.stopPropagation(); toggleDocumentExclusion('${doc.documentUuid}', ${doc.allExcluded})">${excludeButtonText}</button>
+                            </div>
+                            <div class="document-details">${doc.school || ''} ${doc.course || ''} ${doc.term || ''} ${doc.year || ''}</div>
+                        </div>
+                        <div class="document-status ${statusClass}">${statusText}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // Filter documents based on search input
+        function filterDocumentList() {
+            const searchInput = document.getElementById('documentSearchInput');
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                // If no search term, display all documents
+                displayDocuments(allDocumentsData);
+                return;
+            }
+            
+            // Filter documents based on document_id
+            const filteredDocuments = allDocumentsData.filter(doc => {
+                return doc.document_id.toLowerCase().includes(searchTerm);
+            });
+            
+            // Display filtered results
+            displayDocuments(filteredDocuments);
         }
 
         function selectDocument(documentId) {
