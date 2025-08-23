@@ -35,6 +35,37 @@
             const protectedEnvironments = [];
             const placeholder = '___PROTECTED_ENV_';
             
+            // CRITICAL: Protect ALL math expressions FIRST before any text processing
+            // This prevents \\ inside math from being converted to <br>
+            
+            // Protect display math $$ ... $$ (including multi-line)
+            text = text.replace(/\$\$[\s\S]*?\$\$/g, function(match) {
+                const index = protectedEnvironments.length;
+                protectedEnvironments.push(match);
+                return placeholder + index + '___';
+            });
+            
+            // Protect inline math $ ... $
+            text = text.replace(/\$([^\$\n]+?)\$/g, function(match) {
+                const index = protectedEnvironments.length;
+                protectedEnvironments.push(match);
+                return placeholder + index + '___';
+            });
+            
+            // Protect display math \[ ... \]
+            text = text.replace(/\\\[[\s\S]*?\\\]/g, function(match) {
+                const index = protectedEnvironments.length;
+                protectedEnvironments.push(match);
+                return placeholder + index + '___';
+            });
+            
+            // Protect inline math \( ... \)
+            text = text.replace(/\\\([\s\S]*?\\\)/g, function(match) {
+                const index = protectedEnvironments.length;
+                protectedEnvironments.push(match);
+                return placeholder + index + '___';
+            });
+            
             // Protect cases environment and other math environments
             text = text.replace(/\\begin\{cases\}[\s\S]*?\\end\{cases\}/g, function(match) {
                 const index = protectedEnvironments.length;
@@ -68,6 +99,9 @@
                 const htmlItems = items.map(item => `<li>${item.trim()}</li>`).join('\n');
                 return `<ol style="margin: 10px 0; padding-left: 20px;">\n${htmlItems}\n</ol>`;
             });
+            
+            // NOW we can safely convert text formatting commands
+            // These will only affect text OUTSIDE of math expressions since we protected them above
             
             // Convert \underline{...} to HTML underline
             text = text.replace(/\\underline\{([^}]+)\}/g, '<u>$1</u>');
@@ -2565,11 +2599,16 @@
                             if (elem) elementsToRender.push(elem);
                         }
                         
-                        // Subproblem solution (single)
-                        if (subproblem && subproblem.solution && subproblem.solution.text) {
-                            const elem = document.getElementById(`subSolutionRendered_${key}_single`);
+                        // Subproblem solutions - Primary solution (Solution 1)
+                        const primarySubSolution = document.getElementById(`subSolutionRendered_${key}_1`);
+                        if (primarySubSolution) elementsToRender.push(primarySubSolution);
+                        
+                        // Subproblem solutions - Additional solutions
+                        const additionalSubSolutions = additionalSubproblemSolutions[key] || [];
+                        additionalSubSolutions.forEach((_, index) => {
+                            const elem = document.getElementById(`subSolutionRendered_${key}_${index + 2}`); // Start from 2
                             if (elem) elementsToRender.push(elem);
-                        }
+                        });
                         
                         // Subproblem comment
                         const subCommentElement = document.getElementById(`subproblemCommentRendered_${key}`);
