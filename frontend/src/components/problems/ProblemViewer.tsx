@@ -12,9 +12,11 @@ import {
   ChevronLeft, 
   ChevronRight, 
   BookOpen,
-  Loader2 
+  Loader2,
+  LineChart 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import GeoGebraDialog from "@/components/geogebra/GeoGebraDialog";
 
 type ProblemViewerProps = Record<string, never>
 
@@ -44,6 +46,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
   const [subproblems, setSubproblems] = useState<Subproblem[]>([]);
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+  const [geogebraOpen, setGeogebraOpen] = useState(false);
 
   useEffect(() => {
     fetchAllProblems();
@@ -226,11 +229,15 @@ export default function ProblemViewer({}: ProblemViewerProps) {
                         {currentProblem.difficulty.replace('_', ' ')}
                       </Badge>
                     )}
-                    {currentDocument?.document_id && (
-                      <span className="ml-auto text-sm text-gray-400 dark:text-gray-500 font-normal">
-                        ({currentDocument.document_id})
-                      </span>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="default"
+                      onClick={() => setGeogebraOpen(true)}
+                      className="ml-auto !p-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                      title="Open Graphing Calculator"
+                    >
+                      <LineChart className="!h-6 !w-6" />
+                    </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -325,6 +332,9 @@ export default function ProblemViewer({}: ProblemViewerProps) {
         </div>
       </div>
       </div>
+
+      {/* GeoGebra Dialog */}
+      <GeoGebraDialog open={geogebraOpen} onOpenChange={setGeogebraOpen} />
     </div>
   );
 }
