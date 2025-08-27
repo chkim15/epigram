@@ -60,7 +60,7 @@ export default function AppPage() {
       {/* Desktop Layout */}
       <div className="flex flex-1 w-full relative min-h-0">
         {/* Left Sidebar - Topics */}
-        <div className={`hidden ${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 flex-shrink-0 bg-gray-50 border-r border-gray-100 dark:bg-gray-900 dark:border-gray-800 lg:flex flex-col relative h-full`}>
+        <div className={`hidden ${isSidebarOpen ? 'w-60' : 'w-0'} transition-all duration-300 flex-shrink-0 bg-gray-50 border-r border-gray-100 dark:bg-gray-900 dark:border-gray-800 lg:flex flex-col relative h-full`}>
           {isSidebarOpen && (
             <TopicsSidebar 
               selectedTopicId={selectedTopicId}
