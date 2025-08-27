@@ -13,10 +13,12 @@ import {
   ChevronRight, 
   BookOpen,
   Loader2,
-  LineChart 
+  LineChart,
+  Calculator 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GeoGebraDialog from "@/components/geogebra/GeoGebraDialog";
+import ScientificCalculatorDialog from "@/components/geogebra/ScientificCalculatorDialog";
 
 type ProblemViewerProps = Record<string, never>
 
@@ -47,6 +49,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [geogebraOpen, setGeogebraOpen] = useState(false);
+  const [scientificCalculatorOpen, setScientificCalculatorOpen] = useState(false);
 
   useEffect(() => {
     fetchAllProblems();
@@ -229,15 +232,26 @@ export default function ProblemViewer({}: ProblemViewerProps) {
                         {currentProblem.difficulty.replace('_', ' ')}
                       </Badge>
                     )}
-                    <Button
-                      variant="outline"
-                      size="default"
-                      onClick={() => setGeogebraOpen(true)}
-                      className="ml-auto !p-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
-                      title="Open Graphing Calculator"
-                    >
-                      <LineChart className="!h-6 !w-6" />
-                    </Button>
+                    <div className="ml-auto flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="default"
+                        onClick={() => setScientificCalculatorOpen(true)}
+                        className="!p-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                        title="Open Scientific Calculator"
+                      >
+                        <Calculator className="!h-6 !w-6" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="default"
+                        onClick={() => setGeogebraOpen(true)}
+                        className="!p-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                        title="Open Graphing Calculator"
+                      >
+                        <LineChart className="!h-6 !w-6" />
+                      </Button>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -333,7 +347,8 @@ export default function ProblemViewer({}: ProblemViewerProps) {
       </div>
       </div>
 
-      {/* GeoGebra Dialog */}
+      {/* Calculator Dialogs */}
+      <ScientificCalculatorDialog open={scientificCalculatorOpen} onOpenChange={setScientificCalculatorOpen} />
       <GeoGebraDialog open={geogebraOpen} onOpenChange={setGeogebraOpen} />
     </div>
   );

@@ -3,33 +3,32 @@
 import { useEffect, useRef, useState } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { X, Loader2, GripHorizontal } from "lucide-react";
+import { X, GripHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 declare global {
   interface Window {
     GGBApplet: any;
+    ggbApplet: any;
   }
 }
 
-interface GeoGebraDialogProps {
+interface ScientificCalculatorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function GeoGebraDialog({
+export default function ScientificCalculatorDialog({
   open,
   onOpenChange,
-}: GeoGebraDialogProps) {
+}: ScientificCalculatorDialogProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
   const scriptLoadedRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
   const appletRef = useRef<any>(null);
 
   // Reset position when dialog opens
@@ -38,21 +37,15 @@ export default function GeoGebraDialog({
       setPosition({ x: 0, y: 0 });
       setIsLoading(true);
       
-      // Clear any existing timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      // Load script if not loaded
+      // Load GeoGebra script if not loaded
       if (!scriptLoadedRef.current) {
         const script = document.createElement("script");
         script.src = "https://www.geogebra.org/apps/deployggb.js";
         script.async = true;
         script.onload = () => {
           scriptLoadedRef.current = true;
-          // Add delay to ensure DOM is ready
-          timeoutRef.current = setTimeout(() => {
-            initGeoGebra();
+          setTimeout(() => {
+            initScientificCalculator();
           }, 100);
         };
         script.onerror = () => {
@@ -61,18 +54,16 @@ export default function GeoGebraDialog({
         };
         document.head.appendChild(script);
       } else {
-        // Script already loaded, init with delay
-        timeoutRef.current = setTimeout(() => {
-          initGeoGebra();
+        setTimeout(() => {
+          initScientificCalculator();
         }, 100);
       }
-    }
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+    } else {
+      // Clean up when closing
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
       }
-    };
+    }
   }, [open]);
 
   // Handle dragging
@@ -92,7 +83,6 @@ export default function GeoGebraDialog({
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      // Prevent text selection while dragging
       document.body.style.userSelect = 'none';
     }
 
@@ -103,7 +93,7 @@ export default function GeoGebraDialog({
     };
   }, [isDragging, dragStart]);
 
-  const initGeoGebra = () => {
+  const initScientificCalculator = () => {
     if (!containerRef.current || !window.GGBApplet) {
       console.error("Container or GGBApplet not available");
       setIsLoading(false);
@@ -114,45 +104,48 @@ export default function GeoGebraDialog({
       // Clear previous content
       containerRef.current.innerHTML = '';
       
-      // Create a div for the applet
+      // Create a unique div for the applet
       const appletDiv = document.createElement('div');
-      appletDiv.id = 'ggb-element-' + Date.now();
+      appletDiv.id = 'ggb-scientific-calc-' + Date.now();
+      appletDiv.style.width = '100%';
+      appletDiv.style.height = '100%';
       containerRef.current.appendChild(appletDiv);
 
-      const params = {
-        appName: "graphing",
-        width: 700,  // More square-like dimensions
-        height: 460, // Original height restored
+      // Parameters for scientific calculator based on the working example
+      const parameters = {
+        appName: "scientific",
+        id: "ggbScientificCalc",
+        width: 430,
+        height: 530,
         showToolBar: true,
-        showAlgebraInput: true,  // Keep this true to show input field and toggle
-        showInputBar: false,     // Hide the input bar initially but keep toggle button
+        borderColor: null,
         showMenuBar: false,
-        showToolBarHelp: true,
-        showResetIcon: true,
-        enableRightClick: true,
-        errorDialogsActive: false,
-        useBrowserForJS: true,
         allowStyleBar: true,
-        preventFocus: false,
-        showZoomButtons: true,
-        showFullscreenButton: true,
-        scale: 1,
+        showAlgebraInput: true,
+        enableLabelDrags: false,
+        enableShiftDragZoom: true,
+        capturingThreshold: null,
+        showToolBarHelp: false,
+        errorDialogsActive: true,
+        showTutorialLink: false,
+        showLogging: false,
+        useBrowserForJS: true,
         disableAutoScale: false,
         allowUpscale: false,
-        clickToLoad: false,
-        appletOnLoad: (api: any) => {
-          console.log("GeoGebra loaded successfully");
-          appletRef.current = api;
-          setIsLoading(false);
-        },
-        showSuggestionButtons: true,
-        buttonRounding: 0.7,
-        buttonShadows: false,
+        preventFocus: false,
+        showZoomButtons: false,
+        showFullscreenButton: false,
+        showSuggestionButtons: false,
+        showStartTooltip: false,
         language: "en",
-        enableShiftDragZoom: true,
+        appletOnLoad: () => {
+          console.log("GeoGebra Scientific Calculator loaded");
+          appletRef.current = window.ggbApplet;
+          setIsLoading(false);
+        }
       };
 
-      const applet = new window.GGBApplet(params, true);
+      const applet = new window.GGBApplet(parameters, true);
       applet.inject(appletDiv.id);
     } catch (error) {
       console.error("Error initializing GeoGebra:", error);
@@ -171,12 +164,10 @@ export default function GeoGebraDialog({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        {/* No overlay - background stays visible */}
         <DialogPrimitive.Content 
-          ref={dialogRef}
           className={cn(
-            "fixed left-[50%] top-[50%] z-50 w-[720px]",
-            "rounded-lg border bg-background shadow-2xl duration-200",
+            "fixed left-[50%] top-[50%] z-50",
+            "duration-200",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -188,41 +179,48 @@ export default function GeoGebraDialog({
         >
           {/* Hidden title for accessibility */}
           <VisuallyHidden.Root>
-            <DialogPrimitive.Title>GeoGebra Graphing Calculator</DialogPrimitive.Title>
+            <DialogPrimitive.Title>GeoGebra Scientific Calculator</DialogPrimitive.Title>
           </VisuallyHidden.Root>
 
-          {/* Drag handle */}
-          <div 
-            className="absolute left-0 right-0 top-0 h-10 flex items-center justify-center cursor-move rounded-t-lg"
-            onMouseDown={handleMouseDown}
-          >
-            <GripHorizontal className="h-5 w-5 text-gray-400" />
-          </div>
+          {/* Main container */}
+          <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
+            {/* Header section */}
+            <div 
+              className="h-10 bg-white flex items-center justify-center relative cursor-move"
+              onMouseDown={handleMouseDown}
+            >
+              <GripHorizontal className="h-5 w-5 text-gray-400" />
+              
+              {/* Close button in header */}
+              <DialogPrimitive.Close 
+                className="absolute right-2 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none cursor-pointer p-1"
+              >
+                <X className="h-4 w-4 text-gray-600" />
+                <span className="sr-only">Close</span>
+              </DialogPrimitive.Close>
+            </div>
 
-          {/* Close button */}
-          <DialogPrimitive.Close 
-            className="absolute right-3 top-3 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
-
-          {/* Content container */}
-          <div className="relative w-full h-[480px] mt-8 p-3">
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
-                <div className="flex flex-col items-center space-y-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Loading GeoGebra...
-                  </p>
+            {/* GeoGebra container */}
+            <div className="relative w-[450px] h-[550px] bg-white p-2.5">
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="text-sm text-gray-600">
+                      Loading Scientific Calculator...
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-            <div
-              ref={containerRef}
-              className="w-full h-full"
-            />
+              )}
+              <div
+                ref={containerRef}
+                className="w-full h-full"
+                style={{
+                  minWidth: '430px',
+                  minHeight: '530px'
+                }}
+              />
+            </div>
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
