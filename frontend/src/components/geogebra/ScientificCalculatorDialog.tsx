@@ -6,10 +6,22 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { X, GripHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+interface CalculatorAPI {
+  newConstruction(): void;
+  setWidth(width: number): void;
+  setHeight(height: number): void;
+}
+
+interface GGBAppletConstructor {
+  new (params: Record<string, unknown>, inject?: boolean): {
+    inject(id: string): void;
+  };
+}
+
 declare global {
   interface Window {
-    GGBApplet: any;
-    ggbApplet: any;
+    GGBApplet: GGBAppletConstructor;
+    ggbApplet: CalculatorAPI;
   }
 }
 
@@ -29,7 +41,7 @@ export default function ScientificCalculatorDialog({
   
   const containerRef = useRef<HTMLDivElement>(null);
   const scriptLoadedRef = useRef(false);
-  const appletRef = useRef<any>(null);
+  const appletRef = useRef<CalculatorAPI | null>(null);
 
   // Reset position when dialog opens
   useEffect(() => {

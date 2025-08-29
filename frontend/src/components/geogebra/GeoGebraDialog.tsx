@@ -6,9 +6,21 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { X, Loader2, GripHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+interface GeoGebraAPI {
+  newConstruction(): void;
+  setWidth(width: number): void;
+  setHeight(height: number): void;
+}
+
+interface GGBAppletConstructor {
+  new (params: Record<string, unknown>, inject?: boolean): {
+    inject(id: string): void;
+  };
+}
+
 declare global {
   interface Window {
-    GGBApplet: any;
+    GGBApplet: GGBAppletConstructor;
   }
 }
 
@@ -29,8 +41,8 @@ export default function GeoGebraDialog({
   const containerRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const scriptLoadedRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  const appletRef = useRef<any>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const appletRef = useRef<GeoGebraAPI | null>(null);
 
   // Reset position when dialog opens
   useEffect(() => {
@@ -140,7 +152,7 @@ export default function GeoGebraDialog({
         disableAutoScale: false,
         allowUpscale: false,
         clickToLoad: false,
-        appletOnLoad: (api: any) => {
+        appletOnLoad: (api: GeoGebraAPI) => {
           console.log("GeoGebra loaded successfully");
           appletRef.current = api;
           setIsLoading(false);

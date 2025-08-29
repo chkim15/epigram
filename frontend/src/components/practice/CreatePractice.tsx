@@ -46,10 +46,9 @@ interface PracticeSession {
 
 interface CreatePracticeProps {
   onStartPractice: (topicIds: number[], difficulties: string[]) => void;
-  onBack: () => void;
 }
 
-export default function CreatePractice({ onStartPractice, onBack }: CreatePracticeProps) {
+export default function CreatePractice({ onStartPractice }: CreatePracticeProps) {
   const [, setTopics] = useState<Topic[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);

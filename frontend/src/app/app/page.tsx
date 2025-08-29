@@ -58,9 +58,6 @@ function AppPageContent() {
     setViewMode('problems');
   };
 
-  const handleBackFromPractice = () => {
-    setViewMode('problems');
-  };
 
   const handleLogoClick = () => {
     setViewMode('problems');
@@ -150,7 +147,6 @@ function AppPageContent() {
           {viewMode === 'create-practice' ? (
             <CreatePractice
               onStartPractice={handleStartPractice}
-              onBack={handleBackFromPractice}
             />
           ) : (
             <ResizablePanels
