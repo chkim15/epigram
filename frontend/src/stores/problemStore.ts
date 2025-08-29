@@ -70,9 +70,7 @@ export const useProblemStore = create<ProblemStore>((set, get) => ({
   setSelectedTopicId: (topicId) => {
     set({ 
       selectedTopicId: topicId,
-      problemList: [],
-      currentProblem: null,
-      currentProblemIndex: 0,
+      // Don't reset problemList here - let ProblemViewer handle fetching
       showHint: false,
       showSolution: false
     });

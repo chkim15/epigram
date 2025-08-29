@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import TopicsSidebar from "@/components/navigation/TopicsSidebar";
 import ProblemViewer from "@/components/problems/ProblemViewer";
 import ChatSidebar from "@/components/ai/ChatSidebar";
+import CreatePractice from "@/components/practice/CreatePractice";
 import ResizablePanels from "@/components/ui/resizable-panels";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
@@ -13,16 +14,57 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 
-export default function AppPage() {
+function AppPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, checkAuth } = useAuthStore();
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
+  const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([]);
+  const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [viewMode, setViewMode] = useState<'problems' | 'create-practice'>('problems');
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    // Parse URL parameters for practice mode
+    const topics = searchParams.get('topics');
+    const difficulties = searchParams.get('difficulties');
+    
+    if (topics) {
+      const topicIds = topics.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+      setSelectedTopicIds(topicIds);
+      setSelectedTopicId(null); // Clear single topic selection in practice mode
+      setViewMode('problems'); // Ensure we're in problems view when filters are applied
+    }
+    
+    if (difficulties) {
+      const difficultyList = difficulties.split(',');
+      setSelectedDifficulties(difficultyList);
+    }
+  }, [searchParams]);
+
+  const handleCreatePractice = () => {
+    setViewMode('create-practice');
+  };
+
+  const handleStartPractice = (topicIds: number[], difficulties: string[]) => {
+    setSelectedTopicIds(topicIds);
+    setSelectedDifficulties(difficulties);
+    setSelectedTopicId(null);
+    setViewMode('problems');
+  };
+
+  const handleBackFromPractice = () => {
+    setViewMode('problems');
+  };
+
+  const handleLogoClick = () => {
+    setViewMode('problems');
+  };
 
   return (
     <div className="w-full h-screen flex flex-col">
@@ -42,9 +84,15 @@ export default function AppPage() {
               selectedTopicId={selectedTopicId}
               onSelectTopic={(id) => {
                 setSelectedTopicId(id);
+                setViewMode('problems');
                 setIsMobileMenuOpen(false);
               }}
               onToggleSidebar={() => setIsMobileMenuOpen(false)}
+              onCreatePractice={() => {
+                handleCreatePractice();
+                setIsMobileMenuOpen(false);
+              }}
+              onLogoClick={handleLogoClick}
             />
           </SheetContent>
         </Sheet>
@@ -64,8 +112,13 @@ export default function AppPage() {
           {isSidebarOpen && (
             <TopicsSidebar 
               selectedTopicId={selectedTopicId}
-              onSelectTopic={setSelectedTopicId}
+              onSelectTopic={(id) => {
+                setSelectedTopicId(id);
+                setViewMode('problems');
+              }}
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+              onCreatePractice={handleCreatePractice}
+              onLogoClick={handleLogoClick}
             />
           )}
           {/* Bottom Auth Section */}
@@ -90,20 +143,48 @@ export default function AppPage() {
             className="hidden lg:flex" 
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            onLogoClick={handleLogoClick}
           />
 
-          {/* Resizable Panels below header */}
-          <ResizablePanels
-            leftPanel={<ProblemViewer />}
-            rightPanel={<ChatSidebar />}
-            defaultLeftWidth={50}
-            minLeftWidth={25}
-            maxLeftWidth={75}
-            className="flex-1"
-            storageKey="main-panels-width"
-          />
+          {/* Content area below header */}
+          {viewMode === 'create-practice' ? (
+            <CreatePractice
+              onStartPractice={handleStartPractice}
+              onBack={handleBackFromPractice}
+            />
+          ) : (
+            <ResizablePanels
+              leftPanel={
+                <ProblemViewer 
+                  selectedTopicId={selectedTopicId}
+                  selectedTopicIds={selectedTopicIds}
+                  selectedDifficulties={selectedDifficulties}
+                />
+              }
+              rightPanel={<ChatSidebar />}
+              defaultLeftWidth={50}
+              minLeftWidth={25}
+              maxLeftWidth={75}
+              className="flex-1"
+              storageKey="main-panels-width"
+            />
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AppPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+        </div>
+      </div>
+    }>
+      <AppPageContent />
+    </Suspense>
   );
 }

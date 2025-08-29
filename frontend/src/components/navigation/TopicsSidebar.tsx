@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Loader2, ChevronDown, ChevronRight, ChevronsLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 interface Course {
   id: string;
@@ -26,6 +25,8 @@ interface TopicsSidebarProps {
   selectedTopicId: number | null;
   onSelectTopic: (topicId: number) => void;
   onToggleSidebar?: () => void;
+  onCreatePractice?: () => void;
+  onLogoClick?: () => void;
 }
 
 interface ExpandedCourse {
@@ -34,7 +35,7 @@ interface ExpandedCourse {
   sections: Section[];
 }
 
-export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar }: TopicsSidebarProps) {
+export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onLogoClick }: TopicsSidebarProps) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -191,12 +192,15 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
       <div className="flex h-full flex-col min-h-0 flex-shrink-0 w-[240px]">
         {/* Header */}
         <div className="p-4 h-[73px] flex items-center justify-between flex-shrink-0">
-          <Link href="/app" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+          <div 
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            onClick={onLogoClick}
+          >
             <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8" />
             <h2 className="font-bold text-xl text-gray-900 dark:text-white">
               Epigram
             </h2>
-          </Link>
+          </div>
           {onToggleSidebar && !expandedCourse && (
             <Button
               variant="ghost"
@@ -212,20 +216,6 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
         {/* Main Menu Structure */}
         <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
           <div className="p-2">
-            {/* Create Practice Section */}
-            <div className="mb-4">
-              <Button
-                variant="ghost"
-                className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
-                onClick={() => {
-                  // TODO: Navigate to Create Practice page
-                  console.log('Navigate to Create Practice page');
-                }}
-              >
-                <span className="flex-1 text-left">Create Practice</span>
-              </Button>
-            </div>
-
             {/* Study by Course Section */}
             <div className="mb-2">
               <Collapsible defaultOpen>
@@ -258,6 +248,17 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   </div>
                 </CollapsibleContent>
               </Collapsible>
+            </div>
+
+            {/* Create Practice Section */}
+            <div className="mb-4">
+              <Button
+                variant="ghost"
+                className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
+                onClick={onCreatePractice}
+              >
+                <span className="flex-1 text-left">Create Practice</span>
+              </Button>
             </div>
           </div>
         </div>

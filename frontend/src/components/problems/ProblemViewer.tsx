@@ -20,9 +20,13 @@ import { cn } from "@/lib/utils";
 import GeoGebraDialog from "@/components/geogebra/GeoGebraDialog";
 import ScientificCalculatorDialog from "@/components/geogebra/ScientificCalculatorDialog";
 
-type ProblemViewerProps = Record<string, never>
+interface ProblemViewerProps {
+  selectedTopicId: number | null;
+  selectedTopicIds?: number[];
+  selectedDifficulties?: string[];
+}
 
-export default function ProblemViewer({}: ProblemViewerProps) {
+export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], selectedDifficulties = [] }: ProblemViewerProps) {
   const {
     currentProblem,
     currentProblemIndex,
@@ -53,7 +57,7 @@ export default function ProblemViewer({}: ProblemViewerProps) {
 
   useEffect(() => {
     fetchAllProblems();
-  }, []);
+  }, [selectedTopicId, selectedTopicIds, selectedDifficulties]);
 
   useEffect(() => {
     if (currentProblem) {
@@ -91,7 +95,13 @@ export default function ProblemViewer({}: ProblemViewerProps) {
   const fetchAllProblems = async () => {
     try {
       setLoading(true);
-      console.log('Fetching ALL problems from database...');
+      const isPracticeMode = selectedTopicIds.length > 0 || selectedDifficulties.length > 0;
+      console.log('Fetching problems from database...', {
+        practiceMode: isPracticeMode,
+        selectedTopicId,
+        selectedTopicIds,
+        selectedDifficulties
+      });
       
       // First fetch documents data
       const { data: documentsData, error: documentsError } = await supabase
@@ -108,24 +118,97 @@ export default function ProblemViewer({}: ProblemViewerProps) {
         console.log('Loaded documents:', documentsData);
       }
       
-      // Fetch ALL problems from ALL documents
-      // Note: We'll fetch topics separately if needed to avoid complex joins
-      const { data: problemsData, error: problemsError } = await supabase
-        .from('problems')
-        .select(`
-          id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
-          math_approach, reasoning_type, difficulty, importance,
-          comment, version, created_at, updated_at, included
-        `)
-        .eq('included', true)  // Only fetch included problems (not soft deleted)
-        .order('document_id')
-        .order('problem_id');
+      let problemsData;
+      let problemsError;
+      
+      if (isPracticeMode) {
+        // Practice mode: filter by multiple topics and difficulties
+        let query = supabase
+          .from('problems')
+          .select(`
+            id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
+            math_approach, reasoning_type, difficulty, importance,
+            comment, version, created_at, updated_at, included,
+            problem_topics!inner(topic_id)
+          `)
+          .eq('included', true);
+        
+        // Filter by topics if provided
+        if (selectedTopicIds.length > 0) {
+          query = query.in('problem_topics.topic_id', selectedTopicIds);
+        }
+        
+        // Filter by difficulties if provided
+        if (selectedDifficulties.length > 0) {
+          query = query.in('difficulty', selectedDifficulties);
+        }
+        
+        const result = await query
+          .order('document_id')
+          .order('problem_id');
+        
+        problemsData = result.data;
+        problemsError = result.error;
+        
+        // Clean up the data structure - remove the problem_topics array from each problem
+        if (problemsData) {
+          // Remove duplicates that might occur when a problem has multiple topics
+          const uniqueProblems = new Map();
+          problemsData.forEach((problem: any) => {
+            const { problem_topics, ...cleanProblem } = problem;
+            if (!uniqueProblems.has(cleanProblem.id)) {
+              uniqueProblems.set(cleanProblem.id, cleanProblem);
+            }
+          });
+          problemsData = Array.from(uniqueProblems.values());
+        }
+      } else if (selectedTopicId) {
+        // Single topic selection from sidebar
+        const result = await supabase
+          .from('problems')
+          .select(`
+            id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
+            math_approach, reasoning_type, difficulty, importance,
+            comment, version, created_at, updated_at, included,
+            problem_topics!inner(topic_id)
+          `)
+          .eq('included', true)
+          .eq('problem_topics.topic_id', selectedTopicId)
+          .order('document_id')
+          .order('problem_id');
+        
+        problemsData = result.data;
+        problemsError = result.error;
+        
+        // Clean up the data structure - remove the problem_topics array from each problem
+        if (problemsData) {
+          problemsData = problemsData.map(problem => {
+            const { problem_topics, ...cleanProblem } = problem as any;
+            return cleanProblem;
+          });
+        }
+      } else {
+        // Fetch ALL problems when no topic is selected
+        const result = await supabase
+          .from('problems')
+          .select(`
+            id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
+            math_approach, reasoning_type, difficulty, importance,
+            comment, version, created_at, updated_at, included
+          `)
+          .eq('included', true)
+          .order('document_id')
+          .order('problem_id');
+        
+        problemsData = result.data;
+        problemsError = result.error;
+      }
 
       console.log('Database response:', { problemsData, problemsError });
 
       if (problemsError) throw problemsError;
 
-      console.log(`Found ${problemsData?.length || 0} total problems from all documents`);
+      console.log(`Found ${problemsData?.length || 0} problems${isPracticeMode ? ' for practice session' : selectedTopicId ? ` for topic ${selectedTopicId}` : ' total'}`);
 
       setProblemList(problemsData || []);
       
@@ -197,18 +280,18 @@ export default function ProblemViewer({}: ProblemViewerProps) {
 
   if (problemList.length === 0 && !isLoading) {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="text-center">
-          <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-            No Problems Found
-          </h3>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            The database appears to be empty. Please add some problems to the database first.
-          </p>
-          <Button onClick={fetchAllProblems} className="mt-4">
-            Retry Loading
-          </Button>
+      <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
+          <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-gray-900 p-3 custom-scrollbar">
+            <div className="flex h-full items-center justify-center">
+              <div className="text-center">
+                <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+                  No Problems Found
+                </h3>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
