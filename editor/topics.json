@@ -170,39 +170,81 @@
     },
     {
       "id": 29,
-      "name": "Alternating Series",
+      "name": "Applications of Taylor Polynomials",
       "main_topic": "Sequences and Series",
       "course": "Calculus II"
     },
     {
       "id": 30,
-      "name": "Absolute Convergence, Ratio and Root Test",
+      "name": "Alternating Series",
       "main_topic": "Sequences and Series",
       "course": "Calculus II"
     },
     {
       "id": 31,
-      "name": "Power Series",
+      "name": "Absolute Convergence, Ratio and Root Test",
       "main_topic": "Sequences and Series",
       "course": "Calculus II"
     },
     {
       "id": 32,
-      "name": "Taylor and MacLaurin Series",
+      "name": "Power Series",
       "main_topic": "Sequences and Series",
       "course": "Calculus II"
     },
     {
       "id": 33,
+      "name": "Taylor and MacLaurin Series",
+      "main_topic": "Sequences and Series",
+      "course": "Calculus II"
+    },
+    {
+      "id": 34,
       "name": "Separable ODE",
       "main_topic": "Ordinary Differential Equations",
       "course": "Calculus II"
     },
     {
-      "id": 34,
+      "id": 35,
       "name": "First Order Linear ODE",
       "main_topic": "Ordinary Differential Equations",
       "course": "Calculus II"
+    },
+    {
+      "id": 36,
+      "name": "Basic Probability Theory",
+      "main_topic": "Special Topic",
+      "course": "Calculus"
+    },
+    {
+      "id": 37,
+      "name": "Convergence Test Strategies",
+      "main_topic": "Special Topic",
+      "course": "Calculus"
+    },
+    {
+      "id": 38,
+      "name": "Essential Integration Strategies",
+      "main_topic": "Special Topic",
+      "course": "Calculus"
+    },
+    {
+      "id": 39,
+      "name": "Essential Strategies for Evaluating Limits",
+      "main_topic": "Special Topic",
+      "course": "Calculus"
+    },
+    {
+      "id": 40,
+      "name": "Factoring Polynomials",
+      "main_topic": "Special Topic",
+      "course": "Calculus"
+    },
+    {
+      "id": 41,
+      "name": "Order of Growth and Asymptotic Analysis",
+      "main_topic": "Special Topic",
+      "course": "Calculus"
     }
   ]
 }
