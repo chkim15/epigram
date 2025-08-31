@@ -1,164 +1,208 @@
 {
-    "topics": [
-      {
-        "id": 1,
-        "name": "Variables, Functions and Graphs"
-      },
-      {
-        "id": 2,
-        "name": "Limits of Functions"
-      },
-      {
-        "id": 3,
-        "name": "Continuity and IVT"
-      },
-      {
-        "id": 4,
-        "name": "Indeterminate Forms Limits via Algebraic Manipulation"
-      },
-      {
-        "id": 5,
-        "name": "Limits at Infinity and Asymptotes"
-      },
-      {
-        "id": 6,
-        "name": "Limiting Definition of Derivatives"
-      },
-      {
-        "id": 7,
-        "name": "Chain, Product and Quotient Rules"
-      },
-      {
-        "id": 8,
-        "name": "Implicit Differentiation and Inverse Derivatives"
-      },
-      {
-        "id": 9,
-        "name": "Logarithmic Differentiation"
-      },
-      {
-        "id": 10,
-        "name": "Inverse Trig and Hyperbolic Functions"
-      },
-      {
-        "id": 11,
-        "name": "Indeterminate Forms Limits via L'Hospital Rule"
-      },
-      {
-        "id": 12,
-        "name": "Extreme Values, Monotonicity and Concavity"
-      },
-      {
-        "id": 13,
-        "name": "Applied Optimization"
-      },
-      {
-        "id": 14,
-        "name": "Approximation via Differentiation"
-      },
-      {
-        "id": 15,
-        "name": "Antiderivatives"
-      },
-      {
-        "id": 16,
-        "name": "Riemann Sum and Definite Integral"
-      },
-      {
-        "id": 17,
-        "name": "Fundamental Theorem of Calculus"
-      },
-      {
-        "id": 18,
-        "name": "Substitution Rules"
-      },
-      {
-        "id": 19,
-        "name": "Area Between Curves"
-      },
-      {
-        "id": 20,
-        "name": "Volume by Slicing"
-      },
-      {
-        "id": 21,
-        "name": "Volume by Cylindrical Shells"
-      },
-      {
-        "id": 22,
-        "name": "Integration by Parts"
-      },
-      {
-        "id": 23,
-        "name": "Partial Fractions"
-      },
-      {
-        "id": 24,
-        "name": "Improper Integrals"
-      },
-      {
-        "id": 25,
-        "name": "Arc Length"
-      },
-      {
-        "id": 26,
-        "name": "Surface Area"
-      },
-      {
-        "id": 27,
-        "name": "Sequences"
-      },
-      {
-        "id": 28,
-        "name": "Series"
-      },
-      {
-        "id": 29,
-        "name": "Integral Tests"
-      },
-      {
-        "id": 30,
-        "name": "Comparison Tests"
-      },
-      {
-        "id": 31,
-        "name": "Alternating Series"
-      },
-      {
-        "id": 32,
-        "name": "Absolute Convergence, Ratio and Root Test"
-      },
-      {
-        "id": 33,
-        "name": "Power Series"
-      },
-      {
-        "id": 34,
-        "name": "Taylor and MacLaurin Series"
-      },
-      {
-        "id": 35,
-        "name": "Applications of Taylor Polynomials"
-      },
-      {
-        "id": 36,
-        "name": "Separable and Homogeneous ODE"
-      },
-      {
-        "id": 37,
-        "name": "First Order Linear ODE"
-      },
-      {
-        "id": 38,
-        "name": "Second Order Linear ODE"
-      },
-      {
-        "id": 39,
-        "name": "Nonhomogeneous Linear ODE"
-      },
-      {
-        "id": 40,
-        "name": "Series Solutions of ODE"
-      }
-    ]
-  }
+  "topics": [
+    {
+      "id": 1,
+      "name": "Continuity and IVT",
+      "main_topic": "Limits",
+      "course": "Calculus I"
+    },
+    {
+      "id": 2,
+      "name": "Indeterminate Forms Limits via Algebraic Manipulation",
+      "main_topic": "Limits",
+      "course": "Calculus I"
+    },
+    {
+      "id": 3,
+      "name": "Limits at Infinity and Asymptotes",
+      "main_topic": "Limits",
+      "course": "Calculus I"
+    },
+    {
+      "id": 4,
+      "name": "Definition of Derivatives",
+      "main_topic": "Derivatives",
+      "course": "Calculus I"
+    },
+    {
+      "id": 5,
+      "name": "Chain, Product and Quotient Rules",
+      "main_topic": "Derivatives",
+      "course": "Calculus I"
+    },
+    {
+      "id": 6,
+      "name": "Implicit Differentiation and Inverse Derivatives",
+      "main_topic": "Derivatives",
+      "course": "Calculus I"
+    },
+    {
+      "id": 7,
+      "name": "Logarithmic Differentiation",
+      "main_topic": "Derivatives",
+      "course": "Calculus I"
+    },
+    {
+      "id": 8,
+      "name": "Rolle's Theorem and MVT",
+      "main_topic": "Derivatives",
+      "course": "Calculus I"
+    },
+    {
+      "id": 9,
+      "name": "Indeterminate Forms Limits via L'Hospital Rule",
+      "main_topic": "Applications of Derivatives",
+      "course": "Calculus I"
+    },
+    {
+      "id": 10,
+      "name": "Approximation via Differentiation",
+      "main_topic": "Applications of Derivatives",
+      "course": "Calculus I"
+    },
+    {
+      "id": 11,
+      "name": "Extreme Values, Monotonicity and Concavity",
+      "main_topic": "Applications of Derivatives",
+      "course": "Calculus I"
+    },
+    {
+      "id": 12,
+      "name": "Optimization",
+      "main_topic": "Applications of Derivatives",
+      "course": "Calculus I"
+    },
+    {
+      "id": 13,
+      "name": "Anti-derivatives",
+      "main_topic": "Integration",
+      "course": "Calculus I"
+    },
+    {
+      "id": 14,
+      "name": "Riemann Sum and Definite Integral",
+      "main_topic": "Integration",
+      "course": "Calculus I"
+    },
+    {
+      "id": 15,
+      "name": "Fundamental Theorem of Calculus",
+      "main_topic": "Integration",
+      "course": "Calculus I"
+    },
+    {
+      "id": 16,
+      "name": "Substitution",
+      "main_topic": "Integration",
+      "course": "Calculus I"
+    },
+    {
+      "id": 17,
+      "name": "Area Between Curves",
+      "main_topic": "Integration",
+      "course": "Calculus I"
+    },
+    {
+      "id": 18,
+      "name": "Volume by Slicing",
+      "main_topic": "Integration",
+      "course": "Calculus II"
+    },
+    {
+      "id": 19,
+      "name": "Volume by Cylindrical Shells",
+      "main_topic": "Integration",
+      "course": "Calculus II"
+    },
+    {
+      "id": 20,
+      "name": "Integration by Parts",
+      "main_topic": "Integration",
+      "course": "Calculus II"
+    },
+    {
+      "id": 21,
+      "name": "Partial Fractions",
+      "main_topic": "Integration",
+      "course": "Calculus II"
+    },
+    {
+      "id": 22,
+      "name": "Improper Integrals",
+      "main_topic": "Integration",
+      "course": "Calculus II"
+    },
+    {
+      "id": 23,
+      "name": "Arc Length",
+      "main_topic": "Integration",
+      "course": "Calculus II"
+    },
+    {
+      "id": 24,
+      "name": "Surface Area",
+      "main_topic": "Integration",
+      "course": "Calculus II"
+    },
+    {
+      "id": 25,
+      "name": "Sequences",
+      "main_topic": "Integration",
+      "course": "Calculus II"
+    },
+    {
+      "id": 26,
+      "name": "Series",
+      "main_topic": "Sequences and Series",
+      "course": "Calculus II"
+    },
+    {
+      "id": 27,
+      "name": "Integral Tests",
+      "main_topic": "Sequences and Series",
+      "course": "Calculus II"
+    },
+    {
+      "id": 28,
+      "name": "Comparison Tests",
+      "main_topic": "Sequences and Series",
+      "course": "Calculus II"
+    },
+    {
+      "id": 29,
+      "name": "Alternating Series",
+      "main_topic": "Sequences and Series",
+      "course": "Calculus II"
+    },
+    {
+      "id": 30,
+      "name": "Absolute Convergence, Ratio and Root Test",
+      "main_topic": "Sequences and Series",
+      "course": "Calculus II"
+    },
+    {
+      "id": 31,
+      "name": "Power Series",
+      "main_topic": "Sequences and Series",
+      "course": "Calculus II"
+    },
+    {
+      "id": 32,
+      "name": "Taylor and MacLaurin Series",
+      "main_topic": "Sequences and Series",
+      "course": "Calculus II"
+    },
+    {
+      "id": 33,
+      "name": "Separable ODE",
+      "main_topic": "Ordinary Differential Equations",
+      "course": "Calculus II"
+    },
+    {
+      "id": 34,
+      "name": "First Order Linear ODE",
+      "main_topic": "Ordinary Differential Equations",
+      "course": "Calculus II"
+    }
+  ]
+}
