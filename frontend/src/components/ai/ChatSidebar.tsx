@@ -33,6 +33,7 @@ const PDFViewerSimple = dynamic(
   }
 );
 import { getSamplePDFUrl } from "@/lib/utils/pdf";
+import { TopicNotesViewer } from '@/components/notes/TopicNotesViewer';
 
 interface Message {
   id: string;
@@ -689,9 +690,8 @@ export default function ChatSidebar({}: ChatSidebarProps) {
         {/* Other tab content placeholders */}
         {activeTab === 'notes' && (
           <div className="flex-1 min-h-0 h-full">
-            <PDFViewerSimple 
-              pdfUrl={getSamplePDFUrl('sample.pdf')}
-              className="h-full"
+            <TopicNotesViewer 
+              problemId={currentProblem?.id || null}
             />
           </div>
         )}

@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import { Problem, Document } from '@/types/database';
+import { Problem, Document, Topic } from '@/types/database';
+
+interface TopicNote {
+  topic_id: number;
+  topic_name: string;
+  file_url: string | null;
+}
 
 interface ProblemStore {
   // Current state
@@ -8,6 +14,10 @@ interface ProblemStore {
   problemList: Problem[];
   selectedTopicId: number | null;
   currentDocument: Document | null;
+  
+  // Topics for current problem
+  currentProblemTopics: Topic[];
+  currentTopicNotes: TopicNote[];
   
   // UI state
   showHint: boolean;
@@ -19,6 +29,8 @@ interface ProblemStore {
   setProblemList: (problems: Problem[]) => void;
   setCurrentDocument: (document: Document) => void;
   setSelectedTopicId: (topicId: number | null) => void;
+  setCurrentProblemTopics: (topics: Topic[]) => void;
+  setCurrentTopicNotes: (notes: TopicNote[]) => void;
   nextProblem: () => void;
   previousProblem: () => void;
   toggleHint: () => void;
@@ -37,6 +49,8 @@ export const useProblemStore = create<ProblemStore>((set, get) => ({
   problemList: [],
   selectedTopicId: null,
   currentDocument: null,
+  currentProblemTopics: [],
+  currentTopicNotes: [],
   showHint: false,
   showSolution: false,
   isLoading: false,
@@ -49,8 +63,19 @@ export const useProblemStore = create<ProblemStore>((set, get) => ({
       currentProblem: problem, 
       currentProblemIndex: Math.max(0, index),
       showHint: false,
-      showSolution: false 
+      showSolution: false,
+      // Clear topics when problem changes - will be fetched separately
+      currentProblemTopics: [],
+      currentTopicNotes: []
     });
+  },
+  
+  setCurrentProblemTopics: (topics) => {
+    set({ currentProblemTopics: topics });
+  },
+  
+  setCurrentTopicNotes: (notes) => {
+    set({ currentTopicNotes: notes });
   },
 
   setProblemList: (problems) => {

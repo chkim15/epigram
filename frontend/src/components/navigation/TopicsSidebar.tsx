@@ -94,6 +94,10 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     // Group topics by course
     const courseGroups = topics.reduce((acc, topic) => {
       const courseName = topic.course || 'Uncategorized';
+      // Skip generic "Calculus" course - only show Calculus I and Calculus II
+      if (courseName === 'Calculus') {
+        return acc;
+      }
       if (!acc[courseName]) {
         acc[courseName] = [];
       }
