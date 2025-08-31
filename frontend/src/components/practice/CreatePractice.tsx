@@ -126,6 +126,11 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
         return;
       }
       
+      // Skip generic "Calculus" course (keep only "Calculus I" and "Calculus II")
+      if (courseName === 'Calculus') {
+        return;
+      }
+      
       if (!courseMap.has(courseName)) {
         courseMap.set(courseName, new Map());
       }
@@ -501,9 +506,9 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       key={difficulty}
                       onClick={() => toggleDifficulty(difficulty)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-md border-2 cursor-pointer transition-all",
+                        "flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-all",
                         selectedDifficulties.has(difficulty)
-                          ? "border-black bg-gray-50 dark:bg-gray-800"
+                          ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                       )}
                     >

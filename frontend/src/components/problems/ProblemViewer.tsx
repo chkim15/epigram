@@ -310,11 +310,6 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <span>Problem {currentProblemIndex + 1}</span>
-                    {currentProblem.difficulty && (
-                      <Badge className={cn("text-xs", getDifficultyColor(currentProblem.difficulty))}>
-                        {currentProblem.difficulty.replace('_', ' ')}
-                      </Badge>
-                    )}
                     <div className="ml-auto flex items-center gap-2">
                       <Button
                         variant="outline"
