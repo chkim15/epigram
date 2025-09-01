@@ -1541,6 +1541,8 @@
         let originalData = null;
         let originalAdditionalSolutions = {};  // Store original state of additional solutions
         let originalAdditionalSubproblemSolutions = {};  // Store original state of additional subproblem solutions
+        let additionalSolutions = {};  // Current additional solutions for main problems (Key: problem_id, Value: array of solutions)
+        let additionalSubproblemSolutions = {};  // Current additional solutions for subproblems (Key: subproblem_key, Value: array of solutions)
         let imageBasePath = '';
         let currentDocumentId = null; // Track the current document ID for problem generation
         
@@ -1979,6 +1981,10 @@
                                     allSolutions.push(problem.solution.text);
                                 }
                                 
+                                // Debug: Log what we're looking for
+                                console.log(`Looking for additional solutions with key '${problem.id}'`);
+                                console.log('Available keys in additionalSolutions:', Object.keys(additionalSolutions));
+                                
                                 // Add additional solutions
                                 const additionalSols = additionalSolutions[problem.id];
                                 if (additionalSols && additionalSols.length > 0) {
@@ -2003,6 +2009,8 @@
                                         solution_order: index
                                     }));
                                     
+                                    console.log(`Inserting ${solutionInserts.length} solutions for problem UUID ${problemUuid}:`, solutionInserts);
+                                    
                                     const { data: solutionData, error: solutionsError } = await supabase
                                         .from('solutions')
                                         .insert(solutionInserts)
@@ -2010,6 +2018,8 @@
                                     
                                     if (solutionsError) {
                                         console.error('Failed to update solutions:', solutionsError);
+                                    } else {
+                                        console.log('Successfully inserted solutions:', solutionData);
                                     }
                                 }
                                 
@@ -4814,9 +4824,6 @@
             }
         }
 
-        // Store additional solutions in memory (beyond the first one)
-        let additionalSolutions = {};  // Key: problem_id, Value: array of solutions
-        
         // NEW: Multiple solutions support
         function generateSolutionSection(solution) {
             const problem = problemsData.problems[currentProblemIndex];
@@ -5549,8 +5556,6 @@
         }
 
         // Store additional solutions for subproblems
-        let additionalSubproblemSolutions = {};  // Key: subproblem_key, Value: array of solutions
-        
         // NEW: Multiple solutions support for subproblems
         function generateSubproblemSolutionSection(solution, subproblemKey) {
             const currentAdditionalSolutions = additionalSubproblemSolutions[subproblemKey] || [];
@@ -6702,6 +6707,7 @@
                             // FIXED: Use problem.problem_id (the string ID) as key, not problem.id (the UUID)
                             // This matches how we access it elsewhere in the code
                             additionalSolutions[problem.problem_id] = mainSolutions.slice(1).map(s => s.solution_text);
+                            console.log(`Stored additional solutions for key '${problem.problem_id}':`, additionalSolutions[problem.problem_id]);
                         }
                     }
 
