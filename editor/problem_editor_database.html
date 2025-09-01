@@ -6237,7 +6237,7 @@
                     if (problemIds.length > 0) {
                         const { data: subproblemsData, error: subproblemsError } = await supabase
                             .from('subproblems')
-                            .select('problem_id, key, problem_text, correct_answer, solution_text')
+                            .select('id, problem_id, key, problem_text, correct_answer, solution_text')
                             .in('problem_id', problemIds);
                         
                         if (!subproblemsError && subproblemsData) {
@@ -6261,6 +6261,49 @@
                                 }
                                 topicsByProblem[pt.problem_id].push(pt.topic_id);
                             });
+                        }
+                    }
+                    
+                    // Batch fetch all solutions from solutions table
+                    let solutionsByProblem = {};
+                    let solutionsBySubproblem = {};
+                    if (problemIds.length > 0 || allSubproblems.length > 0) {
+                        const subproblemIds = allSubproblems.map(sp => sp.id).filter(id => id);
+                        
+                        // Build the query conditionally based on what IDs we have
+                        let orConditions = [];
+                        if (problemIds.length > 0) {
+                            orConditions.push(`problem_id.in.(${problemIds.join(',')})`);
+                        }
+                        if (subproblemIds.length > 0) {
+                            orConditions.push(`subproblem_id.in.(${subproblemIds.join(',')})`);
+                        }
+                        
+                        if (orConditions.length > 0) {
+                            const { data: solutionsData, error: solutionsError } = await supabase
+                                .from('solutions')
+                                .select('problem_id, subproblem_id, solution_text, solution_order')
+                                .or(orConditions.join(','))
+                                .order('solution_order');
+                            
+                            if (!solutionsError && solutionsData) {
+                                // Group solutions by problem_id or subproblem_id
+                                solutionsData.forEach(sol => {
+                                    if (sol.problem_id) {
+                                        if (!solutionsByProblem[sol.problem_id]) {
+                                            solutionsByProblem[sol.problem_id] = [];
+                                        }
+                                        solutionsByProblem[sol.problem_id].push(sol.solution_text);
+                                    } else if (sol.subproblem_id) {
+                                        if (!solutionsBySubproblem[sol.subproblem_id]) {
+                                            solutionsBySubproblem[sol.subproblem_id] = [];
+                                        }
+                                        solutionsBySubproblem[sol.subproblem_id].push(sol.solution_text);
+                                    }
+                                });
+                            } else if (solutionsError) {
+                                console.error('Error fetching solutions for completion check:', solutionsError);
+                            }
                         }
                     }
                     
@@ -6302,11 +6345,15 @@
                             // Get subproblems for this problem from our map
                             const subproblems = subproblemsByProblem[problem.id] || [];
                             
+                            // Get solutions from the solutions table
+                            const problemSolutions = solutionsByProblem[problem.id] || [];
+                            const primarySolution = problemSolutions.length > 0 ? problemSolutions[0] : problem.solution_text;
+                            
                             // Convert database format to our problem format for checking
                             const problemObj = {
                                 problem_text: problem.problem_text,
                                 correct_answer: problem.correct_answer,
-                                solution: { text: problem.solution_text },
+                                solution: { text: primarySolution },
                                 difficulty: problem.difficulty,
                                 topics: topicsByProblem[problem.id] || [],
                                 subproblems: {}
@@ -6315,10 +6362,14 @@
                             // Add subproblems if they exist
                             if (subproblems.length > 0) {
                                 subproblems.forEach(sp => {
+                                    // Get subproblem solutions from the solutions table
+                                    const subproblemSolutions = solutionsBySubproblem[sp.id] || [];
+                                    const subproblemPrimarySolution = subproblemSolutions.length > 0 ? subproblemSolutions[0] : sp.solution_text;
+                                    
                                     problemObj.subproblems[sp.key] = {
                                         problem_text: sp.problem_text,
                                         correct_answer: sp.correct_answer,
-                                        solution: { text: sp.solution_text }
+                                        solution: { text: subproblemPrimarySolution }
                                     };
                                 });
                             }
