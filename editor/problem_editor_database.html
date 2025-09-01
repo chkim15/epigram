@@ -185,9 +185,13 @@
             });
             
             // Restore protected environments
-            protectedEnvironments.forEach((env, index) => {
-                text = text.replace(placeholder + index + '___', env);
-            });
+            // IMPORTANT: Process in reverse order to avoid index conflicts
+            // when a placeholder might contain another placeholder's pattern
+            for (let i = protectedEnvironments.length - 1; i >= 0; i--) {
+                const placeholderStr = placeholder + i + '___';
+                // Use split and join for reliable replacement of all occurrences
+                text = text.split(placeholderStr).join(protectedEnvironments[i]);
+            }
             
             return text;
         }
