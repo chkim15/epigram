@@ -35,7 +35,7 @@ export default function UnifiedHeader({
             className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             onClick={onLogoClick}
           >
-            <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8" />
+            <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8 dark:invert" />
             <h1 className="font-bold text-xl text-gray-900 dark:text-white">Epigram</h1>
           </div>
         </>
