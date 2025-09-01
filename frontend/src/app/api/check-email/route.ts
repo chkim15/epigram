@@ -26,25 +26,32 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      // Check the specific error messages that indicate the email exists
+      // Supabase returns different error messages for existing vs non-existing users
+      // "Invalid login credentials" can mean either:
+      // 1. User exists but password is wrong
+      // 2. User doesn't exist at all
+      // We need to check for more specific error indicators
+      
+      // These errors specifically indicate the email EXISTS
       if (
-        error.message.includes('Invalid login credentials') || 
         error.message.includes('Email not confirmed') ||
-        error.message.includes('not confirmed') ||
-        error.message.includes('Invalid email or password')
+        error.message.includes('email requires confirmation') ||
+        error.message.includes('email needs to be confirmed')
       ) {
-        // Email exists (either not confirmed or wrong password)
+        // Email exists but not confirmed yet
         return NextResponse.json({ 
           exists: true,
-          message: 'An account with this email already exists.'
-        });
-      } else {
-        // Email doesn't exist (user not found or similar error)
-        return NextResponse.json({ 
-          exists: false,
-          message: 'Email is available.'
+          message: 'An account with this email already exists but is not confirmed.'
         });
       }
+      
+      // For "Invalid login credentials", we can't definitively know
+      // So we should return false to allow signup to proceed
+      // Supabase will handle the actual duplicate check during signup
+      return NextResponse.json({ 
+        exists: false,
+        message: 'Email check completed.'
+      });
     }
 
     // If no error (very unlikely with dummy password), email exists

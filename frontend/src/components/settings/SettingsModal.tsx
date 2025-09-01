@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react';
 import { X, User, Palette, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { User as SupabaseUser } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
+
+interface UserProfile {
+  school: string | null;
+  course: string | null;
+  referral_source: string | null;
+  onboarding_completed: boolean;
+}
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -15,6 +23,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'account' | 'personalization' | 'account-management'>('account');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   // Reset to account tab whenever modal opens
   useEffect(() => {
@@ -22,6 +31,25 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       setActiveTab('account');
     }
   }, [isOpen]);
+
+  // Fetch user profile data
+  useEffect(() => {
+    async function fetchUserProfile() {
+      if (user && isOpen) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('school, course, referral_source, onboarding_completed')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile) {
+          setUserProfile(profile);
+        }
+      }
+    }
+    
+    fetchUserProfile();
+  }, [user, isOpen]);
 
   if (!isOpen) return null;
 
@@ -77,13 +105,17 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       {/* School */}
       <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
         <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">School</span>
-        <span className="text-sm text-gray-600 dark:text-gray-400">University of Pennsylvania</span>
+        <span className="text-sm text-gray-900 dark:text-white">
+          {userProfile?.school || 'Not specified'}
+        </span>
       </div>
 
-      {/* Courses */}
+      {/* Course */}
       <div className="flex items-center justify-between py-3">
-        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Courses</span>
-        <span className="text-sm text-gray-600 dark:text-gray-400">Mathematics</span>
+        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Course</span>
+        <span className="text-sm text-gray-900 dark:text-white">
+          {userProfile?.course || 'Not specified'}
+        </span>
       </div>
     </div>
   );

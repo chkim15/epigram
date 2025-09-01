@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/co
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
+import { supabase } from "@/lib/supabase/client";
 
 function AppPageContent() {
   const router = useRouter();
@@ -28,6 +29,26 @@ function AppPageContent() {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Check if authenticated user has completed onboarding
+  useEffect(() => {
+    async function checkOnboarding() {
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('onboarding_completed')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile || !profile.onboarding_completed) {
+          // Redirect to onboarding if not completed
+          router.push('/auth/onboarding');
+        }
+      }
+    }
+    
+    checkOnboarding();
+  }, [user, router]);
 
   useEffect(() => {
     // Parse URL parameters for practice mode

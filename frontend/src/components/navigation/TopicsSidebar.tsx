@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Loader2, ChevronDown, ChevronRight, ChevronsLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores/authStore";
 
 interface Course {
   id: string;
@@ -41,10 +42,15 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   const [error, setError] = useState<string | null>(null);
   const [expandedCourse, setExpandedCourse] = useState<ExpandedCourse | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [userSchool, setUserSchool] = useState<string | null>(null);
+  const { user } = useAuthStore();
 
   useEffect(() => {
     fetchTopics();
-  }, []);
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
 
   const fetchTopics = async () => {
     try {
@@ -62,6 +68,24 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
       setError('Failed to load topics');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('school')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (profile) {
+        setUserSchool(profile.school);
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
     }
   };
 
@@ -87,6 +111,21 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
       newExpanded.add(sectionId);
     }
     setExpandedSections(newExpanded);
+  };
+
+  // Get display name for courses based on user's school
+  const getCourseDisplayName = (courseName: string): string => {
+    if (!userSchool) return courseName;
+    
+    if (userSchool === 'University of Pennsylvania') {
+      if (courseName === 'Calculus I') return 'Math 1300';
+      if (courseName === 'Calculus II') return 'Math 1400';
+    } else if (userSchool === 'Columbia University') {
+      if (courseName === 'Calculus I') return 'Math 1101';
+      if (courseName === 'Calculus II') return 'Math 1102';
+    }
+    
+    return courseName;
   };
 
   // Build course structure dynamically from database fields
@@ -131,10 +170,10 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
         topics: sectionTopics.sort((a, b) => a.id - b.id)
       }));
 
-      // Add course with its sections
+      // Add course with its sections, using display name
       courses.push({
         id: courseName.toLowerCase().replace(/\s+/g, '-'),
-        name: courseName,
+        name: getCourseDisplayName(courseName),
         sections: sections.sort((a, b) => {
           // Sort sections by the minimum topic ID in each section
           // This ensures sections appear in the order they appear in the database
@@ -147,17 +186,26 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
     // No placeholder courses - only show courses with actual data
 
-    // Sort courses in specific order
+    // Sort courses in specific order (use display names for sorting)
     return courses.sort((a, b) => {
-      const order = ['Calculus I', 'Calculus II'];
+      // Define order with both original and school-specific names
+      const order = [
+        'Calculus I', 'Math 1300', 'Math 1101',  // All Calc I variations
+        'Calculus II', 'Math 1400', 'Math 1102'  // All Calc II variations
+      ];
+      
       const indexA = order.indexOf(a.name);
       const indexB = order.indexOf(b.name);
       
-      if (indexA !== -1 && indexB !== -1) {
-        return indexA - indexB;
+      // Group Calc I variations together (indices 0-2) and Calc II variations together (indices 3-5)
+      const groupA = indexA !== -1 ? Math.floor(indexA / 3) : -1;
+      const groupB = indexB !== -1 ? Math.floor(indexB / 3) : -1;
+      
+      if (groupA !== -1 && groupB !== -1) {
+        return groupA - groupB;
       }
-      if (indexA !== -1) return -1;
-      if (indexB !== -1) return 1;
+      if (groupA !== -1) return -1;
+      if (groupB !== -1) return 1;
       return a.name.localeCompare(b.name);
     });
   };

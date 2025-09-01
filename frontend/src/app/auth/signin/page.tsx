@@ -5,17 +5,60 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import { auth } from '@/lib/auth/client';
+import { supabase } from '@/lib/supabase/client';
 
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, signInWithGoogle, isLoading } = useAuthStore();
+  const { signIn, signInWithGoogle, isLoading, checkAuth, user } = useAuthStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Check auth state on mount and redirect if authenticated
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Listen for auth state changes (for OAuth callbacks)
+  useEffect(() => {
+    const { data: { subscription } } = auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // Re-check auth to update the store
+        checkAuth();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [checkAuth]);
+
+  // Redirect authenticated users appropriately
+  useEffect(() => {
+    async function handleAuthenticatedUser() {
+      if (user) {
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('onboarding_completed')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile || !profile.onboarding_completed) {
+          // Redirect to onboarding if not completed
+          router.push('/auth/onboarding');
+        } else {
+          // Only redirect to app if onboarding is complete
+          router.push('/app');
+        }
+      }
+    }
+    
+    handleAuthenticatedUser();
+  }, [user, router]);
 
   useEffect(() => {
     // Check for confirmation success or error

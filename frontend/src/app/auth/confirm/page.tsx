@@ -23,8 +23,8 @@ export default function ConfirmPage() {
         });
 
         if (!error) {
-          // Successfully confirmed - redirect to signin page
-          router.push('/auth/signin?confirmed=true');
+          // Successfully confirmed - redirect to onboarding page
+          router.push('/auth/onboarding');
         } else {
           // Error confirming email
           router.push('/auth/signin?error=confirmation_failed');

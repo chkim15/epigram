@@ -36,9 +36,22 @@ export const auth = {
 
   // Sign up with email and password
   async signUpWithEmail(email: string, password: string, fullName?: string) {
-    // First check if email already exists
-    const emailCheck = await this.checkEmailExists(email);
-    if (emailCheck.exists) {
+    // Let Supabase handle duplicate email detection
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          full_name: fullName,
+        },
+      },
+    });
+    
+    // Check if the error is about duplicate email
+    if (error && error.message && 
+        (error.message.includes('User already registered') || 
+         error.message.includes('already been registered'))) {
       return { 
         data: null, 
         error: { 
@@ -47,18 +60,6 @@ export const auth = {
         } 
       };
     }
-
-    // Proceed with signup if email doesn't exist
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/confirm`,
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
     
     return { data, error };
   },
