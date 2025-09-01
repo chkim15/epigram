@@ -1269,17 +1269,18 @@
             color: white;
             border: none;
             border-radius: 3px;
-            padding: 3px 8px;
+            padding: 1px 4px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 9px;
             font-weight: 500;
             margin-left: 8px;
+            display: inline-block;
+            vertical-align: middle;
             transition: all 0.2s ease;
         }
         
         .document-exclude-btn:hover {
             background: #c82333;
-            transform: translateY(-1px);
         }
         
         .document-exclude-btn.include {
@@ -6445,17 +6446,17 @@
                     statusText = `${doc.completedCount}/${doc.totalCount}`;
                 }
                 
-                const excludeButtonText = doc.allExcluded ? 'Include' : 'Exclude';
+                const excludeButtonText = doc.allExcluded ? 'Incl' : 'Excl';
                 const excludeButtonClass = doc.allExcluded ? 'document-exclude-btn include' : 'document-exclude-btn';
                 
                 html += `
                     <div class="document-item" data-document-id="${doc.document_id}" data-document-uuid="${doc.documentUuid}" onclick="selectDocument('${doc.document_id}')">
                         <div style="flex: 1;">
-                            <div style="display: flex; align-items: center;">
-                                <span class="document-title">${doc.document_id}</span>
+                            <div class="document-title">${doc.document_id}</div>
+                            <div class="document-details">
+                                ${doc.school || ''} ${doc.course || ''} ${doc.term || ''} ${doc.year || ''}
                                 <button class="${excludeButtonClass}" onclick="event.stopPropagation(); toggleDocumentExclusion('${doc.documentUuid}', ${doc.allExcluded})">${excludeButtonText}</button>
                             </div>
-                            <div class="document-details">${doc.school || ''} ${doc.course || ''} ${doc.term || ''} ${doc.year || ''}</div>
                         </div>
                         <div class="document-status ${statusClass}">${statusText}</div>
                     </div>
