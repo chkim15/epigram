@@ -384,23 +384,44 @@ supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table f
 - Handles arrays for `math_approach` and `reasoning_type` through type system
 - Removed unused `showSolution` and `toggleSolution` states (solutions now in tab)
 
-### UI/UX Improvements
-- **Consistent scrollbars** - Applied `custom-scrollbar` class to:
+### UI/UX Improvements & Design Principles
+
+#### Scrollbar Design Consistency
+- **Always use `custom-scrollbar` class** for any scrollable areas to maintain consistency
+- **Current implementation** - Applied to:
   - ProblemViewer main content area
   - TopicsSidebar (left navigation)
   - All ChatSidebar tabs (Chat, Notes, Solutions, Comments)
-- **Scrollbar design** - Thin 8px gray scrollbars with rounded corners across entire app
-- **Proper overflow handling** - Fixed scrolling issues in Solutions and Comments tabs
+  - TopicNotesViewer horizontal tab scrolling
+- **Scrollbar specifications**:
+  - Width/Height: 8px (thin design)
+  - Color: rgba(156, 163, 175, 0.5) with 50% opacity
+  - Hover: rgba(156, 163, 175, 0.7) with 70% opacity
+  - Border radius: 4px for rounded corners
+  - Track: Transparent background
+- **Implementation**: Before adding any new scrollable area, check `globals.css` for the `custom-scrollbar` class definition and apply it consistently
+
+#### Interactive Element Guidelines
+- **Cursor behavior** - ALL interactive elements must show pointer cursor on hover:
+  - Always add `cursor-pointer` class to clickable elements (buttons, tabs, links, etc.)
+  - Check existing implementations for reference before adding new interactive elements
+  - Never leave clickable elements with default cursor
+- **Hover effects** - Maintain consistent hover states:
+  - Buttons: Use existing hover classes with opacity or color changes
+  - Tabs: Follow the pattern of border/text color changes on hover
+  - Links: Apply consistent underline or color transitions
+- **Active states**:
+  - Solution navigation tabs use black activation color (`bg-black`) instead of blue
+  - Maintain consistent active indicator styles across all tab interfaces
+
+#### Other UI Standards
 - **Logo and Branding** - Added Epigram logo (32x32 SVG) next to company name in:
   - TopicsSidebar header
   - Mobile header
   - UnifiedHeader (when sidebar is collapsed)
 - **Favicon** - SVG logo configured as favicon via metadata
 - **Dark mode support** - Fixed white backgrounds in ProblemViewer and toggle switch
-- **Hover Effects & Cursor Guidelines** - All interactive elements should have proper cursor styling:
-  - Use `cursor-pointer` class for all clickable buttons, tabs, and interactive elements
-  - Solution navigation tabs use black activation color (`bg-black`) instead of blue
-  - Consistent hover states across all UI components for better user experience
+- **Proper overflow handling** - Fixed scrolling issues in Solutions and Comments tabs
 
 ## COMMON ISSUES & SOLUTIONS
 

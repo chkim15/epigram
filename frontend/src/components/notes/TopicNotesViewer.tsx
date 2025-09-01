@@ -68,7 +68,7 @@ export function TopicNotesViewer({ problemId }: TopicNotesViewerProps) {
           let fileUrl = noteRecord?.file_url;
           
           // If no URL in database, construct it based on expected pattern
-          if (!fileUrl && topic.id <= 35) {
+          if (!fileUrl && topic.id <= 41) {
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
             if (supabaseUrl) {
               // Map topic IDs to exact file names as they appear in your folder
@@ -107,7 +107,13 @@ export function TopicNotesViewer({ problemId }: TopicNotesViewerProps) {
                 32: '32_sequences_and_series_power_series.pdf',
                 33: '33_sequences_and_series_taylor_and_maclaurin_series.pdf',
                 34: '34_ordinary_differential_equations_separable_ode.pdf',
-                35: '35_ordinary_differential_equations_first_order_linear_ode.pdf'
+                35: '35_ordinary_differential_equations_first_order_linear_ode.pdf',
+                36: '36_special_topic_basic_probability_theory.pdf',
+                37: '37_special_topic_convergence_test_strategies.pdf',
+                38: '38_special_topic_essential_integration_strategies.pdf',
+                39: '39_special_topic_essential_strategies_for_evaluating_limits.pdf',
+                40: '40_special_topic_factoring_polynomials.pdf',
+                41: '41_special_topic_order_of_growth_and_asymptotic_analysis.pdf'
               };
               
               const fileName = fileNameMap[topic.id];
@@ -215,7 +221,7 @@ export function TopicNotesViewer({ problemId }: TopicNotesViewerProps) {
     <div className="flex flex-col h-full">
       {/* Sub-tabs for multiple topics */}
       <div className="border-b border-gray-200 dark:border-gray-700">
-        <div className="flex overflow-x-auto">
+        <div className="flex overflow-x-auto custom-scrollbar">
           {currentTopicNotes.map((note, index) => (
             <button
               key={note.topic_id}
