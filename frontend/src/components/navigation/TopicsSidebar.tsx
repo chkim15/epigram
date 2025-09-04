@@ -132,10 +132,10 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   const getCourseStructure = (): Course[] => {
     // Group topics by course
     const courseGroups = topics.reduce((acc, topic) => {
-      const courseName = topic.course || 'Uncategorized';
-      // Skip generic "Calculus" course - only show Calculus I and Calculus II
+      let courseName = topic.course || 'Uncategorized';
+      // Rename "Calculus" to "Special Topics"
       if (courseName === 'Calculus') {
-        return acc;
+        courseName = 'Special Topics';
       }
       if (!acc[courseName]) {
         acc[courseName] = [];
@@ -149,39 +149,55 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     
     // Process each course
     Object.entries(courseGroups).forEach(([courseName, courseTopics]) => {
-      // Group topics by main_topics within this course
-      const sectionGroups = courseTopics.reduce((acc, topic) => {
-        const sectionName = topic.main_topics || 'Other';
-        // Filter out "Basics of Functions" section
-        if (sectionName === 'Basics of Functions') {
+      // For Special Topics, create a flat list without sections
+      if (courseName === 'Special Topics') {
+        // Create a single section with all topics
+        const sections: Section[] = [{
+          id: 'special-topics-all',
+          name: 'Special Topics',
+          topics: courseTopics.sort((a, b) => a.id - b.id)
+        }];
+        
+        courses.push({
+          id: courseName.toLowerCase().replace(/\s+/g, '-'),
+          name: courseName,
+          sections: sections
+        });
+      } else {
+        // Group topics by main_topics within this course
+        const sectionGroups = courseTopics.reduce((acc, topic) => {
+          const sectionName = topic.main_topics || 'Other';
+          // Filter out "Basics of Functions" section
+          if (sectionName === 'Basics of Functions') {
+            return acc;
+          }
+          if (!acc[sectionName]) {
+            acc[sectionName] = [];
+          }
+          acc[sectionName].push(topic);
           return acc;
-        }
-        if (!acc[sectionName]) {
-          acc[sectionName] = [];
-        }
-        acc[sectionName].push(topic);
-        return acc;
-      }, {} as Record<string, Topic[]>);
+        }, {} as Record<string, Topic[]>);
 
-      // Build sections for this course
-      const sections: Section[] = Object.entries(sectionGroups).map(([sectionName, sectionTopics]) => ({
-        id: sectionName.toLowerCase().replace(/\s+/g, '-'),
-        name: sectionName,
-        topics: sectionTopics.sort((a, b) => a.id - b.id)
-      }));
+        // Build sections for this course
+        const sections: Section[] = Object.entries(sectionGroups).map(([sectionName, sectionTopics]) => ({
+          id: sectionName.toLowerCase().replace(/\s+/g, '-'),
+          name: sectionName,
+          topics: sectionTopics.sort((a, b) => a.id - b.id)
+        }));
 
-      // Add course with its sections, using display name
-      courses.push({
-        id: courseName.toLowerCase().replace(/\s+/g, '-'),
-        name: getCourseDisplayName(courseName),
-        sections: sections.sort((a, b) => {
-          // Sort sections by the minimum topic ID in each section
-          // This ensures sections appear in the order they appear in the database
-          const minIdA = Math.min(...a.topics.map(t => t.id));
-          const minIdB = Math.min(...b.topics.map(t => t.id));
-          return minIdA - minIdB;
-        })
-      });
+        // Add course with its sections, using display name
+        courses.push({
+          id: courseName.toLowerCase().replace(/\s+/g, '-'),
+          name: getCourseDisplayName(courseName),
+          sections: sections.sort((a, b) => {
+            // Sort sections by the minimum topic ID in each section
+            // This ensures sections appear in the order they appear in the database
+            const minIdA = Math.min(...a.topics.map(t => t.id));
+            const minIdB = Math.min(...b.topics.map(t => t.id));
+            return minIdA - minIdB;
+          })
+        });
+      }
     });
 
     // No placeholder courses - only show courses with actual data
@@ -191,21 +207,18 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
       // Define order with both original and school-specific names
       const order = [
         'Calculus I', 'Math 1300', 'Math 1101',  // All Calc I variations
-        'Calculus II', 'Math 1400', 'Math 1102'  // All Calc II variations
+        'Calculus II', 'Math 1400', 'Math 1102',  // All Calc II variations
+        'Special Topics'  // Special Topics after Calc II
       ];
       
       const indexA = order.indexOf(a.name);
       const indexB = order.indexOf(b.name);
       
-      // Group Calc I variations together (indices 0-2) and Calc II variations together (indices 3-5)
-      const groupA = indexA !== -1 ? Math.floor(indexA / 3) : -1;
-      const groupB = indexB !== -1 ? Math.floor(indexB / 3) : -1;
-      
-      if (groupA !== -1 && groupB !== -1) {
-        return groupA - groupB;
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB;
       }
-      if (groupA !== -1) return -1;
-      if (groupB !== -1) return 1;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
       return a.name.localeCompare(b.name);
     });
   };
@@ -318,7 +331,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
       {/* Expanded Course Panel */}
       {expandedCourse && (
-        <div className="flex-1 h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-10 relative">
+        <div className={expandedCourse.courseName === 'Special Topics' ? "w-[240px] h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-10 relative flex-shrink-0" : "flex-1 h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-10 relative"}>
           <div className="h-full flex flex-col">
             {/* Course Header */}
             <div className="p-4 h-[73px] flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
@@ -335,50 +348,72 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
             {/* Sections and Topics */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
-              {expandedCourse.sections.map((section) => (
-                <div key={section.id} className="mb-4">
-                  <Collapsible
-                    open={expandedSections.has(section.id)}
-                    onOpenChange={() => toggleSection(section.id)}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start py-2 px-3 font-medium cursor-pointer"
-                      >
-                        <span className={cn(
-                          "flex-1 text-left",
-                          section.name.length > 25 && "text-sm"
-                        )}>{section.name}</span>
-                        {expandedSections.has(section.id) ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="ml-4 mt-1 space-y-1">
-                        {section.topics.map((topic) => (
-                          <Button
-                            key={topic.id}
-                            variant={selectedTopicId === topic.id ? "default" : "ghost"}
-                            className={cn(
-                              "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer",
-                              selectedTopicId === topic.id && "bg-blue-600 text-white hover:bg-blue-700"
-                            )}
-                            onClick={() => onSelectTopic(topic.id)}
-                          >
-                            <span className="flex-1 leading-relaxed whitespace-normal break-words">
-                              {topic.subtopics || `Topic ${topic.id}`}
-                            </span>
-                          </Button>
-                        ))}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
+              {expandedCourse.courseName === 'Special Topics' ? (
+                // For Special Topics, show topics directly without section dropdown
+                <div className="space-y-1">
+                  {expandedCourse.sections[0].topics.map((topic) => (
+                    <Button
+                      key={topic.id}
+                      variant={selectedTopicId === topic.id ? "default" : "ghost"}
+                      className={cn(
+                        "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer",
+                        selectedTopicId === topic.id && "bg-blue-600 text-white hover:bg-blue-700"
+                      )}
+                      onClick={() => onSelectTopic(topic.id)}
+                    >
+                      <span className="flex-1 leading-relaxed whitespace-normal break-words">
+                        {topic.subtopics || `Topic ${topic.id}`}
+                      </span>
+                    </Button>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                // For other courses, show sections with collapsible topics
+                expandedCourse.sections.map((section) => (
+                  <div key={section.id} className="mb-4">
+                    <Collapsible
+                      open={expandedSections.has(section.id)}
+                      onOpenChange={() => toggleSection(section.id)}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start py-2 px-3 font-medium cursor-pointer"
+                        >
+                          <span className={cn(
+                            "flex-1 text-left",
+                            section.name.length > 25 && "text-sm"
+                          )}>{section.name}</span>
+                          {expandedSections.has(section.id) ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="ml-4 mt-1 space-y-1">
+                          {section.topics.map((topic) => (
+                            <Button
+                              key={topic.id}
+                              variant={selectedTopicId === topic.id ? "default" : "ghost"}
+                              className={cn(
+                                "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer",
+                                selectedTopicId === topic.id && "bg-blue-600 text-white hover:bg-blue-700"
+                              )}
+                              onClick={() => onSelectTopic(topic.id)}
+                            >
+                              <span className="flex-1 leading-relaxed whitespace-normal break-words">
+                                {topic.subtopics || `Topic ${topic.id}`}
+                              </span>
+                            </Button>
+                          ))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

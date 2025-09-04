@@ -33,7 +33,7 @@ const PDFViewerSimple = dynamic(
   }
 );
 import { getSamplePDFUrl } from "@/lib/utils/pdf";
-import { TopicNotesViewer } from '@/components/notes/TopicNotesViewer';
+import { TopicHandoutsViewer } from '@/components/handouts/TopicHandoutsViewer';
 
 interface Message {
   id: string;
@@ -63,6 +63,7 @@ function SolutionsTab({ currentProblem, currentSubproblems, currentDocument }: S
   const [selectedProblemSolution, setSelectedProblemSolution] = useState(0);
   const [selectedSubproblemSolutions, setSelectedSubproblemSolutions] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
+  const [activeSubTab, setActiveSubTab] = useState<'solutions' | 'comments'>('solutions');
 
   // Fetch solutions when problem changes
   useEffect(() => {
@@ -148,50 +149,89 @@ function SolutionsTab({ currentProblem, currentSubproblems, currentDocument }: S
   }
 
   const hasSolutions = problemSolutions.length > 0 || Object.values(subproblemSolutions).some(sols => sols.length > 0);
+  const hasComments = currentProblem?.comment || currentSubproblems.some(sp => sp.comment);
+  const showTabs = hasSolutions && hasComments;
 
-  if (!hasSolutions) {
+  if (!hasSolutions && !hasComments) {
     return (
       <div className="h-full flex items-center justify-center p-4">
         <div className="text-center text-gray-500 dark:text-gray-400">
           <BookOpen className="h-12 w-12 mx-auto mb-2" />
-          <p>No solution available for this problem</p>
+          <p>No solution or comments available for this problem</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar">
-      <div className="p-4 space-y-6">
-        {/* Main Problem Solutions */}
-        {problemSolutions.length > 0 && (
-          <div>
-            {problemSolutions.length > 1 && (
-              <div className="flex gap-2 mb-3">
-                {problemSolutions.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedProblemSolution(index)}
-                    className={cn(
-                      "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
-                      selectedProblemSolution === index
-                        ? "bg-black text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    )}
-                  >
-                    Solution {index + 1}
-                  </button>
-                ))}
+    <div className="h-full flex flex-col">
+      {/* Sub-tabs for Solutions and Comments */}
+      {showTabs && (
+        <div className="flex gap-2 px-4 pt-4 pb-2">
+          {problemSolutions.length > 1 ? (
+            <>
+              {problemSolutions.map((_, index) => (
+                <button
+                  key={`sol-${index}`}
+                  onClick={() => {
+                    setActiveSubTab('solutions');
+                    setSelectedProblemSolution(index);
+                  }}
+                  className={cn(
+                    "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
+                    activeSubTab === 'solutions' && selectedProblemSolution === index
+                      ? "bg-black text-white"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  )}
+                >
+                  Solution {index + 1}
+                </button>
+              ))}
+            </>
+          ) : problemSolutions.length === 1 ? (
+            <button
+              onClick={() => setActiveSubTab('solutions')}
+              className={cn(
+                "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
+                activeSubTab === 'solutions'
+                  ? "bg-black text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              )}
+            >
+              Solution
+            </button>
+          ) : null}
+          {hasComments && (
+            <button
+              onClick={() => setActiveSubTab('comments')}
+              className={cn(
+                "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
+                activeSubTab === 'comments'
+                  ? "bg-black text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              )}
+            >
+              Comments
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        {activeSubTab === 'solutions' && hasSolutions ? (
+          <div className="p-4 space-y-6">
+            {/* Main Problem Solutions */}
+            {problemSolutions.length > 0 && (
+              <div>
+                <div className="prose max-w-none dark:prose-invert">
+                  <MathContent 
+                    content={problemSolutions[selectedProblemSolution]?.solution_text || ''} 
+                    documentId={currentDocument?.document_id} 
+                  />
+                </div>
               </div>
             )}
-            <div className="prose max-w-none dark:prose-invert">
-              <MathContent 
-                content={problemSolutions[selectedProblemSolution]?.solution_text || ''} 
-                documentId={currentDocument?.document_id} 
-              />
-            </div>
-          </div>
-        )}
 
         {/* Subproblem Solutions */}
         {Object.entries(subproblemSolutions).map(([key, solutions]) => {
@@ -230,6 +270,33 @@ function SolutionsTab({ currentProblem, currentSubproblems, currentDocument }: S
             </div>
           );
         })}
+          </div>
+        ) : activeSubTab === 'comments' && hasComments ? (
+          <div className="p-4 space-y-6">
+            {currentProblem?.comment && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Main Problem</h3>
+                <div className="prose max-w-none dark:prose-invert">
+                  <MathContent content={currentProblem.comment} documentId={currentDocument?.document_id} />
+                </div>
+              </div>
+            )}
+            {currentSubproblems.length > 0 && currentSubproblems.some(sp => sp.comment) && (
+              <div className="space-y-4">
+                {currentSubproblems.filter(sp => sp.comment).map((subproblem) => (
+                  <div key={subproblem.id}>
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Part {subproblem.key}
+                    </h3>
+                    <div className="prose max-w-none dark:prose-invert">
+                      <MathContent content={subproblem.comment || ''} documentId={currentDocument?.document_id} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -244,7 +311,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'notes' | 'solutions' | 'comments'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'handouts' | 'solutions' | 'notes'>('chat');
   const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
   const [isStreaming, setIsStreaming] = useState(false);
   const [pastedImage, setPastedImage] = useState<{ url: string; file: File } | null>(null);
@@ -489,10 +556,10 @@ export default function ChatSidebar({}: ChatSidebarProps) {
   ];
 
   const tabs = [
-    { id: 'chat', label: 'Chat', icon: MessagesSquare },
-    { id: 'notes', label: 'Notes', icon: FileText },
+    { id: 'chat', label: 'AI Tutor', icon: MessagesSquare },
+    { id: 'handouts', label: 'Handouts', icon: FileText },
     { id: 'solutions', label: 'Solutions', icon: BookOpen },
-    { id: 'comments', label: 'Comments', icon: MessageSquare }
+    { id: 'notes', label: 'Notes', icon: SquarePen }
   ] as const;
 
   return (
@@ -687,10 +754,10 @@ export default function ChatSidebar({}: ChatSidebarProps) {
           </div>
         )}
 
-        {/* Other tab content placeholders */}
-        {activeTab === 'notes' && (
+        {/* Other tab content */}
+        {activeTab === 'handouts' && (
           <div className="flex-1 min-h-0 h-full">
-            <TopicNotesViewer 
+            <TopicHandoutsViewer 
               problemId={currentProblem?.id || null}
             />
           </div>
@@ -704,41 +771,12 @@ export default function ChatSidebar({}: ChatSidebarProps) {
           />
         )}
 
-        {activeTab === 'comments' && (
-          <div className="h-full overflow-y-auto custom-scrollbar">
-            {(currentProblem?.comment || currentSubproblems.some(sp => sp.comment)) ? (
-              <div className="p-4 space-y-6">
-                {currentProblem?.comment && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Main Problem</h3>
-                    <div className="prose max-w-none dark:prose-invert">
-                      <MathContent content={currentProblem.comment} documentId={currentDocument?.document_id} />
-                    </div>
-                  </div>
-                )}
-                {currentSubproblems.length > 0 && currentSubproblems.some(sp => sp.comment) && (
-                  <div className="space-y-4">
-                    {currentSubproblems.filter(sp => sp.comment).map((subproblem) => (
-                      <div key={subproblem.id}>
-                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Part {subproblem.key}
-                        </h3>
-                        <div className="prose max-w-none dark:prose-invert">
-                          <MathContent content={subproblem.comment || ''} documentId={currentDocument?.document_id} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center p-4">
-                <div className="text-center text-gray-500 dark:text-gray-400">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-2" />
-                  <p>No comments available for this problem</p>
-                </div>
-              </div>
-            )}
+        {activeTab === 'notes' && (
+          <div className="h-full flex items-center justify-center p-4">
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              <SquarePen className="h-12 w-12 mx-auto mb-2" />
+              <p>Personal notes coming soon</p>
+            </div>
           </div>
         )}
       </div>

@@ -6,25 +6,25 @@ import { supabase } from '@/lib/supabase/client';
 import PDFViewerSimple from '@/components/pdf/PDFViewerSimple';
 import { FileText, AlertCircle } from 'lucide-react';
 
-interface TopicNotesViewerProps {
+interface TopicHandoutsViewerProps {
   problemId: string | null;
 }
 
-export function TopicNotesViewer({ problemId }: TopicNotesViewerProps) {
-  const { currentProblemTopics, currentTopicNotes, setCurrentProblemTopics, setCurrentTopicNotes } = useProblemStore();
+export function TopicHandoutsViewer({ problemId }: TopicHandoutsViewerProps) {
+  const { currentProblemTopics, currentTopicHandouts, setCurrentProblemTopics, setCurrentTopicHandouts } = useProblemStore();
   const [activeTopicIndex, setActiveTopicIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch topics and notes when problem changes
+  // Fetch topics and handouts when problem changes
   useEffect(() => {
     if (!problemId) {
       setCurrentProblemTopics([]);
-      setCurrentTopicNotes([]);
+      setCurrentTopicHandouts([]);
       return;
     }
 
-    const fetchTopicsAndNotes = async () => {
+    const fetchTopicsAndHandouts = async () => {
       setIsLoading(true);
       setError(null);
       
@@ -39,7 +39,7 @@ export function TopicNotesViewer({ problemId }: TopicNotesViewerProps) {
         
         if (!problemTopics || problemTopics.length === 0) {
           setCurrentProblemTopics([]);
-          setCurrentTopicNotes([]);
+          setCurrentTopicHandouts([]);
           return;
         }
         
@@ -54,18 +54,18 @@ export function TopicNotesViewer({ problemId }: TopicNotesViewerProps) {
         
         if (topicDetailsError) throw topicDetailsError;
         
-        // Fetch notes URLs for these topics
-        const { data: notes, error: notesError } = await supabase
-          .from('topic_notes')
+        // Fetch handouts URLs for these topics
+        const { data: handouts, error: handoutsError } = await supabase
+          .from('topic_notes')  // Still using topic_notes table in database
           .select('topic_id, file_url')
           .in('topic_id', topicIds);
         
-        if (notesError) throw notesError;
+        if (handoutsError) throw handoutsError;
         
-        // Combine topic info with notes URLs
-        const topicNotes = topics?.map(topic => {
-          const noteRecord = notes?.find(n => n.topic_id === topic.id);
-          let fileUrl = noteRecord?.file_url;
+        // Combine topic info with handouts URLs
+        const topicHandouts = topics?.map(topic => {
+          const handoutRecord = handouts?.find(h => h.topic_id === topic.id);
+          let fileUrl = handoutRecord?.file_url;
           
           // If no URL in database, construct it based on expected pattern
           if (!fileUrl && topic.id <= 41) {
@@ -131,25 +131,25 @@ export function TopicNotesViewer({ problemId }: TopicNotesViewerProps) {
         }) || [];
         
         setCurrentProblemTopics(topics || []);
-        setCurrentTopicNotes(topicNotes);
+        setCurrentTopicHandouts(topicHandouts);
         setActiveTopicIndex(0); // Reset to first topic
         
       } catch (err) {
-        console.error('Error fetching topics and notes:', err);
-        setError('Failed to load topic notes');
+        console.error('Error fetching topics and handouts:', err);
+        setError('Failed to load topic handouts');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchTopicsAndNotes();
-  }, [problemId, setCurrentProblemTopics, setCurrentTopicNotes]);
+    fetchTopicsAndHandouts();
+  }, [problemId, setCurrentProblemTopics, setCurrentTopicHandouts]);
 
   // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">Loading notes...</div>
+        <div className="text-gray-500">Loading handouts...</div>
       </div>
     );
   }
@@ -169,24 +169,24 @@ export function TopicNotesViewer({ problemId }: TopicNotesViewerProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-3">
         <FileText className="h-12 w-12 text-gray-400" />
-        <div className="text-gray-500">Select a problem to view notes</div>
+        <div className="text-gray-500">Select a problem to view handouts</div>
       </div>
     );
   }
 
   // No topics for this problem
-  if (currentTopicNotes.length === 0) {
+  if (currentTopicHandouts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-3">
         <FileText className="h-12 w-12 text-gray-400" />
-        <div className="text-gray-500">No topic notes available for this problem</div>
+        <div className="text-gray-500">No topic handouts available for this problem</div>
       </div>
     );
   }
 
   // Single topic - show PDF directly
-  if (currentTopicNotes.length === 1) {
-    const note = currentTopicNotes[0];
+  if (currentTopicHandouts.length === 1) {
+    const note = currentTopicHandouts[0];
     
     if (!note.file_url) {
       return (
@@ -215,14 +215,14 @@ export function TopicNotesViewer({ problemId }: TopicNotesViewerProps) {
   }
 
   // Multiple topics - show with sub-tabs
-  const activeNote = currentTopicNotes[activeTopicIndex];
+  const activeNote = currentTopicHandouts[activeTopicIndex];
 
   return (
     <div className="flex flex-col h-full">
       {/* Sub-tabs for multiple topics */}
       <div className="border-b border-gray-200 dark:border-gray-700">
         <div className="flex overflow-x-auto custom-scrollbar">
-          {currentTopicNotes.map((note, index) => (
+          {currentTopicHandouts.map((note, index) => (
             <button
               key={note.topic_id}
               onClick={() => setActiveTopicIndex(index)}

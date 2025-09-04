@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Problem, Document, Topic } from '@/types/database';
 
-interface TopicNote {
+interface TopicHandout {
   topic_id: number;
   topic_name: string;
   file_url: string | null;
@@ -17,7 +17,7 @@ interface ProblemStore {
   
   // Topics for current problem
   currentProblemTopics: Topic[];
-  currentTopicNotes: TopicNote[];
+  currentTopicHandouts: TopicHandout[];
   
   // UI state
   showHint: boolean;
@@ -30,7 +30,7 @@ interface ProblemStore {
   setCurrentDocument: (document: Document) => void;
   setSelectedTopicId: (topicId: number | null) => void;
   setCurrentProblemTopics: (topics: Topic[]) => void;
-  setCurrentTopicNotes: (notes: TopicNote[]) => void;
+  setCurrentTopicHandouts: (handouts: TopicHandout[]) => void;
   nextProblem: () => void;
   previousProblem: () => void;
   toggleHint: () => void;
@@ -50,7 +50,7 @@ export const useProblemStore = create<ProblemStore>((set, get) => ({
   selectedTopicId: null,
   currentDocument: null,
   currentProblemTopics: [],
-  currentTopicNotes: [],
+  currentTopicHandouts: [],
   showHint: false,
   showSolution: false,
   isLoading: false,
@@ -74,8 +74,8 @@ export const useProblemStore = create<ProblemStore>((set, get) => ({
     set({ currentProblemTopics: topics });
   },
   
-  setCurrentTopicNotes: (notes) => {
-    set({ currentTopicNotes: notes });
+  setCurrentTopicHandouts: (handouts) => {
+    set({ currentTopicHandouts: handouts });
   },
 
   setProblemList: (problems) => {

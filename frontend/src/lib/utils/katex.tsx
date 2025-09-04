@@ -102,6 +102,11 @@ export function renderMath(text: string, documentId?: string): string {
   processed = processed.replace(/\\underline\{([^}]+)\}/g, '<u>$1</u>');
   processed = processed.replace(/\\text\{([^}]+)\}/g, '$1'); // Plain \text{...}
   
+  // Handle LaTeX spacing and paragraph commands
+  processed = processed.replace(/\\par\s*/g, '<br><br>'); // \par creates a new paragraph
+  processed = processed.replace(/\\qquad/g, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'); // \qquad is 2em space
+  processed = processed.replace(/\\quad/g, '&nbsp;&nbsp;&nbsp;&nbsp;'); // \quad is 1em space
+  
   // Process line breaks (convert \\\\ to <br>) - AFTER math processing
   processed = processed.replace(/\\\\\\\\/g, '<br>'); // Convert \\\\ to <br>
   processed = processed.replace(/\\\\\\\\\\\\\\\\/g, '<br>'); // Convert \\\\\\\\ to <br>

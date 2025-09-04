@@ -14,7 +14,9 @@ import {
   BookOpen,
   Loader2,
   LineChart,
-  Calculator 
+  Calculator,
+  Lightbulb,
+  ChevronDown 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GeoGebraDialog from "@/components/geogebra/GeoGebraDialog";
@@ -54,6 +56,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [geogebraOpen, setGeogebraOpen] = useState(false);
   const [scientificCalculatorOpen, setScientificCalculatorOpen] = useState(false);
+  const [expandedHints, setExpandedHints] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     fetchAllProblems();
@@ -69,8 +72,9 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       
       fetchSubproblems(currentProblem.id);
       
-      // Clear answers when problem changes
+      // Clear answers and hints when problem changes
       setAnswers({});
+      setExpandedHints({});
       
       // Update current document based on the current problem's document_id
       if (allDocuments.length > 0) {
@@ -243,15 +247,6 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     }
   };
 
-  const getDifficultyColor = (difficulty: string | null) => {
-    switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'hard': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-      case 'very_hard': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-    }
-  };
 
   const handleAnswerChange = (key: string, value: string) => {
     setAnswers(prev => ({
@@ -339,6 +334,30 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     </div>
                   )}
                   
+                  {/* Hint dropdown for main problem */}
+                  {currentProblem.hint && subproblems.length === 0 && (
+                    <div className="mb-4">
+                      <button
+                        onClick={() => setExpandedHints(prev => ({ ...prev, main: !prev.main }))}
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                      >
+                        <Lightbulb className="h-4 w-4" />
+                        <span>Hint</span>
+                        <ChevronDown className={cn(
+                          "h-4 w-4 transition-transform",
+                          expandedHints['main'] && "rotate-180"
+                        )} />
+                      </button>
+                      {expandedHints['main'] && (
+                        <div className="mt-2 p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                          <div className="prose max-w-none dark:prose-invert text-sm">
+                            <MathContent content={currentProblem.hint} documentId={currentDocument?.document_id} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {/* Answer input for main problem (only if no subproblems) */}
                   {subproblems.length === 0 && (
                     <div className="mt-4">
@@ -367,6 +386,31 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             <div className="prose max-w-none dark:prose-invert overflow-hidden break-words">
                               <MathContent content={subproblem.problem_text || ''} documentId={currentDocument?.document_id} />
                             </div>
+                            
+                            {/* Hint dropdown for subproblem */}
+                            {subproblem.hint && (
+                              <div className="mt-4">
+                                <button
+                                  onClick={() => setExpandedHints(prev => ({ ...prev, [`sub_${subproblem.key}`]: !prev[`sub_${subproblem.key}`] }))}
+                                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                                >
+                                  <Lightbulb className="h-4 w-4" />
+                                  <span>Hint</span>
+                                  <ChevronDown className={cn(
+                                    "h-4 w-4 transition-transform",
+                                    expandedHints[`sub_${subproblem.key}`] && "rotate-180"
+                                  )} />
+                                </button>
+                                {expandedHints[`sub_${subproblem.key}`] && (
+                                  <div className="mt-2 p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                                    <div className="prose max-w-none dark:prose-invert text-sm">
+                                      <MathContent content={subproblem.hint} documentId={currentDocument?.document_id} />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
                             {/* Answer input for subproblem */}
                             <div className="mt-4">
                               <textarea
