@@ -66,7 +66,7 @@ export const useProblemStore = create<ProblemStore>((set, get) => ({
       showSolution: false,
       // Clear topics when problem changes - will be fetched separately
       currentProblemTopics: [],
-      currentTopicNotes: []
+      currentTopicHandouts: []
     });
   },
   

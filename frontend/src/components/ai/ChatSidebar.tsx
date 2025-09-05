@@ -10,29 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Send, FileText, BookOpen, MessageSquare, X, SquarePen, MessagesSquare } from "lucide-react";
+import { Send, FileText, BookOpen, X, SquarePen, MessagesSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
 import { Subproblem, Solution, Problem, Document } from "@/types/database";
-import dynamic from 'next/dynamic';
-
-// Dynamically import PDFViewerSimple to avoid SSR issues
-const PDFViewerSimple = dynamic(
-  () => import('@/components/pdf/PDFViewerSimple'),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center text-gray-500 dark:text-gray-400">
-          <p className="text-sm">Loading PDF viewer...</p>
-        </div>
-      </div>
-    )
-  }
-);
-import { getSamplePDFUrl } from "@/lib/utils/pdf";
 import { TopicHandoutsViewer } from '@/components/handouts/TopicHandoutsViewer';
 
 interface Message {
@@ -550,9 +533,9 @@ export default function ChatSidebar({}: ChatSidebarProps) {
   };
 
   const exampleQuestions = [
-    "Help me solve this problem one step at a time.",
     "What concepts do I need to review for this problem?",
-    "Help me understand this problem visually."
+    "Help me understand this problem visually.",
+    "Which problem solving technique do I need to solve this problem?"
   ];
 
   const tabs = [
@@ -609,7 +592,7 @@ export default function ChatSidebar({}: ChatSidebarProps) {
               {messages.length === 0 && !isLoading ? (
                 /* AI Tutor Header - Perfectly centered when no messages */
                 <div className="h-full flex items-center justify-center">
-                  <div className="text-center max-w-md px-4">
+                  <div className="text-center max-w-lg px-4">
                     <MessagesSquare className="h-12 w-12 mx-auto text-gray-300 mb-2" />
                     <h3 className="text-lg font-medium text-gray-300 mb-6">AI Tutor</h3>
                     <div className="space-y-2">

@@ -24,7 +24,7 @@ function AppPageContent() {
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [viewMode, setViewMode] = useState<'problems' | 'create-practice'>('problems');
+  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks'>('problems');
 
   useEffect(() => {
     checkAuth();
@@ -72,6 +72,13 @@ function AppPageContent() {
     setViewMode('create-practice');
   };
 
+  const handleBookmarks = () => {
+    setViewMode('bookmarks');
+    setSelectedTopicId(null);
+    setSelectedTopicIds([]);
+    setSelectedDifficulties([]);
+  };
+
   const handleStartPractice = (topicIds: number[], difficulties: string[]) => {
     setSelectedTopicIds(topicIds);
     setSelectedDifficulties(difficulties);
@@ -110,6 +117,10 @@ function AppPageContent() {
                 handleCreatePractice();
                 setIsMobileMenuOpen(false);
               }}
+              onBookmarks={() => {
+                handleBookmarks();
+                setIsMobileMenuOpen(false);
+              }}
               onLogoClick={handleLogoClick}
             />
           </SheetContent>
@@ -136,6 +147,7 @@ function AppPageContent() {
               }}
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
               onCreatePractice={handleCreatePractice}
+              onBookmarks={handleBookmarks}
               onLogoClick={handleLogoClick}
             />
           )}
@@ -176,6 +188,7 @@ function AppPageContent() {
                   selectedTopicId={selectedTopicId}
                   selectedTopicIds={selectedTopicIds}
                   selectedDifficulties={selectedDifficulties}
+                  viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
                 />
               }
               rightPanel={<ChatSidebar />}

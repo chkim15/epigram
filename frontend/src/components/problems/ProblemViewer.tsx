@@ -7,7 +7,6 @@ import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -16,19 +15,22 @@ import {
   LineChart,
   Calculator,
   Lightbulb,
-  ChevronDown 
+  ChevronDown,
+  Star 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GeoGebraDialog from "@/components/geogebra/GeoGebraDialog";
 import ScientificCalculatorDialog from "@/components/geogebra/ScientificCalculatorDialog";
+import { useAuthStore } from "@/stores/authStore";
 
 interface ProblemViewerProps {
   selectedTopicId: number | null;
   selectedTopicIds?: number[];
   selectedDifficulties?: string[];
+  viewMode?: 'problems' | 'bookmarks';
 }
 
-export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], selectedDifficulties = [] }: ProblemViewerProps) {
+export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems' }: ProblemViewerProps) {
   const {
     currentProblem,
     currentProblemIndex,
@@ -57,10 +59,17 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   const [geogebraOpen, setGeogebraOpen] = useState(false);
   const [scientificCalculatorOpen, setScientificCalculatorOpen] = useState(false);
   const [expandedHints, setExpandedHints] = useState<{ [key: string]: boolean }>({});
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const { user } = useAuthStore();
 
   useEffect(() => {
-    fetchAllProblems();
-  }, [selectedTopicId, selectedTopicIds, selectedDifficulties]);
+    if (viewMode === 'bookmarks') {
+      fetchBookmarkedProblems();
+    } else {
+      fetchAllProblems();
+    }
+  }, [selectedTopicId, selectedTopicIds, selectedDifficulties, viewMode]);
 
   useEffect(() => {
     if (currentProblem) {
@@ -71,6 +80,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       });
       
       fetchSubproblems(currentProblem.id);
+      checkBookmarkStatus(currentProblem.id);
       
       // Clear answers and hints when problem changes
       setAnswers({});
@@ -94,7 +104,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
         console.warn('Documents not loaded yet');
       }
     }
-  }, [currentProblem, allDocuments]);
+  }, [currentProblem, allDocuments, user]);
 
   const fetchAllProblems = async () => {
     try {
@@ -230,6 +240,126 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     }
   };
 
+  const fetchBookmarkedProblems = async () => {
+    if (!user) {
+      setProblemList([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Fetching bookmarked problems for user:', user.id);
+      
+      // First fetch documents data
+      const { data: documentsData, error: documentsError } = await supabase
+        .from('documents')
+        .select('*');
+
+      if (documentsError) {
+        console.error('Error fetching documents:', documentsError);
+      }
+
+      // Store all documents
+      if (documentsData && documentsData.length > 0) {
+        setAllDocuments(documentsData);
+      }
+      
+      // Fetch bookmarked problems
+      const { data: bookmarksData, error: bookmarksError } = await supabase
+        .from('user_bookmarks')
+        .select(`
+          problem_id,
+          created_at,
+          problems (
+            id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
+            math_approach, reasoning_type, difficulty, importance,
+            comment, version, created_at, updated_at, included
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (bookmarksError) throw bookmarksError;
+
+      console.log(`Found ${bookmarksData?.length || 0} bookmarked problems`);
+
+      const problems = bookmarksData?.map(b => b.problems).filter(Boolean) || [];
+      setProblemList(problems);
+      
+      // Set initial document based on first problem
+      if (problems.length > 0 && documentsData && documentsData.length > 0) {
+        const firstProblemDoc = documentsData.find(doc => doc.id === problems[0].document_id);
+        if (firstProblemDoc) {
+          setCurrentDocument(firstProblemDoc);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching bookmarked problems:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkBookmarkStatus = async (problemId: string) => {
+    if (!user) {
+      setIsBookmarked(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_bookmarks')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('problem_id', problemId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking bookmark status:', error);
+      }
+      
+      setIsBookmarked(!!data);
+    } catch (err) {
+      console.error('Error checking bookmark status:', err);
+      setIsBookmarked(false);
+    }
+  };
+
+  const toggleBookmark = async () => {
+    if (!user || !currentProblem) return;
+    
+    setBookmarkLoading(true);
+    try {
+      if (isBookmarked) {
+        // Remove bookmark
+        const { error } = await supabase
+          .from('user_bookmarks')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('problem_id', currentProblem.id);
+
+        if (error) throw error;
+        setIsBookmarked(false);
+      } else {
+        // Add bookmark
+        const { error } = await supabase
+          .from('user_bookmarks')
+          .insert({
+            user_id: user.id,
+            problem_id: currentProblem.id
+          });
+
+        if (error) throw error;
+        setIsBookmarked(true);
+      }
+    } catch (err) {
+      console.error('Error toggling bookmark:', err);
+    } finally {
+      setBookmarkLoading(false);
+    }
+  };
+
   const fetchSubproblems = async (problemId: string) => {
     try {
       const { data, error } = await supabase
@@ -280,10 +410,24 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
           <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-gray-900 p-3 custom-scrollbar">
             <div className="flex h-full items-center justify-center">
               <div className="text-center">
-                <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-                  No Problems Found
-                </h3>
+                {viewMode === 'bookmarks' ? (
+                  <>
+                    <Star className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+                      No Bookmarked Problems
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                      {user ? "Bookmark problems to access them here" : "Sign in to bookmark problems"}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+                      No Problems Found
+                    </h3>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -306,6 +450,40 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   <CardTitle className="text-lg flex items-center gap-2">
                     <span>Problem {currentProblemIndex + 1}</span>
                     <div className="ml-auto flex items-center gap-2">
+                      <div className="relative inline-block group">
+                        <Button
+                          variant="outline"
+                          size="default"
+                          onClick={toggleBookmark}
+                          disabled={!user || bookmarkLoading}
+                          className={cn(
+                            "!p-1 rounded-lg transition-colors disabled:opacity-100",
+                            user ? "cursor-pointer" : "cursor-default",
+                            user && isBookmarked 
+                              ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20" 
+                              : user ? "hover:bg-gray-50 dark:hover:bg-gray-800" : ""
+                          )}
+                          style={{ pointerEvents: user && !bookmarkLoading ? 'auto' : 'none' }}
+                        >
+                          <Star className={cn(
+                            "!h-6 !w-6",
+                            isBookmarked && "fill-current"
+                          )} />
+                        </Button>
+                        <div className={cn(
+                          "absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50",
+                          user && "hidden"
+                        )}>
+                          Please sign in
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                        </div>
+                        {user && (
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
+                            {isBookmarked ? "Remove bookmark" : "Add bookmark"}
+                            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                          </div>
+                        )}
+                      </div>
                       <Button
                         variant="outline"
                         size="default"

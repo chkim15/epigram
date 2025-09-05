@@ -27,6 +27,7 @@ interface TopicsSidebarProps {
   onSelectTopic: (topicId: number) => void;
   onToggleSidebar?: () => void;
   onCreatePractice?: () => void;
+  onBookmarks?: () => void;
   onLogoClick?: () => void;
 }
 
@@ -36,7 +37,7 @@ interface ExpandedCourse {
   sections: Section[];
 }
 
-export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onLogoClick }: TopicsSidebarProps) {
+export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onBookmarks, onLogoClick }: TopicsSidebarProps) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -316,7 +317,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
             </div>
 
             {/* Create Practice Section */}
-            <div className="mb-4">
+            <div className="mb-2">
               <Button
                 variant="ghost"
                 className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
@@ -324,6 +325,25 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
               >
                 <span className="flex-1 text-left">Create Practice</span>
               </Button>
+            </div>
+
+            {/* Bookmarks Section */}
+            <div className="mb-4 relative group">
+              <Button
+                variant="ghost"
+                className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer disabled:opacity-100"
+                onClick={onBookmarks}
+                disabled={!user}
+                style={{ pointerEvents: user ? 'auto' : 'none' }}
+              >
+                <span className="flex-1 text-left">Bookmarks</span>
+              </Button>
+              {!user && (
+                <div className="absolute left-12 bottom-full mb-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
+                  Please sign in
+                  <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                </div>
+              )}
             </div>
           </div>
         </div>
