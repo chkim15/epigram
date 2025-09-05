@@ -39,10 +39,12 @@ type Difficulty = 'easy' | 'medium' | 'hard' | 'very_hard';
 
 interface PracticeSession {
   id: string;
+  user_id?: string;
   name: string;
-  topicIds: number[];
+  topic_ids: number[];
   difficulties: string[];
-  createdAt: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 interface CreatePracticeProps {
@@ -70,9 +72,11 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
 
   useEffect(() => {
     fetchTopics();
-    loadSessions();
     if (user) {
       fetchUserProfile();
+      loadSessions();
+    } else {
+      setPracticeSessions([]);
     }
   }, [user]);
 
@@ -89,21 +93,68 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     }
   }, [userSchool, topics]);
 
-  const loadSessions = () => {
-    const stored = localStorage.getItem('practiceSessions');
-    if (stored) {
-      try {
-        const sessions = JSON.parse(stored);
-        setPracticeSessions(sessions);
-      } catch (err) {
-        console.error('Error loading sessions:', err);
+  const loadSessions = async () => {
+    if (!user) {
+      setPracticeSessions([]);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_practice_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setPracticeSessions(data || []);
+    } catch (err) {
+      console.error('Error loading sessions:', err);
+      // Fallback to localStorage for backward compatibility
+      const stored = localStorage.getItem('practiceSessions');
+      if (stored) {
+        try {
+          const sessions = JSON.parse(stored);
+          // Migrate old sessions to new format
+          const migratedSessions = sessions.map((s: any) => ({
+            ...s,
+            topic_ids: s.topicIds || s.topic_ids,
+            created_at: s.createdAt || s.created_at
+          }));
+          setPracticeSessions(migratedSessions);
+          // Clear localStorage after migration
+          if (user) {
+            localStorage.removeItem('practiceSessions');
+          }
+        } catch (e) {
+          console.error('Error parsing stored sessions:', e);
+        }
       }
     }
   };
 
-  const saveSessions = (sessions: PracticeSession[]) => {
-    localStorage.setItem('practiceSessions', JSON.stringify(sessions));
-    setPracticeSessions(sessions);
+  const saveSession = async (session: Omit<PracticeSession, 'id' | 'created_at' | 'updated_at'>) => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_practice_sessions')
+        .insert({
+          user_id: user.id,
+          name: session.name,
+          topic_ids: session.topic_ids,
+          difficulties: session.difficulties
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error('Error saving session:', err);
+      return null;
+    }
   };
 
   const fetchTopics = async () => {
@@ -390,9 +441,14 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     return selectedIds;
   };
 
-  const handleStartPractice = () => {
+  const handleStartPractice = async () => {
     const selectedTopicIds = getSelectedTopicIds();
     const difficulties = Array.from(selectedDifficulties);
+    
+    if (!user) {
+      alert('Please sign in to start a practice session');
+      return;
+    }
     
     if (selectedTopicIds.length === 0) {
       alert('Please select at least one topic');
@@ -404,30 +460,50 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
       return;
     }
     
-    // Save the session
-    const newSession: PracticeSession = {
-      id: Date.now().toString(),
+    // Save the session to database
+    const savedSession = await saveSession({
       name: sessionName,
-      topicIds: selectedTopicIds,
-      difficulties,
-      createdAt: new Date().toISOString()
-    };
+      topic_ids: selectedTopicIds,
+      difficulties
+    });
     
-    const updatedSessions = [...practiceSessions, newSession];
-    saveSessions(updatedSessions);
+    if (savedSession) {
+      // Update local state
+      setPracticeSessions([savedSession, ...practiceSessions]);
+    }
     
     // Call the parent callback with selected filters
     onStartPractice(selectedTopicIds, difficulties);
   };
 
-  const handleDeleteSession = (sessionId: string) => {
-    const updatedSessions = practiceSessions.filter(s => s.id !== sessionId);
-    saveSessions(updatedSessions);
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_practice_sessions')
+        .delete()
+        .eq('id', sessionId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setPracticeSessions(practiceSessions.filter(s => s.id !== sessionId));
+    } catch (err) {
+      console.error('Error deleting session:', err);
+    }
   };
 
   const handleLoadSession = (session: PracticeSession) => {
-    // Load the session's selections
-    onStartPractice(session.topicIds, session.difficulties);
+    if (!user) {
+      alert('Please sign in to load a practice session');
+      return;
+    }
+    // Load the session's selections - handle both old and new field names
+    const topicIds = session.topic_ids || (session as any).topicIds || [];
+    const difficulties = session.difficulties || [];
+    onStartPractice(topicIds, difficulties);
   };
 
 
@@ -471,7 +547,11 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
         <div>
           <h3 className="text-lg font-semibold mb-4">Saved Sessions</h3>
           <div>
-            {practiceSessions.length === 0 ? (
+            {!user ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Sign in to save and load practice sessions
+              </p>
+            ) : practiceSessions.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 No saved sessions yet. Create your first practice session!
               </p>
@@ -486,21 +566,34 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       <div className="flex-1">
                         <h4 className="font-medium text-sm">{session.name}</h4>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {session.topicIds.length} topics, {session.difficulties.length} difficulties
+                          {(session.topic_ids || (session as any).topicIds || []).length} topics, {session.difficulties.length} difficulties
                         </p>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                          {new Date(session.createdAt).toLocaleDateString()}
+                          {new Date(session.created_at || (session as any).createdAt).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 cursor-pointer"
-                          onClick={() => handleLoadSession(session)}
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
+                        <div className="relative group">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                              "h-8 w-8",
+                              user ? "cursor-pointer" : "cursor-default disabled:opacity-100"
+                            )}
+                            onClick={() => handleLoadSession(session)}
+                            disabled={!user}
+                            style={{ pointerEvents: user ? 'auto' : 'none' }}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                          {!user && (
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
+                              Please sign in
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                            </div>
+                          )}
+                        </div>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -685,16 +778,26 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                 </div>
                 
                 {/* Start Practice Button */}
-                <div className="pt-4">
+                <div className="pt-4 relative group">
                   <Button
                     onClick={handleStartPractice}
-                    className="w-full cursor-pointer"
+                    className={cn(
+                      "w-full",
+                      user ? "cursor-pointer" : "cursor-default disabled:opacity-100"
+                    )}
                     size="lg"
-                    disabled={getSelectedTopicIds().length === 0 || selectedDifficulties.size === 0}
+                    disabled={!user || getSelectedTopicIds().length === 0 || selectedDifficulties.size === 0}
+                    style={{ pointerEvents: user && getSelectedTopicIds().length > 0 && selectedDifficulties.size > 0 ? 'auto' : 'none' }}
                   >
                     <Play className="h-5 w-5 mr-2" />
                     Start ({getSelectedTopicIds().length} topics)
                   </Button>
+                  {!user && getSelectedTopicIds().length > 0 && selectedDifficulties.size > 0 && (
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
+                      Please sign in
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
