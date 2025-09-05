@@ -27,7 +27,7 @@ export default function ResizablePanels({
   const [leftWidth, setLeftWidth] = useState(defaultLeftWidth);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Load saved width from localStorage on mount
+  // Load saved width from localStorage on mount and when storageKey changes
   useEffect(() => {
     if (typeof window !== 'undefined' && storageKey) {
       const saved = localStorage.getItem(storageKey);
@@ -36,9 +36,14 @@ export default function ResizablePanels({
         if (savedWidth >= minLeftWidth && savedWidth <= maxLeftWidth) {
           setLeftWidth(savedWidth);
         }
+      } else {
+        // If no saved value exists, use the default
+        setLeftWidth(defaultLeftWidth);
       }
+    } else {
+      setLeftWidth(defaultLeftWidth);
     }
-  }, [storageKey, minLeftWidth, maxLeftWidth]);
+  }, [storageKey, minLeftWidth, maxLeftWidth, defaultLeftWidth]);
 
   // Save width to localStorage only when drag ends (moved to handleMouseUp)
 

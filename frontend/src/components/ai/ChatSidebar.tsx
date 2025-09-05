@@ -285,9 +285,11 @@ function SolutionsTab({ currentProblem, currentSubproblems, currentDocument }: S
   );
 }
 
-type ChatSidebarProps = Record<string, never>
+interface ChatSidebarProps {
+  mode?: 'problems' | 'handouts';
+}
 
-export default function ChatSidebar({}: ChatSidebarProps) {
+export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
   // Get current problem from store
   const { currentProblem, currentDocument } = useProblemStore();
   
@@ -538,12 +540,17 @@ export default function ChatSidebar({}: ChatSidebarProps) {
     "Which problem solving technique do I need to solve this problem?"
   ];
 
-  const tabs = [
-    { id: 'chat', label: 'AI Tutor', icon: MessagesSquare },
-    { id: 'handouts', label: 'Handouts', icon: FileText },
-    { id: 'solutions', label: 'Solutions', icon: BookOpen },
-    { id: 'notes', label: 'Notes', icon: SquarePen }
-  ] as const;
+  const tabs = mode === 'problems' 
+    ? [
+        { id: 'chat', label: 'AI Tutor', icon: MessagesSquare },
+        { id: 'handouts', label: 'Handouts', icon: FileText },
+        { id: 'solutions', label: 'Solutions', icon: BookOpen },
+        { id: 'notes', label: 'Notes', icon: SquarePen }
+      ] as const
+    : [
+        { id: 'chat', label: 'AI Tutor', icon: MessagesSquare },
+        { id: 'notes', label: 'Notes', icon: SquarePen }
+      ] as const;
 
   return (
     <div className="h-full flex flex-col min-h-0">
@@ -590,22 +597,30 @@ export default function ChatSidebar({}: ChatSidebarProps) {
             {/* Messages Area - Scrollable */}
             <div className="flex-1 min-h-0 overflow-auto custom-scrollbar">
               {messages.length === 0 && !isLoading ? (
-                /* AI Tutor Header - Perfectly centered when no messages */
+                /* AI Tutor Header - Different content based on mode */
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center max-w-lg px-4">
                     <MessagesSquare className="h-12 w-12 mx-auto text-gray-300 mb-2" />
                     <h3 className="text-lg font-medium text-gray-300 mb-6">AI Tutor</h3>
-                    <div className="space-y-2">
-                      {exampleQuestions.map((question, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleExampleClick(question)}
-                          className="block w-full text-left px-3 py-2 text-sm rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
-                        >
-                          {question}
-                        </button>
-                      ))}
-                    </div>
+                    {mode === 'handouts' ? (
+                      <div className="text-sm text-gray-400">
+                        <p className="mb-4">
+                          Ask questions about the handout content or concepts.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {exampleQuestions.map((question, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleExampleClick(question)}
+                            className="block w-full text-left px-3 py-2 text-sm rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
+                          >
+                            {question}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, FileText, Book } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UnifiedHeaderProps {
@@ -9,13 +9,21 @@ interface UnifiedHeaderProps {
   isSidebarOpen?: boolean;
   onToggleSidebar?: () => void;
   onLogoClick?: () => void;
+  showModeToggle?: boolean;
+  contentMode?: 'problems' | 'handouts';
+  onContentModeChange?: (mode: 'problems' | 'handouts') => void;
+  topicDisplay?: string;
 }
 
 export default function UnifiedHeader({ 
   className, 
   isSidebarOpen = true, 
   onToggleSidebar,
-  onLogoClick 
+  onLogoClick,
+  showModeToggle = false,
+  contentMode = 'problems',
+  onContentModeChange,
+  topicDisplay
 }: UnifiedHeaderProps) {
   return (
     <div className={cn(
@@ -40,6 +48,44 @@ export default function UnifiedHeader({
           </div>
         </>
       )}
+      
+      {/* Topic Display - Left side */}
+      <div className="flex-1 flex items-center">
+        {topicDisplay && (
+          <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+            {topicDisplay}
+          </div>
+        )}
+      </div>
+      
+      {/* Mode Toggle - Fixed center position */}
+      {showModeToggle && onContentModeChange && (
+        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          <button
+            onClick={() => onContentModeChange('handouts')}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-md transition-all cursor-pointer ${
+              contentMode === 'handouts'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            <FileText className="h-4 w-4" />
+            <span className="text-sm font-medium">Handouts</span>
+          </button>
+          <button
+            onClick={() => onContentModeChange('problems')}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-md transition-all cursor-pointer ${
+              contentMode === 'problems'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            <Book className="h-4 w-4" />
+            <span className="text-sm font-medium">Problems</span>
+          </button>
+        </div>
+      )}
+      
       {/* Flexible spacer to push right-side actions */}
       <div className="flex-1" />
 

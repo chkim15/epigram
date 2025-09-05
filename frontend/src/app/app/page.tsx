@@ -6,12 +6,13 @@ import TopicsSidebar from "@/components/navigation/TopicsSidebar";
 import ProblemViewer from "@/components/problems/ProblemViewer";
 import ChatSidebar from "@/components/ai/ChatSidebar";
 import CreatePractice from "@/components/practice/CreatePractice";
+import HandoutsViewer from "@/components/handouts/HandoutsViewer";
 import ResizablePanels from "@/components/ui/resizable-panels";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, Book, FileText } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/lib/supabase/client";
 
@@ -25,6 +26,8 @@ function AppPageContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks'>('problems');
+  const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
+  const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -68,6 +71,38 @@ function AppPageContent() {
     }
   }, [searchParams]);
 
+  // Fetch topic information when selectedTopicId changes
+  useEffect(() => {
+    if (!selectedTopicId) {
+      setSelectedTopicInfo(null);
+      return;
+    }
+
+    const fetchTopicInfo = async () => {
+      try {
+        const { data: topic, error } = await supabase
+          .from('topics')
+          .select('main_topics, subtopics')
+          .eq('id', selectedTopicId)
+          .single();
+
+        if (error) throw error;
+
+        if (topic) {
+          setSelectedTopicInfo({
+            main_topic: topic.main_topics || '',
+            subtopic: topic.subtopics || ''
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching topic info:', err);
+        setSelectedTopicInfo(null);
+      }
+    };
+
+    fetchTopicInfo();
+  }, [selectedTopicId]);
+
   const handleCreatePractice = () => {
     setViewMode('create-practice');
   };
@@ -94,44 +129,76 @@ function AppPageContent() {
   return (
     <div className="w-full h-screen flex flex-col">
       {/* Mobile Header */}
-      <div className="flex items-center justify-between border-b bg-white h-14 px-4 dark:bg-gray-900 lg:hidden">
-        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-          <SheetTrigger asChild>
-            <button className="cursor-pointer h-10 w-10 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-              <Menu className="h-5 w-5" />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-80 p-0">
-            <SheetHeader className="sr-only">
-              <SheetTitle>Navigation Menu</SheetTitle>
-            </SheetHeader>
-            <TopicsSidebar 
-              selectedTopicId={selectedTopicId}
-              onSelectTopic={(id) => {
-                setSelectedTopicId(id);
-                setViewMode('problems');
-                setIsMobileMenuOpen(false);
-              }}
-              onToggleSidebar={() => setIsMobileMenuOpen(false)}
-              onCreatePractice={() => {
-                handleCreatePractice();
-                setIsMobileMenuOpen(false);
-              }}
-              onBookmarks={() => {
-                handleBookmarks();
-                setIsMobileMenuOpen(false);
-              }}
-              onLogoClick={handleLogoClick}
-            />
-          </SheetContent>
-        </Sheet>
+      <div className="flex flex-col border-b bg-white dark:bg-gray-900 lg:hidden">
+        <div className="flex items-center justify-between h-14 px-4">
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <button className="cursor-pointer h-10 w-10 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <Menu className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80 p-0">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Navigation Menu</SheetTitle>
+              </SheetHeader>
+              <TopicsSidebar 
+                selectedTopicId={selectedTopicId}
+                onSelectTopic={(id) => {
+                  setSelectedTopicId(id);
+                  setViewMode('problems');
+                  setIsMobileMenuOpen(false);
+                }}
+                onToggleSidebar={() => setIsMobileMenuOpen(false)}
+                onCreatePractice={() => {
+                  handleCreatePractice();
+                  setIsMobileMenuOpen(false);
+                }}
+                onBookmarks={() => {
+                  handleBookmarks();
+                  setIsMobileMenuOpen(false);
+                }}
+                onLogoClick={handleLogoClick}
+              />
+            </SheetContent>
+          </Sheet>
 
-        <div className="flex items-center gap-2">
-          <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8 dark:invert" />
-          <h1 className="font-bold text-xl">Epigram</h1>
+          <div className="flex items-center gap-2">
+            <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8 dark:invert" />
+            <h1 className="font-bold text-xl">Epigram</h1>
+          </div>
+
+          <div className="w-6 h-6" />
         </div>
-
-        <div className="w-6 h-6" />
+        
+        {/* Mobile Mode Toggle */}
+        {selectedTopicId && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && (
+          <div className="flex items-center justify-center px-4 py-2">
+            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              <button
+                onClick={() => setContentMode('problems')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                  contentMode === 'problems'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}
+              >
+                <Book className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium">Problems</span>
+              </button>
+              <button
+                onClick={() => setContentMode('handouts')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                  contentMode === 'handouts'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium">Handouts</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Desktop Layout */}
@@ -174,6 +241,10 @@ function AppPageContent() {
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             onLogoClick={handleLogoClick}
+            showModeToggle={selectedTopicId !== null && viewMode !== 'bookmarks' && viewMode !== 'create-practice'}
+            contentMode={contentMode}
+            onContentModeChange={setContentMode}
+            topicDisplay={selectedTopicInfo && viewMode !== 'create-practice' ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}` : undefined}
           />
 
           {/* Content area below header */}
@@ -182,22 +253,29 @@ function AppPageContent() {
               onStartPractice={handleStartPractice}
             />
           ) : (
-            <ResizablePanels
-              leftPanel={
-                <ProblemViewer 
-                  selectedTopicId={selectedTopicId}
-                  selectedTopicIds={selectedTopicIds}
-                  selectedDifficulties={selectedDifficulties}
-                  viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
-                />
-              }
-              rightPanel={<ChatSidebar />}
-              defaultLeftWidth={50}
-              minLeftWidth={25}
-              maxLeftWidth={75}
-              className="flex-1"
-              storageKey="main-panels-width"
-            />
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Content Panel */}
+              <ResizablePanels
+                leftPanel={
+                  contentMode === 'handouts' && selectedTopicId ? (
+                    <HandoutsViewer selectedTopicId={selectedTopicId} />
+                  ) : (
+                    <ProblemViewer 
+                      selectedTopicId={selectedTopicId}
+                      selectedTopicIds={selectedTopicIds}
+                      selectedDifficulties={selectedDifficulties}
+                      viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
+                    />
+                  )
+                }
+                rightPanel={<ChatSidebar mode={contentMode} />}
+                defaultLeftWidth={contentMode === 'handouts' ? 60 : 50}
+                minLeftWidth={25}
+                maxLeftWidth={75}
+                className="flex-1"
+                storageKey={contentMode === 'handouts' ? 'handouts-panels-width' : 'main-panels-width'}
+              />
+            </div>
           )}
         </div>
       </div>
