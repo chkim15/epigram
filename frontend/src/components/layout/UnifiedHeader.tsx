@@ -89,13 +89,22 @@ export default function UnifiedHeader({
       {/* Flexible spacer to push right-side actions */}
       <div className="flex-1" />
 
+      {/* Contact Us Button */}
+      <Button
+        size="sm"
+        onClick={() => window.open('/contact', '_blank')}
+        className="h-8 px-3 rounded-lg cursor-pointer bg-black text-white hover:bg-black/90"
+      >
+        Contact Us
+      </Button>
+
       {/* Right-aligned Sign in button */}
       {/**
        * Temporarily disabling the top-right Sign in button.
        * Keep this block to easily re-enable later.
        */}
       {false && (
-        <div className="flex items-center">
+        <div className="flex items-center ml-2">
           <Button size="sm" className="h-8 px-3 rounded-lg bg-black text-white hover:bg-black/90">
             Sign in
           </Button>
