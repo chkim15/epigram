@@ -143,10 +143,27 @@ function AppPageContent() {
               </SheetHeader>
               <TopicsSidebar 
                 selectedTopicId={selectedTopicId}
-                onSelectTopic={(id) => {
+                onSelectTopic={async (id) => {
                   setSelectedTopicId(id);
                   setViewMode('problems');
                   setIsMobileMenuOpen(false);
+                  
+                  // Check if this is a Quick References topic and switch to handouts mode
+                  try {
+                    const { data: topic } = await supabase
+                      .from('topics')
+                      .select('main_topics')
+                      .eq('id', id)
+                      .single();
+                    
+                    if (topic?.main_topics === 'Quick References') {
+                      setContentMode('handouts');
+                    } else {
+                      setContentMode('problems');
+                    }
+                  } catch (err) {
+                    console.error('Error checking topic type:', err);
+                  }
                 }}
                 onToggleSidebar={() => setIsMobileMenuOpen(false)}
                 onCreatePractice={() => {
@@ -208,9 +225,26 @@ function AppPageContent() {
           {isSidebarOpen && (
             <TopicsSidebar 
               selectedTopicId={selectedTopicId}
-              onSelectTopic={(id) => {
+              onSelectTopic={async (id) => {
                 setSelectedTopicId(id);
                 setViewMode('problems');
+                
+                // Check if this is a Quick References topic and switch to handouts mode
+                try {
+                  const { data: topic } = await supabase
+                    .from('topics')
+                    .select('main_topics')
+                    .eq('id', id)
+                    .single();
+                  
+                  if (topic?.main_topics === 'Quick References') {
+                    setContentMode('handouts');
+                  } else {
+                    setContentMode('problems');
+                  }
+                } catch (err) {
+                  console.error('Error checking topic type:', err);
+                }
               }}
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
               onCreatePractice={handleCreatePractice}
@@ -241,7 +275,7 @@ function AppPageContent() {
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             onLogoClick={handleLogoClick}
-            showModeToggle={selectedTopicId !== null && viewMode !== 'bookmarks' && viewMode !== 'create-practice'}
+            showModeToggle={selectedTopicId !== null && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && selectedTopicInfo?.main_topic !== 'Quick References'}
             contentMode={contentMode}
             onContentModeChange={setContentMode}
             topicDisplay={selectedTopicInfo && viewMode !== 'create-practice' ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}` : undefined}
