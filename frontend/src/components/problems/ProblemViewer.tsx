@@ -16,7 +16,8 @@ import {
   Calculator,
   Lightbulb,
   ChevronDown,
-  Star 
+  Star,
+  Check 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GeoGebraDialog from "@/components/geogebra/GeoGebraDialog";
@@ -61,13 +62,18 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   const [expandedHints, setExpandedHints] = useState<{ [key: string]: boolean }>({});
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [completedLoading, setCompletedLoading] = useState(false);
   const { user } = useAuthStore();
 
   useEffect(() => {
     if (viewMode === 'bookmarks') {
       fetchBookmarkedProblems();
-    } else {
+    } else if (selectedTopicId !== null || selectedTopicIds.length > 0) {
       fetchAllProblems();
+    } else {
+      // Clear problems when no topic is selected
+      setProblemList([]);
     }
   }, [selectedTopicId, selectedTopicIds, selectedDifficulties, viewMode]);
 
@@ -81,6 +87,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       
       fetchSubproblems(currentProblem.id);
       checkBookmarkStatus(currentProblem.id);
+      checkCompletedStatus(currentProblem.id);
       
       // Clear answers and hints when problem changes
       setAnswers({});
@@ -284,7 +291,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
       console.log(`Found ${bookmarksData?.length || 0} bookmarked problems`);
 
-      const problems = bookmarksData?.map(b => b.problems).filter(Boolean) || [];
+      const problems = bookmarksData?.map(b => b.problems).filter(Boolean).flat() || [];
       setProblemList(problems);
       
       // Set initial document based on first problem
@@ -360,6 +367,65 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     }
   };
 
+  const checkCompletedStatus = async (problemId: string) => {
+    if (!user) {
+      setIsCompleted(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_completed_problems')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('problem_id', problemId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking completed status:', error);
+      }
+      
+      setIsCompleted(!!data);
+    } catch (err) {
+      console.error('Error checking completed status:', err);
+      setIsCompleted(false);
+    }
+  };
+
+  const toggleCompleted = async () => {
+    if (!user || !currentProblem) return;
+    
+    setCompletedLoading(true);
+    try {
+      if (isCompleted) {
+        // Remove completed status
+        const { error } = await supabase
+          .from('user_completed_problems')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('problem_id', currentProblem.id);
+
+        if (error) throw error;
+        setIsCompleted(false);
+      } else {
+        // Add completed status
+        const { error } = await supabase
+          .from('user_completed_problems')
+          .insert({
+            user_id: user.id,
+            problem_id: currentProblem.id
+          });
+
+        if (error) throw error;
+        setIsCompleted(true);
+      }
+    } catch (err) {
+      console.error('Error toggling completed status:', err);
+    } finally {
+      setCompletedLoading(false);
+    }
+  };
+
   const fetchSubproblems = async (problemId: string) => {
     try {
       const { data, error } = await supabase
@@ -420,6 +486,20 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                       {user ? "Bookmark problems to access them here" : "Sign in to bookmark problems"}
                     </p>
                   </>
+                ) : selectedTopicId === null ? (
+                  <>
+                    <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                      Welcome to Epigram
+                    </h2>
+                    <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+                      Select a topic to begin
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+                      <span className="text-3xl">←</span>
+                      <span className="text-sm">Choose from the sidebar</span>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
@@ -450,6 +530,37 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   <CardTitle className="text-lg flex items-center gap-2">
                     <span>Problem {currentProblemIndex + 1}</span>
                     <div className="ml-auto flex items-center gap-2">
+                      <div className="relative inline-block group">
+                        <Button
+                          variant="outline"
+                          size="default"
+                          onClick={toggleCompleted}
+                          disabled={!user || completedLoading}
+                          className={cn(
+                            "!p-1 rounded-lg transition-colors disabled:opacity-100",
+                            user ? "cursor-pointer" : "cursor-default",
+                            user && isCompleted 
+                              ? "bg-green-600 text-white hover:bg-green-700 border-green-600" 
+                              : user ? "hover:bg-gray-50 dark:hover:bg-gray-800" : ""
+                          )}
+                          style={{ pointerEvents: user && !completedLoading ? 'auto' : 'none' }}
+                        >
+                          <Check className="!h-6 !w-6" />
+                        </Button>
+                        <div className={cn(
+                          "absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50",
+                          user && "hidden"
+                        )}>
+                          Please sign in
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                        </div>
+                        {user && (
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
+                            {isCompleted ? "Mark as incomplete" : "Mark as complete"}
+                            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                          </div>
+                        )}
+                      </div>
                       <div className="relative inline-block group">
                         <Button
                           variant="outline"

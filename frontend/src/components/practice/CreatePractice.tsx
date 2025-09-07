@@ -117,7 +117,13 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
         try {
           const sessions = JSON.parse(stored);
           // Migrate old sessions to new format
-          const migratedSessions = sessions.map((s: any) => ({
+          const migratedSessions = sessions.map((s: {
+            topicIds?: number[];
+            topic_ids?: number[];
+            createdAt?: string;
+            created_at?: string;
+            [key: string]: unknown;
+          }) => ({
             ...s,
             topic_ids: s.topicIds || s.topic_ids,
             created_at: s.createdAt || s.created_at
@@ -501,7 +507,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
       return;
     }
     // Load the session's selections - handle both old and new field names
-    const topicIds = session.topic_ids || (session as any).topicIds || [];
+    const topicIds = session.topic_ids || (session as {topicIds?: number[]}).topicIds || [];
     const difficulties = session.difficulties || [];
     onStartPractice(topicIds, difficulties);
   };
@@ -566,10 +572,10 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       <div className="flex-1">
                         <h4 className="font-medium text-sm">{session.name}</h4>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {(session.topic_ids || (session as any).topicIds || []).length} topics, {session.difficulties.length} difficulties
+                          {(session.topic_ids || (session as {topicIds?: number[]}).topicIds || []).length} topics, {session.difficulties.length} difficulties
                         </p>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                          {new Date(session.created_at || (session as any).createdAt).toLocaleDateString()}
+                          {new Date(session.created_at || (session as {createdAt?: string}).createdAt || Date.now()).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="flex gap-1">

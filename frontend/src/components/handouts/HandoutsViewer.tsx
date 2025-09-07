@@ -41,7 +41,7 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
         if (topicError) throw topicError;
         
         // Fetch handout URL for this topic
-        const { data: topicNote, error: noteError } = await supabase
+        const { data: topicNote } = await supabase
           .from('topic_notes')
           .select('file_url')
           .eq('topic_id', selectedTopicId)
