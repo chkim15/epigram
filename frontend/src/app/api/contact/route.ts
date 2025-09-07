@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare attachments if screenshot is provided
-    let attachments = [];
+    const attachments = [];
     if (screenshot) {
       const bytes = await screenshot.arrayBuffer();
       const buffer = Buffer.from(bytes);
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: "Contact Form <onboarding@resend.dev>", // You'll need to verify your domain to use custom from address
       to: ["info@epi-gram.app"],
       replyTo: email,
