@@ -135,11 +135,13 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     const courseGroups = topics.reduce((acc, topic) => {
       let courseName = topic.course || 'Uncategorized';
       
-      // Special handling for Quick References and Special Topics
-      if (topic.main_topics === 'Quick References') {
-        courseName = 'Quick References';
+      // Special handling for Calculus Essentials and Special Topics
+      if (topic.main_topics === 'Calculus Essentials') {
+        courseName = 'Calculus Essentials';
+      } else if (topic.main_topics === 'Special Topic') {
+        courseName = 'Special Topics';
       } else if (courseName === 'Calculus') {
-        // Rename "Calculus" to "Special Topics" only for non-Quick References
+        // For any other "Calculus" course items, rename to Special Topics
         courseName = 'Special Topics';
       }
       
@@ -155,8 +157,8 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     
     // Process each course
     Object.entries(courseGroups).forEach(([courseName, courseTopics]) => {
-      // For Special Topics and Quick References, create a flat list without sections
-      if (courseName === 'Special Topics' || courseName === 'Quick References') {
+      // For Special Topics and Calculus Essentials, create a flat list without sections
+      if (courseName === 'Special Topics' || courseName === 'Calculus Essentials') {
         // Create a single section with all topics
         const sections: Section[] = [{
           id: courseName.toLowerCase().replace(/\s+/g, '-') + '-all',
@@ -215,7 +217,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
         'Calculus I', 'Math 1300', 'Math 1101',  // All Calc I variations
         'Calculus II', 'Math 1400', 'Math 1102',  // All Calc II variations
         'Special Topics',  // Special Topics after Calc II
-        'Quick References'  // Quick References after Special Topics
+        'Calculus Essentials'  // Calculus Essentials after Special Topics
       ];
       
       const indexA = order.indexOf(a.name);
@@ -368,7 +370,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
       {/* Expanded Course Panel */}
       {expandedCourse && (
-        <div className={(expandedCourse.courseName === 'Special Topics' || expandedCourse.courseName === 'Quick References') ? "w-[240px] h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-10 relative flex-shrink-0" : "flex-1 h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-10 relative"}>
+        <div className={(expandedCourse.courseName === 'Special Topics' || expandedCourse.courseName === 'Calculus Essentials') ? "w-[240px] h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-10 relative flex-shrink-0" : "flex-1 h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-10 relative"}>
           <div className="h-full flex flex-col">
             {/* Course Header */}
             <div className="p-4 h-[73px] flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
@@ -385,8 +387,8 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
             {/* Sections and Topics */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
-              {(expandedCourse.courseName === 'Special Topics' || expandedCourse.courseName === 'Quick References') ? (
-                // For Special Topics and Quick References, show topics directly without section dropdown
+              {(expandedCourse.courseName === 'Special Topics' || expandedCourse.courseName === 'Calculus Essentials') ? (
+                // For Special Topics and Calculus Essentials, show topics directly without section dropdown
                 <div className="space-y-1">
                   {expandedCourse.sections[0].topics.map((topic) => (
                     <Button
