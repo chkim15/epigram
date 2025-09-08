@@ -150,6 +150,18 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['solutions']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['solutions']['Insert']>;
       };
+      user_notes: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          note_text: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_notes']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['user_notes']['Insert']>;
+      };
     };
   };
 }
@@ -165,3 +177,4 @@ export type UserChat = Database['public']['Tables']['user_chats']['Row'];
 export type UserProblemProgress = Database['public']['Tables']['user_problem_progress']['Row'];
 export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
 export type Solution = Database['public']['Tables']['solutions']['Row'];
+export type UserNote = Database['public']['Tables']['user_notes']['Row'];

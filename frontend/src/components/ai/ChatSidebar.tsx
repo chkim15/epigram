@@ -17,6 +17,7 @@ import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
 import { Subproblem, Solution, Problem, Document } from "@/types/database";
 import { TopicHandoutsViewer } from '@/components/handouts/TopicHandoutsViewer';
+import { NotesTab } from '@/components/notes/NotesTab';
 
 interface Message {
   id: string;
@@ -302,6 +303,13 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
   const [pastedImage, setPastedImage] = useState<{ url: string; file: File } | null>(null);
   const [currentSubproblems, setCurrentSubproblems] = useState<Subproblem[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Auto-activate chat tab when in handouts mode
+  useEffect(() => {
+    if (mode === 'handouts') {
+      setActiveTab('chat');
+    }
+  }, [mode]);
 
   // Available LLM models
   const llmModels: LLMModel[] = [
@@ -548,8 +556,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
         { id: 'notes', label: 'Notes', icon: SquarePen }
       ] as const
     : [
-        { id: 'chat', label: 'AI Tutor', icon: MessagesSquare },
-        { id: 'notes', label: 'Notes', icon: SquarePen }
+        { id: 'chat', label: 'AI Tutor', icon: MessagesSquare }
       ] as const;
 
   return (
@@ -770,12 +777,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
         )}
 
         {activeTab === 'notes' && (
-          <div className="h-full flex items-center justify-center p-4">
-            <div className="text-center text-gray-500 dark:text-gray-400">
-              <SquarePen className="h-12 w-12 mx-auto mb-2" />
-              <p>Personal notes coming soon</p>
-            </div>
-          </div>
+          <NotesTab currentProblem={currentProblem} />
         )}
       </div>
     </div>
