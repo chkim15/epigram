@@ -2,7 +2,17 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { SquarePen, FunctionSquare } from 'lucide-react';
+import { 
+  SquarePen, 
+  Bold, 
+  Italic, 
+  Underline,
+  Highlighter,
+  Palette,
+  Plus,
+  Minus,
+  Sigma
+} from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase/client';
 import { Problem } from '@/types/database';
@@ -21,6 +31,9 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isEditingMath, setIsEditingMath] = useState(false);
+  const [currentFontSize, setCurrentFontSize] = useState(3); // 1-7 scale (3 is default)
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedContentRef = useRef<string>('');
   const contentEditableRef = useRef<HTMLDivElement>(null);
@@ -44,26 +57,74 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
 
   // Convert content editable HTML to storage format
   const htmlToStorage = (html: string): string => {
-    // Parse HTML and convert math-field elements to $$...$$ format
+    // Parse HTML and convert math-field elements to $$...$$ format while preserving formatting
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
     
     let result = '';
     const processNode = (node: Node) => {
       if (node.nodeType === Node.TEXT_NODE) {
-        result += node.textContent || '';
+        // Escape HTML special characters in text content
+        const text = (node.textContent || '').replace(/[<>&"']/g, (char) => {
+          const escapes: Record<string, string> = {
+            '<': '&lt;',
+            '>': '&gt;',
+            '&': '&amp;',
+            '"': '&quot;',
+            "'": '&#39;'
+          };
+          return escapes[char];
+        });
+        result += text;
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         const element = node as HTMLElement;
-        if (element.tagName.toLowerCase() === 'math-field') {
+        const tagName = element.tagName.toLowerCase();
+        
+        if (tagName === 'math-field') {
           const latex = element.getAttribute('value') || element.textContent || '';
           result += `$$${latex}$$`;
-        } else if (element.tagName.toLowerCase() === 'br') {
-          result += '\n';
-        } else if (element.tagName.toLowerCase() === 'div' || element.tagName.toLowerCase() === 'p') {
+        } else if (tagName === 'br') {
+          result += '<br>';
+        } else if (tagName === 'b' || tagName === 'strong') {
+          result += '<b>';
           for (const child of Array.from(element.childNodes)) {
             processNode(child);
           }
-          if (element.nextSibling) result += '\n';
+          result += '</b>';
+        } else if (tagName === 'i' || tagName === 'em') {
+          result += '<i>';
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+          result += '</i>';
+        } else if (tagName === 'u') {
+          result += '<u>';
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+          result += '</u>';
+        } else if (tagName === 'font') {
+          // Preserve font size and color
+          const size = element.getAttribute('size');
+          const color = element.getAttribute('color');
+          result += `<font${size ? ` size="${size}"` : ''}${color ? ` color="${color}"` : ''}>`;
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+          result += '</font>';
+        } else if (tagName === 'mark' || (tagName === 'span' && element.style.backgroundColor)) {
+          // Handle highlighting
+          const bgColor = element.style.backgroundColor || 'yellow';
+          result += `<mark style="background-color: ${bgColor}">`;
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+          result += '</mark>';
+        } else if (tagName === 'div' || tagName === 'p') {
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+          if (element.nextSibling) result += '<br>';
         } else {
           for (const child of Array.from(element.childNodes)) {
             processNode(child);
@@ -83,19 +144,22 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
   const storageToHtml = (text: string): string => {
     if (!text) return '';
     
-    // Split by math blocks and convert to HTML
-    const parts = text.split(/(\$\$.*?\$\$)/g);
-    let html = '';
+    // First, handle math blocks by temporarily replacing them with placeholders
+    const mathBlocks: string[] = [];
+    let processedText = text.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
+      const index = mathBlocks.length;
+      mathBlocks.push(latex);
+      return `__MATH_BLOCK_${index}__`;
+    });
     
-    parts.forEach((part, index) => {
-      if (part.startsWith('$$') && part.endsWith('$$')) {
-        const latex = part.slice(2, -2);
-        html += `<math-field data-index="${index}" style="display: inline-block; font-size: inherit;" value="${latex}">${latex}</math-field>`;
-      } else {
-        // Convert newlines to <br> tags
-        const textWithBreaks = part.replace(/\n/g, '<br>');
-        html += textWithBreaks;
-      }
+    // Now the text contains HTML formatting and math placeholders
+    // Replace math placeholders with math-field elements
+    let html = processedText;
+    mathBlocks.forEach((latex, index) => {
+      html = html.replace(
+        `__MATH_BLOCK_${index}__`,
+        `<math-field data-index="${index}" style="display: inline-block; font-size: inherit;" value="${latex}">${latex}</math-field>`
+      );
     });
     
     return html;
@@ -287,6 +351,41 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
     });
   }, [setupSingleMathField]);
 
+  // Apply text formatting
+  const applyFormatting = (command: string, value?: string) => {
+    if (!contentEditableRef.current) return;
+    
+    // Focus the contentEditable if not already focused
+    if (document.activeElement !== contentEditableRef.current) {
+      contentEditableRef.current.focus();
+    }
+    
+    // Execute the formatting command
+    document.execCommand(command, false, value);
+    
+    // Save the changes after formatting
+    handleContentChange();
+  };
+
+  // Change font size
+  const changeFontSize = (delta: number) => {
+    const newSize = Math.max(1, Math.min(7, currentFontSize + delta));
+    setCurrentFontSize(newSize);
+    applyFormatting('fontSize', newSize.toString());
+  };
+
+  // Apply color
+  const applyColor = (color: string) => {
+    applyFormatting('foreColor', color);
+    setShowColorPicker(false);
+  };
+
+  // Apply highlight
+  const applyHighlight = (color: string) => {
+    applyFormatting('hiliteColor', color);
+    setShowHighlightPicker(false);
+  };
+
   // Insert math at cursor position
   const insertMathAtCursor = () => {
     if (!contentEditableRef.current) return;
@@ -362,6 +461,32 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
     }
   }, [noteContent, setupMathFieldListeners]);
 
+  // Close color pickers when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if click is outside both color picker containers
+      const colorPickerButton = target.closest('[title="Text Color"]');
+      const highlightPickerButton = target.closest('[title="Highlight"]');
+      const colorPickerDropdown = target.closest('.absolute.top-10');
+      
+      if (!colorPickerButton && !colorPickerDropdown && showColorPicker) {
+        setShowColorPicker(false);
+      }
+      if (!highlightPickerButton && !colorPickerDropdown && showHighlightPicker) {
+        setShowHighlightPicker(false);
+      }
+    };
+    
+    if (showColorPicker || showHighlightPicker) {
+      // Use timeout to avoid closing immediately on open
+      setTimeout(() => {
+        document.addEventListener('click', handleClickOutside);
+      }, 0);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showColorPicker, showHighlightPicker]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -423,15 +548,128 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
     <div className="h-full flex flex-col">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={insertMathAtCursor}
-          className="h-8 px-2 cursor-pointer"
-        >
-          <FunctionSquare className="h-4 w-4 mr-1" />
-          Insert Math
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => applyFormatting('bold')}
+            className="h-8 w-8 p-0 cursor-pointer"
+            title="Bold"
+          >
+            <Bold className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => applyFormatting('italic')}
+            className="h-8 w-8 p-0 cursor-pointer"
+            title="Italic"
+          >
+            <Italic className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => applyFormatting('underline')}
+            className="h-8 w-8 p-0 cursor-pointer"
+            title="Underline"
+          >
+            <Underline className="h-4 w-4" />
+          </Button>
+          
+          <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
+          
+          {/* Font Size Controls */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => changeFontSize(-1)}
+            className="h-8 w-8 p-0 cursor-pointer"
+            title="Decrease Font Size"
+          >
+            <Minus className="h-3 w-3" />
+          </Button>
+          <span className="text-xs px-1 min-w-[20px] text-center">{currentFontSize}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => changeFontSize(1)}
+            className="h-8 w-8 p-0 cursor-pointer"
+            title="Increase Font Size"
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
+          
+          <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
+          
+          {/* Color and Highlight */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowColorPicker(!showColorPicker)}
+              className="h-8 w-8 p-0 cursor-pointer"
+              title="Text Color"
+            >
+              <Palette className="h-4 w-4" />
+            </Button>
+            {showColorPicker && (
+              <div className="absolute top-10 left-0 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-3 shadow-lg min-w-[140px]">
+                <div className="grid grid-cols-4 gap-4">
+                  {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#808080'].map(color => (
+                    <button
+                      key={color}
+                      onClick={() => applyColor(color)}
+                      className="w-5 h-5 rounded border border-gray-300 dark:border-gray-600 cursor-pointer hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowHighlightPicker(!showHighlightPicker)}
+              className="h-8 w-8 p-0 cursor-pointer"
+              title="Highlight"
+            >
+              <Highlighter className="h-4 w-4" />
+            </Button>
+            {showHighlightPicker && (
+              <div className="absolute top-10 left-0 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-3 shadow-lg min-w-[140px]">
+                <div className="grid grid-cols-4 gap-4">
+                  {['#FFFF00', '#00FF00', '#00FFFF', '#FF69B4', '#FFA500', '#FF0000', '#9370DB', '#87CEEB'].map(color => (
+                    <button
+                      key={color}
+                      onClick={() => applyHighlight(color)}
+                      className="w-5 h-5 rounded border border-gray-300 dark:border-gray-600 cursor-pointer hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={insertMathAtCursor}
+            className="h-8 px-2 cursor-pointer"
+            title="Insert Math Equation"
+          >
+            <Sigma className="h-4 w-4 mr-0.5" />
+            Math
+          </Button>
+        </div>
         
         {isSaving && (
           <span className="text-xs text-gray-500 dark:text-gray-400">
