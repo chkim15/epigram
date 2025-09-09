@@ -30,8 +30,14 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
     if (typeof window !== 'undefined') {
       import('mathlive').then(({ MathfieldElement }) => {
         if (!customElements.get('math-field')) {
-          customElements.define('math-field', MathfieldElement);
+          try {
+            customElements.define('math-field', MathfieldElement);
+          } catch (err) {
+            console.warn('MathLive already registered:', err);
+          }
         }
+      }).catch(err => {
+        console.error('Failed to load MathLive:', err);
       });
     }
   }, []);
@@ -122,6 +128,11 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
           setTimeout(() => {
             if (contentEditableRef.current) {
               contentEditableRef.current.innerHTML = storageToHtml(data.note_text);
+              // Mark all math fields as inactive initially
+              const mathFields = contentEditableRef.current.querySelectorAll('math-field');
+              mathFields.forEach(field => {
+                (field as HTMLElement).classList.add('inactive');
+              });
             }
           }, 100);
         } else {
@@ -194,51 +205,73 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
     
     mathField.addEventListener('input', (e: any) => {
       mathField.setAttribute('value', e.target.value);
-      // Don't trigger handleContentChange during input to prevent re-rendering
+      // Save after input with debounce
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      saveTimeoutRef.current = setTimeout(() => {
+        handleContentChange();
+      }, 1500);
     });
     
     mathField.addEventListener('focus', () => {
       setIsEditingMath(true);
-      // Add a class to show it's being edited
+      mathField.classList.remove('inactive');
       mathField.classList.add('editing');
     });
     
-    mathField.addEventListener('blur', () => {
-      setIsEditingMath(false);
-      // Remove editing class
-      mathField.classList.remove('editing');
-      if (!mathField.getAttribute('value')) {
-        mathField.remove();
-      } else {
-        // Place cursor after the math field when done editing
-        const selection = window.getSelection();
-        if (selection && contentEditableRef.current) {
-          const range = document.createRange();
-          
-          // Find the next text node or create one if needed
-          let nextNode = mathField.nextSibling;
-          if (!nextNode || nextNode.nodeType !== Node.TEXT_NODE) {
-            // Create a space after the math field if there isn't one
-            const spaceNode = document.createTextNode('\u00A0');
-            mathField.parentNode?.insertBefore(spaceNode, mathField.nextSibling);
-            nextNode = spaceNode;
-          }
-          
-          // Set cursor position after the math field
-          range.setStart(nextNode, 0);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-          
-          // Focus back on the contentEditable
-          contentEditableRef.current.focus();
-        }
+    mathField.addEventListener('blur', (e: any) => {
+      // Check if focus is moving to a related element (like dropdown menu)
+      const relatedTarget = e.relatedTarget as HTMLElement;
+      
+      // If the related target is part of the math field or its UI, don't mark as inactive
+      if (relatedTarget && (
+        mathField.contains(relatedTarget) || 
+        relatedTarget.closest('.ML__popover') ||
+        relatedTarget.closest('[role="menu"]')
+      )) {
+        return;
       }
-      // Trigger content change after blur
+      
+      // Add a delay to allow menu interactions
       setTimeout(() => {
-        handleContentChange();
-      }, 100);
+        // Check if the math field or any popover has focus
+        const activeElement = document.activeElement;
+        const hasMenuOpen = document.querySelector('.ML__popover:not([style*="display: none"])');
+        const hasDropdown = document.querySelector('[role="menu"]:not([style*="display: none"])');
+        
+        if (!mathField.contains(activeElement as Node) && !hasMenuOpen && !hasDropdown) {
+          mathField.classList.add('inactive');
+          mathField.classList.remove('editing');
+          setIsEditingMath(false);
+          
+          // Clean up empty fields
+          if (!mathField.getAttribute('value')) {
+            mathField.remove();
+          }
+        }
+      }, 150); // Slightly longer delay to ensure menu interactions complete
     });
+    
+    // Watch for menu interactions using MutationObserver
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          // Check if a menu was added to the DOM
+          const hasMenu = document.querySelector('.ML__popover') || document.querySelector('[role="menu"]');
+          if (hasMenu) {
+            // Keep field active while menu is open
+            mathField.classList.remove('inactive');
+          }
+        }
+      });
+    });
+    
+    // Observe changes to the body for menu additions
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    // Store observer reference for cleanup
+    (mathField as any).__observer = observer;
     
     // Mark as having listeners attached
     mathField.dataset.listenersAttached = 'true';
@@ -257,6 +290,14 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
   // Insert math at cursor position
   const insertMathAtCursor = () => {
     if (!contentEditableRef.current) return;
+    
+    // First, clean up any empty math fields
+    const existingMathFields = contentEditableRef.current.querySelectorAll('math-field');
+    existingMathFields.forEach(field => {
+      if (!field.getAttribute('value')) {
+        field.remove();
+      }
+    });
     
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
@@ -410,8 +451,29 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
             }
           }}
           onClick={(e) => {
-            // Ensure cursor is properly placed when clicking in empty areas
             const target = e.target as HTMLElement;
+            
+            // Clean up empty math fields when clicking in notes area (not on math fields)
+            if (!target.closest('math-field')) {
+              const mathFields = contentEditableRef.current?.querySelectorAll('math-field');
+              mathFields?.forEach(field => {
+                const htmlField = field as HTMLElement;
+                if (!field.getAttribute('value')) {
+                  // Clean up observer before removing
+                  const observer = (field as any).__observer;
+                  if (observer) {
+                    observer.disconnect();
+                  }
+                  field.remove();
+                } else {
+                  // Mark non-empty fields as inactive when clicking elsewhere
+                  htmlField.classList.add('inactive');
+                }
+              });
+              setIsEditingMath(false);
+            }
+            
+            // Ensure cursor is properly placed when clicking in empty areas
             if (target === contentEditableRef.current && !contentEditableRef.current?.textContent) {
               contentEditableRef.current?.focus();
             }
