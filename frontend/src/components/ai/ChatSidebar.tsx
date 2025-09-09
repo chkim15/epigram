@@ -39,19 +39,43 @@ interface SolutionsTabProps {
   currentProblem: Problem | null;
   currentSubproblems: Subproblem[];
   currentDocument: Document | null;
+  problemSolutions?: Solution[];
+  subproblemSolutions?: { [key: string]: Solution[] };
 }
 
-function SolutionsTab({ currentProblem, currentSubproblems, currentDocument }: SolutionsTabProps) {
-  const [problemSolutions, setProblemSolutions] = useState<Solution[]>([]);
-  const [subproblemSolutions, setSubproblemSolutions] = useState<{ [key: string]: Solution[] }>({});
+function SolutionsTab({ 
+  currentProblem, 
+  currentSubproblems, 
+  currentDocument,
+  problemSolutions: parentProblemSolutions,
+  subproblemSolutions: parentSubproblemSolutions 
+}: SolutionsTabProps) {
+  const [problemSolutions, setProblemSolutions] = useState<Solution[]>(parentProblemSolutions || []);
+  const [subproblemSolutions, setSubproblemSolutions] = useState<{ [key: string]: Solution[] }>(parentSubproblemSolutions || {});
   const [selectedProblemSolution, setSelectedProblemSolution] = useState(0);
   const [selectedSubproblemSolutions, setSelectedSubproblemSolutions] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState<'solutions' | 'comments'>('solutions');
 
-  // Fetch solutions when problem changes
+  // Update solutions when parent provides them
+  useEffect(() => {
+    if (parentProblemSolutions !== undefined) {
+      setProblemSolutions(parentProblemSolutions);
+    }
+    if (parentSubproblemSolutions !== undefined) {
+      setSubproblemSolutions(parentSubproblemSolutions);
+    }
+  }, [parentProblemSolutions, parentSubproblemSolutions]);
+
+  // Fetch solutions when problem changes (only if not provided by parent)
   useEffect(() => {
     async function fetchSolutions() {
+      // Skip fetching if parent already provides solutions
+      if (parentProblemSolutions !== undefined && parentSubproblemSolutions !== undefined) {
+        setLoading(false);
+        return;
+      }
+
       if (!currentProblem) {
         setProblemSolutions([]);
         setSubproblemSolutions({});
@@ -302,6 +326,8 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [pastedImage, setPastedImage] = useState<{ url: string; file: File } | null>(null);
   const [currentSubproblems, setCurrentSubproblems] = useState<Subproblem[]>([]);
+  const [problemSolutions, setProblemSolutions] = useState<Solution[]>([]);
+  const [subproblemSolutions, setSubproblemSolutions] = useState<{ [key: string]: Solution[] }>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   // Auto-activate chat tab when in handouts mode
@@ -354,6 +380,73 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
     fetchSubproblems();
   }, [currentProblem]);
 
+  // Fetch solutions when current problem changes
+  useEffect(() => {
+    const fetchSolutions = async () => {
+      if (!currentProblem) {
+        setProblemSolutions([]);
+        setSubproblemSolutions({});
+        return;
+      }
+
+      // Fetch main problem solutions
+      const { data: mainSolutions, error: mainError } = await supabase
+        .from('solutions')
+        .select('*')
+        .eq('problem_id', currentProblem.id)
+        .order('solution_order', { ascending: true });
+
+      if (!mainError && mainSolutions) {
+        // If no solutions in new table, use legacy solution_text
+        if (mainSolutions.length === 0 && currentProblem.solution_text) {
+          setProblemSolutions([{
+            id: 'legacy',
+            problem_id: currentProblem.id,
+            subproblem_id: null,
+            solution_text: currentProblem.solution_text,
+            solution_order: 0,
+            created_at: currentProblem.created_at,
+            updated_at: currentProblem.updated_at
+          }]);
+        } else {
+          setProblemSolutions(mainSolutions);
+        }
+      } else {
+        setProblemSolutions([]);
+      }
+
+      // Fetch subproblem solutions
+      const subSolutions: { [key: string]: Solution[] } = {};
+      for (const subproblem of currentSubproblems) {
+        const { data: sols, error: subError } = await supabase
+          .from('solutions')
+          .select('*')
+          .eq('subproblem_id', subproblem.id)
+          .order('solution_order', { ascending: true });
+
+        if (!subError && sols) {
+          // If no solutions in new table, use legacy solution_text
+          if (sols.length === 0 && subproblem.solution_text) {
+            subSolutions[subproblem.key] = [{
+              id: `legacy-${subproblem.id}`,
+              problem_id: null,
+              subproblem_id: subproblem.id,
+              solution_text: subproblem.solution_text,
+              solution_order: 0,
+              created_at: subproblem.created_at,
+              updated_at: subproblem.created_at
+            }];
+          } else {
+            subSolutions[subproblem.key] = sols;
+          }
+        }
+      }
+      setSubproblemSolutions(subSolutions);
+    };
+
+    fetchSolutions();
+  }, [currentProblem, currentSubproblems]);
+
   // Auto-scroll to bottom only for user messages, not during streaming
   useEffect(() => {
     // Don't auto-scroll if we're currently streaming an AI response
@@ -399,6 +492,8 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
           conversationHistory: messages,
           currentProblem: currentProblem || null,
           subproblems: currentSubproblems || [],
+          solutions: problemSolutions || [],
+          subproblemSolutions: subproblemSolutions || {},
           image: userMessage.image,
         }),
       });
@@ -772,6 +867,8 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
           <SolutionsTab 
             currentProblem={currentProblem}
             currentSubproblems={currentSubproblems}
+            problemSolutions={problemSolutions}
+            subproblemSolutions={subproblemSolutions}
             currentDocument={currentDocument}
           />
         )}

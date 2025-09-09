@@ -93,7 +93,7 @@ export default function UnifiedHeader({
       <Button
         size="sm"
         onClick={() => window.open('/contact', '_blank')}
-        className="h-8 px-3 rounded-lg cursor-pointer bg-black text-white hover:bg-black/90"
+        className="h-8 px-3 rounded-lg cursor-pointer bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
       >
         Contact Us
       </Button>

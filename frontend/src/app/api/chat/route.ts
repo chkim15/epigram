@@ -35,20 +35,61 @@ interface ChatRequest {
     problem_text: string;
     solution_text?: string;
   }>;
+  solutions?: Array<{
+    id: string;
+    solution_text: string;
+    solution_order: number;
+  }>;
+  subproblemSolutions?: {
+    [key: string]: Array<{
+      id: string;
+      solution_text: string;
+      solution_order: number;
+    }>;
+  };
   image?: string; // Base64 image data
 }
 
-// Simplified system prompt for speed
-const MATH_SYSTEM_PROMPT = `You are a math tutor helping with calculus. Be clear, concise, and helpful. Break down problems step-by-step.`;
+// System prompt with emphasis on using solutions as reference
+const MATH_SYSTEM_PROMPT = `You are a math tutor helping with calculus. Refer to the problem, subproblems, and correct solutions when assisting. Explanations should be clear, concise, and helpful.`;
 
-const PROBLEM_CONTEXT_PROMPT = (problem: ChatRequest['currentProblem'], subproblems?: ChatRequest['subproblems']) => {
+const PROBLEM_CONTEXT_PROMPT = (
+  problem: ChatRequest['currentProblem'], 
+  subproblems?: ChatRequest['subproblems'],
+  solutions?: ChatRequest['solutions'],
+  subproblemSolutions?: ChatRequest['subproblemSolutions']
+) => {
   if (!problem) return '';
   
-  // Simplified context for speed
-  let contextPrompt = `\nProblem: ${problem.problem_text?.substring(0, 500) || ''}`;
+  let contextPrompt = `\nCurrent Problem: ${problem.problem_text || ''}`;
   
+  // Add subproblems if available
   if (subproblems && subproblems.length > 0) {
-    contextPrompt += '\nParts: ' + subproblems.map(s => s.key).join(', ');
+    contextPrompt += '\n\nSubproblems:';
+    subproblems.forEach(sp => {
+      contextPrompt += `\n${sp.key}) ${sp.problem_text}`;
+    });
+  }
+  
+  // Add solutions if available
+  if (solutions && solutions.length > 0) {
+    contextPrompt += '\n\nCorrect Solution(s):';
+    solutions.forEach((sol, idx) => {
+      contextPrompt += `\n${solutions.length > 1 ? `Solution ${idx + 1}: ` : ''}${sol.solution_text}`;
+    });
+  }
+  
+  // Add subproblem solutions if available
+  if (subproblemSolutions && Object.keys(subproblemSolutions).length > 0) {
+    contextPrompt += '\n\nSubproblem Solutions:';
+    Object.entries(subproblemSolutions).forEach(([key, sols]) => {
+      if (sols && sols.length > 0) {
+        contextPrompt += `\n${key}) `;
+        sols.forEach((sol, idx) => {
+          contextPrompt += `${sols.length > 1 ? `[Solution ${idx + 1}] ` : ''}${sol.solution_text} `;
+        });
+      }
+    });
   }
   
   return contextPrompt;
@@ -78,7 +119,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body: ChatRequest = await req.json();
-    const { message, model, conversationHistory, currentProblem, subproblems, image } = body;
+    const { message, model, conversationHistory, currentProblem, subproblems, solutions, subproblemSolutions, image } = body;
 
     if (!message || !model) {
       return NextResponse.json(
@@ -90,7 +131,7 @@ export async function POST(req: NextRequest) {
 
     // Prepare system prompt with problem context if available
     const systemPrompt = currentProblem 
-      ? MATH_SYSTEM_PROMPT + '\n\n' + PROBLEM_CONTEXT_PROMPT(currentProblem, subproblems)
+      ? MATH_SYSTEM_PROMPT + '\n\n' + PROBLEM_CONTEXT_PROMPT(currentProblem, subproblems, solutions, subproblemSolutions)
       : MATH_SYSTEM_PROMPT;
 
 
