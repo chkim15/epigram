@@ -1,6 +1,17 @@
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import React from 'react';
+import React, { useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import type { GraphData } from '@/components/ai/GraphRenderer';
+
+// Dynamically import GraphRenderer to avoid SSR issues
+const GraphRenderer = dynamic(
+  () => import('@/components/ai/GraphRenderer').then(mod => ({ default: mod.GraphRenderer })),
+  { 
+    ssr: false,
+    loading: () => <div className="h-[300px] flex items-center justify-center text-gray-400">Loading graph...</div>
+  }
+);
 
 export function renderMath(text: string, documentId?: string): string {
   if (!text) return '';
@@ -201,12 +212,98 @@ export function renderMath(text: string, documentId?: string): string {
 }
 
 export function MathContent({ content, documentId }: { content: string; documentId?: string }) {
-  const renderedHTML = renderMath(content, documentId);
-  
+  // Parse content for graph blocks and regular content
+  const { segments, hasGraphs } = useMemo(() => {
+    const graphRegex = /```graph\s*\n([\s\S]*?)```/g;
+    const segments: Array<{ type: 'html' | 'graph'; content: string | GraphData }> = [];
+    let lastIndex = 0;
+    let match;
+    let hasGraphs = false;
+
+    while ((match = graphRegex.exec(content)) !== null) {
+      // Add HTML content before the graph
+      if (match.index > lastIndex) {
+        const htmlContent = content.substring(lastIndex, match.index);
+        if (htmlContent.trim()) {
+          segments.push({
+            type: 'html',
+            content: renderMath(htmlContent, documentId)
+          });
+        }
+      }
+
+      // Try to parse the graph JSON
+      try {
+        const graphData = JSON.parse(match[1]);
+        console.log('Parsed graph data:', graphData); // Debug log
+        segments.push({
+          type: 'graph',
+          content: graphData
+        });
+        hasGraphs = true;
+      } catch (e) {
+        // If JSON parsing fails, treat it as regular content
+        console.error('Failed to parse graph JSON:', e, 'Raw content:', match[1]);
+        segments.push({
+          type: 'html',
+          content: renderMath(match[0], documentId)
+        });
+      }
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add any remaining content
+    if (lastIndex < content.length) {
+      const remainingContent = content.substring(lastIndex);
+      if (remainingContent.trim()) {
+        segments.push({
+          type: 'html',
+          content: renderMath(remainingContent, documentId)
+        });
+      }
+    }
+
+    // If no graphs were found, just return the whole content as HTML
+    if (segments.length === 0) {
+      segments.push({
+        type: 'html',
+        content: renderMath(content, documentId)
+      });
+    }
+
+    return { segments, hasGraphs };
+  }, [content, documentId]);
+
+  // If no graphs, render as before
+  if (!hasGraphs) {
+    return (
+      <div 
+        className="math-content"
+        dangerouslySetInnerHTML={{ __html: segments[0]?.content as string }}
+      />
+    );
+  }
+
+  // Render mixed content with graphs
   return (
-    <div 
-      className="math-content"
-      dangerouslySetInnerHTML={{ __html: renderedHTML }}
-    />
+    <div className="math-content space-y-4">
+      {segments.map((segment, index) => {
+        if (segment.type === 'html') {
+          return (
+            <div 
+              key={index}
+              dangerouslySetInnerHTML={{ __html: segment.content as string }}
+            />
+          );
+        } else {
+          return (
+            <div key={index} className="my-4">
+              <GraphRenderer graphData={segment.content as GraphData} />
+            </div>
+          );
+        }
+      })}
+    </div>
   );
 }

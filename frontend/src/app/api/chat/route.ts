@@ -129,10 +129,48 @@ export async function POST(req: NextRequest) {
     }
 
 
+    // Check if the message is asking for visual explanation
+    const visualKeywords = /\b(plot|graph|visuali[sz]e|show\s+(me\s+)?visual|draw|chart|diagram|illustrate)\b/i;
+    const isVisualRequest = visualKeywords.test(message);
+    
     // Prepare system prompt with problem context if available
-    const systemPrompt = currentProblem 
+    let systemPrompt = currentProblem 
       ? MATH_SYSTEM_PROMPT + '\n\n' + PROBLEM_CONTEXT_PROMPT(currentProblem, subproblems, solutions, subproblemSolutions)
       : MATH_SYSTEM_PROMPT;
+    
+    // Add graph generation instructions when visual request is detected
+    if (isVisualRequest) {
+      systemPrompt += `\n\nIMPORTANT: The user is asking for a visual explanation. Generate a graph by outputting VALID JSON with CALCULATED NUMERIC VALUES:
+
+\`\`\`graph
+{
+  "type": "line",
+  "data": [
+    {"x": -5, "y": 10.5},
+    {"x": -4, "y": 8.2},
+    {"x": -3, "y": 6.1},
+    {"x": -2, "y": 4.0},
+    {"x": -1, "y": 2.3},
+    {"x": 0, "y": 0.0},
+    {"x": 1, "y": 2.3},
+    {"x": 2, "y": 4.0},
+    {"x": 3, "y": 6.1},
+    {"x": 4, "y": 8.2},
+    {"x": 5, "y": 10.5}
+  ],
+  "xAxis": {"label": "x"},
+  "yAxis": {"label": "f(x)"},
+  "title": "Function Plot"
+}
+\`\`\`
+
+CRITICAL RULES:
+- ALL values must be NUMBERS (like 5.2, -3.14), NOT expressions (NOT "2*Math.cos(x)")
+- Calculate all values before putting them in JSON
+- NO JavaScript expressions, NO formulas, ONLY decimal numbers
+- Must be VALID JSON - no ellipsis (...), no comments
+- Include 20-50 data points for smooth curves`;
+    }
 
 
     switch (model) {
