@@ -146,7 +146,7 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
     
     // First, handle math blocks by temporarily replacing them with placeholders
     const mathBlocks: string[] = [];
-    let processedText = text.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
+    const processedText = text.replace(/\$\$(.*?)\$\$/g, (_, latex) => {
       const index = mathBlocks.length;
       mathBlocks.push(latex);
       return `__MATH_BLOCK_${index}__`;
@@ -267,8 +267,9 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
     // Check if listeners already attached
     if (mathField.dataset.listenersAttached === 'true') return;
     
-    mathField.addEventListener('input', (e: any) => {
-      mathField.setAttribute('value', e.target.value);
+    mathField.addEventListener('input', (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      mathField.setAttribute('value', target.value);
       // Save after input with debounce
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -284,7 +285,7 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
       mathField.classList.add('editing');
     });
     
-    mathField.addEventListener('blur', (e: any) => {
+    mathField.addEventListener('blur', (e: FocusEvent) => {
       // Check if focus is moving to a related element (like dropdown menu)
       const relatedTarget = e.relatedTarget as HTMLElement;
       
@@ -335,7 +336,8 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
     observer.observe(document.body, { childList: true, subtree: true });
     
     // Store observer reference for cleanup
-    (mathField as any).__observer = observer;
+    const mathFieldWithObserver = mathField as HTMLElement & { __observer?: MutationObserver };
+    mathFieldWithObserver.__observer = observer;
     
     // Mark as having listeners attached
     mathField.dataset.listenersAttached = 'true';
@@ -698,7 +700,8 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
                 const htmlField = field as HTMLElement;
                 if (!field.getAttribute('value')) {
                   // Clean up observer before removing
-                  const observer = (field as any).__observer;
+                  const fieldWithObserver = field as HTMLElement & { __observer?: MutationObserver };
+                  const observer = fieldWithObserver.__observer;
                   if (observer) {
                     observer.disconnect();
                   }

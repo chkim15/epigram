@@ -353,7 +353,7 @@ export function LexicalNotesEditor({
     onError: (error: Error) => {
       console.error('Lexical error:', error);
     },
-    editorState: undefined as any,
+    editorState: undefined as string | undefined,
   };
 
   // Load initial content
@@ -388,7 +388,7 @@ export function LexicalNotesEditor({
     }
   }, []);
 
-  const handleChange = useCallback((editorState: any) => {
+  const handleChange = useCallback((editorState: EditorState) => {
     // Clear existing timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);

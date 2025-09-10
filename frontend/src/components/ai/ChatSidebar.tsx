@@ -144,7 +144,7 @@ function SolutionsTab({
     }
 
     fetchSolutions();
-  }, [currentProblem, currentSubproblems]);
+  }, [currentProblem, currentSubproblems, parentProblemSolutions, parentSubproblemSolutions]);
 
   if (loading) {
     return (
