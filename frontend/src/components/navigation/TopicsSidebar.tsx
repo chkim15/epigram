@@ -345,16 +345,6 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                 </Button>
               </div>
 
-              {/* Mock Exam Section */}
-              <div className="mb-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
-                  onClick={() => console.log('Mock Exam clicked - placeholder')}
-                >
-                  <span className="flex-1 text-left">Mock Exam</span>
-                </Button>
-              </div>
 
               {/* Bookmarks Section */}
               <div className="mb-4 relative group">
