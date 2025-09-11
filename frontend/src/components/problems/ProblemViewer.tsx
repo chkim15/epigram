@@ -808,15 +808,9 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                 <span>Show Hint {index + 1}</span>
                               </button>
                             ) : (
-                              <div>
-                                <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-500 mb-2">
-                                  <Lightbulb className="h-4 w-4" />
-                                  <span className="text-sm font-medium">Hint {index + 1}</span>
-                                </div>
-                                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
-                                  <div className="prose max-w-none dark:prose-invert text-sm">
-                                    <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
-                                  </div>
+                              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                                <div className="prose max-w-none dark:prose-invert text-sm">
+                                  <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                 </div>
                               </div>
                             )}
@@ -926,15 +920,9 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                           <span>Show Hint {index + 1}</span>
                                         </button>
                                       ) : (
-                                        <div>
-                                          <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-500 mb-2">
-                                            <Lightbulb className="h-4 w-4" />
-                                            <span className="text-sm font-medium">Hint {index + 1}</span>
-                                          </div>
-                                          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
-                                            <div className="prose max-w-none dark:prose-invert text-sm">
-                                              <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
-                                            </div>
+                                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                                          <div className="prose max-w-none dark:prose-invert text-sm">
+                                            <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                           </div>
                                         </div>
                                       )}
