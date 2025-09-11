@@ -89,13 +89,13 @@ export default function UnifiedHeader({
       {/* Flexible spacer to push right-side actions */}
       <div className="flex-1" />
 
-      {/* Contact Us Button */}
+      {/* Get Help Button */}
       <Button
         size="sm"
         onClick={() => window.open('/contact', '_blank')}
         className="h-8 px-3 rounded-lg cursor-pointer bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
       >
-        Contact Us
+        Get Help
       </Button>
 
       {/* Right-aligned Sign in button */}

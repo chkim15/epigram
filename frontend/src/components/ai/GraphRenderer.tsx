@@ -17,6 +17,7 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
+import type { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
 
 export interface GraphData {
   type: 'line' | 'scatter' | 'bar' | 'area' | 'combined';
@@ -68,7 +69,6 @@ export function GraphRenderer({ graphData, className = "" }: GraphRendererProps)
     yAxis = {},
     title,
     series,
-    width = 400,
     height = 300,
   } = graphData;
 
@@ -107,7 +107,12 @@ export function GraphRenderer({ graphData, className = "" }: GraphRendererProps)
             <YAxis {...yAxisProps} />
             <Tooltip 
               contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc' }}
-              formatter={(value: any) => typeof value === 'number' ? value.toFixed(2) : value}
+              formatter={(value: ValueType, name: NameType) => {
+                if (typeof value === 'number') {
+                  return value.toFixed(2);
+                }
+                return String(value);
+              }}
             />
             {series ? (
               series.map((s, idx) => (
@@ -133,7 +138,12 @@ export function GraphRenderer({ graphData, className = "" }: GraphRendererProps)
             <YAxis {...yAxisProps} />
             <Tooltip 
               contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc' }}
-              formatter={(value: any) => typeof value === 'number' ? value.toFixed(2) : value}
+              formatter={(value: ValueType, name: NameType) => {
+                if (typeof value === 'number') {
+                  return value.toFixed(2);
+                }
+                return String(value);
+              }}
             />
             {series ? (
               series.map((s, idx) => (
@@ -159,7 +169,12 @@ export function GraphRenderer({ graphData, className = "" }: GraphRendererProps)
             <YAxis {...yAxisProps} />
             <Tooltip 
               contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc' }}
-              formatter={(value: any) => typeof value === 'number' ? value.toFixed(2) : value}
+              formatter={(value: ValueType, name: NameType) => {
+                if (typeof value === 'number') {
+                  return value.toFixed(2);
+                }
+                return String(value);
+              }}
             />
             {series ? (
               series.map((s, idx) => (
@@ -189,7 +204,12 @@ export function GraphRenderer({ graphData, className = "" }: GraphRendererProps)
             <YAxis {...yAxisProps} />
             <Tooltip 
               contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc' }}
-              formatter={(value: any) => typeof value === 'number' ? value.toFixed(2) : value}
+              formatter={(value: ValueType, name: NameType) => {
+                if (typeof value === 'number') {
+                  return value.toFixed(2);
+                }
+                return String(value);
+              }}
             />
             {series ? (
               series.map((s, idx) => {
@@ -234,7 +254,12 @@ export function GraphRenderer({ graphData, className = "" }: GraphRendererProps)
             <YAxis {...yAxisProps} />
             <Tooltip 
               contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc' }}
-              formatter={(value: any) => typeof value === 'number' ? value.toFixed(2) : value}
+              formatter={(value: ValueType, name: NameType) => {
+                if (typeof value === 'number') {
+                  return value.toFixed(2);
+                }
+                return String(value);
+              }}
             />
             {series ? (
               series.map((s, idx) => (
