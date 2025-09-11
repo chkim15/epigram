@@ -447,7 +447,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
     fetchSolutions();
   }, [currentProblem, currentSubproblems]);
 
-  // Auto-scroll to bottom only for user messages, not during streaming
+  // Scroll to show the user's message at the top when submitted
   useEffect(() => {
     // Don't auto-scroll if we're currently streaming an AI response
     if (!isStreaming) {
@@ -456,7 +456,14 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
         const lastMessage = messages[messages.length - 1];
         // Only scroll for user messages
         if (lastMessage.role === 'user') {
-          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          // Find the last user message element
+          const messageElements = scrollContainer.querySelectorAll('.flex.justify-end');
+          if (messageElements.length > 0) {
+            const lastUserMessageElement = messageElements[messageElements.length - 1] as HTMLElement;
+            // Scroll so the user message appears at the top of the viewport
+            // Using scrollIntoView with block: 'start' to position at top
+            lastUserMessageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
       }
     }
@@ -639,7 +646,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
 
   const exampleQuestions = [
     "What concepts do I need to review for this problem?",
-    "Help me understand this problem visually.",
+    "Create a plot and help me understand this problem visually.",
     "Which problem solving technique do I need to solve this problem?"
   ];
 
@@ -697,7 +704,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
               </Button>
             )}
             {/* Messages Area - Scrollable */}
-            <div className="flex-1 min-h-0 overflow-auto custom-scrollbar">
+            <div className="flex-1 min-h-0 overflow-auto custom-scrollbar chat-messages-area">
               {messages.length === 0 && !isLoading ? (
                 /* AI Tutor Header - Different content based on mode */
                 <div className="h-full flex items-center justify-center">
