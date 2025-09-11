@@ -18,6 +18,9 @@ import { supabase } from "@/lib/supabase/client";
 import { Subproblem, Solution, Problem, Document } from "@/types/database";
 import { useAuthStore } from "@/stores/authStore";
 import { TopicHandoutsViewer } from '@/components/handouts/TopicHandoutsViewer';
+import { useActiveLearning } from "@/hooks/useActiveLearning";
+import ActiveLearningPrompt from "@/components/problems/ActiveLearningPrompt";
+import { UserAnswer } from "@/types/database";
 import { NotesTab } from '@/components/notes/NotesTab';
 
 interface Message {
@@ -57,6 +60,9 @@ function SolutionsTab({
   const [selectedSubproblemSolutions, setSelectedSubproblemSolutions] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState<'solutions' | 'comments'>('solutions');
+  const [hasSubmittedAnswer, setHasSubmittedAnswer] = useState<{ [key: string]: boolean }>({});
+  const { isActiveLearningMode } = useActiveLearning();
+  const { user } = useAuthStore();
 
   // Update solutions when parent provides them
   useEffect(() => {
@@ -67,6 +73,99 @@ function SolutionsTab({
       setSubproblemSolutions(parentSubproblemSolutions);
     }
   }, [parentProblemSolutions, parentSubproblemSolutions]);
+
+  // Check if user has submitted answers
+  useEffect(() => {
+    const checkSubmittedAnswers = async () => {
+      if (!user || !currentProblem) {
+        setHasSubmittedAnswer({});
+        return;
+      }
+
+      try {
+        // Check main problem answer
+        const { data: mainAnswer } = await supabase
+          .from('user_answers')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('problem_id', currentProblem.id)
+          .is('subproblem_id', null)
+          .limit(1);
+
+        const submitted: { [key: string]: boolean } = {
+          main: !!(mainAnswer && mainAnswer.length > 0)
+        };
+
+        // Check subproblem answers
+        for (const subproblem of currentSubproblems) {
+          const { data: subAnswer } = await supabase
+            .from('user_answers')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('subproblem_id', subproblem.id)
+            .limit(1);
+
+          submitted[`sub_${subproblem.key}`] = !!(subAnswer && subAnswer.length > 0);
+        }
+
+        setHasSubmittedAnswer(submitted);
+      } catch (err) {
+        console.error('Error checking submitted answers:', err);
+      }
+    };
+
+    checkSubmittedAnswers();
+  }, [user, currentProblem, currentSubproblems]);
+
+  // Listen for answer submission events from ProblemViewer
+  useEffect(() => {
+    const handleAnswerSubmitted = (event: CustomEvent) => {
+      if (event.detail.problemId === currentProblem?.id) {
+        // Re-check submitted answers when an answer is submitted
+        const checkSubmittedAnswers = async () => {
+          if (!user || !currentProblem) return;
+
+          try {
+            // Check main problem answer
+            const { data: mainAnswer } = await supabase
+              .from('user_answers')
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('problem_id', currentProblem.id)
+              .is('subproblem_id', null)
+              .limit(1);
+
+            const submitted: { [key: string]: boolean } = {
+              main: !!(mainAnswer && mainAnswer.length > 0)
+            };
+
+            // Check subproblem answers
+            for (const subproblem of currentSubproblems) {
+              const { data: subAnswer } = await supabase
+                .from('user_answers')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('subproblem_id', subproblem.id)
+                .limit(1);
+
+              submitted[`sub_${subproblem.key}`] = !!(subAnswer && subAnswer.length > 0);
+            }
+
+            setHasSubmittedAnswer(submitted);
+          } catch (err) {
+            console.error('Error checking submitted answers:', err);
+          }
+        };
+
+        checkSubmittedAnswers();
+      }
+    };
+
+    window.addEventListener('answerSubmitted', handleAnswerSubmitted as EventListener);
+    return () => {
+      window.removeEventListener('answerSubmitted', handleAnswerSubmitted as EventListener);
+    };
+  }, [user, currentProblem, currentSubproblems]);
 
   // Fetch solutions when problem changes (only if not provided by parent)
   useEffect(() => {
@@ -230,57 +329,73 @@ function SolutionsTab({
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {activeSubTab === 'solutions' && hasSolutions ? (
-          <div className="p-4 space-y-6">
-            {/* Main Problem Solutions */}
-            {problemSolutions.length > 0 && (
-              <div>
-                <div className="prose max-w-none dark:prose-invert">
-                  <MathContent 
-                    content={problemSolutions[selectedProblemSolution]?.solution_text || ''} 
-                    documentId={currentDocument?.document_id} 
-                  />
-                </div>
-              </div>
-            )}
+          (() => {
+            // Check if any solutions are locked due to active learning mode
+            const hasLockedSolutions = isActiveLearningMode && user && (
+              (!hasSubmittedAnswer.main && problemSolutions.length > 0) ||
+              Object.keys(subproblemSolutions).some(key => !hasSubmittedAnswer[`sub_${key}`])
+            );
 
-        {/* Subproblem Solutions */}
-        {Object.entries(subproblemSolutions).map(([key, solutions]) => {
-          if (solutions.length === 0) return null;
-          const selectedIndex = selectedSubproblemSolutions[key] || 0;
-          
-          return (
-            <div key={key}>
-              <div className="font-medium text-blue-600 dark:text-blue-400 mb-2">
-                Part {key}
-              </div>
-              {solutions.length > 1 && (
-                <div className="flex gap-2 mb-3">
-                  {solutions.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedSubproblemSolutions(prev => ({ ...prev, [key]: index }))}
-                      className={cn(
-                        "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
-                        selectedIndex === index
-                          ? "bg-black text-white"
-                          : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+            // If there are locked solutions, show single prompt
+            if (hasLockedSolutions) {
+              return <ActiveLearningPrompt problemKey="main" />;
+            }
+
+            // Otherwise show normal solutions
+            return (
+              <div className="p-4 space-y-6">
+                {/* Main Problem Solutions */}
+                {problemSolutions.length > 0 && (
+                  <div>
+                    <div className="prose max-w-none dark:prose-invert">
+                      <MathContent 
+                        content={problemSolutions[selectedProblemSolution]?.solution_text || ''} 
+                        documentId={currentDocument?.document_id} 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Subproblem Solutions */}
+                {Object.entries(subproblemSolutions).map(([key, solutions]) => {
+                  if (solutions.length === 0) return null;
+                  const selectedIndex = selectedSubproblemSolutions[key] || 0;
+                  
+                  return (
+                    <div key={key}>
+                      <div className="font-medium text-blue-600 dark:text-blue-400 mb-2">
+                        Part {key}
+                      </div>
+                      {solutions.length > 1 && (
+                        <div className="flex gap-2 mb-3">
+                          {solutions.map((_, index) => (
+                            <button
+                              key={index}
+                              onClick={() => setSelectedSubproblemSolutions(prev => ({ ...prev, [key]: index }))}
+                              className={cn(
+                                "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
+                                selectedIndex === index
+                                  ? "bg-black text-white"
+                                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                              )}
+                            >
+                              Solution {index + 1}
+                            </button>
+                          ))}
+                        </div>
                       )}
-                    >
-                      Solution {index + 1}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="prose max-w-none dark:prose-invert">
-                <MathContent 
-                  content={solutions[selectedIndex]?.solution_text || ''} 
-                  documentId={currentDocument?.document_id} 
-                />
+                      <div className="prose max-w-none dark:prose-invert">
+                        <MathContent 
+                          content={solutions[selectedIndex]?.solution_text || ''} 
+                          documentId={currentDocument?.document_id} 
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-          );
-        })}
-          </div>
+            );
+          })()
         ) : activeSubTab === 'comments' && hasComments ? (
           <div className="p-4 space-y-6">
             {currentProblem?.comment && (

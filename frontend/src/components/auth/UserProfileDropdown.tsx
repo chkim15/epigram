@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Settings, CreditCard, Moon, LogOut, ChevronDown } from 'lucide-react';
+import { Settings, CreditCard, Moon, LogOut, ChevronDown, BookOpen } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { User } from '@supabase/supabase-js';
 import SettingsModal from '@/components/settings/SettingsModal';
+import { useActiveLearning } from '@/hooks/useActiveLearning';
 
 interface UserProfileDropdownProps {
   user: User;
@@ -18,6 +19,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   const [darkMode, setDarkMode] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { isActiveLearningMode, toggleActiveLearningMode } = useActiveLearning();
 
   // Get user initials for avatar
   const getInitials = () => {
@@ -133,8 +135,31 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
               <span>Dark mode</span>
             </div>
             <div className="relative">
-              <div className="w-8 h-4 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
-              <div className={`absolute top-0.5 w-3 h-3 bg-white dark:bg-gray-300 rounded-full transition-transform ${darkMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}></div>
+              <div className={`w-8 h-4 rounded-full transition-colors ${
+                darkMode 
+                  ? 'bg-green-500' 
+                  : 'bg-gray-300 dark:bg-gray-600'
+              }`}></div>
+              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${darkMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}></div>
+            </div>
+          </button>
+
+          {/* Active Learning Toggle */}
+          <button
+            onClick={toggleActiveLearningMode}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
+          >
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Active Learning</span>
+            </div>
+            <div className="relative">
+              <div className={`w-8 h-4 rounded-full transition-colors ${
+                isActiveLearningMode 
+                  ? 'bg-green-500' 
+                  : 'bg-gray-300 dark:bg-gray-600'
+              }`}></div>
+              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${isActiveLearningMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}></div>
             </div>
           </button>
 

@@ -598,6 +598,11 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
         setSubmitted(prev => ({ ...prev, [key]: false }));
       }, 2000);
 
+      // Dispatch custom event to notify SolutionsTab about the submission
+      window.dispatchEvent(new CustomEvent('answerSubmitted', { 
+        detail: { problemId: currentProblem.id, key } 
+      }));
+
     } catch (err) {
       console.error('Error submitting answer:', err);
       alert('Failed to submit answer. Please try again.');
@@ -847,7 +852,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   
                   {/* Answer input for main problem (only if no subproblems) */}
                   {subproblems.length === 0 && (
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-4 space-y-2" data-answer-section="main">
                       <textarea
                         className="w-full min-h-[66px] p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
                         placeholder="Type your answer here..."
@@ -964,7 +969,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             )}
                             
                             {/* Answer input for subproblem */}
-                            <div className="mt-4 space-y-2">
+                            <div className="mt-4 space-y-2" data-answer-section={`sub_${subproblem.key}`}>
                               <textarea
                                 className="w-full min-h-[66px] p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
                                 placeholder="Type your answer here..."

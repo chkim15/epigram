@@ -136,11 +136,28 @@ export interface Database {
           user_id: string;
           dark_mode: boolean;
           preferred_ai_model: string;
+          active_learning_mode: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['user_preferences']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['user_preferences']['Insert']>;
+      };
+      user_profiles: {
+        Row: {
+          id: string;
+          user_id: string;
+          school: string | null;
+          course: string | null;
+          referral_source: string | null;
+          referral_other: string | null;
+          onboarding_completed: boolean | null;
+          active_learning_mode: boolean | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: Omit<Database['public']['Tables']['user_profiles']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['user_profiles']['Insert']>;
       };
       solutions: {
         Row: {
@@ -181,5 +198,6 @@ export type UserAnswer = Database['public']['Tables']['user_answers']['Row'];
 export type UserChatMessage = Database['public']['Tables']['user_chat_messages']['Row'];
 export type UserProblemProgress = Database['public']['Tables']['user_problem_progress']['Row'];
 export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
+export type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 export type Solution = Database['public']['Tables']['solutions']['Row'];
 export type UserNote = Database['public']['Tables']['user_notes']['Row'];
