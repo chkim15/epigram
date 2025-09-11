@@ -180,12 +180,12 @@ export function renderMath(text: string, documentId?: string): string {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const imageUrl = `${supabaseUrl}/storage/v1/object/public/math-problems/${documentId}/images/${imageName}`;
     
-    let style = 'max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);';
+    let style = 'max-width: 100%; height: auto; border-radius: 8px;';
     if (size) {
       // Handle percentage sizes like |30%|
       const percentage = size.replace('%', '');
       if (!isNaN(Number(percentage))) {
-        style = `width: ${percentage}%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);`;
+        style = `width: ${percentage}%; height: auto; border-radius: 8px;`;
       }
     }
     
