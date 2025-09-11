@@ -158,7 +158,8 @@ function SolutionsTab({
 
   const hasSolutions = problemSolutions.length > 0 || Object.values(subproblemSolutions).some(sols => sols.length > 0);
   const hasComments = currentProblem?.comment || currentSubproblems.some(sp => sp.comment);
-  const showTabs = hasSolutions && hasComments;
+  const hasMultipleSolutions = problemSolutions.length > 1;
+  const showTabs = hasMultipleSolutions || (hasSolutions && hasComments);
 
   if (!hasSolutions && !hasComments) {
     return (
@@ -176,7 +177,7 @@ function SolutionsTab({
       {/* Sub-tabs for Solutions and Comments */}
       {showTabs && (
         <div className="flex gap-2 px-4 pt-4 pb-2">
-          {problemSolutions.length > 1 ? (
+          {hasMultipleSolutions ? (
             <>
               {problemSolutions.map((_, index) => (
                 <button
@@ -196,7 +197,7 @@ function SolutionsTab({
                 </button>
               ))}
             </>
-          ) : problemSolutions.length === 1 ? (
+          ) : hasSolutions ? (
             <button
               onClick={() => setActiveSubTab('solutions')}
               className={cn(
