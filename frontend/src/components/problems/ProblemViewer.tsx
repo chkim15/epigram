@@ -60,6 +60,8 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   const [geogebraOpen, setGeogebraOpen] = useState(false);
   const [scientificCalculatorOpen, setScientificCalculatorOpen] = useState(false);
   const [expandedHints, setExpandedHints] = useState<{ [key: string]: boolean }>({});
+  const [problemHints, setProblemHints] = useState<{ [key: string]: Array<{ id: string; hint_text: string; hint_order: number }> }>({});
+  const [revealedHints, setRevealedHints] = useState<{ [key: string]: number }>({});
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -86,12 +88,14 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       });
       
       fetchSubproblems(currentProblem.id);
+      fetchHints(currentProblem.id);
       checkBookmarkStatus(currentProblem.id);
       checkCompletedStatus(currentProblem.id);
       
       // Clear answers and hints when problem changes
       setAnswers({});
       setExpandedHints({});
+      setRevealedHints({});
       
       // Update current document based on the current problem's document_id
       if (allDocuments.length > 0) {
@@ -437,9 +441,48 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       if (error) throw error;
 
       setSubproblems(data || []);
+      
+      // Fetch hints for each subproblem
+      if (data && data.length > 0) {
+        for (const subproblem of data) {
+          await fetchSubproblemHints(subproblem.id);
+        }
+      }
     } catch (err) {
       console.error('Error fetching subproblems:', err);
       setSubproblems([]);
+    }
+  };
+
+  const fetchHints = async (problemId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('hints')
+        .select('id, hint_text, hint_order')
+        .eq('problem_id', problemId)
+        .order('hint_order');
+
+      if (error) throw error;
+
+      setProblemHints(prev => ({ ...prev, main: data || [] }));
+    } catch (err) {
+      console.error('Error fetching hints:', err);
+    }
+  };
+
+  const fetchSubproblemHints = async (subproblemId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('hints')
+        .select('id, hint_text, hint_order')
+        .eq('subproblem_id', subproblemId)
+        .order('hint_order');
+
+      if (error) throw error;
+
+      setProblemHints(prev => ({ ...prev, [`sub_${subproblemId}`]: data || [] }));
+    } catch (err) {
+      console.error('Error fetching subproblem hints:', err);
     }
   };
 
@@ -623,8 +666,47 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     </div>
                   )}
                   
-                  {/* Hint dropdown for main problem */}
-                  {currentProblem.hint && subproblems.length === 0 && (
+                  {/* Progressive hints for main problem */}
+                  {problemHints['main'] && problemHints['main'].length > 0 && subproblems.length === 0 && (
+                    <div className="mb-4">
+                      {problemHints['main'].map((hint, index) => {
+                        const hintKey = `main_hint_${index}`;
+                        const isRevealed = (revealedHints['main'] || 0) > index;
+                        const canReveal = index === 0 || (revealedHints['main'] || 0) >= index;
+                        
+                        if (!isRevealed && !canReveal) return null;
+                        
+                        return (
+                          <div key={hint.id} className="mb-2">
+                            {!isRevealed ? (
+                              <button
+                                onClick={() => setRevealedHints(prev => ({ ...prev, main: (prev.main || 0) + 1 }))}
+                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                              >
+                                <Lightbulb className="h-4 w-4" />
+                                <span>Show Hint {index + 1}</span>
+                              </button>
+                            ) : (
+                              <div>
+                                <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-500 mb-2">
+                                  <Lightbulb className="h-4 w-4" />
+                                  <span className="text-sm font-medium">Hint {index + 1}</span>
+                                </div>
+                                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                                  <div className="prose max-w-none dark:prose-invert text-sm">
+                                    <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  {/* Fallback for old hint field if no hints in new table */}
+                  {currentProblem.hint && (!problemHints['main'] || problemHints['main'].length === 0) && subproblems.length === 0 && (
                     <div className="mb-4">
                       <button
                         onClick={() => setExpandedHints(prev => ({ ...prev, main: !prev.main }))}
@@ -676,8 +758,47 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                               <MathContent content={subproblem.problem_text || ''} documentId={currentDocument?.document_id} />
                             </div>
                             
-                            {/* Hint dropdown for subproblem */}
-                            {subproblem.hint && (
+                            {/* Progressive hints for subproblem */}
+                            {problemHints[`sub_${subproblem.id}`] && problemHints[`sub_${subproblem.id}`].length > 0 && (
+                              <div className="mt-4">
+                                {problemHints[`sub_${subproblem.id}`].map((hint, index) => {
+                                  const hintKey = `sub_${subproblem.id}`;
+                                  const isRevealed = (revealedHints[hintKey] || 0) > index;
+                                  const canReveal = index === 0 || (revealedHints[hintKey] || 0) >= index;
+                                  
+                                  if (!isRevealed && !canReveal) return null;
+                                  
+                                  return (
+                                    <div key={hint.id} className="mb-2">
+                                      {!isRevealed ? (
+                                        <button
+                                          onClick={() => setRevealedHints(prev => ({ ...prev, [hintKey]: (prev[hintKey] || 0) + 1 }))}
+                                          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                                        >
+                                          <Lightbulb className="h-4 w-4" />
+                                          <span>Show Hint {index + 1}</span>
+                                        </button>
+                                      ) : (
+                                        <div>
+                                          <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-500 mb-2">
+                                            <Lightbulb className="h-4 w-4" />
+                                            <span className="text-sm font-medium">Hint {index + 1}</span>
+                                          </div>
+                                          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                                            <div className="prose max-w-none dark:prose-invert text-sm">
+                                              <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            
+                            {/* Fallback for old hint field if no hints in new table */}
+                            {subproblem.hint && (!problemHints[`sub_${subproblem.id}`] || problemHints[`sub_${subproblem.id}`].length === 0) && (
                               <div className="mt-4">
                                 <button
                                   onClick={() => setExpandedHints(prev => ({ ...prev, [`sub_${subproblem.key}`]: !prev[`sub_${subproblem.key}`] }))}

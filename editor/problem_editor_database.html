@@ -28,7 +28,12 @@
         
         // Preprocess LaTeX list environments and text commands to HTML
         function preprocessLatexLists(text) {
-            if (!text) return text;
+            // Ensure text is a string
+            if (!text) return '';
+            if (typeof text !== 'string') {
+                console.warn('[preprocessLatexLists] Expected string but got:', typeof text, text);
+                return '';
+            }
             
             // Protect LaTeX environments that should not have \\ converted to <br>
             // Store them temporarily and restore after processing
@@ -1546,8 +1551,12 @@
         let originalData = null;
         let originalAdditionalSolutions = {};  // Store original state of additional solutions
         let originalAdditionalSubproblemSolutions = {};  // Store original state of additional subproblem solutions
+        let originalAdditionalHints = {};  // Store original state of additional hints
+        let originalAdditionalSubproblemHints = {};  // Store original state of additional subproblem hints
         let additionalSolutions = {};  // Current additional solutions for main problems (Key: problem_id, Value: array of solutions)
         let additionalSubproblemSolutions = {};  // Current additional solutions for subproblems (Key: subproblem_key, Value: array of solutions)
+        let additionalHints = {};  // Current additional hints for main problems (Key: problem_id, Value: array of hints)
+        let additionalSubproblemHints = {};  // Current additional hints for subproblems (Key: subproblem_key, Value: array of hints)
         let imageBasePath = '';
         let currentDocumentId = null; // Track the current document ID for problem generation
         
@@ -1722,9 +1731,40 @@
                 }
             }
             
-            // Handle multiple solutions if available
+            // Handle multiple solutions and hints if available
             if (data && data.length > 0) {
                 const problemUuid = data[0].id;
+                
+                // Handle hints (using same pattern as solutions)
+                const allHints = [];
+                
+                // Add primary hint
+                if (problem.hint && problem.hint.trim()) {
+                    allHints.push(problem.hint.trim());
+                }
+                
+                // Add additional hints if they exist
+                const additionalHintsList = additionalHints[problem.id];
+                if (additionalHintsList && additionalHintsList.length > 0) {
+                    allHints.push(...additionalHintsList.filter(h => h && h.trim()));
+                }
+                
+                if (allHints.length > 0) {
+                    const hintInserts = allHints.map((hintText, index) => ({
+                        problem_id: problemUuid,
+                        hint_text: hintText,
+                        hint_order: index
+                    }));
+                    
+                    const { data: insertedHints, error: hintsError } = await supabase
+                        .from('hints')
+                        .insert(hintInserts)
+                        .select();
+                    
+                    if (hintsError) {
+                        console.error('[InsertProblem] Failed to insert hints:', hintsError);
+                    }
+                }
                 
                 // Prepare solutions array (primary solution + additional solutions)
                 const allSolutions = [];
@@ -1773,12 +1813,49 @@
                 
                 if (error) throw new Error(`Subproblems insert failed: ${error.message}`);
                 
-                // Handle multiple solutions for each subproblem
+                // Handle hints and solutions for each subproblem
                 if (data && data.length > 0) {
                     for (const insertedSubproblem of data) {
                         const subproblemKey = insertedSubproblem.key;
                         const subproblemUuid = insertedSubproblem.id;
                         const originalSubproblem = subproblems[subproblemKey];
+                        
+                        // Handle hints for subproblem
+                        if (originalSubproblem.hints && originalSubproblem.hints.length > 0) {
+                            const hintInserts = originalSubproblem.hints
+                                .filter(hint => hint.hint_text && hint.hint_text.trim())
+                                .map((hint, index) => ({
+                                    subproblem_id: subproblemUuid,
+                                    hint_text: hint.hint_text,
+                                    hint_order: hint.hint_order !== undefined ? hint.hint_order : index
+                                }));
+                            
+                            if (hintInserts.length > 0) {
+                                const { error: hintsError } = await supabase
+                                    .from('hints')
+                                    .insert(hintInserts);
+                                
+                                if (hintsError) {
+                                    console.error('Failed to insert subproblem hints:', hintsError);
+                                }
+                            }
+                        } else if (originalSubproblem.hint) {
+                            // Handle legacy hint field
+                            const hintText = typeof originalSubproblem.hint === 'string' ? originalSubproblem.hint : null;
+                            if (hintText && hintText.trim()) {
+                                const { error: hintError } = await supabase
+                                    .from('hints')
+                                    .insert([{
+                                        subproblem_id: subproblemUuid,
+                                        hint_text: hintText,
+                                        hint_order: 0
+                                    }]);
+                                
+                                if (hintError) {
+                                    console.error('Failed to insert legacy subproblem hint:', hintError);
+                                }
+                            }
+                        }
                         
                         // Prepare solutions array (primary solution + additional solutions)
                         const allSolutions = [];
@@ -2028,7 +2105,57 @@
                                     }
                                 }
                                 
-                                // 3. Update subproblems - ALWAYS delete and re-insert
+                                // 3. Update hints table (similar to solutions pattern)
+                                
+                                
+                                // Prepare all hints (main hint + additional hints)
+                                const allHints = [];
+                                
+                                // Add main hint if exists
+                                if (problem.hint && problem.hint.trim()) {
+                                    allHints.push(problem.hint.trim());
+                                }
+                                
+                                // Add additional hints
+                                const additionalHintsList = additionalHints[problem.id];
+                                
+                                if (additionalHintsList && additionalHintsList.length > 0) {
+                                    const validAdditionalHints = additionalHintsList.filter(h => h && h.trim());
+                                    allHints.push(...validAdditionalHints);
+                                }
+                                
+                                
+                                // Delete existing hints and insert new ones
+                                const { data: deletedHints, error: deleteHintError } = await supabase
+                                    .from('hints')
+                                    .delete()
+                                    .eq('problem_id', problemUuid)
+                                    .select();
+                                
+                                if (deleteHintError) {
+                                    console.error('[DatabaseUpdate] Failed to delete existing hints:', deleteHintError);
+                                }
+                                
+                                // Insert new hints if they exist
+                                if (allHints.length > 0) {
+                                    const hintInserts = allHints.map((hintText, index) => ({
+                                        problem_id: problemUuid,
+                                        hint_text: hintText,
+                                        hint_order: index
+                                    }));
+                                    
+                                    
+                                    const { data: insertedHints, error: hintsError } = await supabase
+                                        .from('hints')
+                                        .insert(hintInserts)
+                                        .select();
+                                    
+                                    if (hintsError) {
+                                        console.error('[DatabaseUpdate] Failed to insert hints:', hintsError);
+                                    }
+                                }
+                                
+                                // 4. Update subproblems - ALWAYS delete and re-insert
                                 
                                 // Always delete ALL existing subproblems first
                                 const { error: deleteSubproblemError } = await supabase
@@ -2059,9 +2186,17 @@
                 
                 // Update originalData to reflect the new state
                 if (successfulUpdates > 0) {
+                    console.log('[StateUpdate] Updating originalData after successful database update');
                     originalData = JSON.parse(JSON.stringify(problemsData));
                     originalAdditionalSolutions = JSON.parse(JSON.stringify(additionalSolutions));
                     originalAdditionalSubproblemSolutions = JSON.parse(JSON.stringify(additionalSubproblemSolutions));
+                    originalAdditionalHints = JSON.parse(JSON.stringify(additionalHints));
+                    originalAdditionalSubproblemHints = JSON.parse(JSON.stringify(additionalSubproblemHints));
+                    
+                    // Debug: Log hints in originalData after update
+                    problemsToUpdate.forEach(changeInfo => {
+                        const problem = originalData.problems.find(p => p.id === changeInfo.problemId);
+                    });
                     
                     // Save to localStorage
                     localStorage.setItem('problemsData', JSON.stringify(problemsData));
@@ -2183,6 +2318,11 @@
                     // Initialize null fields to prevent errors
                     if (!problem.topics) problem.topics = [];
                     if (!problem.hint) problem.hint = null;
+                    // Initialize hints - keep whatever format they're in
+                    // The refreshHintSection function will handle both object and string formats
+                    if (!problem.hint && !problem.hints) {
+                        problem.hint = ''; // Just ensure we have at least one field
+                    }
                     if (!problem.solution) problem.solution = { text: null, images: [] };
                     if (problem.solution && !problem.solution.text) problem.solution.text = null;
                     if (problem.solution && !problem.solution.images) problem.solution.images = [];
@@ -2432,9 +2572,9 @@
                 ${generateSubproblemsSection(problem.subproblems)}
 
                 <div class="form-group">
-                    <label class="form-label">Hint</label>
+                    <label class="form-label">Hints</label>
                     <div id="hintsContainer">
-                        ${generateHintSection(problem.hint || null)}
+                        ${generateHintSection(problem.hints || problem.hint || null)}
                     </div>
                 </div>
 
@@ -2592,10 +2732,15 @@
                     if (elem) elementsToRender.push(elem);
                 });
                 
-                // Add hint element (single)
-                if (problem.hint) {
-                    const elem = document.getElementById(`hintRendered_single`);
-                    if (elem) elementsToRender.push(elem);
+                // Add hint elements (multiple hints support)
+                // Since hints are generated dynamically, we need to check for all possible hint elements
+                for (let i = 0; i < 10; i++) { // Check up to 10 hints
+                    const elem = document.getElementById(`hintRendered_${i}`);
+                    if (elem) {
+                        elementsToRender.push(elem);
+                    } else {
+                        break; // Stop if element doesn't exist
+                    }
                 }
                 
                 // Add answer option elements to rendering queue
@@ -3011,9 +3156,9 @@
                     </div>
                     ` : ''}
                     <div class="form-group" style="margin-top: 10px;">
-                        <label class="form-label" style="font-size: 12px;">Hint (${key})</label>
+                        <label class="form-label" style="font-size: 12px;">Hints (${key})</label>
                         <div id="subproblemHintsContainer_${key}">
-                            ${generateSubproblemHintSection(typeof subproblemData === 'object' ? (subproblemData.hint || null) : null, key)}
+                            ${generateSubproblemHintSection(typeof subproblemData === 'object' ? (subproblemData.hints || subproblemData.hint || null) : null, key)}
                         </div>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
@@ -4064,9 +4209,10 @@
                             await insertSubproblems(problem.subproblems, problemUuid);
                         }
 
-                        // Insert hints
-                        if (problem.hint && problem.hint.length > 0) {
-                            await insertHints(problem.hint, problemUuid, null);
+                        // Insert hints (check both new hints array and legacy hint field)
+                        const hintsToInsert = problem.hints || (problem.hint ? [problem.hint] : []);
+                        if (hintsToInsert.length > 0) {
+                            await insertHints(hintsToInsert, problemUuid, null);
                         }
 
                         // Insert solutions
@@ -4215,9 +4361,10 @@
                 const subproblemResponse = await response.json();
                 const subproblemUuid = subproblemResponse.data[0].id;
 
-                // Insert subproblem hints
-                if (subproblem.hint && subproblem.hint.length > 0) {
-                    await insertHints(subproblem.hint, null, subproblemUuid);
+                // Insert subproblem hints (check both new hints array and legacy hint field)
+                const subHintsToInsert = subproblem.hints || (subproblem.hint ? [subproblem.hint] : []);
+                if (subHintsToInsert.length > 0) {
+                    await insertHints(subHintsToInsert, null, subproblemUuid);
                 }
 
                 // Insert subproblem solutions
@@ -4233,28 +4380,44 @@
         }
 
         async function insertHints(hints, problemUuid, subproblemUuid) {
-            for (let i = 0; i < hints.length; i++) {
+            // Handle different hint formats
+            let hintsList = [];
+            if (!hints) {
+                return; // No hints to insert
+            } else if (typeof hints === 'string') {
+                // Legacy single hint
+                hintsList = [{hint_text: hints, hint_order: 0}];
+            } else if (Array.isArray(hints)) {
+                if (hints.length > 0 && typeof hints[0] === 'object' && hints[0].hint_text !== undefined) {
+                    // New format with objects
+                    hintsList = hints;
+                } else if (hints.length > 0 && typeof hints[0] === 'string') {
+                    // Legacy array of strings
+                    hintsList = hints.map((h, idx) => ({hint_text: h, hint_order: idx}));
+                }
+            }
+            
+            // Insert each hint into the hints table
+            for (let i = 0; i < hintsList.length; i++) {
+                const hint = hintsList[i];
+                if (!hint.hint_text || hint.hint_text.trim() === '') {
+                    continue; // Skip empty hints
+                }
+                
                 const payload = {
                     problem_id: problemUuid,
                     subproblem_id: subproblemUuid,
-                    hint_text: hints[i],
-                    position: i
+                    hint_text: hint.hint_text,
+                    hint_order: hint.hint_order !== undefined ? hint.hint_order : i
                 };
 
-                const response = await fetch('/functions/v1/supabase-proxy', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'insert',
-                        table: 'problem_hints',
-                        data: payload
-                    })
-                });
+                const { data, error } = await window.supabaseClient
+                    .from('hints')
+                    .insert([payload]);
 
-                if (!response.ok) {
-                    throw new Error(`Hint insert failed: ${response.statusText}`);
+                if (error) {
+                    console.error('Hint insert error:', error);
+                    throw new Error(`Hint insert failed: ${error.message}`);
                 }
             }
         }
@@ -4772,27 +4935,70 @@
             }
         }
 
-        // NEW: Single-value hint functions
-        function generateHintSection(hint) {
-            const hintText = hint || '';
-            return `
-                <div class="hint-item" style="margin-bottom: 15px; position: relative;">
-                    <div class="hint-display" id="hintDisplay_single" style="${hintText ? '' : 'display: none;'}">
-                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSingleHintEdit()">
-                            <div id="hintRendered_single">${preprocessLatexLists(hintText)}</div>
+        // NEW: Multiple hints support with database integration
+        function generateHintSection(hints) {
+            if (currentProblemIndex < 0) return '';
+            
+            // hints is now a simple array of strings passed from refreshHintSection
+            const hintsList = Array.isArray(hints) ? hints : [];
+            
+            // Ensure all items in the list are strings
+            const cleanHintsList = hintsList.map(hint => {
+                if (typeof hint === 'string') {
+                    return hint;
+                } else if (hint && hint.hint_text) {
+                    return hint.hint_text;
+                } else {
+                    console.warn('[generateHintSection] Invalid hint format:', hint);
+                    return '';
+                }
+            });
+            
+            // Always show at least one hint input box
+            if (cleanHintsList.length === 0) {
+                cleanHintsList.push('');
+            }
+            
+            const hintsHTML = cleanHintsList.map((hintText, index) => {
+                // Only show remove button if there's more than one hint
+                const showRemoveButton = cleanHintsList.length > 1;
+                return `
+                    <div class="hint-item" style="margin-bottom: 15px; position: relative; border: 2px solid #e9ecef; border-radius: 8px; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <label style="font-weight: 600; color: #495057;">Hint ${index + 1}</label>
+                            ${showRemoveButton ? `<button type="button" class="btn btn-sm" onclick="removeHint(${index})" style="background: #dc3545; color: white; font-size: 12px; padding: 4px 8px;">Remove</button>` : ''}
+                        </div>
+                        <div class="hint-display" id="hintDisplay_${index}" style="${hintText ? '' : 'display: none;'}">
+                            <div class="problem-text-display" style="cursor: pointer;" onclick="toggleHintEdit(${index})">
+                                <div id="hintRendered_${index}">${preprocessLatexLists(hintText)}</div>
+                            </div>
+                        </div>
+                        <div class="hint-edit" id="hintEdit_${index}" style="${hintText ? 'display: none;' : ''}">
+                            <input type="text" class="form-control" id="hintInput_${index}" 
+                                oninput="updateHintInMemory(${index}, this.value)"
+                                onblur="saveHintEdit(${index})" 
+                                value="${hintText ? hintText.replace(/"/g, '&quot;') : ''}" 
+                                placeholder="Enter hint ${index + 1}..." 
+                                style="width: 100%; padding: 15px; min-height: 60px; border: 2px solid #e9ecef; border-radius: 8px;">
                         </div>
                     </div>
-                    <div class="hint-edit" id="hintEdit_single" style="${hintText ? 'display: none;' : ''}">
-                        <input type="text" class="form-control" id="hintInput_single" onblur="saveSingleHintEdit()" value="${hintText ? hintText.replace(/"/g, '&quot;') : ''}" placeholder="Enter a hint..." style="width: 100%; padding: 15px; min-height: 60px; border: 2px solid #e9ecef; border-radius: 8px;">
-                    </div>
+                `;
+            }).join('');
+            
+            return `
+                <div class="hints-container">
+                    ${hintsHTML}
+                    <button type="button" class="btn btn-success" onclick="addHint()" style="width: auto; padding: 8px 16px; font-size: 13px; margin-top: 10px;">
+                        + Add Hint
+                    </button>
                 </div>
             `;
         }
 
-        function toggleSingleHintEdit() {
-            const display = document.getElementById('hintDisplay_single');
-            const edit = document.getElementById('hintEdit_single');
-            const input = document.getElementById('hintInput_single');
+        function toggleHintEdit(index) {
+            const display = document.getElementById(`hintDisplay_${index}`);
+            const edit = document.getElementById(`hintEdit_${index}`);
+            const input = document.getElementById(`hintInput_${index}`);
             
             display.style.display = 'none';
             edit.style.display = 'block';
@@ -4800,17 +5006,55 @@
             input.select();
         }
 
-        function saveSingleHintEdit() {
-            const input = document.getElementById('hintInput_single');
-            const display = document.getElementById('hintDisplay_single');
-            const edit = document.getElementById('hintEdit_single');
-            const rendered = document.getElementById('hintRendered_single');
+        function updateHintInMemory(index, value) {
+            // Save hint value in real-time as user types
+            if (currentProblemIndex >= 0) {
+                const problem = problemsData.problems[currentProblemIndex];
+                const problemId = problem.id;
+                
+                if (index === 0) {
+                    // Update main hint
+                    problem.hint = value;
+                } else {
+                    // Update additional hints
+                    if (!additionalHints[problemId]) {
+                        additionalHints[problemId] = [];
+                    }
+                    
+                    const additionalIndex = index - 1;
+                    // Ensure array is large enough
+                    while (additionalHints[problemId].length <= additionalIndex) {
+                        additionalHints[problemId].push('');
+                    }
+                    additionalHints[problemId][additionalIndex] = value;
+                }
+            }
+        }
+        
+        function saveHintEdit(index) {
+            const input = document.getElementById(`hintInput_${index}`);
+            const display = document.getElementById(`hintDisplay_${index}`);
+            const edit = document.getElementById(`hintEdit_${index}`);
+            const rendered = document.getElementById(`hintRendered_${index}`);
             
             const newValue = input.value.trim();
             
-            // Update the data
+            // Update the data (this is now redundant but kept for safety)
             if (currentProblemIndex >= 0) {
-                problemsData.problems[currentProblemIndex].hint = newValue || null;
+                if (!problemsData.problems[currentProblemIndex].hints) {
+                    problemsData.problems[currentProblemIndex].hints = [];
+                }
+                
+                // Ensure we have an object at this index
+                if (!problemsData.problems[currentProblemIndex].hints[index]) {
+                    problemsData.problems[currentProblemIndex].hints[index] = {
+                        hint_text: '',
+                        hint_order: index
+                    };
+                }
+                
+                problemsData.problems[currentProblemIndex].hints[index].hint_text = newValue;
+                problemsData.problems[currentProblemIndex].hints[index].hint_order = index;
             }
             
             // Update the display
@@ -4826,6 +5070,125 @@
             } else {
                 display.style.display = 'none';
                 edit.style.display = 'block';
+            }
+        }
+        
+        function addHint() {
+            if (currentProblemIndex >= 0) {
+                const problem = problemsData.problems[currentProblemIndex];
+                const problemId = problem.id;
+                
+                // Initialize additionalHints for this problem if needed
+                if (!additionalHints[problemId]) {
+                    additionalHints[problemId] = [];
+                }
+                
+                // Get current hint count (1 from main hint + additional hints)
+                const mainHintCount = (problem.hint && problem.hint.trim()) ? 1 : 0;
+                const totalHints = mainHintCount + additionalHints[problemId].length;
+                
+                // Add new empty hint to additionalHints
+                additionalHints[problemId].push('');
+                
+                refreshHintSection();
+                
+                // Focus on the new hint input immediately
+                setTimeout(() => {
+                    const newIndex = additionalHints[problemId].length;
+                    const newInput = document.getElementById(`hintInput_${newIndex}`);
+                    if (newInput) {
+                        newInput.focus();
+                    }
+                }, 100);
+            }
+        }
+        
+        function removeHint(index) {
+            if (currentProblemIndex >= 0) {
+                const problem = problemsData.problems[currentProblemIndex];
+                const problemId = problem.id;
+                
+                // Don't allow removing the last hint (keep at least one)
+                const totalHints = (problem.hint ? 1 : 0) + (additionalHints[problemId]?.length || 0);
+                if (totalHints <= 1) {
+                    // Just clear the content of the hint instead of removing it
+                    if (index === 0) {
+                        problem.hint = '';
+                    }
+                    refreshHintSection();
+                    return;
+                }
+                
+                // Remove from the appropriate location
+                if (index === 0) {
+                    // Removing the main hint - promote first additional hint
+                    if (additionalHints[problemId] && additionalHints[problemId].length > 0) {
+                        problem.hint = additionalHints[problemId][0];
+                        additionalHints[problemId].shift();
+                    } else {
+                        problem.hint = '';
+                    }
+                } else {
+                    // Removing from additionalHints
+                    const additionalIndex = index - 1;
+                    if (additionalHints[problemId] && additionalHints[problemId][additionalIndex] !== undefined) {
+                        additionalHints[problemId].splice(additionalIndex, 1);
+                    }
+                }
+                
+                // Clear the problem.hints array to prevent it from overriding our changes
+                if (problem.hints && Array.isArray(problem.hints)) {
+                    delete problem.hints;
+                }
+                
+                refreshHintSection();
+            }
+        }
+        
+        function refreshHintSection() {
+            const container = document.getElementById('hintsContainer');
+            const problem = problemsData.problems[currentProblemIndex];
+            const problemId = problem.id;
+            
+            // Combine main hint and additional hints
+            const allHints = [];
+            
+            // Check if problem.hints exists and is an array of objects
+            if (problem.hints && Array.isArray(problem.hints)) {
+                // Convert hint objects to strings
+                problem.hints.forEach(hint => {
+                    if (typeof hint === 'string') {
+                        allHints.push(hint);
+                    } else if (hint && hint.hint_text) {
+                        allHints.push(hint.hint_text);
+                    }
+                });
+            } else if (problem.hint && typeof problem.hint === 'string' && problem.hint.trim()) {
+                // Use legacy hint field
+                allHints.push(problem.hint);
+            }
+            
+            // Add additional hints
+            if (additionalHints[problemId]) {
+                additionalHints[problemId].forEach(hint => {
+                    if (typeof hint === 'string') {
+                        allHints.push(hint);
+                    }
+                });
+            }
+            
+            container.innerHTML = generateHintSection(allHints);
+            
+            // Re-render LaTeX for all hint displays
+            if (window.MathJax) {
+                const elements = [];
+                allHints.forEach((_, index) => {
+                    const elem = document.getElementById(`hintRendered_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
             }
         }
 
@@ -5491,27 +5854,78 @@
             }
         }
 
-        // NEW: Single-value subproblem hint functions
-        function generateSubproblemHintSection(hint, subproblemKey) {
-            const hintText = hint || '';
-            return `
-                <div class="hint-item" style="margin-bottom: 15px; position: relative;">
-                    <div class="hint-display" id="subHintDisplay_${subproblemKey}_single" style="${hintText ? '' : 'display: none;'}">
-                        <div class="problem-text-display" style="cursor: pointer;" onclick="toggleSubproblemSingleHintEdit('${subproblemKey}')">
-                            <div id="subHintRendered_${subproblemKey}_single">${preprocessLatexLists(hintText)}</div>
+        // NEW: Multiple hints support for subproblems
+        function generateSubproblemHintSection(hints, subproblemKey) {
+            if (currentProblemIndex < 0) return '';
+            
+            const problem = problemsData.problems[currentProblemIndex];
+            const subproblem = problem.subproblems && problem.subproblems[subproblemKey];
+            
+            if (!subproblem) return '';
+            
+            // Ensure hints are properly initialized in the subproblem data
+            if (!subproblem.hints) {
+                if (subproblem.hint) {
+                    // Convert legacy hint to new format
+                    if (typeof subproblem.hint === 'string') {
+                        subproblem.hints = [{hint_text: subproblem.hint, hint_order: 0}];
+                    } else if (Array.isArray(subproblem.hint)) {
+                        subproblem.hints = subproblem.hint.map((h, idx) => ({hint_text: h, hint_order: idx}));
+                    } else {
+                        subproblem.hints = [];
+                    }
+                } else {
+                    subproblem.hints = [];
+                }
+            }
+            
+            let hintsList = subproblem.hints;
+            
+            // Start with at least one empty hint box if no hints
+            if (hintsList.length === 0) {
+                hintsList = [{hint_text: '', hint_order: 0}];
+                subproblem.hints = hintsList;
+            }
+            
+            const hintsHTML = hintsList.map((hint, index) => {
+                const hintText = hint.hint_text || '';
+                return `
+                    <div class="hint-item" style="margin-bottom: 10px; position: relative; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-weight: 600; color: #495057; font-size: 11px;">Hint ${index + 1}</label>
+                            ${index > 0 ? `<button type="button" class="btn btn-sm" onclick="removeSubproblemHint('${subproblemKey}', ${index})" style="background: #dc3545; color: white; font-size: 10px; padding: 2px 6px;">Remove</button>` : ''}
+                        </div>
+                        <div class="hint-display" id="subHintDisplay_${subproblemKey}_${index}" style="${hintText ? '' : 'display: none;'}">
+                            <div class="problem-text-display" style="cursor: pointer; font-size: 12px;" onclick="toggleSubproblemHintEdit('${subproblemKey}', ${index})">
+                                <div id="subHintRendered_${subproblemKey}_${index}">${preprocessLatexLists(hintText)}</div>
+                            </div>
+                        </div>
+                        <div class="hint-edit" id="subHintEdit_${subproblemKey}_${index}" style="${hintText ? 'display: none;' : ''}">
+                            <input type="text" class="form-control" id="subHintInput_${subproblemKey}_${index}" 
+                                oninput="updateSubproblemHintInMemory('${subproblemKey}', ${index}, this.value)"
+                                onblur="saveSubproblemHintEdit('${subproblemKey}', ${index})" 
+                                value="${hintText ? hintText.replace(/"/g, '&quot;') : ''}" 
+                                placeholder="Enter hint ${index + 1}..." 
+                                style="width: 100%; padding: 10px; min-height: 40px; border: 1px solid #e9ecef; border-radius: 4px; font-size: 12px;">
                         </div>
                     </div>
-                    <div class="hint-edit" id="subHintEdit_${subproblemKey}_single" style="${hintText ? 'display: none;' : ''}">
-                        <input type="text" class="form-control" id="subHintInput_${subproblemKey}_single" onblur="saveSubproblemSingleHintEdit('${subproblemKey}')" value="${hintText ? hintText.replace(/"/g, '&quot;') : ''}" placeholder="Enter a hint..." style="width: 100%; padding: 12px; min-height: 50px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 12px;">
-                    </div>
+                `;
+            }).join('');
+            
+            return `
+                <div class="hints-container">
+                    ${hintsHTML}
+                    <button type="button" class="btn btn-success" onclick="addSubproblemHint('${subproblemKey}')" style="width: auto; padding: 6px 12px; font-size: 11px; margin-top: 8px;">
+                        + Add Hint
+                    </button>
                 </div>
             `;
         }
 
-        function toggleSubproblemSingleHintEdit(key) {
-            const display = document.getElementById(`subHintDisplay_${key}_single`);
-            const edit = document.getElementById(`subHintEdit_${key}_single`);
-            const input = document.getElementById(`subHintInput_${key}_single`);
+        function toggleSubproblemHintEdit(key, index) {
+            const display = document.getElementById(`subHintDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subHintEdit_${key}_${index}`);
+            const input = document.getElementById(`subHintInput_${key}_${index}`);
             
             display.style.display = 'none';
             edit.style.display = 'block';
@@ -5519,32 +5933,129 @@
             input.select();
         }
 
-        function saveSubproblemSingleHintEdit(key) {
-            const input = document.getElementById(`subHintInput_${key}_single`);
-            const display = document.getElementById(`subHintDisplay_${key}_single`);
-            const edit = document.getElementById(`subHintEdit_${key}_single`);
-            const rendered = document.getElementById(`subHintRendered_${key}_single`);
+        function updateSubproblemHintInMemory(key, index, value) {
+            // Save hint value in real-time as user types
+            if (currentProblemIndex >= 0) {
+                const subproblem = problemsData.problems[currentProblemIndex].subproblems[key];
+                if (subproblem) {
+                    if (!subproblem.hints) {
+                        subproblem.hints = [];
+                    }
+                    if (!subproblem.hints[index]) {
+                        subproblem.hints[index] = {
+                            hint_text: '',
+                            hint_order: index
+                        };
+                    }
+                    subproblem.hints[index].hint_text = value;
+                    subproblem.hints[index].hint_order = index;
+                }
+            }
+        }
+
+        function saveSubproblemHintEdit(key, index) {
+            const input = document.getElementById(`subHintInput_${key}_${index}`);
+            const display = document.getElementById(`subHintDisplay_${key}_${index}`);
+            const edit = document.getElementById(`subHintEdit_${key}_${index}`);
+            const rendered = document.getElementById(`subHintRendered_${key}_${index}`);
             
             const newValue = input.value.trim();
             
-            // Update the data
+            // Update the data (redundant but kept for safety)
             if (currentProblemIndex >= 0) {
-                if (!problemsData.problems[currentProblemIndex].subproblems) {
-                    problemsData.problems[currentProblemIndex].subproblems = {};
+                const subproblem = problemsData.problems[currentProblemIndex].subproblems[key];
+                if (subproblem) {
+                    if (!subproblem.hints) {
+                        subproblem.hints = [];
+                    }
+                    if (!subproblem.hints[index]) {
+                        subproblem.hints[index] = {
+                            hint_text: '',
+                            hint_order: index
+                        };
+                    }
+                    subproblem.hints[index].hint_text = newValue;
+                    subproblem.hints[index].hint_order = index;
                 }
-                if (!problemsData.problems[currentProblemIndex].subproblems[key]) {
-                    problemsData.problems[currentProblemIndex].subproblems[key] = {
-                        problem_text: '',
-                        correct_answer: '',
-                        hint: null,
-                        solution: { text: null, images: [] },
-                        images: []
-                    };
-                }
-                problemsData.problems[currentProblemIndex].subproblems[key].hint = newValue || null;
             }
             
             // Update the display
+            if (newValue) {
+                rendered.innerHTML = preprocessLatexLists(newValue);
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                
+                // Re-render LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]);
+                }
+            } else {
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            }
+        }
+
+        function addSubproblemHint(key) {
+            if (currentProblemIndex >= 0) {
+                const subproblem = problemsData.problems[currentProblemIndex].subproblems[key];
+                if (subproblem) {
+                    if (!subproblem.hints) {
+                        subproblem.hints = [];
+                    }
+                    
+                    const nextOrder = subproblem.hints.length;
+                    subproblem.hints.push({
+                        hint_text: '',
+                        hint_order: nextOrder
+                    });
+                    
+                    refreshSubproblemHintSection(key);
+                    
+                    // Focus on the new hint input immediately
+                    setTimeout(() => {
+                        const newIndex = subproblem.hints.length - 1;
+                        const newInput = document.getElementById(`subHintInput_${key}_${newIndex}`);
+                        if (newInput) {
+                            newInput.focus();
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        function removeSubproblemHint(key, index) {
+            if (currentProblemIndex >= 0) {
+                const subproblem = problemsData.problems[currentProblemIndex].subproblems[key];
+                if (subproblem && subproblem.hints) {
+                    subproblem.hints.splice(index, 1);
+                    
+                    // Re-order remaining hints
+                    subproblem.hints.forEach((hint, idx) => {
+                        hint.hint_order = idx;
+                    });
+                    
+                    refreshSubproblemHintSection(key);
+                }
+            }
+        }
+
+        function refreshSubproblemHintSection(key) {
+            const container = document.getElementById(`subproblemHintsContainer_${key}`);
+            const subproblem = problemsData.problems[currentProblemIndex].subproblems[key];
+            container.innerHTML = generateSubproblemHintSection(subproblem.hints || subproblem.hint || [], key);
+            
+            // Re-render LaTeX for all hint displays
+            if (window.MathJax) {
+                const elements = [];
+                const hintsList = subproblem.hints || [];
+                hintsList.forEach((_, index) => {
+                    const elem = document.getElementById(`subHintRendered_${key}_${index}`);
+                    if (elem) elements.push(elem);
+                });
+                if (elements.length > 0) {
+                    MathJax.typesetPromise(elements);
+                }
+            }
             if (newValue) {
                 rendered.innerHTML = preprocessLatexLists(newValue);
                 display.style.display = 'block';
@@ -6576,6 +7087,8 @@
                     originalData = JSON.parse(JSON.stringify(documentData)); // Deep copy for change detection
                     originalAdditionalSolutions = JSON.parse(JSON.stringify(additionalSolutions)); // Deep copy of additional solutions
                     originalAdditionalSubproblemSolutions = JSON.parse(JSON.stringify(additionalSubproblemSolutions)); // Deep copy of subproblem solutions
+                    originalAdditionalHints = JSON.parse(JSON.stringify(additionalHints)); // Deep copy of additional hints
+                    originalAdditionalSubproblemHints = JSON.parse(JSON.stringify(additionalSubproblemHints)); // Deep copy of subproblem hints
                     
                     // Set currentDocumentId for problem generation
                     currentDocumentId = documentData.document ? documentData.document.id : selectedDocumentId;
@@ -6709,9 +7222,57 @@
                     }
                 }
 
-                // Clear existing additional solutions before loading new ones
+                // NEW: Get hints from hints table
+                let problemHints = {};
+                let subproblemHints = {};
+                if (problemIds.length > 0 || subproblemsData.length > 0) {
+                    const subproblemIds = subproblemsData.map(s => s.id);
+                    let orConditions = [];
+                    if (problemIds.length > 0) {
+                        orConditions.push(`problem_id.in.(${problemIds.join(',')})`);
+                    }
+                    if (subproblemIds.length > 0) {
+                        orConditions.push(`subproblem_id.in.(${subproblemIds.join(',')})`);
+                    }
+                    
+                    const { data: hintsData, error: hintsError } = await supabase
+                        .from('hints')
+                        .select('*')
+                        .or(orConditions.join(','))
+                        .order('hint_order');
+                    
+                    if (hintsError) {
+                        console.error('[HintsLoad] Error loading hints:', hintsError);
+                    } else if (hintsData) {
+                        
+                        // Group hints by problem_id or subproblem_id
+                        // Only store the fields we need to avoid comparison issues
+                        hintsData.forEach(hint => {
+                            const cleanHint = {
+                                hint_text: hint.hint_text,
+                                hint_order: hint.hint_order
+                            };
+                            
+                            if (hint.problem_id) {
+                                if (!problemHints[hint.problem_id]) {
+                                    problemHints[hint.problem_id] = [];
+                                }
+                                problemHints[hint.problem_id].push(cleanHint);
+                            } else if (hint.subproblem_id) {
+                                if (!subproblemHints[hint.subproblem_id]) {
+                                    subproblemHints[hint.subproblem_id] = [];
+                                }
+                                subproblemHints[hint.subproblem_id].push(cleanHint);
+                            }
+                        });
+                    }
+                }
+
+                // Clear existing additional solutions and hints before loading new ones
                 additionalSolutions = {};
                 additionalSubproblemSolutions = {};
+                additionalHints = {};
+                additionalSubproblemHints = {};
                 
                 // Transform to JSON format
                 const problems = problemsData.map(problem => {
@@ -6734,10 +7295,14 @@
                             }
                         }
                         
+                        // Get hints for this subproblem from new hints table
+                        const subHints = subproblemHints[sub.id] || [];
+                        
                         subproblemsObj[sub.key] = {
                             problem_text: sub.problem_text,
                             correct_answer: sub.correct_answer,
-                            hint: sub.hint,
+                            hints: subHints.length > 0 ? subHints : (sub.hint ? [{hint_text: sub.hint, hint_order: 0}] : []),
+                            hint: sub.hint, // Keep for backward compatibility
                             solution: {
                                 text: primarySubSolution,
                                 images: [] // Images are stored in Supabase storage, not database
@@ -6767,13 +7332,31 @@
                         }
                     }
 
+                    // Get hints for this problem from new hints table
+                    const mainHints = problemHints[problem.id] || [];
+                    
+                    
+                    // Process hints - first one is main hint, rest are additional
+                    let primaryHint = problem.hint; // Use legacy field as fallback
+                    
+                    if (mainHints.length > 0) {
+                        // Use first hint from hints table as primary
+                        primaryHint = mainHints[0].hint_text;
+                        
+                        // Store additional hints (2nd onwards) in additionalHints
+                        if (mainHints.length > 1) {
+                            additionalHints[problem.problem_id] = mainHints.slice(1).map(h => h.hint_text);
+                        }
+                    }
+                    
                     return {
                         id: problem.problem_id,
                         doc_id: documentId,
                         problem_text: problem.problem_text,
                         subproblems: subproblemsObj,
                         correct_answer: problem.correct_answer,
-                        hint: problem.hint,
+                        hint: primaryHint, // Single main hint
+                        hints: mainHints, // Keep full hints array for reference
                         solution: {
                             text: primarySolution,
                             images: [] // Images are stored in Supabase storage
@@ -7106,6 +7689,19 @@
                 return true;
             }
 
+            // Compare main hint
+            if (current.hint !== original.hint) {
+                return true;
+            }
+            
+            // Compare additional hints
+            const currentAdditionalHints = additionalHints[current.id] || [];
+            const originalAdditionalHintsForProblem = originalAdditionalHints[current.id] || [];
+            
+            if (JSON.stringify(currentAdditionalHints) !== JSON.stringify(originalAdditionalHintsForProblem)) {
+                return true;
+            }
+
             // Compare topics (convert to string for comparison since they're arrays)
             const currentTopics = JSON.stringify((current.topics || []).sort());
             const originalTopics = JSON.stringify((original.topics || []).sort());
@@ -7154,6 +7750,19 @@
                 
                 // Compare subproblem solution text
                 if (currentSub.solution?.text !== originalSub.solution?.text) {
+                    return true;
+                }
+                
+                // Compare subproblem hints array
+                const currentSubHints = (currentSub.hints || []).map(h => ({
+                    hint_text: h.hint_text || '',
+                    hint_order: h.hint_order || 0
+                }));
+                const originalSubHints = (originalSub.hints || []).map(h => ({
+                    hint_text: h.hint_text || '',
+                    hint_order: h.hint_order || 0
+                }));
+                if (JSON.stringify(currentSubHints) !== JSON.stringify(originalSubHints)) {
                     return true;
                 }
                 
@@ -7412,6 +8021,11 @@
                     // Initialize null fields to prevent errors
                     if (!problem.topics) problem.topics = [];
                     if (!problem.hint) problem.hint = null;
+                    // Initialize hints - keep whatever format they're in
+                    // The refreshHintSection function will handle both object and string formats
+                    if (!problem.hint && !problem.hints) {
+                        problem.hint = ''; // Just ensure we have at least one field
+                    }
                     if (!problem.solution) problem.solution = { text: null, images: [] };
                     if (problem.solution && !problem.solution.text) problem.solution.text = null;
                     if (problem.solution && !problem.solution.images) problem.solution.images = [];
