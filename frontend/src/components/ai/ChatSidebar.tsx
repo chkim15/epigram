@@ -16,6 +16,7 @@ import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
 import { Subproblem, Solution, Problem, Document } from "@/types/database";
+import { useAuthStore } from "@/stores/authStore";
 import { TopicHandoutsViewer } from '@/components/handouts/TopicHandoutsViewer';
 import { NotesTab } from '@/components/notes/NotesTab';
 
@@ -318,6 +319,7 @@ interface ChatSidebarProps {
 export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
   // Get current problem from store
   const { currentProblem, currentDocument } = useProblemStore();
+  const { user } = useAuthStore();
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -470,6 +472,24 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
     }
   }, [messages, isStreaming]);
 
+  const saveUserMessageToDatabase = async (message: string, model?: string) => {
+    if (!user || !currentProblem) return;
+
+    try {
+      await supabase
+        .from('user_chat_messages')
+        .insert({
+          user_id: user.id,
+          problem_id: currentProblem.id,
+          message: message,
+          role: 'user',
+          model: model || null
+        });
+    } catch (error) {
+      console.error('Failed to save message to database:', error);
+    }
+  };
+
   const handleSendMessage = async () => {
     if ((!input.trim() && !pastedImage) || isLoading) return;
 
@@ -486,6 +506,9 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
     setInput('');
     setPastedImage(null);
     setIsLoading(true);
+
+    // Save user message to database
+    await saveUserMessageToDatabase(userMessage.content, selectedModel);
 
     try {
       // Call the real API
