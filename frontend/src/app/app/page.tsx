@@ -9,12 +9,14 @@ import CreatePractice from "@/components/practice/CreatePractice";
 import HandoutsViewer from "@/components/handouts/HandoutsViewer";
 import ResizablePanels from "@/components/ui/resizable-panels";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
+import AITutorPage from "@/components/ai/AITutorPage";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Book, FileText } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 function AppPageContent() {
   const router = useRouter();
@@ -25,9 +27,10 @@ function AppPageContent() {
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks'>('problems');
+  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks' | 'ai-tutor'>('ai-tutor');
   const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
   const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
+  const [sidebarMode, setSidebarMode] = useState<'tutor' | 'study'>('tutor');
 
   useEffect(() => {
     checkAuth();
@@ -123,7 +126,21 @@ function AppPageContent() {
 
 
   const handleLogoClick = () => {
+    setViewMode('ai-tutor');
+  };
+
+  const handleAITutor = () => {
+    setViewMode('ai-tutor');
+    setSelectedTopicId(null);
+    setSelectedTopicIds([]);
+    setSelectedDifficulties([]);
+  };
+
+  const handleStudyMaterials = () => {
     setViewMode('problems');
+    setSelectedTopicId(null);
+    setSelectedTopicIds([]);
+    setSelectedDifficulties([]);
   };
 
   return (
@@ -175,6 +192,16 @@ function AppPageContent() {
                   setIsMobileMenuOpen(false);
                 }}
                 onLogoClick={handleLogoClick}
+                onAITutor={() => {
+                  handleAITutor();
+                  setIsMobileMenuOpen(false);
+                }}
+                onStudyCalculus={() => {
+                  handleStudyMaterials();
+                  setIsMobileMenuOpen(false);
+                }}
+                mode={sidebarMode}
+                activeMenu={viewMode}
               />
             </SheetContent>
           </Sheet>
@@ -250,8 +277,39 @@ function AppPageContent() {
               onCreatePractice={handleCreatePractice}
               onBookmarks={handleBookmarks}
               onLogoClick={handleLogoClick}
+              onAITutor={handleAITutor}
+              onStudyCalculus={handleStudyMaterials}
+              mode={sidebarMode}
+              activeMenu={viewMode}
             />
           )}
+          {/* Mode Toggle */}
+          <div className="absolute bottom-16 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              <button
+                onClick={() => setSidebarMode('tutor')}
+                className={cn(
+                  "flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all cursor-pointer",
+                  sidebarMode === 'tutor'
+                    ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                )}
+              >
+                Tutor
+              </button>
+              <button
+                onClick={() => setSidebarMode('study')}
+                className={cn(
+                  "flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all cursor-pointer",
+                  sidebarMode === 'study'
+                    ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                )}
+              >
+                Study
+              </button>
+            </div>
+          </div>
           {/* Bottom Auth Section */}
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
             {isAuthenticated && user ? (
@@ -275,40 +333,52 @@ function AppPageContent() {
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             onLogoClick={handleLogoClick}
-            showModeToggle={selectedTopicId !== null && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && selectedTopicInfo?.main_topic !== 'Quick References'}
+            showModeToggle={selectedTopicId !== null && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' && selectedTopicInfo?.main_topic !== 'Quick References'}
             contentMode={contentMode}
             onContentModeChange={setContentMode}
             topicDisplay={selectedTopicInfo && viewMode !== 'create-practice' ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}` : undefined}
           />
 
           {/* Content area below header */}
-          {viewMode === 'create-practice' ? (
+          {viewMode === 'ai-tutor' ? (
+            <AITutorPage />
+          ) : viewMode === 'create-practice' ? (
             <CreatePractice
               onStartPractice={handleStartPractice}
             />
           ) : (
             <div className="flex-1 flex flex-col min-h-0">
               {/* Content Panel */}
-              <ResizablePanels
-                leftPanel={
-                  contentMode === 'handouts' && selectedTopicId ? (
-                    <HandoutsViewer selectedTopicId={selectedTopicId} />
-                  ) : (
-                    <ProblemViewer 
-                      selectedTopicId={selectedTopicId}
-                      selectedTopicIds={selectedTopicIds}
-                      selectedDifficulties={selectedDifficulties}
-                      viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
-                    />
-                  )
-                }
-                rightPanel={<ChatSidebar mode={contentMode} />}
-                defaultLeftWidth={contentMode === 'handouts' ? 60 : 50}
-                minLeftWidth={25}
-                maxLeftWidth={75}
-                className="flex-1"
-                storageKey={contentMode === 'handouts' ? 'handouts-panels-width' : 'main-panels-width'}
-              />
+              {selectedTopicId || selectedTopicIds.length > 0 || viewMode === 'bookmarks' ? (
+                <ResizablePanels
+                  leftPanel={
+                    contentMode === 'handouts' && selectedTopicId ? (
+                      <HandoutsViewer selectedTopicId={selectedTopicId} />
+                    ) : (
+                      <ProblemViewer 
+                        selectedTopicId={selectedTopicId}
+                        selectedTopicIds={selectedTopicIds}
+                        selectedDifficulties={selectedDifficulties}
+                        viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
+                      />
+                    )
+                  }
+                  rightPanel={<ChatSidebar mode={contentMode} />}
+                  defaultLeftWidth={contentMode === 'handouts' ? 60 : 50}
+                  minLeftWidth={25}
+                  maxLeftWidth={75}
+                  className="flex-1"
+                  storageKey={contentMode === 'handouts' ? 'handouts-panels-width' : 'main-panels-width'}
+                />
+              ) : (
+                // Full width welcome screen when no topic is selected
+                <ProblemViewer 
+                  selectedTopicId={selectedTopicId}
+                  selectedTopicIds={selectedTopicIds}
+                  selectedDifficulties={selectedDifficulties}
+                  viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
+                />
+              )}
             </div>
           )}
         </div>

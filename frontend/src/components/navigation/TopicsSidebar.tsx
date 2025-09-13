@@ -30,10 +30,14 @@ interface TopicsSidebarProps {
   onCreatePractice?: () => void;
   onBookmarks?: () => void;
   onLogoClick?: () => void;
+  onAITutor?: () => void;
+  onStudyCalculus?: () => void;
+  mode?: 'tutor' | 'study';
+  activeMenu?: string;
 }
 
 
-export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onBookmarks, onLogoClick }: TopicsSidebarProps) {
+export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onBookmarks, onLogoClick, onAITutor, onStudyCalculus, mode = 'tutor', activeMenu }: TopicsSidebarProps) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -304,66 +308,105 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                 className="absolute inset-0 overflow-y-auto custom-scrollbar"
               >
                 <div className="p-2">
-              {/* Study by Course Section */}
-              <div className="mb-2">
-                <Collapsible defaultOpen>
-                  <CollapsibleTrigger asChild>
+              {mode === 'tutor' ? (
+                <>
+                  {/* AI Tutor Section */}
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base",
+                        activeMenu === 'ai-tutor' 
+                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white" 
+                          : "text-gray-700 dark:text-gray-300"
+                      )}
+                      onClick={onAITutor}
+                    >
+                      <span className="flex-1 text-left">AI Tutor</span>
+                    </Button>
+                  </div>
+
+                  {/* AI Tutor for PDF - Placeholder */}
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer opacity-50 cursor-not-allowed text-base"
+                      disabled
+                    >
+                      <span className="flex-1 text-left">AI Tutor for PDF</span>
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Direct menu items without Study Materials wrapper */}
+                  {/* Handouts/Problems */}
+                  <div className="mb-2">
+                    <Collapsible defaultOpen>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
+                          onClick={() => {
+                            // Call the onStudyCalculus callback to show problems view
+                            if (onStudyCalculus) {
+                              onStudyCalculus();
+                            }
+                          }}
+                        >
+                          <span className="flex-1 text-left">Handouts/Problems</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="ml-4 space-y-1">
+                          {courses.map((course) => (
+                            <Button
+                              key={course.id}
+                              variant="ghost"
+                              className="w-full justify-start py-2 px-3 font-medium cursor-pointer"
+                              onClick={() => selectCourse(course)}
+                            >
+                              <span className="flex-1 text-left">{course.name}</span>
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          ))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                  
+                  {/* Create Practice */}
+                  <div className="mb-2">
                     <Button
                       variant="ghost"
                       className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
+                      onClick={onCreatePractice}
                     >
-                      <span className="flex-1 text-left">Study by Course</span>
-                      <ChevronDown className="h-4 w-4" />
+                      <span className="flex-1 text-left">Create Practice</span>
                     </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="ml-4 space-y-1">
-                      {courses.map((course) => (
-                        <Button
-                          key={course.id}
-                          variant="ghost"
-                          className="w-full justify-start py-2 px-3 font-medium cursor-pointer"
-                          onClick={() => selectCourse(course)}
-                        >
-                          <span className="flex-1 text-left">{course.name}</span>
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-
-              {/* Create Practice Section */}
-              <div className="mb-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
-                  onClick={onCreatePractice}
-                >
-                  <span className="flex-1 text-left">Create Practice</span>
-                </Button>
-              </div>
-
-
-              {/* Bookmarks Section */}
-              <div className="mb-4 relative group">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer disabled:opacity-100"
-                  onClick={onBookmarks}
-                  disabled={!user}
-                  style={{ pointerEvents: user ? 'auto' : 'none' }}
-                >
-                  <span className="flex-1 text-left">Bookmarks</span>
-                </Button>
-                {!user && (
-                  <div className="absolute left-12 bottom-full mb-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
-                    Please sign in
-                    <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
                   </div>
-                )}
-              </div>
+                  
+                  {/* Bookmarks */}
+                  <div className="mb-4 relative group">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer disabled:opacity-100"
+                      onClick={onBookmarks}
+                      disabled={!user}
+                      style={{ pointerEvents: user ? 'auto' : 'none' }}
+                    >
+                      <span className="flex-1 text-left">Bookmarks</span>
+                    </Button>
+                    {!user && (
+                      <div className="absolute left-12 bottom-full mb-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
+                        Please sign in
+                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
               </motion.div>
             ) : (
