@@ -30,7 +30,7 @@ function AppPageContent() {
   const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks' | 'ai-tutor'>('ai-tutor');
   const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
   const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
-  const [sidebarMode, setSidebarMode] = useState<'tutor' | 'study'>('tutor');
+  const [sidebarMode, setSidebarMode] = useState<'tutor' | 'practice'>('tutor');
 
   useEffect(() => {
     checkAuth();
@@ -117,16 +117,36 @@ function AppPageContent() {
     setSelectedDifficulties([]);
   };
 
-  const handleStartPractice = (topicIds: number[], difficulties: string[]) => {
+  const [problemCount, setProblemCount] = useState<number>(10);
+  const [savedProblemIds, setSavedProblemIds] = useState<string[]>([]);
+
+  const handleStartPractice = (topicIds: number[], difficulties: string[], source?: string, count?: number, problemIds?: string[]) => {
     setSelectedTopicIds(topicIds);
     setSelectedDifficulties(difficulties);
     setSelectedTopicId(null);
     setViewMode('problems');
+    if (count) {
+      setProblemCount(count);
+    }
+    if (problemIds) {
+      setSavedProblemIds(problemIds);
+    } else {
+      setSavedProblemIds([]);
+    }
   };
 
 
   const handleLogoClick = () => {
-    setViewMode('ai-tutor');
+    if (sidebarMode === 'tutor') {
+      setViewMode('ai-tutor');
+    } else {
+      // Practice mode - show the welcome screen
+      setViewMode('problems');
+      setSelectedTopicId(null);
+      setSelectedTopicIds([]);
+      setSelectedDifficulties([]);
+      setSavedProblemIds([]);
+    }
   };
 
   const handleAITutor = () => {
@@ -141,6 +161,20 @@ function AppPageContent() {
     setSelectedTopicId(null);
     setSelectedTopicIds([]);
     setSelectedDifficulties([]);
+  };
+
+  const handleSidebarModeChange = (mode: 'tutor' | 'practice') => {
+    setSidebarMode(mode);
+    if (mode === 'tutor') {
+      setViewMode('ai-tutor');
+    } else {
+      // Practice mode - show welcome screen
+      setViewMode('problems');
+      setSelectedTopicId(null);
+      setSelectedTopicIds([]);
+      setSelectedDifficulties([]);
+      setSavedProblemIds([]);
+    }
   };
 
   return (
@@ -164,7 +198,12 @@ function AppPageContent() {
                   setSelectedTopicId(id);
                   setViewMode('problems');
                   setIsMobileMenuOpen(false);
-                  
+
+                  // Clear practice session data when switching to a subtopic
+                  setSelectedTopicIds([]);
+                  setSelectedDifficulties([]);
+                  setSavedProblemIds([]);
+
                   // Check if this is a Quick References topic and switch to handouts mode
                   try {
                     const { data: topic } = await supabase
@@ -172,7 +211,7 @@ function AppPageContent() {
                       .select('main_topics')
                       .eq('id', id)
                       .single();
-                    
+
                     if (topic?.main_topics === 'Quick References') {
                       setContentMode('handouts');
                     } else {
@@ -255,7 +294,12 @@ function AppPageContent() {
               onSelectTopic={async (id) => {
                 setSelectedTopicId(id);
                 setViewMode('problems');
-                
+
+                // Clear practice session data when switching to a subtopic
+                setSelectedTopicIds([]);
+                setSelectedDifficulties([]);
+                setSavedProblemIds([]);
+
                 // Check if this is a Quick References topic and switch to handouts mode
                 try {
                   const { data: topic } = await supabase
@@ -263,7 +307,7 @@ function AppPageContent() {
                     .select('main_topics')
                     .eq('id', id)
                     .single();
-                  
+
                   if (topic?.main_topics === 'Quick References') {
                     setContentMode('handouts');
                   } else {
@@ -284,45 +328,49 @@ function AppPageContent() {
             />
           )}
           {/* Mode Toggle */}
-          <div className="absolute bottom-16 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
-            <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-              <button
-                onClick={() => setSidebarMode('tutor')}
-                className={cn(
-                  "flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all cursor-pointer",
-                  sidebarMode === 'tutor'
-                    ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                )}
-              >
-                Tutor
-              </button>
-              <button
-                onClick={() => setSidebarMode('study')}
-                className={cn(
-                  "flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all cursor-pointer",
-                  sidebarMode === 'study'
-                    ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                )}
-              >
-                Study
-              </button>
+          {isSidebarOpen && (
+            <div className="absolute bottom-16 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
+              <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                <button
+                  onClick={() => handleSidebarModeChange('tutor')}
+                  className={cn(
+                    "flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all cursor-pointer",
+                    sidebarMode === 'tutor'
+                      ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+                  Tutor
+                </button>
+                <button
+                  onClick={() => handleSidebarModeChange('practice')}
+                  className={cn(
+                    "flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all cursor-pointer",
+                    sidebarMode === 'practice'
+                      ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+                  Practice
+                </button>
+              </div>
             </div>
-          </div>
+          )}
           {/* Bottom Auth Section */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
-            {isAuthenticated && user ? (
-              <UserProfileDropdown user={user} />
-            ) : (
-              <Button 
-                className="w-full cursor-pointer"
-                onClick={() => router.push('/auth/signin')}
-              >
-                Sign in
-              </Button>
-            )}
-          </div>
+          {isSidebarOpen && (
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
+              {isAuthenticated && user ? (
+                <UserProfileDropdown user={user} />
+              ) : (
+                <Button
+                  className="w-full cursor-pointer"
+                  onClick={() => router.push('/auth/signin')}
+                >
+                  Sign in
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Main Content Area with Unified Header */}
@@ -355,11 +403,13 @@ function AppPageContent() {
                     contentMode === 'handouts' && selectedTopicId ? (
                       <HandoutsViewer selectedTopicId={selectedTopicId} />
                     ) : (
-                      <ProblemViewer 
+                      <ProblemViewer
                         selectedTopicId={selectedTopicId}
                         selectedTopicIds={selectedTopicIds}
                         selectedDifficulties={selectedDifficulties}
                         viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
+                        problemCount={problemCount}
+                        savedProblemIds={savedProblemIds}
                       />
                     )
                   }
@@ -372,11 +422,13 @@ function AppPageContent() {
                 />
               ) : (
                 // Full width welcome screen when no topic is selected
-                <ProblemViewer 
+                <ProblemViewer
                   selectedTopicId={selectedTopicId}
                   selectedTopicIds={selectedTopicIds}
                   selectedDifficulties={selectedDifficulties}
                   viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
+                  problemCount={problemCount}
+                  savedProblemIds={savedProblemIds}
                 />
               )}
             </div>

@@ -29,9 +29,11 @@ interface ProblemViewerProps {
   selectedTopicIds?: number[];
   selectedDifficulties?: string[];
   viewMode?: 'problems' | 'bookmarks';
+  problemCount?: number;
+  savedProblemIds?: string[];
 }
 
-export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems' }: ProblemViewerProps) {
+export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, savedProblemIds = [] }: ProblemViewerProps) {
   const {
     currentProblem,
     currentProblemIndex,
@@ -80,7 +82,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       // Clear problems when no topic is selected
       setProblemList([]);
     }
-  }, [selectedTopicId, selectedTopicIds, selectedDifficulties, viewMode]);
+  }, [selectedTopicId, selectedTopicIds, selectedDifficulties, viewMode, problemCount, savedProblemIds]);
 
   useEffect(() => {
     if (currentProblem) {
@@ -153,45 +155,78 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       let problemsError;
       
       if (isPracticeMode) {
-        // Practice mode: filter by multiple topics and difficulties
-        let query = supabase
-          .from('problems')
-          .select(`
-            id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
-            math_approach, reasoning_type, difficulty, importance,
-            comment, version, created_at, updated_at, included,
-            problem_topics!inner(topic_id)
-          `)
-          .eq('included', true);
-        
-        // Filter by topics if provided
-        if (selectedTopicIds.length > 0) {
-          query = query.in('problem_topics.topic_id', selectedTopicIds);
-        }
-        
-        // Filter by difficulties if provided
-        if (selectedDifficulties.length > 0) {
-          query = query.in('difficulty', selectedDifficulties);
-        }
-        
-        const result = await query
-          .order('document_id')
-          .order('problem_id');
-        
-        problemsData = result.data;
-        problemsError = result.error;
-        
-        // Clean up the data structure - remove the problem_topics array from each problem
-        if (problemsData) {
-          // Remove duplicates that might occur when a problem has multiple topics
-          const uniqueProblems = new Map<string, Problem>();
-          problemsData.forEach((problem: Problem & { problem_topics?: unknown }) => {
-            const { problem_topics: _, ...cleanProblem } = problem;
-            if (!uniqueProblems.has(cleanProblem.id)) {
-              uniqueProblems.set(cleanProblem.id, cleanProblem);
+        // Practice mode: use saved problem IDs if available, otherwise filter and randomize
+        if (savedProblemIds.length > 0) {
+          // Use saved problem IDs - fetch specific problems in order
+          const result = await supabase
+            .from('problems')
+            .select(`
+              id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
+              math_approach, reasoning_type, difficulty, importance,
+              comment, version, created_at, updated_at, included
+            `)
+            .eq('included', true)
+            .in('id', savedProblemIds);
+
+          problemsData = result.data;
+          problemsError = result.error;
+
+          // Sort problems to match the saved order
+          if (problemsData) {
+            const problemMap = new Map(problemsData.map(p => [p.id, p]));
+            problemsData = savedProblemIds
+              .map(id => problemMap.get(id))
+              .filter(p => p !== undefined) as Problem[];
+          }
+        } else {
+          // Original behavior: filter by multiple topics and difficulties
+          let query = supabase
+            .from('problems')
+            .select(`
+              id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
+              math_approach, reasoning_type, difficulty, importance,
+              comment, version, created_at, updated_at, included,
+              problem_topics!inner(topic_id)
+            `)
+            .eq('included', true);
+
+          // Filter by topics if provided
+          if (selectedTopicIds.length > 0) {
+            query = query.in('problem_topics.topic_id', selectedTopicIds);
+          }
+
+          // Filter by difficulties if provided
+          if (selectedDifficulties.length > 0) {
+            query = query.in('difficulty', selectedDifficulties);
+          }
+
+          // For practice mode, we want to randomize and limit results
+          const result = await query;
+
+          problemsData = result.data;
+          problemsError = result.error;
+
+          // Clean up the data structure - remove the problem_topics array from each problem
+          if (problemsData) {
+            // Remove duplicates that might occur when a problem has multiple topics
+            const uniqueProblems = new Map<string, Problem>();
+            problemsData.forEach((problem: Problem & { problem_topics?: unknown }) => {
+              const { problem_topics: _, ...cleanProblem } = problem;
+              if (!uniqueProblems.has(cleanProblem.id)) {
+                uniqueProblems.set(cleanProblem.id, cleanProblem);
+              }
+            });
+            let uniqueProblemsArray = Array.from(uniqueProblems.values());
+
+            // Randomize the problems
+            for (let i = uniqueProblemsArray.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [uniqueProblemsArray[i], uniqueProblemsArray[j]] = [uniqueProblemsArray[j], uniqueProblemsArray[i]];
             }
-          });
-          problemsData = Array.from(uniqueProblems.values());
+
+            // Limit to the specified problem count
+            problemsData = uniqueProblemsArray.slice(0, problemCount);
+          }
         }
       } else if (selectedTopicId) {
         // Single topic selection from sidebar

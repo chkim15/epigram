@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { 
-  ChevronDown, 
-  ChevronRight, 
+import {
+  ChevronDown,
+  ChevronRight,
   Loader2,
   Play,
   Trash2
@@ -43,12 +43,14 @@ interface PracticeSession {
   name: string;
   topic_ids: number[];
   difficulties: string[];
+  problem_count?: number;
+  problem_ids?: string[];
   created_at: string;
   updated_at?: string;
 }
 
 interface CreatePracticeProps {
-  onStartPractice: (topicIds: number[], difficulties: string[]) => void;
+  onStartPractice: (topicIds: number[], difficulties: string[], source?: string, count?: number, problemIds?: string[]) => void;
 }
 
 export default function CreatePractice({ onStartPractice }: CreatePracticeProps) {
@@ -65,10 +67,16 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<Difficulty>>(
     new Set(['easy', 'medium', 'hard', 'very_hard'])
   );
-  
+
   // Practice sessions
   const [practiceSessions, setPracticeSessions] = useState<PracticeSession[]>([]);
   const [sessionName, setSessionName] = useState<string>('');
+
+  // Problem filters and count
+  const [excludeBookmarked, setExcludeBookmarked] = useState<boolean>(false);
+  const [excludeCompleted, setExcludeCompleted] = useState<boolean>(false);
+  const [problemCount, setProblemCount] = useState<number>(10);
+  const [availableQuestions, setAvailableQuestions] = useState<number>(0);
 
   useEffect(() => {
     fetchTopics();
@@ -144,14 +152,27 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     if (!user) return null;
 
     try {
+      // Prepare the insert data, conditionally including problem_count
+      const insertData: any = {
+        user_id: user.id,
+        name: session.name,
+        topic_ids: session.topic_ids,
+        difficulties: session.difficulties
+      };
+
+      // Only add problem_count if it exists to handle schema differences
+      if (session.problem_count !== undefined) {
+        insertData.problem_count = session.problem_count;
+      }
+
+      // Only add problem_ids if it exists
+      if (session.problem_ids !== undefined) {
+        insertData.problem_ids = session.problem_ids;
+      }
+
       const { data, error } = await supabase
         .from('user_practice_sessions')
-        .insert({
-          user_id: user.id,
-          name: session.name,
-          topic_ids: session.topic_ids,
-          difficulties: session.difficulties
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -447,39 +468,226 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     return selectedIds;
   };
 
+  // Update available questions when selections change
+  useEffect(() => {
+    const calculateAvailableQuestions = async () => {
+      const topicIds = getSelectedTopicIds();
+      const difficulties = Array.from(selectedDifficulties);
+
+      if (topicIds.length === 0 || difficulties.length === 0) {
+        setAvailableQuestions(0);
+        return;
+      }
+
+      try {
+        let query = supabase
+          .from('problems')
+          .select('id', { count: 'exact', head: true })
+          .in('difficulty', difficulties)
+          .eq('included', true);
+
+        // Add topic filter using problem_topics junction table
+        if (topicIds.length > 0) {
+          const { data: problemIds } = await supabase
+            .from('problem_topics')
+            .select('problem_id')
+            .in('topic_id', topicIds);
+
+          if (problemIds) {
+            const uniqueProblemIds = [...new Set(problemIds.map(p => p.problem_id))];
+            query = query.in('id', uniqueProblemIds);
+          }
+        }
+
+        // Apply exclusion filters when bookmarked/completed ARE selected
+        if (user) {
+          // Collect IDs to exclude
+          const excludeIds: string[] = [];
+
+          // If excludeBookmarked is true, get bookmarked problem IDs to exclude
+          if (excludeBookmarked) {
+            const { data: bookmarks } = await supabase
+              .from('user_bookmarks')
+              .select('problem_id')
+              .eq('user_id', user.id);
+
+            if (bookmarks && bookmarks.length > 0) {
+              excludeIds.push(...bookmarks.map(b => b.problem_id));
+            }
+          }
+
+          // If excludeCompleted is true, get completed problem IDs to exclude
+          if (excludeCompleted) {
+            const { data: completed, error } = await supabase
+              .from('user_completed_problems')
+              .select('problem_id')
+              .eq('user_id', user.id);
+
+            console.log('Completed problems query result:', { completed, error });
+
+            if (completed && completed.length > 0) {
+              // Add to excludeIds, avoiding duplicates
+              const completedIds = completed.map(c => c.problem_id);
+              console.log('Completed problem IDs to exclude:', completedIds);
+              completedIds.forEach(id => {
+                if (!excludeIds.includes(id)) {
+                  excludeIds.push(id);
+                }
+              });
+            }
+          }
+
+          // Apply the exclusion filter if there are any IDs to exclude
+          if (excludeIds.length > 0) {
+            console.log('Total IDs to exclude:', excludeIds);
+            console.log('Exclude filter string:', `(${excludeIds.join(',')})`);
+            // Use Supabase's filter method properly for UUID arrays
+            query = query.filter('id', 'not.in', `(${excludeIds.join(',')})`);
+          }
+        }
+
+        const { count } = await query;
+        setAvailableQuestions(count || 0);
+      } catch (err) {
+        console.error('Error calculating available questions:', err);
+        setAvailableQuestions(0);
+      }
+    };
+
+    calculateAvailableQuestions();
+  }, [getSelectedTopicIds().join(','), selectedDifficulties, excludeBookmarked, excludeCompleted, user]);
+
+  const generateProblemList = async (topicIds: number[], difficulties: string[], count: number): Promise<string[]> => {
+    try {
+      // Build the same query as in ProblemViewer
+      let query = supabase
+        .from('problems')
+        .select('id')
+        .eq('included', true);
+
+      // Add topic filter using problem_topics junction table
+      if (topicIds.length > 0) {
+        const { data: problemIds } = await supabase
+          .from('problem_topics')
+          .select('problem_id')
+          .in('topic_id', topicIds);
+
+        if (problemIds) {
+          const uniqueProblemIds = [...new Set(problemIds.map(p => p.problem_id))];
+          query = query.in('id', uniqueProblemIds);
+        }
+      }
+
+      // Filter by difficulties
+      if (difficulties.length > 0) {
+        query = query.in('difficulty', difficulties);
+      }
+
+      // Apply exclusion filters if user is signed in
+      if (user) {
+        const excludeIds: string[] = [];
+
+        // Exclude bookmarked problems if filter is active
+        if (excludeBookmarked) {
+          const { data: bookmarks } = await supabase
+            .from('user_bookmarks')
+            .select('problem_id')
+            .eq('user_id', user.id);
+
+          if (bookmarks && bookmarks.length > 0) {
+            excludeIds.push(...bookmarks.map(b => b.problem_id));
+          }
+        }
+
+        // Exclude completed problems if filter is active
+        if (excludeCompleted) {
+          const { data: completed } = await supabase
+            .from('user_completed_problems')
+            .select('problem_id')
+            .eq('user_id', user.id);
+
+          if (completed && completed.length > 0) {
+            const completedIds = completed.map(c => c.problem_id);
+            completedIds.forEach(id => {
+              if (!excludeIds.includes(id)) {
+                excludeIds.push(id);
+              }
+            });
+          }
+        }
+
+        // Apply exclusion filter if there are any IDs to exclude
+        if (excludeIds.length > 0) {
+          query = query.filter('id', 'not.in', `(${excludeIds.join(',')})`);
+        }
+      }
+
+      const result = await query;
+
+      if (result.data) {
+        // Randomize the problems
+        let problemIds = [...result.data.map(p => p.id)];
+        for (let i = problemIds.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [problemIds[i], problemIds[j]] = [problemIds[j], problemIds[i]];
+        }
+
+        // Limit to the specified count
+        return problemIds.slice(0, count);
+      }
+
+      return [];
+    } catch (error) {
+      console.error('Error generating problem list:', error);
+      return [];
+    }
+  };
+
   const handleStartPractice = async () => {
     const selectedTopicIds = getSelectedTopicIds();
     const difficulties = Array.from(selectedDifficulties);
-    
+
     if (!user) {
       alert('Please sign in to start a practice session');
       return;
     }
-    
+
     if (selectedTopicIds.length === 0) {
       alert('Please select at least one topic');
       return;
     }
-    
+
     if (difficulties.length === 0) {
       alert('Please select at least one difficulty level');
       return;
     }
-    
-    // Save the session to database
+
+    // Generate the actual problem list for this session
+    const problemIds = await generateProblemList(selectedTopicIds, difficulties, problemCount);
+
+    if (problemIds.length === 0) {
+      alert('No problems found matching your criteria. Please adjust your filters.');
+      return;
+    }
+
+    // Save the session to database with the actual problem IDs
     const savedSession = await saveSession({
       name: sessionName,
       topic_ids: selectedTopicIds,
-      difficulties
+      difficulties,
+      problem_count: problemCount,
+      problem_ids: problemIds
     });
-    
+
     if (savedSession) {
       // Update local state
       setPracticeSessions([savedSession, ...practiceSessions]);
     }
-    
+
     // Call the parent callback with selected filters
-    onStartPractice(selectedTopicIds, difficulties);
+    // Note: excludeBookmarked and excludeCompleted are exclusion filters
+    const source = 'all'; // Always 'all' since we're using exclusion filters
+    onStartPractice(selectedTopicIds, difficulties, source, problemCount);
   };
 
   const handleDeleteSession = async (sessionId: string) => {
@@ -509,7 +717,16 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     // Load the session's selections - handle both old and new field names
     const topicIds = session.topic_ids || (session as {topicIds?: number[]}).topicIds || [];
     const difficulties = session.difficulties || [];
-    onStartPractice(topicIds, difficulties);
+    const problemCount = session.problem_count || 10;
+
+    // If we have saved problem IDs, use them; otherwise fall back to generation
+    if (session.problem_ids && session.problem_ids.length > 0) {
+      // Pass the saved problem IDs to the parent
+      onStartPractice(topicIds, difficulties, 'saved', problemCount, session.problem_ids);
+    } else {
+      // Old session without saved problems - use original behavior
+      onStartPractice(topicIds, difficulties, 'all', problemCount);
+    }
   };
 
 
@@ -549,7 +766,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
   return (
     <div className="flex h-full bg-white dark:bg-gray-900">
       {/* Left sidebar - Practice Sessions List */}
-      <div className="w-80 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
+      <div className="w-64 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
         <div>
           <h3 className="text-lg font-semibold mb-4">Saved Sessions</h3>
           <div>
@@ -572,7 +789,10 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       <div className="flex-1">
                         <h4 className="font-medium text-sm">{session.name}</h4>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {(session.topic_ids || (session as {topicIds?: number[]}).topicIds || []).length} topics, {session.difficulties.length} difficulties
+                          {session.problem_count
+                            ? `${session.problem_count} problems`
+                            : `${(session.topic_ids || (session as {topicIds?: number[]}).topicIds || []).length} topics, ${session.difficulties.length} difficulties`
+                          }
                         </p>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                           {new Date(session.created_at || (session as {createdAt?: string}).createdAt || Date.now()).toLocaleDateString()}
@@ -619,7 +839,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
       </div>
 
       {/* Right side - Main content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto py-6 pl-6 pr-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -630,15 +850,15 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
           </p>
         </div>
 
-        <div className="space-y-6">
-          {/* Session Name and Difficulty Selection - Side by Side */}
-          <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-[60%_40%] gap-4 h-full">
+          {/* Left Column: Session Name and Topics */}
+          <div className="space-y-6">
             {/* Session Name */}
-            <Card className="col-span-2">
-              <CardHeader>
-                <CardTitle>Session Name</CardTitle>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Session Name</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-0">
                 <Input
                   value={sessionName}
                   onChange={(e) => setSessionName(e.target.value)}
@@ -647,43 +867,16 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                 />
               </CardContent>
             </Card>
-            
-            {/* Difficulty Selection */}
-            <Card className="col-span-3">
-              <CardHeader>
-                <CardTitle>Difficulty Levels</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  {(['easy', 'medium', 'hard', 'very_hard'] as Difficulty[]).map(difficulty => (
-                    <div
-                      key={difficulty}
-                      onClick={() => toggleDifficulty(difficulty)}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-all",
-                        selectedDifficulties.has(difficulty)
-                          ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
-                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                      )}
-                    >
-                      <Checkbox
-                        checked={selectedDifficulties.has(difficulty)}
-                        onCheckedChange={() => toggleDifficulty(difficulty)}
-                        className="cursor-pointer h-4 w-4"
-                      />
-                      <span className="text-sm font-medium">{getDifficultyLabel(difficulty)}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Topics Selection - 70% width */}
-          <div className="grid grid-cols-10 gap-4">
-            <Card className="col-span-7">
+            {/* Topics */}
+            <Card className="flex-1">
               <CardHeader>
-                <CardTitle>Topics</CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Topics</CardTitle>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">{availableQuestions}</span> available problems
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {courses.map(course => (
@@ -763,28 +956,103 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                 ))}
               </CardContent>
             </Card>
+          </div>
 
-            {/* Practice Summary - Right side */}
-            <Card className="col-span-3">
+          {/* Practice Settings - Right side */}
+            <Card className="h-fit">
               <CardHeader>
-                <CardTitle>Practice Summary</CardTitle>
+                <CardTitle>Practice Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Difficulty Levels */}
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Selected Topics</p>
-                  <p className="text-xl font-bold">{getSelectedTopicIds().length}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Difficulty Levels</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(['easy', 'medium', 'hard', 'very_hard'] as Difficulty[]).map(difficulty => (
+                      <div
+                        key={difficulty}
+                        onClick={() => toggleDifficulty(difficulty)}
+                        className={cn(
+                          "flex items-center gap-1 px-1.5 py-1 rounded-md border cursor-pointer transition-all text-xs",
+                          selectedDifficulties.has(difficulty)
+                            ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                            : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                        )}
+                      >
+                        <div className="relative flex items-center justify-center">
+                          <Checkbox
+                            checked={selectedDifficulties.has(difficulty)}
+                            onCheckedChange={() => toggleDifficulty(difficulty)}
+                            className="cursor-pointer h-2.5 w-2.5 flex items-center justify-center"
+                          />
+                        </div>
+                        <span className="text-xs font-medium">{getDifficultyLabel(difficulty)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Problem Filters */}
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Difficulty Levels</p>
-                  <p className="text-xl font-bold">{selectedDifficulties.size}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Exclude:</p>
+                  <div className="space-y-2">
+                    <div
+                      onClick={() => setExcludeBookmarked(!excludeBookmarked)}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-all w-32",
+                        excludeBookmarked
+                          ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
+                        !user && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <Checkbox
+                        checked={excludeBookmarked}
+                        onCheckedChange={(checked) => setExcludeBookmarked(!!checked)}
+                        className="cursor-pointer h-4 w-4"
+                        disabled={!user}
+                      />
+                      <span className="text-sm font-medium">Bookmarked</span>
+                    </div>
+                    <div
+                      onClick={() => setExcludeCompleted(!excludeCompleted)}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-all w-32",
+                        excludeCompleted
+                          ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
+                        !user && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <Checkbox
+                        checked={excludeCompleted}
+                        onCheckedChange={(checked) => setExcludeCompleted(!!checked)}
+                        className="cursor-pointer h-4 w-4"
+                        disabled={!user}
+                      />
+                      <span className="text-sm font-medium">Completed</span>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Number of Problems */}
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Available Questions</p>
-                  <p className="text-xl font-bold">{getSelectedTopicIds().length * 5}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Number of Problems</p>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      min="5"
+                      max={Math.min(20, availableQuestions || 20)}
+                      value={Math.min(problemCount, Math.min(20, availableQuestions || 20))}
+                      onChange={(e) => setProblemCount(parseInt(e.target.value) || 5)}
+                      className="w-20 px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent"
+                    />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">problems</span>
+                  </div>
                 </div>
                 
                 {/* Start Practice Button */}
-                <div className="pt-4 relative group">
+                <div className="pt-2 relative group">
                   <Button
                     onClick={handleStartPractice}
                     className={cn(
@@ -796,7 +1064,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                     style={{ pointerEvents: user && getSelectedTopicIds().length > 0 && selectedDifficulties.size > 0 ? 'auto' : 'none' }}
                   >
                     <Play className="h-5 w-5 mr-2" />
-                    Start ({getSelectedTopicIds().length} topics)
+                    Start Practice
                   </Button>
                   {!user && getSelectedTopicIds().length > 0 && selectedDifficulties.size > 0 && (
                     <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
@@ -807,7 +1075,6 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                 </div>
               </CardContent>
             </Card>
-          </div>
         </div>
       </div>
     </div>

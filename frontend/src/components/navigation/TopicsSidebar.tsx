@@ -32,7 +32,7 @@ interface TopicsSidebarProps {
   onLogoClick?: () => void;
   onAITutor?: () => void;
   onStudyCalculus?: () => void;
-  mode?: 'tutor' | 'study';
+  mode?: 'tutor' | 'practice';
   activeMenu?: string;
 }
 
@@ -307,7 +307,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className="absolute inset-0 overflow-y-auto custom-scrollbar"
               >
-                <div className="p-2">
+                <div className="p-2 pb-32">
               {mode === 'tutor' ? (
                 <>
                   {/* AI Tutor Section */}
@@ -326,14 +326,14 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                     </Button>
                   </div>
 
-                  {/* AI Tutor for PDF - Placeholder */}
+                  {/* History - Placeholder */}
                   <div className="mb-2">
                     <Button
                       variant="ghost"
                       className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer opacity-50 cursor-not-allowed text-base"
                       disabled
                     >
-                      <span className="flex-1 text-left">AI Tutor for PDF</span>
+                      <span className="flex-1 text-left">History</span>
                     </Button>
                   </div>
                 </>
@@ -419,7 +419,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className="absolute inset-0 overflow-y-auto custom-scrollbar"
               >
-                <div className="p-4">
+                <div className="p-4 pb-32">
               {selectedCourse && (
                 <>
                   <h3 className="font-semibold text-lg mb-4">{selectedCourse.name}</h3>
