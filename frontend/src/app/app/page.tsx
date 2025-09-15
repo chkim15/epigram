@@ -10,6 +10,7 @@ import HandoutsViewer from "@/components/handouts/HandoutsViewer";
 import ResizablePanels from "@/components/ui/resizable-panels";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import AITutorPage from "@/components/ai/AITutorPage";
+import CoursesPage from "@/components/navigation/CoursesPage";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ function AppPageContent() {
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks' | 'ai-tutor'>('ai-tutor');
+  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks' | 'ai-tutor' | 'courses'>('ai-tutor');
   const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
   const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
   const [sidebarMode, setSidebarMode] = useState<'tutor' | 'practice'>('tutor');
@@ -157,10 +158,11 @@ function AppPageContent() {
   };
 
   const handleStudyMaterials = () => {
-    setViewMode('problems');
+    setViewMode('courses');
     setSelectedTopicId(null);
     setSelectedTopicIds([]);
     setSelectedDifficulties([]);
+    setSavedProblemIds([]);
   };
 
   const handleSidebarModeChange = (mode: 'tutor' | 'practice') => {
@@ -394,6 +396,8 @@ function AppPageContent() {
             <CreatePractice
               onStartPractice={handleStartPractice}
             />
+          ) : viewMode === 'courses' ? (
+            <CoursesPage />
           ) : (
             <div className="flex-1 flex flex-col min-h-0">
               {/* Content Panel */}
