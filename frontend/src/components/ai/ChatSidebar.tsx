@@ -3,13 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Send, FileText, BookOpen, X, SquarePen, MessagesSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
@@ -32,11 +25,6 @@ interface Message {
   image?: string; // Base64 image data
 }
 
-interface LLMModel {
-  id: string;
-  name: string;
-  isPremium?: boolean;
-}
 
 // Solutions Tab Component
 interface SolutionsTabProps {
@@ -440,7 +428,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'handouts' | 'solutions' | 'notes'>('chat');
-  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
+  const selectedModel = 'gpt-5';
   const [isStreaming, setIsStreaming] = useState(false);
   const [pastedImage, setPastedImage] = useState<{ url: string; file: File } | null>(null);
   const [currentSubproblems, setCurrentSubproblems] = useState<Subproblem[]>([]);
@@ -455,19 +443,6 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
     }
   }, [mode]);
 
-  // Available LLM models
-  const llmModels: LLMModel[] = [
-    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
-    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
-    { id: 'gpt-5-mini', name: 'GPT-5 Mini' },
-    { id: 'gpt-5', name: 'GPT-5' },
-  ];
-  
-  // Get the display name for the selected model
-  const getModelDisplayName = (modelId: string) => {
-    const model = llmModels.find(m => m.id === modelId);
-    return model ? model.name : 'Select model';
-  };
 
   // Fetch subproblems when current problem changes
   useEffect(() => {
@@ -957,35 +932,6 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
                   </div>
                 )}
                 
-                {/* LLM Model Selector - Inside the input box */}
-                <div className="absolute bottom-2 left-3">
-                  <Select value={selectedModel} onValueChange={setSelectedModel}>
-                    <SelectTrigger 
-                      size="sm"
-                      className="!border-none !shadow-none !h-6 px-2 py-0 text-xs text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100/50 dark:hover:bg-gray-700/30 focus:!border-none focus:!outline-none focus:!ring-0 focus:!ring-offset-0 font-normal rounded-full transition-colors cursor-pointer"
-                    >
-                      <SelectValue placeholder="Select model">
-                        {getModelDisplayName(selectedModel)}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                      {llmModels.map((model) => (
-                        <SelectItem 
-                          key={model.id} 
-                          value={model.id}
-                          className="text-xs hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 cursor-pointer"
-                        >
-                          <div className="flex items-center justify-between w-full">
-                            <span>{model.name}</span>
-                            {model.isPremium && (
-                              <span className="ml-2 text-xs text-green-600 dark:text-green-400">Upgrade</span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
                 
                 <Button
                   onClick={handleSendMessage}
