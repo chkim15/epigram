@@ -776,7 +776,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
       ] as const;
 
   return (
-    <div className="h-full flex flex-col min-h-0">
+    <div className="h-full flex flex-col">
       {/* Navigation Tabs */}
       <div className="flex-shrink-0 flex bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl m-2 p-1">
         {tabs.map((tab) => (
@@ -799,9 +799,9 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         {activeTab === 'chat' && (
-          <div className="h-full flex flex-col relative">
+          <div className="h-full flex flex-col">
             {/* New Chat Icon - Only show when messages exist */}
             {messages.length > 0 && (
               <Button
@@ -818,7 +818,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
               </Button>
             )}
             {/* Messages Area - Scrollable */}
-            <div className="flex-1 min-h-0 overflow-auto custom-scrollbar chat-messages-area">
+            <div className="flex-1 overflow-y-auto custom-scrollbar chat-messages-area">
               {messages.length === 0 && !isLoading ? (
                 /* AI Tutor Header - Different content based on mode */
                 <div className="h-full flex items-center justify-center">
@@ -888,7 +888,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
             </div>
 
             {/* Fixed Input Area - Always Visible */}
-            <div className="flex-shrink-0 bg-white dark:bg-gray-900 px-2 py-2">
+            <div className="flex-shrink-0 bg-white dark:bg-gray-900 px-2 py-2 border-t border-gray-200 dark:border-gray-700">
               <div className="relative">
                 <Textarea
                   ref={textareaRef}

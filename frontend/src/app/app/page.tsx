@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import TopicsSidebar from "@/components/navigation/TopicsSidebar";
 import ProblemViewer from "@/components/problems/ProblemViewer";
@@ -9,7 +9,7 @@ import CreatePractice from "@/components/practice/CreatePractice";
 import HandoutsViewer from "@/components/handouts/HandoutsViewer";
 import ResizablePanels from "@/components/ui/resizable-panels";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
-import AITutorPage from "@/components/ai/AITutorPage";
+import AITutorPage, { AITutorPageRef } from "@/components/ai/AITutorPage";
 import CoursesPage from "@/components/navigation/CoursesPage";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
@@ -32,6 +32,7 @@ function AppPageContent() {
   const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
   const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
   const [sidebarMode, setSidebarMode] = useState<'tutor' | 'practice'>('tutor');
+  const aiTutorRef = useRef<AITutorPageRef>(null);
 
   useEffect(() => {
     checkAuth();
@@ -126,6 +127,7 @@ function AppPageContent() {
     setSelectedDifficulties(difficulties);
     setSelectedTopicId(null);
     setViewMode('problems');
+    setSidebarMode('practice');
     if (count) {
       setProblemCount(count);
     }
@@ -152,9 +154,12 @@ function AppPageContent() {
 
   const handleAITutor = () => {
     setViewMode('ai-tutor');
+    setSidebarMode('tutor');
     setSelectedTopicId(null);
     setSelectedTopicIds([]);
     setSelectedDifficulties([]);
+    // Reset AI Tutor to initial view
+    aiTutorRef.current?.resetToInitialView();
   };
 
   const handleStudyMaterials = () => {
@@ -386,12 +391,12 @@ function AppPageContent() {
             showModeToggle={selectedTopicId !== null && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' && selectedTopicInfo?.main_topic !== 'Quick References'}
             contentMode={contentMode}
             onContentModeChange={setContentMode}
-            topicDisplay={selectedTopicInfo && viewMode !== 'create-practice' ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}` : undefined}
+            topicDisplay={selectedTopicInfo && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}` : undefined}
           />
 
           {/* Content area below header */}
           {viewMode === 'ai-tutor' ? (
-            <AITutorPage />
+            <AITutorPage ref={aiTutorRef} />
           ) : viewMode === 'create-practice' ? (
             <CreatePractice
               onStartPractice={handleStartPractice}

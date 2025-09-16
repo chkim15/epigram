@@ -50,8 +50,17 @@ interface ChatRequest {
   image?: string; // Base64 image data
 }
 
-// System prompt with emphasis on using solutions as reference
-const MATH_SYSTEM_PROMPT = `You are a math tutor helping with calculus. Refer to the problem, subproblems, and correct solutions when assisting. Explanations should be clear, concise, and helpful.`;
+// System prompt with emphasis on active learning
+const MATH_SYSTEM_PROMPT = `You are an AI math tutor facilitating active learning. Your role is not just to provide answers, but to guide students through reasoning, problem-solving, and self-discovery.
+
+Core Principles:
+• Active Engagement – Prompt students to explain their reasoning, test ideas, and critique their own solutions, rather than passively receiving answers.
+• Scaffolded Support – When students are stuck, break problems into smaller subproblems, remind them of definitions, or suggest general problem-solving tactics (e.g., try numbers, simplify assumptions, check special cases).
+• Socratic Questioning – Respond with clarifying or leading questions instead of giving away solutions immediately (e.g., "What happens if you plug in x=0?", "How does this connect to the Chain Rule?").
+• Small Steps to Big Ideas – Encourage connections across concepts, highlighting how each problem relates to core knowledge points (e.g. limits, derivatives, integrals, problem-solving techniques).
+• Feedback with Growth in Mind – Praise partial progress, identify misconceptions gently, and encourage students to refine their own reasoning.
+• Promote Reflection – Ask students to summarize in their own words, or compare multiple approaches.
+• Keep Explanations Clear, Concise, and Helpful – Avoid overloading with unnecessary detail. Provide just enough guidance to help the student move forward independently.`;
 
 const PROBLEM_CONTEXT_PROMPT = (
   problem: ChatRequest['currentProblem'], 
@@ -177,11 +186,11 @@ CRITICAL RULES:
       case 'gemini-2.5-flash':
       case 'gemini-2.5-pro':
             return await handleGeminiRequest(message, conversationHistory, systemPrompt, model, image);
-      
+
       case 'gpt-5':
       case 'gpt-5-mini':
             return await handleOpenAIRequest(message, conversationHistory, systemPrompt, model, image);
-      
+
       default:
         console.error('Invalid model:', model);
         return NextResponse.json(
@@ -353,13 +362,14 @@ async function handleOpenAIRequest(
         model: model,
         baseURL: azureBaseURL,
         fullChatURL: `${azureBaseURL}/chat/completions?api-version=2025-04-01-preview`,
+        hasImage: !!image,
       });
       
       openai = new OpenAI({
         apiKey: process.env.AZURE_OPENAI_API_KEY!,
         baseURL: azureBaseURL,
         defaultQuery: { 'api-version': '2025-04-01-preview' },
-        defaultHeaders: { 
+        defaultHeaders: {
           'api-key': process.env.AZURE_OPENAI_API_KEY!,
         },
       });
@@ -408,9 +418,13 @@ async function handleOpenAIRequest(
       role: 'user',
       content: message
     };
-    
-    // Add image if provided for GPT models
+
+    // Add image if provided
     if (image) {
+      console.log('Processing image for model:', model);
+      console.log('Image data length:', image.length);
+      console.log('Image prefix:', image.substring(0, 50));
+
       currentMessage.content = [
         {
           type: 'text',
@@ -526,9 +540,27 @@ async function handleOpenAIRequest(
       type: error?.type,
       param: error?.param,
       response: error?.response?.data,
-      headers: error?.response?.headers
+      headers: error?.response?.headers,
+      error: error?.error,
+      // Azure specific error details
+      azureError: error?.response?.error,
+      azureMessage: error?.response?.error?.message,
+      azureCode: error?.response?.error?.code,
     });
-    
+
+    // Log the actual request details for debugging
+    if (image) {
+      console.error('Request had image. Model:', model);
+      console.error('Image data length:', image.length);
+      console.error('Deployment name used:', model === 'gpt-5-mini' ? (process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-5-mini') : (process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5 || 'gpt-5-chat'));
+    }
+
+    // Check if error is related to image content
+    if (image && (error?.status === 400 || error?.message?.includes('content') || error?.message?.includes('image'))) {
+      console.error('Image-related error detected. Full error:', JSON.stringify(error, null, 2));
+      throw new Error('The model deployment may not support image inputs. Check Azure deployment configuration.');
+    }
+
     // More specific error handling for OpenAI
     if (error?.status === 401) {
       throw new Error('OpenAI API key is invalid or expired');
