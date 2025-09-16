@@ -10,7 +10,6 @@ import HandoutsViewer from "@/components/handouts/HandoutsViewer";
 import ResizablePanels from "@/components/ui/resizable-panels";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import AITutorPage, { AITutorPageRef } from "@/components/ai/AITutorPage";
-import CoursesPage from "@/components/navigation/CoursesPage";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,7 @@ function AppPageContent() {
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks' | 'ai-tutor' | 'courses'>('ai-tutor');
+  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks' | 'ai-tutor'>('ai-tutor');
   const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
   const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
   const [sidebarMode, setSidebarMode] = useState<'tutor' | 'practice'>('tutor');
@@ -163,11 +162,7 @@ function AppPageContent() {
   };
 
   const handleStudyMaterials = () => {
-    setViewMode('courses');
-    setSelectedTopicId(null);
-    setSelectedTopicIds([]);
-    setSelectedDifficulties([]);
-    setSavedProblemIds([]);
+    // Do nothing - just show dropdown without changing view
   };
 
   const handleSidebarModeChange = (mode: 'tutor' | 'practice') => {
@@ -337,11 +332,11 @@ function AppPageContent() {
           {/* Mode Toggle */}
           {isSidebarOpen && (
             <div className="absolute bottom-16 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
-              <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
                 <button
                   onClick={() => handleSidebarModeChange('tutor')}
                   className={cn(
-                    "flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all cursor-pointer",
+                    "flex-1 py-1.5 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer",
                     sidebarMode === 'tutor'
                       ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -352,7 +347,7 @@ function AppPageContent() {
                 <button
                   onClick={() => handleSidebarModeChange('practice')}
                   className={cn(
-                    "flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all cursor-pointer",
+                    "flex-1 py-1.5 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer",
                     sidebarMode === 'practice'
                       ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -370,7 +365,7 @@ function AppPageContent() {
                 <UserProfileDropdown user={user} />
               ) : (
                 <Button
-                  className="w-full cursor-pointer"
+                  className="w-full cursor-pointer rounded-xl"
                   onClick={() => router.push('/auth/signin')}
                 >
                   Sign in
@@ -403,8 +398,6 @@ function AppPageContent() {
             <CreatePractice
               onStartPractice={handleStartPractice}
             />
-          ) : viewMode === 'courses' ? (
-            <CoursesPage />
           ) : (
             <div className="flex-1 flex flex-col min-h-0">
               {/* Content Panel */}
@@ -418,7 +411,7 @@ function AppPageContent() {
                         selectedTopicId={selectedTopicId}
                         selectedTopicIds={selectedTopicIds}
                         selectedDifficulties={selectedDifficulties}
-                        viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
+                        viewMode={(viewMode as string) === 'bookmarks' ? 'bookmarks' : 'problems'}
                         problemCount={problemCount}
                         savedProblemIds={savedProblemIds}
                       />
@@ -437,7 +430,7 @@ function AppPageContent() {
                   selectedTopicId={selectedTopicId}
                   selectedTopicIds={selectedTopicIds}
                   selectedDifficulties={selectedDifficulties}
-                  viewMode={viewMode === 'bookmarks' ? 'bookmarks' : 'problems'}
+                  viewMode={(viewMode as string) === 'bookmarks' ? 'bookmarks' : 'problems'}
                   problemCount={problemCount}
                   savedProblemIds={savedProblemIds}
                 />

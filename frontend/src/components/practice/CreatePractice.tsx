@@ -153,7 +153,14 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
 
     try {
       // Prepare the insert data, conditionally including problem_count
-      const insertData: any = {
+      const insertData: {
+        user_id: string;
+        name: string;
+        topic_ids: number[];
+        difficulties: string[];
+        problem_count?: number;
+        problem_ids?: string[];
+      } = {
         user_id: user.id,
         name: session.name,
         topic_ids: session.topic_ids,
@@ -631,7 +638,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
 
       if (result.data) {
         // Randomize the problems
-        let problemIds = [...result.data.map(p => p.id)];
+        const problemIds = [...result.data.map(p => p.id)];
         for (let i = problemIds.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [problemIds[i], problemIds[j]] = [problemIds[j], problemIds[i]];
@@ -788,7 +795,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                 {practiceSessions.map(session => (
                   <div
                     key={session.id}
-                    className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="p-3 border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -859,7 +866,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
           {/* Left Column: Session Name and Topics */}
           <div className="space-y-6">
             {/* Session Name */}
-            <Card>
+            <Card className="rounded-xl">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Session Name</CardTitle>
               </CardHeader>
@@ -874,7 +881,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
             </Card>
 
             {/* Topics */}
-            <Card className="flex-1">
+            <Card className="flex-1 rounded-xl">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Topics</CardTitle>
@@ -885,7 +892,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
               </CardHeader>
               <CardContent className="space-y-4">
                 {courses.map(course => (
-                  <div key={course.id} className="border rounded-lg p-4">
+                  <div key={course.id} className="border rounded-xl p-4">
                     {/* Course Level - Clickable entire row */}
                     <div 
                       className="flex items-center justify-between mb-3 cursor-pointer"
@@ -964,7 +971,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
           </div>
 
           {/* Practice Settings - Right side */}
-            <Card className="h-fit">
+            <Card className="h-fit rounded-xl">
               <CardHeader>
                 <CardTitle>Practice Settings</CardTitle>
               </CardHeader>
@@ -978,7 +985,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                         key={difficulty}
                         onClick={() => toggleDifficulty(difficulty)}
                         className={cn(
-                          "flex items-center gap-1 px-1.5 py-1 rounded-md border cursor-pointer transition-all text-xs",
+                          "flex items-center gap-1 px-1.5 py-1 rounded-lg border cursor-pointer transition-all text-xs",
                           selectedDifficulties.has(difficulty)
                             ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
                             : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
@@ -1004,7 +1011,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                     <div
                       onClick={() => setExcludeBookmarked(!excludeBookmarked)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-all w-32",
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-32",
                         excludeBookmarked
                           ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
@@ -1022,7 +1029,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                     <div
                       onClick={() => setExcludeCompleted(!excludeCompleted)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-all w-32",
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-32",
                         excludeCompleted
                           ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
@@ -1050,7 +1057,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       max={Math.min(20, availableQuestions || 20)}
                       value={Math.min(problemCount, Math.min(20, availableQuestions || 20))}
                       onChange={(e) => setProblemCount(parseInt(e.target.value) || 5)}
-                      className="w-20 px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent"
+                      className="w-20 px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent"
                     />
                     <span className="text-sm text-gray-600 dark:text-gray-400">problems</span>
                   </div>
@@ -1061,7 +1068,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                   <Button
                     onClick={handleStartPractice}
                     className={cn(
-                      "w-full",
+                      "w-full rounded-xl",
                       user ? "cursor-pointer" : "cursor-default disabled:opacity-100"
                     )}
                     size="lg"

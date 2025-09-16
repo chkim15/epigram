@@ -13,7 +13,6 @@ import { useAuthStore } from "@/stores/authStore";
 import { TopicHandoutsViewer } from '@/components/handouts/TopicHandoutsViewer';
 import { useActiveLearning } from "@/hooks/useActiveLearning";
 import ActiveLearningPrompt from "@/components/problems/ActiveLearningPrompt";
-import { UserAnswer } from "@/types/database";
 import { NotesTab } from '@/components/notes/NotesTab';
 
 interface Message {
@@ -837,7 +836,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
                           <button
                             key={index}
                             onClick={() => handleExampleClick(question)}
-                            className="block w-full text-left px-3 py-2 text-sm rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
+                            className="block w-full text-left px-3 py-2 text-sm rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
                           >
                             {question}
                           </button>

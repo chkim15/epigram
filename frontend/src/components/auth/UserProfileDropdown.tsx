@@ -79,7 +79,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
       {/* Profile Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+        className="w-full flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2">
           {/* Avatar */}

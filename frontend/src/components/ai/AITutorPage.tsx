@@ -47,16 +47,16 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
       // Check if there are actual line breaks in the content
       const lineBreaks = (currentValue.match(/\n/g) || []).length;
 
-      // Only expand height if there are line breaks or if single line exceeds a reasonable width
+      // Only expand height if there are line breaks
       if (lineBreaks > 0) {
         // Reset to min height to get accurate scrollHeight
-        textarea.style.height = '60px';
+        textarea.style.height = '90px';
         // Expand based on content with line breaks
-        const newHeight = Math.max(60, Math.min(textarea.scrollHeight, 300));
+        const newHeight = Math.max(90, Math.min(textarea.scrollHeight, 300));
         textarea.style.height = `${newHeight}px`;
       } else {
-        // Keep single line at base height - let it scroll horizontally if needed
-        textarea.style.height = '60px';
+        // Keep single line at base height of 90px - let it scroll horizontally if needed
+        textarea.style.height = '90px';
       }
     }
   };
@@ -409,7 +409,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
 
               {/* Drag overlay indicator */}
               {isDragging && (
-                <div className="absolute inset-0 rounded-2xl border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 z-10 flex items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 rounded-3xl border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 z-10 flex items-center justify-center pointer-events-none">
                   <p className="text-lg font-medium text-blue-600 dark:text-blue-400">Drop image here</p>
                 </div>
               )}
@@ -426,7 +426,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                 onDrop={handleDrop}
                 placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
                 className={cn(
-                  "resize-none w-full pr-20 pb-12 rounded-2xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
+                  "resize-none w-full pr-20 pb-12 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
                   isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
                   pastedImage ? "pt-[170px]" : "pt-3"
                 )}
@@ -466,7 +466,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
               {/* Upload button */}
               <button
                 onClick={triggerFileUpload}
-                className="absolute left-2 bottom-2 h-8 w-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
+                className="absolute left-2 bottom-2 h-8 w-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
                 aria-label="Upload image"
               >
                 <ImagePlus className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -475,7 +475,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
               <Button
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && !pastedImage) || isLoading}
-                className="absolute right-2 bottom-2 h-8 px-3 rounded-lg bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
+                className="absolute right-2 bottom-2 h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
               >
                 <span>SEND</span>
                 <Send className="h-3.5 w-3.5" />
@@ -501,7 +501,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                   message.role === 'user' ? (
                     // User message - keep as bubble on right
                     <div key={message.id} className="flex justify-end">
-                      <div className="max-w-fit rounded-2xl px-4 py-3 bg-gray-200 text-black dark:bg-gray-700 dark:text-white">
+                      <div className="max-w-fit rounded-3xl px-4 py-3 bg-gray-200 text-black dark:bg-gray-700 dark:text-white">
                         {message.image && (
                           <img
                             src={message.image}
@@ -554,7 +554,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
 
               {/* Drag overlay indicator */}
               {isDragging && (
-                <div className="absolute inset-0 rounded-2xl border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 z-10 flex items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 rounded-3xl border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 z-10 flex items-center justify-center pointer-events-none">
                   <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Drop image here</p>
                 </div>
               )}
@@ -571,14 +571,14 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                 onDrop={handleDrop}
                 placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
                 className={cn(
-                  "resize-none w-full pr-20 pb-12 rounded-2xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
+                  "resize-none w-full pr-20 pb-12 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
                   isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
                   pastedImage ? "pt-20" : "pt-3"
                 )}
                 style={{
                   outline: 'none',
                   boxShadow: 'none',
-                  height: '60px',
+                  height: '90px',
                   width: '100%',
                   display: 'block',
                   overflow: 'auto',
@@ -614,7 +614,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
               {/* Upload button */}
               <button
                 onClick={triggerFileUpload}
-                className="absolute left-2 bottom-2 h-8 w-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
+                className="absolute left-2 bottom-2 h-8 w-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
                 aria-label="Upload image"
               >
                 <ImagePlus className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -623,7 +623,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
               <Button
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && !pastedImage) || isLoading}
-                className="absolute right-2 bottom-2 h-8 px-3 rounded-lg bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
+                className="absolute right-2 bottom-2 h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
               >
                 <span>SEND</span>
                 <Send className="h-3.5 w-3.5" />

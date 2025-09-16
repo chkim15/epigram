@@ -320,9 +320,9 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                     <Button
                       variant="ghost"
                       className={cn(
-                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base",
-                        activeMenu === 'ai-tutor' 
-                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white" 
+                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl",
+                        activeMenu === 'ai-tutor'
+                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
                           : "text-gray-700 dark:text-gray-300"
                       )}
                       onClick={onAITutor}
@@ -347,17 +347,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   {/* Direct menu items without Study Materials wrapper */}
                   {/* Handouts/Problems */}
                   <div className="mb-2">
-                    <Collapsible defaultOpen>
+                    <Collapsible defaultOpen={false}>
                       <CollapsibleTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
-                          onClick={() => {
-                            // Call the onStudyCalculus callback to show problems view
-                            if (onStudyCalculus) {
-                              onStudyCalculus();
-                            }
-                          }}
+                          className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl text-gray-700 dark:text-gray-300"
                         >
                           <span className="flex-1 text-left">Handouts/Problems</span>
                           <ChevronDown className="h-4 w-4" />
@@ -369,7 +363,12 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                             <Button
                               key={course.id}
                               variant="ghost"
-                              className="w-full justify-start py-2 px-3 font-medium cursor-pointer"
+                              className={cn(
+                                "w-full justify-start py-2 px-3 font-medium cursor-pointer rounded-xl",
+                                selectedCourse?.id === course.id
+                                  ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
+                                  : "text-gray-700 dark:text-gray-300"
+                              )}
                               onClick={() => selectCourse(course)}
                             >
                               <span className="flex-1 text-left">{course.name}</span>
@@ -385,7 +384,12 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   <div className="mb-2">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer"
+                      className={cn(
+                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl",
+                        activeMenu === 'create-practice'
+                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
+                          : "text-gray-700 dark:text-gray-300"
+                      )}
                       onClick={onCreatePractice}
                     >
                       <span className="flex-1 text-left">Create Practice</span>
@@ -396,7 +400,12 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   <div className="mb-4 relative group">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer disabled:opacity-100"
+                      className={cn(
+                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl disabled:opacity-100",
+                        activeMenu === 'bookmarks'
+                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
+                          : "text-gray-700 dark:text-gray-300"
+                      )}
                       onClick={onBookmarks}
                       disabled={!user}
                       style={{ pointerEvents: user ? 'auto' : 'none' }}
@@ -436,8 +445,10 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                           key={topic.id}
                           variant={selectedTopicId === topic.id ? "default" : "ghost"}
                           className={cn(
-                            "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer",
-                            selectedTopicId === topic.id && "bg-blue-600 text-white hover:bg-blue-700"
+                            "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl",
+                            selectedTopicId === topic.id
+                              ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+                              : "text-gray-700 dark:text-gray-300"
                           )}
                           onClick={() => onSelectTopic(topic.id)}
                         >
@@ -458,7 +469,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                           <CollapsibleTrigger asChild>
                             <Button
                               variant="ghost"
-                              className="w-full justify-start py-2 px-3 font-medium cursor-pointer"
+                              className="w-full justify-start py-2 px-3 font-medium cursor-pointer rounded-xl text-gray-700 dark:text-gray-300"
                             >
                               <span className={cn(
                                 "flex-1 text-left",
@@ -478,8 +489,10 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                                   key={topic.id}
                                   variant={selectedTopicId === topic.id ? "default" : "ghost"}
                                   className={cn(
-                                    "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer",
-                                    selectedTopicId === topic.id && "bg-blue-600 text-white hover:bg-blue-700"
+                                    "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl",
+                                    selectedTopicId === topic.id
+                                      ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+                                      : "text-gray-700 dark:text-gray-300"
                                   )}
                                   onClick={() => onSelectTopic(topic.id)}
                                 >

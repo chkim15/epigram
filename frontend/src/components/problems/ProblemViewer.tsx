@@ -216,7 +216,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                 uniqueProblems.set(cleanProblem.id, cleanProblem);
               }
             });
-            let uniqueProblemsArray = Array.from(uniqueProblems.values());
+            const uniqueProblemsArray = Array.from(uniqueProblems.values());
 
             // Randomize the problems
             for (let i = uniqueProblemsArray.length - 1; i > 0; i--) {
@@ -661,7 +661,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   if (problemList.length === 0 && !isLoading) {
     return (
       <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
           <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-gray-900 p-3 custom-scrollbar">
             <div className="flex h-full items-center justify-center">
               <div className="text-center">
@@ -707,7 +707,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
   return (
     <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
       {/* Problem Content */}
       <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-gray-900 p-3 custom-scrollbar">
         <div className="w-full space-y-6 min-w-0">
@@ -837,13 +837,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             {!isRevealed ? (
                               <button
                                 onClick={() => setRevealedHints(prev => ({ ...prev, main: (prev.main || 0) + 1 }))}
-                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
                               >
                                 <Lightbulb className="h-4 w-4" />
                                 <span>Show Hint {index + 1}</span>
                               </button>
                             ) : (
-                              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
                                 <div className="prose max-w-none dark:prose-invert text-sm">
                                   <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                 </div>
@@ -860,7 +860,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     <div className="mb-4">
                       <button
                         onClick={() => setExpandedHints(prev => ({ ...prev, main: !prev.main }))}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
                       >
                         <Lightbulb className="h-4 w-4" />
                         <span>Hint</span>
@@ -870,7 +870,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         )} />
                       </button>
                       {expandedHints['main'] && (
-                        <div className="mt-2 p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                        <div className="mt-2 p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
                           <div className="prose max-w-none dark:prose-invert text-sm">
                             <MathContent content={currentProblem.hint} documentId={currentDocument?.document_id} />
                           </div>
@@ -883,7 +883,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   {subproblems.length === 0 && (
                     <div className="mt-4 space-y-2" data-answer-section="main">
                       <textarea
-                        className="w-full min-h-[66px] p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                        className="w-full min-h-[66px] p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
                         placeholder="Type your answer here..."
                         value={answers['main'] || ''}
                         onChange={(e) => {
@@ -898,7 +898,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           <Button
                             onClick={() => handleSubmitAnswer('main', null)}
                             disabled={!answers['main']?.trim() || submitting['main'] || !user}
-                            className="cursor-pointer"
+                            className="cursor-pointer rounded-xl"
                             size="sm"
                           >
                             {submitting['main'] ? (
@@ -949,13 +949,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                       {!isRevealed ? (
                                         <button
                                           onClick={() => setRevealedHints(prev => ({ ...prev, [hintKey]: (prev[hintKey] || 0) + 1 }))}
-                                          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                                          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
                                         >
                                           <Lightbulb className="h-4 w-4" />
                                           <span>Show Hint {index + 1}</span>
                                         </button>
                                       ) : (
-                                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
                                           <div className="prose max-w-none dark:prose-invert text-sm">
                                             <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                           </div>
@@ -972,7 +972,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                               <div className="mt-4">
                                 <button
                                   onClick={() => setExpandedHints(prev => ({ ...prev, [`sub_${subproblem.key}`]: !prev[`sub_${subproblem.key}`] }))}
-                                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
                                 >
                                   <Lightbulb className="h-4 w-4" />
                                   <span>Hint</span>
@@ -982,7 +982,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                   )} />
                                 </button>
                                 {expandedHints[`sub_${subproblem.key}`] && (
-                                  <div className="mt-2 p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                                  <div className="mt-2 p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
                                     <div className="prose max-w-none dark:prose-invert text-sm">
                                       <MathContent content={subproblem.hint} documentId={currentDocument?.document_id} />
                                     </div>
@@ -994,7 +994,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             {/* Answer input for subproblem */}
                             <div className="mt-4 space-y-2" data-answer-section={`sub_${subproblem.key}`}>
                               <textarea
-                                className="w-full min-h-[66px] p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                                className="w-full min-h-[66px] p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
                                 placeholder="Type your answer here..."
                                 value={answers[`sub_${subproblem.key}`] || ''}
                                 onChange={(e) => {
@@ -1009,7 +1009,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                   <Button
                                     onClick={() => handleSubmitAnswer(`sub_${subproblem.key}`, subproblem.id)}
                                     disabled={!answers[`sub_${subproblem.key}`]?.trim() || submitting[`sub_${subproblem.key}`] || !user}
-                                    className="cursor-pointer"
+                                    className="cursor-pointer rounded-xl"
                                     size="sm"
                                   >
                                     {submitting[`sub_${subproblem.key}`] ? (
@@ -1052,7 +1052,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               size="sm"
               onClick={previousProblem}
               disabled={!canGoPrevious()}
-              className="cursor-pointer disabled:cursor-not-allowed"
+              className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
@@ -1065,7 +1065,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               size="sm"
               onClick={nextProblem}
               disabled={!canGoNext()}
-              className="cursor-pointer disabled:cursor-not-allowed"
+              className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
             >
               Next
               <ChevronRight className="h-4 w-4" />

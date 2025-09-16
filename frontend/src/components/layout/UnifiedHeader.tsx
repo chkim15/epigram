@@ -54,13 +54,13 @@ export default function UnifiedHeader({
       )}
       
       {/* New Question Button and Topic Display - Left side */}
-      <div className="flex-1 flex items-center gap-4">
+      <div className={cn("flex-1 flex items-center gap-4", !isSidebarOpen && "ml-8")}>
         {showNewQuestionButton && onNewQuestion && (
           <Button
             onClick={onNewQuestion}
             variant="outline"
             size="sm"
-            className="h-8 px-3 rounded-lg cursor-pointer bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="h-8 px-3 rounded-xl cursor-pointer bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             <Plus className="h-4 w-4 mr-1" />
             New Question
@@ -75,10 +75,10 @@ export default function UnifiedHeader({
       
       {/* Mode Toggle - Fixed center position */}
       {showModeToggle && onContentModeChange && (
-        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
           <button
             onClick={() => onContentModeChange('handouts')}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-md transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all cursor-pointer ${
               contentMode === 'handouts'
                 ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -89,7 +89,7 @@ export default function UnifiedHeader({
           </button>
           <button
             onClick={() => onContentModeChange('problems')}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-md transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all cursor-pointer ${
               contentMode === 'problems'
                 ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -108,7 +108,7 @@ export default function UnifiedHeader({
       <Button
         size="sm"
         onClick={() => window.open('/contact', '_blank')}
-        className="h-8 px-3 rounded-lg cursor-pointer bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+        className="h-8 px-3 rounded-xl cursor-pointer bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
       >
         Get Help
       </Button>
