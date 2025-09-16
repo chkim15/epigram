@@ -54,6 +54,12 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     }
   }, [user]);
 
+  // Reset view to main when mode changes
+  useEffect(() => {
+    setCurrentView('main');
+    setSelectedCourse(null);
+  }, [mode]);
+
   const fetchTopics = async () => {
     try {
       setLoading(true);
