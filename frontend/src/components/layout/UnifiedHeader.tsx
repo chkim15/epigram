@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Menu, FileText, Book } from "lucide-react";
+import { Menu, FileText, Book, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UnifiedHeaderProps {
@@ -13,17 +13,21 @@ interface UnifiedHeaderProps {
   contentMode?: 'problems' | 'handouts';
   onContentModeChange?: (mode: 'problems' | 'handouts') => void;
   topicDisplay?: string;
+  showNewQuestionButton?: boolean;
+  onNewQuestion?: () => void;
 }
 
-export default function UnifiedHeader({ 
-  className, 
-  isSidebarOpen = true, 
+export default function UnifiedHeader({
+  className,
+  isSidebarOpen = true,
   onToggleSidebar,
   onLogoClick,
   showModeToggle = false,
   contentMode = 'problems',
   onContentModeChange,
-  topicDisplay
+  topicDisplay,
+  showNewQuestionButton = false,
+  onNewQuestion
 }: UnifiedHeaderProps) {
   return (
     <div className={cn(
@@ -49,8 +53,19 @@ export default function UnifiedHeader({
         </>
       )}
       
-      {/* Topic Display - Left side */}
-      <div className="flex-1 flex items-center">
+      {/* New Question Button and Topic Display - Left side */}
+      <div className="flex-1 flex items-center gap-4">
+        {showNewQuestionButton && onNewQuestion && (
+          <Button
+            onClick={onNewQuestion}
+            variant="outline"
+            size="sm"
+            className="h-8 px-3 rounded-lg cursor-pointer bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            New Question
+          </Button>
+        )}
         {topicDisplay && (
           <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             {topicDisplay}

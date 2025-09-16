@@ -41,11 +41,23 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
 
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
-      // Reset to min height to get accurate scrollHeight
-      textareaRef.current.style.height = '207px';
-      // Set to scrollHeight if content needs more space
-      const newHeight = Math.max(207, Math.min(textareaRef.current.scrollHeight, 460));
-      textareaRef.current.style.height = `${newHeight}px`;
+      const textarea = textareaRef.current;
+      const currentValue = textarea.value;
+
+      // Check if there are actual line breaks in the content
+      const lineBreaks = (currentValue.match(/\n/g) || []).length;
+
+      // Only expand height if there are line breaks or if single line exceeds a reasonable width
+      if (lineBreaks > 0) {
+        // Reset to min height to get accurate scrollHeight
+        textarea.style.height = '60px';
+        // Expand based on content with line breaks
+        const newHeight = Math.max(60, Math.min(textarea.scrollHeight, 300));
+        textarea.style.height = `${newHeight}px`;
+      } else {
+        // Keep single line at base height - let it scroll horizontally if needed
+        textarea.style.height = '60px';
+      }
     }
   };
 
@@ -348,18 +360,33 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
     }
   };
 
+  // Smart scroll behavior - only scroll for user messages, not during streaming
   useEffect(() => {
-    if (chatContainerRef.current && messages.length > 0) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    // Don't auto-scroll if we're currently streaming an AI response
+    if (!isStreaming) {
+      const scrollContainer = document.querySelector('.chat-messages-area');
+      if (scrollContainer && messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        // Only scroll for user messages
+        if (lastMessage.role === 'user') {
+          // Find the last user message element
+          const messageElements = scrollContainer.querySelectorAll('.flex.justify-end');
+          if (messageElements.length > 0) {
+            const lastUserMessageElement = messageElements[messageElements.length - 1] as HTMLElement;
+            // Scroll so the user message appears at the top of the viewport
+            lastUserMessageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }
     }
-  }, [messages]);
+  }, [messages, isStreaming]);
 
   return (
-    <div className="flex flex-col h-full items-center justify-center bg-white dark:bg-gray-900">
+    <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 min-h-0 overflow-hidden">
       {messages.length === 0 ? (
         // Initial view with centered input
-        <div className="w-full max-w-7xl flex flex-col items-center justify-center px-8 h-full">
-          <div className="w-full flex flex-col items-center" style={{ marginTop: '-200px' }}>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-7xl flex flex-col items-center px-8" style={{ marginTop: '-200px' }}>
             {/* Large Header */}
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center gap-4">
@@ -401,12 +428,12 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                 className={cn(
                   "resize-none w-full pr-20 pb-12 rounded-2xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
                   isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
-                  pastedImage ? "pt-[260px]" : "pt-3"
+                  pastedImage ? "pt-[170px]" : "pt-3"
                 )}
                 style={{
                   outline: 'none',
                   boxShadow: 'none',
-                  minHeight: pastedImage ? '440px' : '207px',
+                  minHeight: pastedImage ? '350px' : '207px',
                   maxHeight: '600px',
                   width: '100%',
                   display: 'block',
@@ -423,7 +450,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                     <img
                       src={pastedImage.url}
                       alt="Attached image"
-                      className="max-w-[400px] max-h-[240px] rounded-lg border-2 border-black dark:border-white object-contain"
+                      className="max-w-[400px] max-h-[150px] rounded-lg object-contain"
                     />
                     <button
                       onClick={removeImage}
@@ -466,67 +493,56 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
         </div>
       ) : (
         // Chat view
-        <div className="w-full max-w-4xl flex flex-col h-full px-4 pb-8">
-          {/* New Question Button */}
-          <div className="pt-4 pb-2">
-            <Button
-              onClick={resetToInitialView}
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 rounded-lg cursor-pointer bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              New Question
-            </Button>
-          </div>
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar pb-4" ref={chatContainerRef}>
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex",
-                    message.role === 'user' ? "justify-end" : "justify-start"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "max-w-[80%] rounded-2xl px-4 py-3",
-                      message.role === 'user'
-                        ? "bg-black text-white dark:bg-white dark:text-black"
-                        : "bg-gray-100 dark:bg-gray-800"
-                    )}
-                  >
-                    {message.image && (
-                      <img
-                        src={message.image}
-                        alt="Attached"
-                        className="max-w-[80%] rounded-lg mb-2"
-                      />
-                    )}
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <MathContent content={message.content} />
+          <div className="flex-1 overflow-y-auto custom-scrollbar chat-messages-area min-h-0" ref={chatContainerRef}>
+            <div className="max-w-4xl mx-auto px-4 space-y-4 py-4">
+                {messages.map((message) => (
+                  message.role === 'user' ? (
+                    // User message - keep as bubble on right
+                    <div key={message.id} className="flex justify-end">
+                      <div className="max-w-fit rounded-2xl px-4 py-3 bg-gray-200 text-black dark:bg-gray-700 dark:text-white">
+                        {message.image && (
+                          <img
+                            src={message.image}
+                            alt="Attached"
+                            className="max-w-[80%] rounded-lg mb-2"
+                          />
+                        )}
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <MathContent content={message.content} />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // AI response - full width with white background
+                    <div key={message.id} className="w-full">
+                      <div className="w-full bg-white dark:bg-gray-800 rounded-lg p-6">
+                        <div className="prose prose-base dark:prose-invert max-w-none">
+                          <MathContent content={message.content} />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                ))}
+                {isLoading && !isStreaming && (
+                  <div className="w-full">
+                    <div className="w-full bg-white dark:bg-gray-800 rounded-lg p-6">
+                      <div className="flex space-x-1">
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {isLoading && !isStreaming && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3">
-                    <div className="flex space-x-1">
-                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
-                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
-                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Input Area */}
-          <div className="py-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
-            <div className="relative">
+          {/* Fixed Input Area */}
+          <div className="flex-shrink-0 bg-white dark:bg-gray-900">
+            <div className="max-w-4xl mx-auto px-4 py-3">
+              <div className="relative">
               {/* Hidden file input */}
               <input
                 ref={fileInputRef}
@@ -557,13 +573,12 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                 className={cn(
                   "resize-none w-full pr-20 pb-12 rounded-2xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
                   isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
-                  pastedImage ? "pt-[160px]" : "pt-3"
+                  pastedImage ? "pt-20" : "pt-3"
                 )}
                 style={{
                   outline: 'none',
                   boxShadow: 'none',
-                  minHeight: pastedImage ? '220px' : '60px',
-                  maxHeight: '300px',
+                  height: '60px',
                   width: '100%',
                   display: 'block',
                   overflow: 'auto',
@@ -583,7 +598,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                     <img
                       src={pastedImage.url}
                       alt="Attached image"
-                      className="max-w-[112px] max-h-[112px] rounded-lg border-2 border-black dark:border-white object-contain"
+                      className="w-16 h-16 rounded-lg object-cover"
                     />
                     <button
                       onClick={removeImage}
@@ -613,6 +628,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                 <span>SEND</span>
                 <Send className="h-3.5 w-3.5" />
               </Button>
+              </div>
             </div>
           </div>
         </div>

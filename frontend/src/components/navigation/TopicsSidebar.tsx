@@ -115,7 +115,12 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
   // Get display name for courses based on user's school
   const getCourseDisplayName = (courseName: string): string => {
-    if (!userSchool) return courseName;
+    if (!userSchool) {
+      // Default names with AP Calculus designations when no school is set
+      if (courseName === 'Calculus I') return 'Calculus I / AP Calc AB';
+      if (courseName === 'Calculus II') return 'Calculus II / AP Calc BC';
+      return courseName;
+    }
     
     if (userSchool === 'University of Pennsylvania') {
       if (courseName === 'Calculus I') return 'Math 1300';
@@ -213,8 +218,8 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     return courses.sort((a, b) => {
       // Define order with both original and school-specific names
       const order = [
-        'Calculus I', 'Math 1300', 'Math 1101',  // All Calc I variations
-        'Calculus II', 'Math 1400', 'Math 1102',  // All Calc II variations
+        'Calculus I / AP Calc AB', 'Calculus I', 'Math 1300', 'Math 1101',  // All Calc I variations
+        'Calculus II / AP Calc BC', 'Calculus II', 'Math 1400', 'Math 1102',  // All Calc II variations
         'Special Topics',  // Special Topics after Calc II
         'Calculus Essentials'  // Calculus Essentials after Special Topics
       ];

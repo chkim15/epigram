@@ -224,7 +224,12 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
 
   // Get display name for courses based on user's school
   const getCourseDisplayName = (courseName: string): string => {
-    if (!userSchool) return courseName;
+    if (!userSchool) {
+      // Default names with AP Calculus designations when no school is set
+      if (courseName === 'Calculus I') return 'Calculus I / AP Calc AB';
+      if (courseName === 'Calculus II') return 'Calculus II / AP Calc BC';
+      return courseName;
+    }
     
     if (userSchool === 'University of Pennsylvania') {
       if (courseName === 'Calculus I') return 'Math 1300';
@@ -304,16 +309,16 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     coursesArray.sort((a, b) => {
       // Define order with both original and school-specific names
       const order = [
-        'Calculus I', 'Math 1300', 'Math 1101',  // All Calc I variations
-        'Calculus II', 'Math 1400', 'Math 1102'  // All Calc II variations
+        'Calculus I / AP Calc AB', 'Calculus I', 'Math 1300', 'Math 1101',  // All Calc I variations
+        'Calculus II / AP Calc BC', 'Calculus II', 'Math 1400', 'Math 1102'  // All Calc II variations
       ];
       
       const indexA = order.indexOf(a.name);
       const indexB = order.indexOf(b.name);
       
-      // Group Calc I variations together (indices 0-2) and Calc II variations together (indices 3-5)
-      const groupA = indexA !== -1 ? Math.floor(indexA / 3) : -1;
-      const groupB = indexB !== -1 ? Math.floor(indexB / 3) : -1;
+      // Group Calc I variations together (indices 0-3) and Calc II variations together (indices 4-7)
+      const groupA = indexA !== -1 ? Math.floor(indexA / 4) : -1;
+      const groupB = indexB !== -1 ? Math.floor(indexB / 4) : -1;
       
       if (groupA !== -1 && groupB !== -1) {
         return groupA - groupB;

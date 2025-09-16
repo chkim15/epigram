@@ -383,8 +383,8 @@ function AppPageContent() {
         {/* Main Content Area with Unified Header */}
         <div className="flex-1 flex flex-col min-h-0">
           {/* Unified Header - positioned to the right of sidebar */}
-          <UnifiedHeader 
-            className="hidden lg:flex" 
+          <UnifiedHeader
+            className="hidden lg:flex"
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             onLogoClick={handleLogoClick}
@@ -392,6 +392,8 @@ function AppPageContent() {
             contentMode={contentMode}
             onContentModeChange={setContentMode}
             topicDisplay={selectedTopicInfo && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}` : undefined}
+            showNewQuestionButton={viewMode === 'ai-tutor'}
+            onNewQuestion={() => aiTutorRef.current?.resetToInitialView()}
           />
 
           {/* Content area below header */}
