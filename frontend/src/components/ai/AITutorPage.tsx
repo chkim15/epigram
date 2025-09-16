@@ -506,7 +506,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                           <img
                             src={message.image}
                             alt="Attached"
-                            className="max-w-[80%] rounded-lg mb-2"
+                            className="h-32 max-w-full rounded-lg mb-2 object-contain border border-gray-300 dark:border-gray-600"
                           />
                         )}
                         <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -571,7 +571,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                 onDrop={handleDrop}
                 placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
                 className={cn(
-                  "resize-none w-full pr-20 pb-12 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-md",
+                  "resize-none w-full pr-20 pb-12 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-lg",
                   isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
                   pastedImage ? "pt-20" : "pt-3"
                 )}
@@ -581,8 +581,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                   height: '90px',
                   width: '100%',
                   display: 'block',
-                  overflow: 'auto',
-                  fontSize: '20px'
+                  overflow: 'auto'
                 }}
                 onFocus={(e) => {
                   e.target.style.outline = 'none';
@@ -593,19 +592,20 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
 
               {/* Image Preview - Smaller for chat view */}
               {pastedImage && (
-                <div className="absolute top-3 left-3 right-14">
+                <div className="absolute top-3 left-3">
                   <div className="relative inline-block">
                     <img
                       src={pastedImage.url}
                       alt="Attached image"
-                      className="w-16 h-16 rounded-lg object-cover"
+                      className="w-10 h-10 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
+                      style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', maxWidth: '40px', maxHeight: '40px' }}
                     />
                     <button
                       onClick={removeImage}
-                      className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 transition-colors cursor-pointer shadow-lg"
+                      className="absolute -top-1 -right-1 bg-gray-500 hover:bg-gray-600 text-white rounded-full p-0.5 transition-colors cursor-pointer shadow-sm"
                       aria-label="Remove image"
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-2 w-2" />
                     </button>
                   </div>
                 </div>
