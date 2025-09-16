@@ -433,8 +433,8 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                 style={{
                   outline: 'none',
                   boxShadow: 'none',
-                  height: pastedImage ? '350px' : '250px',
-                  minHeight: pastedImage ? '350px' : '250px',
+                  height: pastedImage ? '300px' : '200px',
+                  minHeight: pastedImage ? '300px' : '200px',
                   maxHeight: '600px',
                   width: '100%',
                   display: 'block',
