@@ -384,9 +384,9 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 min-h-0 overflow-hidden">
       {messages.length === 0 ? (
-        // Initial view with centered input
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-full max-w-7xl flex flex-col items-center px-8" style={{ marginTop: '-200px' }}>
+        // Initial view with fixed positioning
+        <div className="flex-1 flex flex-col">
+          <div className="w-full max-w-7xl flex flex-col items-center px-8 mx-auto" style={{ paddingTop: '15vh' }}>
             {/* Large Header */}
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center gap-4">
@@ -426,21 +426,21 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                 onDrop={handleDrop}
                 placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
                 className={cn(
-                  "resize-none w-full pr-20 pb-12 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
+                  "resize-none w-full pr-24 pb-16 pl-6 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
                   isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
-                  pastedImage ? "pt-[170px]" : "pt-3"
+                  pastedImage ? "pt-[170px]" : "pt-6"
                 )}
                 style={{
                   outline: 'none',
                   boxShadow: 'none',
-                  minHeight: pastedImage ? '350px' : '207px',
+                  height: pastedImage ? '350px' : '250px',
+                  minHeight: pastedImage ? '350px' : '250px',
                   maxHeight: '600px',
                   width: '100%',
                   display: 'block',
                   overflow: 'auto',
                   fontSize: '20px'
                 }}
-                rows={6}
               />
 
               {/* Image Preview - Large */}
@@ -450,14 +450,14 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                     <img
                       src={pastedImage.url}
                       alt="Attached image"
-                      className="max-w-[400px] max-h-[150px] rounded-lg object-contain"
+                      className="max-w-[400px] max-h-[150px] rounded-lg object-contain border border-gray-300 dark:border-gray-600"
                     />
                     <button
                       onClick={removeImage}
-                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors cursor-pointer shadow-lg"
+                      className="absolute -top-1 -right-1 bg-gray-500 hover:bg-gray-600 text-white rounded-full p-0.5 transition-colors cursor-pointer shadow-sm"
                       aria-label="Remove image"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3 w-3" />
                     </button>
                   </div>
                 </div>
@@ -466,7 +466,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
               {/* Upload button */}
               <button
                 onClick={triggerFileUpload}
-                className="absolute left-2 bottom-2 h-8 w-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
+                className="absolute left-4 bottom-4 h-8 w-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
                 aria-label="Upload image"
               >
                 <ImagePlus className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -475,7 +475,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
               <Button
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && !pastedImage) || isLoading}
-                className="absolute right-2 bottom-2 h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
+                className="absolute right-4 bottom-4 h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
               >
                 <span>SEND</span>
                 <Send className="h-3.5 w-3.5" />
@@ -571,7 +571,7 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                 onDrop={handleDrop}
                 placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
                 className={cn(
-                  "resize-none w-full pr-20 pb-12 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
+                  "resize-none w-full pr-20 pb-12 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-md",
                   isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
                   pastedImage ? "pt-20" : "pt-3"
                 )}
