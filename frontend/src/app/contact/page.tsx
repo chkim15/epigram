@@ -165,7 +165,7 @@ export default function ContactPage() {
               </label>
               <div 
                 className={cn(
-                  "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+                  "border-2 border-dashed rounded-xl p-6 text-center transition-colors",
                   isDragging ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-gray-400",
                   isSubmitting && "opacity-50 cursor-not-allowed"
                 )}

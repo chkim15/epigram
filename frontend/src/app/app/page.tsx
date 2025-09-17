@@ -31,6 +31,7 @@ function AppPageContent() {
   const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
   const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
   const [sidebarMode, setSidebarMode] = useState<'tutor' | 'practice'>('tutor');
+  const [practiceViewMode, setPracticeViewMode] = useState<'problems' | 'create-practice' | 'bookmarks'>('problems');
   const aiTutorRef = useRef<AITutorPageRef>(null);
 
   useEffect(() => {
@@ -108,14 +109,18 @@ function AppPageContent() {
   }, [selectedTopicId]);
 
   const handleCreatePractice = () => {
+    setPracticeViewMode('create-practice');
     setViewMode('create-practice');
+    setSidebarMode('practice');
   };
 
   const handleBookmarks = () => {
+    setPracticeViewMode('bookmarks');
     setViewMode('bookmarks');
     setSelectedTopicId(null);
     setSelectedTopicIds([]);
     setSelectedDifficulties([]);
+    setSidebarMode('practice');
   };
 
   const [problemCount, setProblemCount] = useState<number>(10);
@@ -170,12 +175,10 @@ function AppPageContent() {
     if (mode === 'tutor') {
       setViewMode('ai-tutor');
     } else {
-      // Practice mode - show welcome screen
-      setViewMode('problems');
-      setSelectedTopicId(null);
-      setSelectedTopicIds([]);
-      setSelectedDifficulties([]);
-      setSavedProblemIds([]);
+      // Practice mode - restore the saved practice view mode
+      setViewMode(practiceViewMode);
+      // Keep the existing selectedTopicId, selectedTopicIds, selectedDifficulties, and savedProblemIds
+      // so the user returns to where they left off
     }
   };
 
@@ -199,6 +202,7 @@ function AppPageContent() {
                 onSelectTopic={async (id) => {
                   setSelectedTopicId(id);
                   setViewMode('problems');
+                  setPracticeViewMode('problems');
                   setIsMobileMenuOpen(false);
 
                   // Clear practice session data when switching to a subtopic
@@ -296,6 +300,7 @@ function AppPageContent() {
               onSelectTopic={async (id) => {
                 setSelectedTopicId(id);
                 setViewMode('problems');
+                setPracticeViewMode('problems');
 
                 // Clear practice session data when switching to a subtopic
                 setSelectedTopicIds([]);
