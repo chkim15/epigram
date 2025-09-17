@@ -428,7 +428,6 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'handouts' | 'solutions' | 'notes'>('chat');
   const selectedModel = 'gpt-5';
-  const [isStreaming, setIsStreaming] = useState(false);
   const [pastedImage, setPastedImage] = useState<{ url: string; file: File } | null>(null);
   const [currentSubproblems, setCurrentSubproblems] = useState<Subproblem[]>([]);
   const [problemSolutions, setProblemSolutions] = useState<Solution[]>([]);
@@ -539,27 +538,25 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
     fetchSolutions();
   }, [currentProblem, currentSubproblems]);
 
-  // Scroll to show the user's message at the top when submitted
+  // Scroll to bottom only when user sends a message
   useEffect(() => {
-    // Don't auto-scroll if we're currently streaming an AI response
-    if (!isStreaming) {
-      const scrollContainer = document.querySelector('.chat-messages-area');
-      if (scrollContainer && messages.length > 0) {
-        const lastMessage = messages[messages.length - 1];
-        // Only scroll for user messages
-        if (lastMessage.role === 'user') {
-          // Find the last user message element
-          const messageElements = scrollContainer.querySelectorAll('.flex.justify-end');
-          if (messageElements.length > 0) {
-            const lastUserMessageElement = messageElements[messageElements.length - 1] as HTMLElement;
-            // Scroll so the user message appears at the top of the viewport
-            // Using scrollIntoView with block: 'start' to position at top
-            lastUserMessageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      // Only scroll for user messages to show what they just sent
+      if (lastMessage.role === 'user') {
+        const scrollContainer = document.querySelector('.chat-messages-area');
+        if (scrollContainer) {
+          // Scroll to bottom to show the user's message
+          requestAnimationFrame(() => {
+            scrollContainer.scrollTo({
+              top: scrollContainer.scrollHeight,
+              behavior: 'smooth'
+            });
+          });
         }
       }
     }
-  }, [messages, isStreaming]);
+  }, [messages]);
 
   const saveUserMessageToDatabase = async (message: string, model?: string) => {
     if (!user || !currentProblem) return;
@@ -629,10 +626,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
         // Handle streaming response
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
-        
-        // Set streaming flag to true
-        setIsStreaming(true);
-        
+
         // Create initial AI message with empty content
         const aiResponse: Message = {
           id: (Date.now() + 1).toString(),
@@ -668,7 +662,6 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
                       );
                     } else if (data.done) {
                       // Stream is complete
-                      setIsStreaming(false);
                       break;
                     } else if (data.error) {
                       throw new Error(data.error);
@@ -681,7 +674,6 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
             }
           } finally {
             reader.releaseLock();
-            setIsStreaming(false);
           }
         }
       } else {
@@ -758,9 +750,9 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
   };
 
   const exampleQuestions = [
+    "Help me with the next step of solving this problem",
     "What concepts do I need to review for this problem?",
-    "Create a plot and help me understand this problem visually.",
-    "Which problem solving technique do I need to solve this problem?"
+    "Create a plot and help me understand this problem visually."
   ];
 
   const tabs = mode === 'problems' 
@@ -775,7 +767,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
       ] as const;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100%' }}>
       {/* Navigation Tabs */}
       <div className="flex-shrink-0 flex bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl m-2 p-1">
         {tabs.map((tab) => (
@@ -798,9 +790,9 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {activeTab === 'chat' && (
-          <div className="h-full flex flex-col">
+          <div className="h-full flex flex-col relative overflow-hidden">
             {/* New Chat Icon - Only show when messages exist */}
             {messages.length > 0 && (
               <Button
@@ -817,7 +809,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
               </Button>
             )}
             {/* Messages Area - Scrollable */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar chat-messages-area">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar chat-messages-area">
               {messages.length === 0 && !isLoading ? (
                 /* AI Tutor Header - Different content based on mode */
                 <div className="h-full flex items-center justify-center">
@@ -887,7 +879,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
             </div>
 
             {/* Fixed Input Area - Always Visible */}
-            <div className="flex-shrink-0 bg-white dark:bg-gray-900 px-2 py-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex-shrink-0 bg-white dark:bg-gray-900 px-2 py-2 border-t border-gray-200 dark:border-gray-700 relative">
               <div className="relative">
                 <Textarea
                   ref={textareaRef}

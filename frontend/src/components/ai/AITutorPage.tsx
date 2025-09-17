@@ -360,26 +360,25 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
     }
   };
 
-  // Smart scroll behavior - only scroll for user messages, not during streaming
+  // Scroll to bottom only when user sends a message
   useEffect(() => {
-    // Don't auto-scroll if we're currently streaming an AI response
-    if (!isStreaming) {
-      const scrollContainer = document.querySelector('.chat-messages-area');
-      if (scrollContainer && messages.length > 0) {
-        const lastMessage = messages[messages.length - 1];
-        // Only scroll for user messages
-        if (lastMessage.role === 'user') {
-          // Find the last user message element
-          const messageElements = scrollContainer.querySelectorAll('.flex.justify-end');
-          if (messageElements.length > 0) {
-            const lastUserMessageElement = messageElements[messageElements.length - 1] as HTMLElement;
-            // Scroll so the user message appears at the top of the viewport
-            lastUserMessageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      // Only scroll for user messages to show what they just sent
+      if (lastMessage.role === 'user') {
+        const scrollContainer = document.querySelector('.chat-messages-area');
+        if (scrollContainer) {
+          // Scroll to bottom to show the user's message
+          requestAnimationFrame(() => {
+            scrollContainer.scrollTo({
+              top: scrollContainer.scrollHeight,
+              behavior: 'smooth'
+            });
+          });
         }
       }
     }
-  }, [messages, isStreaming]);
+  }, [messages]);
 
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 min-h-0 overflow-hidden">
