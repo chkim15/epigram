@@ -276,7 +276,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   };
 
   // Create a new tutor session
-  const createTutorSession = async (imageUrl: string, initialText: string | null): Promise<string | null> => {
+  const createTutorSession = async (imageUrl: string | null, initialText: string | null): Promise<string | null> => {
     if (!user) return null;
 
     try {
@@ -424,19 +424,24 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
     // For API: provide default text when only image is sent (API needs some text content)
     if (pastedImage && !messageContent) {
-      apiMessageContent = "Guide me through understanding this content using active learning principles";
+      apiMessageContent = "If the image shows a math problem, help me solve it. If not, help me understand the content.";
       messageContent = ""; // Keep display content empty
     }
 
-    // If this is the first message and we have an image, create a session
-    if (!currentSessionId && pastedImage) {
-      const imageUrl = await uploadImageToStorage(pastedImage.url);
-      if (imageUrl) {
-        const newSessionId = await createTutorSession(imageUrl, messageContent || null);
-        if (newSessionId) {
-          currentSessionId = newSessionId;
-          setSessionId(newSessionId);
-        }
+    // If this is the first message, create a session
+    if (!currentSessionId) {
+      let imageUrl: string | null = null;
+
+      // Upload image if present
+      if (pastedImage) {
+        imageUrl = await uploadImageToStorage(pastedImage.url);
+      }
+
+      // Always create a session (with or without image)
+      const newSessionId = await createTutorSession(imageUrl, messageContent || null);
+      if (newSessionId) {
+        currentSessionId = newSessionId;
+        setSessionId(newSessionId);
       }
     }
 

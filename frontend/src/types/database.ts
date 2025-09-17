@@ -192,7 +192,7 @@ export interface Database {
           id: string;
           user_id: string;
           title: string | null;
-          image_url: string;
+          image_url: string | null;
           initial_text: string | null;
           is_bookmarked: boolean;
           created_at: string;

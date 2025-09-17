@@ -159,7 +159,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
           <button
             onClick={() => setActiveTab('all')}
             className={cn(
-              "pb-3 px-1 text-sm font-medium transition-colors cursor-pointer",
+              "pb-3 px-1 text-lg font-medium transition-colors cursor-pointer",
               activeTab === 'all'
                 ? "text-blue-600 border-b-2 border-blue-600"
                 : "text-gray-500 hover:text-gray-700"
@@ -170,7 +170,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
           <button
             onClick={() => setActiveTab('bookmarks')}
             className={cn(
-              "pb-3 px-1 text-sm font-medium transition-colors cursor-pointer",
+              "pb-3 px-1 text-lg font-medium transition-colors cursor-pointer",
               activeTab === 'bookmarks'
                 ? "text-blue-600 border-b-2 border-blue-600"
                 : "text-gray-500 hover:text-gray-700"
@@ -221,11 +221,27 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
                       >
                         {/* Thumbnail */}
                         <div className="relative aspect-[5/3] overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                          <img
-                            src={session.image_url}
-                            alt="Session thumbnail"
-                            className="w-full h-full object-contain bg-white transition-transform group-hover:scale-105"
-                          />
+                          {session.image_url ? (
+                            <img
+                              src={session.image_url}
+                              alt="Session thumbnail"
+                              className="w-full h-full object-contain bg-white transition-transform group-hover:scale-105"
+                            />
+                          ) : (
+                            // Text-only session preview
+                            <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-white transition-transform group-hover:scale-105">
+                              {session.initial_text && (
+                                <p className="text-xs text-center text-gray-700 line-clamp-5 leading-relaxed">
+                                  {session.initial_text}
+                                </p>
+                              )}
+                              {!session.initial_text && (
+                                <p className="text-xs text-center text-gray-700 italic">
+                                  Text conversation
+                                </p>
+                              )}
+                            </div>
+                          )}
 
                           {/* Bookmark Button Overlay - Shows on hover or when bookmarked */}
                           <button
