@@ -22,6 +22,7 @@ interface PastedImage {
 
 export interface AITutorPageRef {
   resetToInitialView: () => void;
+  getHasMessages: () => boolean;
 }
 
 const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
@@ -47,16 +48,20 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
       // Check if there are actual line breaks in the content
       const lineBreaks = (currentValue.match(/\n/g) || []).length;
 
+      // Determine base height based on current view
+      const isInitialView = messages.length === 0;
+      const baseHeight = isInitialView ? 90 : 50;
+
       // Only expand height if there are line breaks
       if (lineBreaks > 0) {
         // Reset to min height to get accurate scrollHeight
-        textarea.style.height = '90px';
+        textarea.style.height = `${baseHeight}px`;
         // Expand based on content with line breaks
-        const newHeight = Math.max(90, Math.min(textarea.scrollHeight, 300));
+        const newHeight = Math.max(baseHeight, Math.min(textarea.scrollHeight, 300));
         textarea.style.height = `${newHeight}px`;
       } else {
-        // Keep single line at base height of 90px - let it scroll horizontally if needed
-        textarea.style.height = '90px';
+        // Keep single line at base height - let it scroll horizontally if needed
+        textarea.style.height = `${baseHeight}px`;
       }
     }
   };
@@ -224,7 +229,8 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
   };
 
   useImperativeHandle(ref, () => ({
-    resetToInitialView
+    resetToInitialView,
+    getHasMessages: () => messages.length > 0
   }));
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -235,7 +241,15 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
   };
 
   const handleSendMessage = async () => {
-    if ((!input.trim() && !pastedImage) || isLoading) return;
+    // For initial view: allow text or image, for chat view: only text
+    const hasMessages = messages.length > 0;
+    if (hasMessages) {
+      // Chat view: only allow text
+      if (!input.trim() || isLoading) return;
+    } else {
+      // Initial view: allow text or image
+      if ((!input.trim() && !pastedImage) || isLoading) return;
+    }
 
     let messageContent = input.trim();
     let apiMessageContent = messageContent;
@@ -542,42 +556,18 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
           <div className="flex-shrink-0 bg-white dark:bg-gray-900">
             <div className="max-w-4xl mx-auto px-4 py-3">
               <div className="relative">
-              {/* Hidden file input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-
-              {/* Drag overlay indicator */}
-              {isDragging && (
-                <div className="absolute inset-0 rounded-3xl border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 z-10 flex items-center justify-center pointer-events-none">
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Drop image here</p>
-                </div>
-              )}
-
               <Textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
-                onDragOver={handleDragOver}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
-                className={cn(
-                  "resize-none w-full pr-20 pb-12 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-lg",
-                  isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
-                  pastedImage ? "pt-20" : "pt-3"
-                )}
+                placeholder="Type your answers or ask follow-up questions"
+                className="resize-none w-full pr-20 pt-3 pb-3 pl-4 rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-lg"
                 style={{
                   outline: 'none',
                   boxShadow: 'none',
-                  height: '90px',
+                  height: '50px',
+                  minHeight: '50px',
                   width: '100%',
                   display: 'block',
                   overflow: 'auto'
@@ -586,42 +576,12 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
                   e.target.style.outline = 'none';
                   e.target.style.boxShadow = 'none';
                 }}
-                rows={2}
+                rows={1}
               />
-
-              {/* Image Preview - Smaller for chat view */}
-              {pastedImage && (
-                <div className="absolute top-3 left-3">
-                  <div className="relative inline-block">
-                    <img
-                      src={pastedImage.url}
-                      alt="Attached image"
-                      className="w-10 h-10 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
-                      style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', maxWidth: '40px', maxHeight: '40px' }}
-                    />
-                    <button
-                      onClick={removeImage}
-                      className="absolute -top-1 -right-1 bg-gray-500 hover:bg-gray-600 text-white rounded-full p-0.5 transition-colors cursor-pointer shadow-sm"
-                      aria-label="Remove image"
-                    >
-                      <X className="h-2 w-2" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Upload button */}
-              <button
-                onClick={triggerFileUpload}
-                className="absolute left-2 bottom-2 h-8 w-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
-                aria-label="Upload image"
-              >
-                <ImagePlus className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              </button>
 
               <Button
                 onClick={handleSendMessage}
-                disabled={(!input.trim() && !pastedImage) || isLoading}
+                disabled={!input.trim() || isLoading}
                 className="absolute right-2 bottom-2 h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
               >
                 <span>SEND</span>

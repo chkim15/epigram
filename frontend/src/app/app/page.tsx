@@ -33,10 +33,27 @@ function AppPageContent() {
   const [sidebarMode, setSidebarMode] = useState<'tutor' | 'practice'>('tutor');
   const [practiceViewMode, setPracticeViewMode] = useState<'problems' | 'create-practice' | 'bookmarks'>('problems');
   const aiTutorRef = useRef<AITutorPageRef>(null);
+  const [hasAITutorMessages, setHasAITutorMessages] = useState(false);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Check AI tutor message status periodically
+  useEffect(() => {
+    const checkMessageStatus = () => {
+      if (viewMode === 'ai-tutor' && aiTutorRef.current) {
+        const hasMessages = aiTutorRef.current.getHasMessages();
+        setHasAITutorMessages(hasMessages);
+      }
+    };
+
+    // Check immediately and then every 500ms
+    checkMessageStatus();
+    const interval = setInterval(checkMessageStatus, 500);
+
+    return () => clearInterval(interval);
+  }, [viewMode]);
 
   // Check if authenticated user has completed onboarding
   useEffect(() => {
@@ -392,7 +409,7 @@ function AppPageContent() {
             contentMode={contentMode}
             onContentModeChange={setContentMode}
             topicDisplay={selectedTopicInfo && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}` : undefined}
-            showNewQuestionButton={viewMode === 'ai-tutor'}
+            showNewQuestionButton={viewMode === 'ai-tutor' && hasAITutorMessages}
             onNewQuestion={() => aiTutorRef.current?.resetToInitialView()}
           />
 
