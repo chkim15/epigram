@@ -416,9 +416,10 @@ function SolutionsTab({
 
 interface ChatSidebarProps {
   mode?: 'problems' | 'handouts';
+  currentTopicId?: number | null;  // Add this to track handout topic
 }
 
-export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
+export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatSidebarProps) {
   // Get current problem from store
   const { currentProblem, currentDocument } = useProblemStore();
   const { user } = useAuthStore();
@@ -432,6 +433,8 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
   const [currentSubproblems, setCurrentSubproblems] = useState<Subproblem[]>([]);
   const [problemSolutions, setProblemSolutions] = useState<Solution[]>([]);
   const [subproblemSolutions, setSubproblemSolutions] = useState<{ [key: string]: Solution[] }>({});
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [messageOrder, setMessageOrder] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   // Auto-activate chat tab when in handouts mode
@@ -558,18 +561,52 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
     }
   }, [messages]);
 
-  const saveUserMessageToDatabase = async (message: string, model?: string) => {
-    if (!user || !currentProblem) return;
+  // Helper function to generate a new session ID
+  const generateSessionId = () => {
+    return crypto.randomUUID ? crypto.randomUUID() :
+           `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  // Save chat message to database
+  const saveChatMessage = async (
+    role: 'user' | 'assistant',
+    content: string,
+    order: number
+  ) => {
+    if (!user) return;
+
+    // Generate session ID if not exists
+    let currentSessionId = sessionId;
+    if (!currentSessionId) {
+      currentSessionId = generateSessionId();
+      setSessionId(currentSessionId);
+    }
+
+    // Determine context type and IDs
+    let contextType: 'problem' | 'handout' | 'general' = 'general';
+    let problemId = null;
+    let topicId = null;
+
+    if (mode === 'problems' && currentProblem) {
+      contextType = 'problem';
+      problemId = currentProblem.id;
+    } else if (mode === 'handouts' && currentTopicId) {
+      contextType = 'handout';
+      topicId = currentTopicId;
+    }
 
     try {
       await supabase
-        .from('user_chat_messages')
+        .from('chat_messages')
         .insert({
           user_id: user.id,
-          problem_id: currentProblem.id,
-          message: message,
-          role: 'user',
-          model: model || null
+          problem_id: problemId,
+          topic_id: topicId,
+          session_id: currentSessionId,
+          role,
+          content,
+          message_order: order,
+          context_type: contextType
         });
     } catch (error) {
       console.error('Failed to save message to database:', error);
@@ -585,7 +622,7 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
       content: input.trim(),
       timestamp: new Date(),
       model: selectedModel,
-      image: pastedImage?.url,
+      image: pastedImage?.url, // Keep base64 for local display
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -594,7 +631,8 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
     setIsLoading(true);
 
     // Save user message to database
-    await saveUserMessageToDatabase(userMessage.content, selectedModel);
+    const currentMessageOrder = messageOrder;
+    await saveChatMessage('user', userMessage.content, currentMessageOrder);
 
     try {
       // Call the real API
@@ -635,27 +673,30 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
           timestamp: new Date(),
           model: selectedModel,
         };
-        
+
         setMessages(prev => [...prev, aiResponse]);
-        
+
+        let fullContent = '';
+
         if (reader) {
           try {
             while (true) {
               const { done, value } = await reader.read();
               if (done) break;
-              
+
               const chunk = decoder.decode(value, { stream: true });
               const lines = chunk.split('\n');
-              
+
               for (const line of lines) {
                 if (line.startsWith('data: ')) {
                   try {
                     const data = JSON.parse(line.substring(6));
                     if (data.content) {
                       // Update the last message with new content
-                      setMessages(prev => 
-                        prev.map((msg, index) => 
-                          index === prev.length - 1 
+                      fullContent += data.content;
+                      setMessages(prev =>
+                        prev.map((msg, index) =>
+                          index === prev.length - 1
                             ? { ...msg, content: msg.content + data.content }
                             : msg
                         )
@@ -674,6 +715,11 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
             }
           } finally {
             reader.releaseLock();
+            // Save the complete assistant response
+            if (fullContent) {
+              await saveChatMessage('assistant', fullContent, currentMessageOrder);
+              setMessageOrder(prev => prev + 1);
+            }
           }
         }
       } else {
@@ -687,8 +733,12 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
           timestamp: new Date(),
           model: selectedModel,
         };
-        
+
         setMessages(prev => [...prev, aiResponse]);
+
+        // Save assistant response to database
+        await saveChatMessage('assistant', aiResponse.content, currentMessageOrder);
+        setMessageOrder(prev => prev + 1);
       }
     } catch (error) {
       console.error('Failed to get AI response:', error);
@@ -802,6 +852,8 @@ export default function ChatSidebar({ mode = 'problems' }: ChatSidebarProps) {
                 onClick={() => {
                   setMessages([]);
                   setInput('');
+                  setSessionId(null);  // Reset session when starting new chat
+                  setMessageOrder(0);
                 }}
                 title="Start new chat"
               >

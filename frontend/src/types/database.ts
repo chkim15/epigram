@@ -103,18 +103,21 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['user_answers']['Row'], 'id' | 'created_at' | 'updated_at' | 'submitted_at'>;
         Update: Partial<Database['public']['Tables']['user_answers']['Insert']>;
       };
-      user_chat_messages: {
+      chat_messages: {
         Row: {
           id: string;
           user_id: string;
-          problem_id: string;
-          message: string;
+          problem_id: string | null;
+          topic_id: number | null;
+          session_id: string | null;
           role: 'user' | 'assistant';
-          model: string | null;
+          content: string;
+          message_order: number | null;
+          context_type: 'problem' | 'handout' | 'general' | null;
           created_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['user_chat_messages']['Row'], 'id' | 'created_at'>;
-        Update: Partial<Database['public']['Tables']['user_chat_messages']['Insert']>;
+        Insert: Omit<Database['public']['Tables']['chat_messages']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['chat_messages']['Insert']>;
       };
       user_problem_progress: {
         Row: {
@@ -195,7 +198,7 @@ export type Subproblem = Database['public']['Tables']['subproblems']['Row'];
 export type Document = Database['public']['Tables']['documents']['Row'];
 export type User = Database['public']['Tables']['users']['Row'];
 export type UserAnswer = Database['public']['Tables']['user_answers']['Row'];
-export type UserChatMessage = Database['public']['Tables']['user_chat_messages']['Row'];
+export type ChatMessage = Database['public']['Tables']['chat_messages']['Row'];
 export type UserProblemProgress = Database['public']['Tables']['user_problem_progress']['Row'];
 export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
 export type UserProfile = Database['public']['Tables']['user_profiles']['Row'];

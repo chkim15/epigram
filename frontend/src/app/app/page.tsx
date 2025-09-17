@@ -439,7 +439,7 @@ function AppPageContent() {
                       />
                     )
                   }
-                  rightPanel={<ChatSidebar mode={contentMode} />}
+                  rightPanel={<ChatSidebar mode={contentMode} currentTopicId={contentMode === 'handouts' ? selectedTopicId : null} />}
                   defaultLeftWidth={contentMode === 'handouts' ? 60 : 50}
                   minLeftWidth={25}
                   maxLeftWidth={75}
