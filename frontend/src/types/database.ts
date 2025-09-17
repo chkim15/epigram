@@ -187,6 +187,33 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['user_notes']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['user_notes']['Insert']>;
       };
+      tutor_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string | null;
+          image_url: string;
+          initial_text: string | null;
+          is_bookmarked: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['tutor_sessions']['Row'], 'id' | 'created_at' | 'updated_at' | 'is_bookmarked'> & { is_bookmarked?: boolean };
+        Update: Partial<Database['public']['Tables']['tutor_sessions']['Insert']>;
+      };
+      tutor_messages: {
+        Row: {
+          id: string;
+          session_id: string;
+          user_id: string;
+          role: 'user' | 'assistant';
+          content: string;
+          message_order: number;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['tutor_messages']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['tutor_messages']['Insert']>;
+      };
     };
   };
 }
@@ -204,3 +231,5 @@ export type UserPreferences = Database['public']['Tables']['user_preferences']['
 export type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 export type Solution = Database['public']['Tables']['solutions']['Row'];
 export type UserNote = Database['public']['Tables']['user_notes']['Row'];
+export type TutorSession = Database['public']['Tables']['tutor_sessions']['Row'];
+export type TutorMessage = Database['public']['Tables']['tutor_messages']['Row'];

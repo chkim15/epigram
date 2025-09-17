@@ -11,6 +11,7 @@ import ResizablePanels from "@/components/ui/resizable-panels";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import AITutorPage, { AITutorPageRef } from "@/components/ai/AITutorPage";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
+import HistoryView from "@/components/history/HistoryView";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Book, FileText } from "lucide-react";
@@ -27,13 +28,14 @@ function AppPageContent() {
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks' | 'ai-tutor'>('ai-tutor');
+  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks' | 'ai-tutor' | 'history'>('ai-tutor');
   const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
   const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
   const [sidebarMode, setSidebarMode] = useState<'tutor' | 'practice'>('tutor');
   const [practiceViewMode, setPracticeViewMode] = useState<'problems' | 'create-practice' | 'bookmarks'>('problems');
   const aiTutorRef = useRef<AITutorPageRef>(null);
   const [hasAITutorMessages, setHasAITutorMessages] = useState(false);
+  const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -76,10 +78,23 @@ function AppPageContent() {
   }, [user, router]);
 
   useEffect(() => {
+    // Check for AI tutor session parameter
+    const sessionId = searchParams.get('session');
+    const mode = searchParams.get('mode');
+
+    if (sessionId && mode === 'ai-tutor') {
+      setViewMode('ai-tutor');
+      setSidebarMode('tutor');
+      // Delay to ensure component is mounted
+      setTimeout(() => {
+        aiTutorRef.current?.restoreSession(sessionId);
+      }, 100);
+    }
+
     // Parse URL parameters for practice mode
     const topics = searchParams.get('topics');
     const difficulties = searchParams.get('difficulties');
-    
+
     if (topics) {
       const topicIds = topics.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id));
       setSelectedTopicIds(topicIds);
@@ -143,7 +158,7 @@ function AppPageContent() {
   const [problemCount, setProblemCount] = useState<number>(10);
   const [savedProblemIds, setSavedProblemIds] = useState<string[]>([]);
 
-  const handleStartPractice = (topicIds: number[], difficulties: string[], source?: string, count?: number, problemIds?: string[]) => {
+  const handleStartPractice = (topicIds: number[], difficulties: string[], _source?: string, count?: number, problemIds?: string[]) => {
     setSelectedTopicIds(topicIds);
     setSelectedDifficulties(difficulties);
     setSelectedTopicId(null);
@@ -258,6 +273,10 @@ function AppPageContent() {
                   handleAITutor();
                   setIsMobileMenuOpen(false);
                 }}
+                onHistory={() => {
+                  setViewMode('history');
+                  setIsMobileMenuOpen(false);
+                }}
                 onStudyCalculus={() => {
                   handleStudyMaterials();
                   setIsMobileMenuOpen(false);
@@ -346,6 +365,7 @@ function AppPageContent() {
               onBookmarks={handleBookmarks}
               onLogoClick={handleLogoClick}
               onAITutor={handleAITutor}
+              onHistory={() => setViewMode('history')}
               onStudyCalculus={handleStudyMaterials}
               mode={sidebarMode}
               activeMenu={viewMode}
@@ -415,7 +435,19 @@ function AppPageContent() {
 
           {/* Content area below header */}
           {viewMode === 'ai-tutor' ? (
-            <AITutorPage ref={aiTutorRef} />
+            <AITutorPage ref={aiTutorRef} initialSessionId={pendingSessionId || undefined} />
+          ) : viewMode === 'history' ? (
+            <HistoryView
+              onOpenSession={(sessionId) => {
+                setPendingSessionId(sessionId);
+                setViewMode('ai-tutor');
+                setSidebarMode('tutor');
+                // Clear pending session after a short delay
+                setTimeout(() => {
+                  setPendingSessionId(null);
+                }, 500);
+              }}
+            />
           ) : viewMode === 'create-practice' ? (
             <CreatePractice
               onStartPractice={handleStartPractice}

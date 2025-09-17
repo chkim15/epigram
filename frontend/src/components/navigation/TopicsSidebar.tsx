@@ -31,13 +31,14 @@ interface TopicsSidebarProps {
   onBookmarks?: () => void;
   onLogoClick?: () => void;
   onAITutor?: () => void;
+  onHistory?: () => void;
   onStudyCalculus?: () => void;
   mode?: 'tutor' | 'practice';
   activeMenu?: string;
 }
 
 
-export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onBookmarks, onLogoClick, onAITutor, onStudyCalculus, mode = 'tutor', activeMenu }: TopicsSidebarProps) {
+export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onBookmarks, onLogoClick, onAITutor, onHistory, onStudyCalculus, mode = 'tutor', activeMenu }: TopicsSidebarProps) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -337,12 +338,17 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                     </Button>
                   </div>
 
-                  {/* History - Placeholder */}
+                  {/* History */}
                   <div className="mb-2">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer opacity-50 cursor-not-allowed text-base"
-                      disabled
+                      className={cn(
+                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl",
+                        activeMenu === 'history'
+                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
+                          : "text-gray-700 dark:text-gray-300"
+                      )}
+                      onClick={onHistory}
                     >
                       <span className="flex-1 text-left">History</span>
                     </Button>

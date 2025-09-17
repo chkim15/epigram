@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send, X, ImagePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MathContent } from "@/lib/utils/katex";
+import { supabase } from "@/lib/supabase/client";
+import { useAuthStore } from "@/stores/authStore";
 
 interface Message {
   id: string;
@@ -23,18 +25,28 @@ interface PastedImage {
 export interface AITutorPageRef {
   resetToInitialView: () => void;
   getHasMessages: () => boolean;
+  restoreSession: (sessionId: string) => void;
 }
 
-const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
+interface AITutorPageProps {
+  initialSessionId?: string;
+}
+
+const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessionId }, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [pastedImage, setPastedImage] = useState<PastedImage | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [messageOrder, setMessageOrder] = useState(0);
+  // Start with loading state if we have an initial session to restore
+  const [isRestoringSession, setIsRestoringSession] = useState(!!initialSessionId);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuthStore();
 
   useEffect(() => {
     adjustTextareaHeight();
@@ -226,12 +238,167 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
     setPastedImage(null);
     setIsLoading(false);
     setIsStreaming(false);
+    setSessionId(null);
+    setMessageOrder(0);
+  };
+
+  // Upload image to Supabase Storage
+  const uploadImageToStorage = async (imageDataUrl: string): Promise<string | null> => {
+    if (!user) return null;
+
+    try {
+      // Convert base64 to blob
+      const response = await fetch(imageDataUrl);
+      const blob = await response.blob();
+
+      // Generate unique file name
+      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+
+      // Upload to Supabase Storage
+      const { error } = await supabase.storage
+        .from('tutor-images')
+        .upload(fileName, blob, {
+          contentType: 'image/jpeg'
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('tutor-images')
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      return null;
+    }
+  };
+
+  // Create a new tutor session
+  const createTutorSession = async (imageUrl: string, initialText: string | null): Promise<string | null> => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('tutor_sessions')
+        .insert({
+          user_id: user.id,
+          image_url: imageUrl,
+          initial_text: initialText,
+          title: initialText || 'New tutoring session'
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      return data.id;
+    } catch (error) {
+      console.error('Failed to create tutor session:', error);
+      return null;
+    }
+  };
+
+  // Save message to tutor_messages table
+  const saveTutorMessage = async (
+    role: 'user' | 'assistant',
+    content: string,
+    sessionId: string
+  ) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('tutor_messages')
+        .insert({
+          session_id: sessionId,
+          user_id: user.id,
+          role,
+          content,
+          message_order: messageOrder
+        });
+
+      setMessageOrder(prev => prev + 1);
+    } catch (error) {
+      console.error('Failed to save tutor message:', error);
+    }
+  };
+
+  const restoreSession = async (sessionIdToRestore: string) => {
+    try {
+      // Fetch session details
+      const { data: session, error: sessionError } = await supabase
+        .from('tutor_sessions')
+        .select('*')
+        .eq('id', sessionIdToRestore)
+        .single();
+
+      if (sessionError) throw sessionError;
+      if (!session) return;
+
+      // Set session ID
+      setSessionId(sessionIdToRestore);
+
+      // Fetch messages for this session
+      const { data: tutorMessages, error: messagesError } = await supabase
+        .from('tutor_messages')
+        .select('*')
+        .eq('session_id', sessionIdToRestore)
+        .order('message_order', { ascending: true });
+
+      if (messagesError) throw messagesError;
+
+      // Convert to Message format and include the initial image
+      const restoredMessages: Message[] = [];
+
+      // Add initial message with image if available
+      if (session.image_url) {
+        restoredMessages.push({
+          id: `initial-${sessionIdToRestore}`,
+          role: 'user',
+          content: session.initial_text || '',
+          timestamp: new Date(session.created_at),
+          image: session.image_url
+        });
+      }
+
+      // Add the rest of the messages
+      if (tutorMessages) {
+        tutorMessages.forEach(msg => {
+          restoredMessages.push({
+            id: msg.id,
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+            timestamp: new Date(msg.created_at)
+          });
+        });
+      }
+
+      setMessages(restoredMessages);
+
+      // Set the message order to continue from where we left off
+      const maxOrder = tutorMessages?.reduce((max, msg) =>
+        Math.max(max, msg.message_order || 0), 0) || 0;
+      setMessageOrder(maxOrder + 1);
+    } catch (error) {
+      console.error('Error restoring session:', error);
+    }
   };
 
   useImperativeHandle(ref, () => ({
     resetToInitialView,
-    getHasMessages: () => messages.length > 0
+    getHasMessages: () => messages.length > 0,
+    restoreSession
   }));
+
+  // Restore session if initialSessionId is provided
+  useEffect(() => {
+    if (initialSessionId) {
+      restoreSession(initialSessionId).finally(() => {
+        setIsRestoringSession(false);
+      });
+    }
+  }, [initialSessionId]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -253,11 +420,24 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
 
     let messageContent = input.trim();
     let apiMessageContent = messageContent;
+    let currentSessionId = sessionId;
 
     // For API: provide default text when only image is sent (API needs some text content)
     if (pastedImage && !messageContent) {
       apiMessageContent = "Guide me through understanding this content using active learning principles";
       messageContent = ""; // Keep display content empty
+    }
+
+    // If this is the first message and we have an image, create a session
+    if (!currentSessionId && pastedImage) {
+      const imageUrl = await uploadImageToStorage(pastedImage.url);
+      if (imageUrl) {
+        const newSessionId = await createTutorSession(imageUrl, messageContent || null);
+        if (newSessionId) {
+          currentSessionId = newSessionId;
+          setSessionId(newSessionId);
+        }
+      }
     }
 
     const userMessage: Message = {
@@ -272,6 +452,11 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
     setInput('');
     setPastedImage(null);
     setIsLoading(true);
+
+    // Save user message if we have a session
+    if (currentSessionId && messageContent) {
+      await saveTutorMessage('user', messageContent, currentSessionId);
+    }
 
     try {
       const response = await fetch('/api/chat', {
@@ -302,33 +487,36 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
         const decoder = new TextDecoder();
         
         setIsStreaming(true);
-        
+
         const aiResponse: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: '',
           timestamp: new Date(),
         };
-        
+
         setMessages(prev => [...prev, aiResponse]);
-        
+
+        let fullContent = '';
+
         if (reader) {
           try {
             while (true) {
               const { done, value } = await reader.read();
               if (done) break;
-              
+
               const chunk = decoder.decode(value, { stream: true });
               const lines = chunk.split('\n');
-              
+
               for (const line of lines) {
                 if (line.startsWith('data: ')) {
                   try {
                     const data = JSON.parse(line.substring(6));
                     if (data.content) {
-                      setMessages(prev => 
-                        prev.map((msg, index) => 
-                          index === prev.length - 1 
+                      fullContent += data.content;
+                      setMessages(prev =>
+                        prev.map((msg, index) =>
+                          index === prev.length - 1
                             ? { ...msg, content: msg.content + data.content }
                             : msg
                         )
@@ -347,6 +535,10 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
             }
           } finally {
             reader.releaseLock();
+            // Save assistant message if we have a session
+            if (currentSessionId && fullContent) {
+              await saveTutorMessage('assistant', fullContent, currentSessionId);
+            }
           }
         }
       } else {
@@ -358,6 +550,11 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, aiResponse]);
+
+        // Save assistant message if we have a session
+        if (currentSessionId && aiResponse.content) {
+          await saveTutorMessage('assistant', aiResponse.content, currentSessionId);
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -393,6 +590,17 @@ const AITutorPage = forwardRef<AITutorPageRef>((_, ref) => {
       }
     }
   }, [messages]);
+
+  // Show loading state while restoring session
+  if (isRestoringSession) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 min-h-0 overflow-hidden">
