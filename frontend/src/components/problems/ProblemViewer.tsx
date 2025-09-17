@@ -16,7 +16,7 @@ import {
   Calculator,
   Lightbulb,
   ChevronDown,
-  Star,
+  Bookmark,
   Check 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -229,7 +229,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
           }
         }
       } else if (selectedTopicId) {
-        // Single topic selection from sidebar
+        // Single topic selection from sidebar - show 3 random problems
         const result = await supabase
           .from('problems')
           .select(`
@@ -239,19 +239,28 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             problem_topics!inner(topic_id)
           `)
           .eq('included', true)
-          .eq('problem_topics.topic_id', selectedTopicId)
-          .order('document_id')
-          .order('problem_id');
-        
+          .eq('problem_topics.topic_id', selectedTopicId);
+
         problemsData = result.data;
         problemsError = result.error;
-        
-        // Clean up the data structure - remove the problem_topics array from each problem
+
+        // Clean up the data structure and randomize
         if (problemsData) {
-          problemsData = problemsData.map((problem: Problem & { problem_topics?: unknown }) => {
+          // Remove the problem_topics array from each problem
+          const cleanedProblems = problemsData.map((problem: Problem & { problem_topics?: unknown }) => {
             const { problem_topics: _, ...cleanProblem } = problem;
             return cleanProblem;
           });
+
+          // Randomize the problems using Fisher-Yates shuffle
+          const shuffled = [...cleanedProblems];
+          for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+          }
+
+          // Limit to 3 problems (or less if there are fewer than 3)
+          problemsData = shuffled.slice(0, Math.min(3, shuffled.length));
         }
       } else {
         // Fetch ALL problems when no topic is selected
@@ -667,7 +676,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               <div className="text-center">
                 {viewMode === 'bookmarks' ? (
                   <>
-                    <Star className="mx-auto h-12 w-12 text-gray-400" />
+                    <Bookmark className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
                       No Bookmarked Problems
                     </h3>
@@ -718,16 +727,6 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <span>Problem {currentProblemIndex + 1}</span>
-                    {currentProblem.difficulty && (
-                      <span className={cn(
-                        "px-2 py-1 text-xs font-medium rounded",
-                        currentProblem.difficulty === 'easy' && "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
-                        currentProblem.difficulty === 'medium' && "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-                        currentProblem.difficulty === 'hard' && "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400"
-                      )}>
-                        {currentProblem.difficulty}
-                      </span>
-                    )}
                     <div className="ml-auto flex items-center gap-2">
                       <div className="relative inline-block group">
                         <Button
@@ -775,7 +774,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           )}
                           style={{ pointerEvents: user && !bookmarkLoading ? 'auto' : 'none' }}
                         >
-                          <Star className={cn(
+                          <Bookmark className={cn(
                             "!h-6 !w-6",
                             isBookmarked && "fill-current"
                           )} />

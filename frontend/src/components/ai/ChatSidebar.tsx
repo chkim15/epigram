@@ -476,6 +476,13 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
 
   // Fetch solutions when current problem changes
   useEffect(() => {
+    // Reset chat when problem changes
+    setMessages([]);
+    setSessionId(null);
+    setMessageOrder(0);
+    setInput('');
+    setPastedImage(null);
+
     const fetchSolutions = async () => {
       if (!currentProblem) {
         setProblemSolutions([]);
