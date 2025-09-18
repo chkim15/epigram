@@ -428,7 +428,11 @@ function AppPageContent() {
             showModeToggle={selectedTopicId !== null && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' && selectedTopicInfo?.main_topic !== 'Quick References'}
             contentMode={contentMode}
             onContentModeChange={setContentMode}
-            topicDisplay={selectedTopicInfo && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}` : undefined}
+            topicDisplay={
+              selectedTopicInfo && viewMode !== 'create-practice' && viewMode !== 'ai-tutor'
+                ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}`
+                : undefined
+            }
             showNewQuestionButton={viewMode === 'ai-tutor' && hasAITutorMessages}
             onNewQuestion={() => aiTutorRef.current?.resetToInitialView()}
           />

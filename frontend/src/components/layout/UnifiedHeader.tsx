@@ -15,6 +15,7 @@ interface UnifiedHeaderProps {
   topicDisplay?: string;
   showNewQuestionButton?: boolean;
   onNewQuestion?: () => void;
+  centerTitle?: string;
 }
 
 export default function UnifiedHeader({
@@ -27,7 +28,8 @@ export default function UnifiedHeader({
   onContentModeChange,
   topicDisplay,
   showNewQuestionButton = false,
-  onNewQuestion
+  onNewQuestion,
+  centerTitle
 }: UnifiedHeaderProps) {
   return (
     <div className={cn(
@@ -73,6 +75,15 @@ export default function UnifiedHeader({
         )}
       </div>
       
+      {/* Center Title - Displayed when provided */}
+      {centerTitle && !showModeToggle && (
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            {centerTitle}
+          </h1>
+        </div>
+      )}
+
       {/* Mode Toggle - Fixed center position */}
       {showModeToggle && onContentModeChange && (
         <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
