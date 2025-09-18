@@ -18,6 +18,17 @@
   border-color: rgb(55 65 81) !important; /* gray-700 */
 }
 
+/* Placeholder for contentEditable */
+div[contenteditable]:empty:before {
+  content: attr(data-placeholder);
+  color: rgb(107 114 128); /* gray-500 */
+  pointer-events: none;
+}
+
+.dark div[contenteditable]:empty:before {
+  color: rgb(107 114 128); /* gray-500 in dark mode */
+}
+
 /* Math field styles for inline equations in notes */
 math-field {
   display: inline-block;

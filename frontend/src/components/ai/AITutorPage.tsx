@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, X, ImagePlus, Lightbulb, Sparkles } from "lucide-react";
+import { Send, X, ImagePlus, Lightbulb, Sparkles, Sigma } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
@@ -43,7 +43,9 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   const [messageOrder, setMessageOrder] = useState(0);
   // Start with loading state if we have an initial session to restore
   const [isRestoringSession, setIsRestoringSession] = useState(!!initialSessionId);
+  const [isEditingMath, setIsEditingMath] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const contentEditableRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
@@ -51,6 +53,23 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   useEffect(() => {
     adjustTextareaHeight();
   }, [input]);
+
+  // Import MathLive when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('mathlive').then(({ MathfieldElement }) => {
+        if (!customElements.get('math-field')) {
+          try {
+            customElements.define('math-field', MathfieldElement);
+          } catch (err) {
+            console.warn('MathLive already registered:', err);
+          }
+        }
+      }).catch(err => {
+        console.error('Failed to load MathLive:', err);
+      });
+    }
+  }, []);
 
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
@@ -232,6 +251,135 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
     setPastedImage(null);
   };
 
+  // Insert math field at cursor position in contentEditable
+  const insertMathField = () => {
+    if (!contentEditableRef.current) return;
+
+    // Clean up any empty math fields first
+    const existingMathFields = contentEditableRef.current.querySelectorAll('math-field');
+    existingMathFields.forEach(field => {
+      if (!field.getAttribute('value')) {
+        field.remove();
+      }
+    });
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      // If no selection, focus the contentEditable and place cursor at end
+      contentEditableRef.current.focus();
+      const range = document.createRange();
+      range.selectNodeContents(contentEditableRef.current);
+      range.collapse(false);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      return insertMathField(); // Retry with the new selection
+    }
+
+    const range = selection.getRangeAt(0);
+
+    // Check if the selection is within the contentEditable area
+    if (!contentEditableRef.current.contains(range.commonAncestorContainer)) {
+      // Focus the contentEditable and place cursor at end
+      contentEditableRef.current.focus();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(contentEditableRef.current);
+      newRange.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(newRange);
+      return insertMathField(); // Retry with the new selection
+    }
+
+    // Create a new math-field element
+    const mathField = document.createElement('math-field');
+    const uniqueId = Date.now();
+    mathField.setAttribute('data-index', uniqueId.toString());
+    mathField.style.display = 'inline-block';
+    mathField.style.fontSize = 'inherit';
+    mathField.setAttribute('value', '');
+
+    // Insert at cursor position
+    range.deleteContents();
+    range.insertNode(mathField);
+
+    // Add a space after the math field for better cursor placement
+    const spaceAfter = document.createTextNode('\u00A0'); // Non-breaking space
+    mathField.parentNode?.insertBefore(spaceAfter, mathField.nextSibling);
+
+    // Setup event listener for the math field
+    setupSingleMathField(mathField);
+
+    // Focus the math field for editing
+    setTimeout(() => {
+      mathField.focus();
+      setIsEditingMath(true);
+    }, 0);
+  };
+
+  // Setup event listeners for a single math field
+  const setupSingleMathField = (mathField: HTMLElement) => {
+    mathField.addEventListener('focusout', () => {
+      setIsEditingMath(false);
+      // Get the actual value from the math field
+      const mathFieldElement = mathField as any;
+      const value = mathFieldElement.value || mathFieldElement.getValue?.() || '';
+
+      // Only remove if truly empty
+      if (!value || value.trim() === '') {
+        mathField.remove();
+      }
+    });
+
+    mathField.addEventListener('focusin', () => {
+      setIsEditingMath(true);
+    });
+
+    // Listen for input changes to update the value attribute
+    mathField.addEventListener('input', () => {
+      const mathFieldElement = mathField as any;
+      const value = mathFieldElement.value || mathFieldElement.getValue?.() || '';
+      mathField.setAttribute('value', value);
+    });
+  };
+
+  // Convert content editable HTML to storage format with LaTeX
+  const htmlToStorage = (html: string): string => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+
+    let result = '';
+    const processNode = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        result += node.textContent || '';
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as HTMLElement;
+        const tagName = element.tagName.toLowerCase();
+
+        if (tagName === 'math-field') {
+          const mathFieldElement = element as any;
+          const latex = mathFieldElement.value || mathFieldElement.getValue?.() || element.getAttribute('value') || element.textContent || '';
+          result += `$$${latex}$$`;
+        } else if (tagName === 'br') {
+          result += '\n';
+        } else if (tagName === 'div' || tagName === 'p') {
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+          result += '\n';
+        } else {
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+        }
+      }
+    };
+
+    for (const child of Array.from(tempDiv.childNodes)) {
+      processNode(child);
+    }
+
+    return result.trim();
+  };
+
   const resetToInitialView = () => {
     setMessages([]);
     setInput('');
@@ -410,15 +558,23 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   const handleSendMessage = async () => {
     // For initial view: allow text or image, for chat view: only text
     const hasMessages = messages.length > 0;
-    if (hasMessages) {
-      // Chat view: only allow text
-      if (!input.trim() || isLoading) return;
+
+    // Get content from contentEditable for initial view
+    let messageContent = '';
+    if (!hasMessages && contentEditableRef.current) {
+      messageContent = htmlToStorage(contentEditableRef.current.innerHTML);
     } else {
-      // Initial view: allow text or image
-      if ((!input.trim() && !pastedImage) || isLoading) return;
+      messageContent = input.trim();
     }
 
-    let messageContent = input.trim();
+    if (hasMessages) {
+      // Chat view: only allow text
+      if (!messageContent || isLoading) return;
+    } else {
+      // Initial view: allow text or image
+      if ((!messageContent && !pastedImage) || isLoading) return;
+    }
+
     let apiMessageContent = messageContent;
     let currentSessionId = sessionId;
 
@@ -455,6 +611,10 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    // Clear the contentEditable for initial view
+    if (!hasMessages && contentEditableRef.current) {
+      contentEditableRef.current.innerHTML = '';
+    }
     setPastedImage(null);
     setIsLoading(true);
 
@@ -640,19 +800,28 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 </div>
               )}
 
-              <Textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
+              <div
+                ref={contentEditableRef}
+                contentEditable
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && !isEditingMath) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
                 onPaste={handlePaste}
                 onDragOver={handleDragOver}
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
+                onInput={() => {
+                  if (!isEditingMath) {
+                    const content = contentEditableRef.current?.innerHTML || '';
+                    setInput(htmlToStorage(content));
+                  }
+                }}
                 className={cn(
-                  "resize-none w-full pr-24 pb-16 pl-6 rounded-3xl border bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-xl",
+                  "resize-none w-full pr-24 pb-16 pl-6 rounded-3xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-xl",
                   isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
                   pastedImage ? "pt-[170px]" : "pt-6"
                 )}
@@ -667,6 +836,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   overflow: 'auto',
                   fontSize: '20px'
                 }}
+                data-placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
               />
 
               {/* Image Preview - Large */}
@@ -698,9 +868,19 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 <ImagePlus className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
 
+              {/* Math input button */}
+              <button
+                onClick={insertMathField}
+                className="absolute left-14 bottom-4 h-8 w-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
+                aria-label="Insert math equation"
+                title="Insert Math Equation"
+              >
+                <Sigma className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              </button>
+
               <Button
                 onClick={handleSendMessage}
-                disabled={(!input.trim() && !pastedImage) || isLoading}
+                disabled={(!input && !pastedImage) || isLoading}
                 className="absolute right-4 bottom-4 h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
               >
                 <span>SEND</span>
