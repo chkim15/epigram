@@ -793,99 +793,118 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 className="hidden"
               />
 
-              {/* Drag overlay indicator */}
-              {isDragging && (
-                <div className="absolute inset-0 rounded-3xl border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 z-10 flex items-center justify-center pointer-events-none">
-                  <p className="text-lg font-medium text-blue-600 dark:text-blue-400">Drop image here</p>
-                </div>
-              )}
+              {/* Input wrapper with constrained height */}
+              <div className={cn(
+                     "relative rounded-3xl border bg-white dark:bg-gray-800 overflow-hidden",
+                     "border-gray-200 dark:border-gray-700",
+                     isDragging && "border-blue-500"
+                   )}>
 
-              <div
-                ref={contentEditableRef}
-                contentEditable
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && !isEditingMath) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                onPaste={handlePaste}
-                onDragOver={handleDragOver}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onInput={() => {
-                  if (!isEditingMath) {
-                    const content = contentEditableRef.current?.innerHTML || '';
-                    setInput(htmlToStorage(content));
-                  }
-                }}
-                className={cn(
-                  "resize-none w-full pr-24 pb-16 pl-6 rounded-3xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-xl",
-                  isDragging ? "border-blue-500" : "border-gray-200 dark:border-gray-700",
-                  pastedImage ? "pt-[170px]" : "pt-6"
-                )}
-                style={{
-                  outline: 'none',
-                  boxShadow: 'none',
-                  height: pastedImage ? '300px' : '200px',
-                  minHeight: pastedImage ? '300px' : '200px',
-                  maxHeight: '600px',
-                  width: '100%',
-                  display: 'block',
-                  overflow: 'auto',
-                  fontSize: '20px'
-                }}
-                data-placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
-              />
-
-              {/* Image Preview - Large */}
-              {pastedImage && (
-                <div className="absolute top-3 left-3 right-3">
-                  <div className="relative inline-block">
-                    <img
-                      src={pastedImage.url}
-                      alt="Attached image"
-                      className="max-w-[400px] max-h-[150px] rounded-lg object-contain border border-gray-300 dark:border-gray-600"
-                    />
-                    <button
-                      onClick={removeImage}
-                      className="absolute -top-1 -right-1 bg-gray-500 hover:bg-gray-600 text-white rounded-full p-0.5 transition-colors cursor-pointer shadow-sm"
-                      aria-label="Remove image"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                {/* Drag overlay indicator */}
+                {isDragging && (
+                  <div className="absolute inset-0 border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 z-10 flex items-center justify-center pointer-events-none rounded-3xl">
+                    <p className="text-lg font-medium text-blue-600 dark:text-blue-400">Drop image here</p>
                   </div>
+                )}
+
+                {/* ContentEditable area with max height to stop before buttons */}
+                <div
+                  ref={contentEditableRef}
+                  contentEditable
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey && !isEditingMath) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  onPaste={handlePaste}
+                  onDragOver={handleDragOver}
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onInput={() => {
+                    if (!isEditingMath) {
+                      const content = contentEditableRef.current?.innerHTML || '';
+                      setInput(htmlToStorage(content));
+                    }
+                  }}
+                  className={cn(
+                    "resize-none w-full pr-24 pl-6 text-gray-900 dark:text-gray-100 text-xl ai-tutor-input",
+                    pastedImage ? "pt-[170px]" : "pt-6"
+                  )}
+                  style={{
+                    outline: 'none',
+                    boxShadow: 'none',
+                    height: pastedImage ? '240px' : '140px',  // Reduced height to leave room for buttons
+                    maxHeight: pastedImage ? '240px' : '140px',
+                    width: '100%',
+                    display: 'block',
+                    overflow: 'auto',
+                    fontSize: '20px',
+                    paddingBottom: '24px'
+                  }}
+                  data-placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
+                />
+
+                {/* Image Preview - Large */}
+                {pastedImage && (
+                  <div className="absolute top-3 left-3 right-3">
+                    <div className="relative inline-block">
+                      <img
+                        src={pastedImage.url}
+                        alt="Attached image"
+                        className="max-w-[400px] max-h-[150px] rounded-lg object-contain border border-gray-300 dark:border-gray-600"
+                      />
+                      <button
+                        onClick={removeImage}
+                        className="absolute -top-1 -right-1 bg-gray-500 hover:bg-gray-600 text-white rounded-full p-0.5 transition-colors cursor-pointer shadow-sm"
+                        aria-label="Remove image"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bottom button row - no separator, no background */}
+                <div className="relative h-14 flex items-center px-4">
+                  {/* Upload button */}
+                  <button
+                    onClick={triggerFileUpload}
+                    className="h-8 w-16 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group mr-2 relative"
+                    aria-label="Upload image"
+                  >
+                    <ImagePlus className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={1.5} />
+                    {/* Tooltip */}
+                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
+                      Image
+                    </div>
+                  </button>
+
+                  {/* Math input button */}
+                  <button
+                    onClick={insertMathField}
+                    className="h-8 w-16 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group relative"
+                    aria-label="Insert math equation"
+                  >
+                    <Sigma className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={1.5} />
+                    {/* Tooltip */}
+                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
+                      Math Input
+                    </div>
+                  </button>
+
+                  {/* Send button */}
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={(!input && !pastedImage) || isLoading}
+                    className="ml-auto h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
+                  >
+                    <span>SEND</span>
+                    <Send className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-              )}
-
-              {/* Upload button */}
-              <button
-                onClick={triggerFileUpload}
-                className="absolute left-4 bottom-4 h-8 w-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
-                aria-label="Upload image"
-              >
-                <ImagePlus className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              </button>
-
-              {/* Math input button */}
-              <button
-                onClick={insertMathField}
-                className="absolute left-14 bottom-4 h-8 w-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center"
-                aria-label="Insert math equation"
-                title="Insert Math Equation"
-              >
-                <Sigma className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              </button>
-
-              <Button
-                onClick={handleSendMessage}
-                disabled={(!input && !pastedImage) || isLoading}
-                className="absolute right-4 bottom-4 h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
-              >
-                <span>SEND</span>
-                <Send className="h-3.5 w-3.5" />
-              </Button>
+              </div>
             </div>
 
             {/* Instructional text */}
@@ -896,8 +915,8 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
             </div>
 
             {/* Usage Tips */}
-            <div className="max-w-3xl mx-auto mt-8 space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center justify-center gap-2">
+            <div className="max-w-3xl mt-8 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-yellow-500" />
                 Usage Tips
               </h3>

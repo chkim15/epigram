@@ -29,6 +29,18 @@ div[contenteditable]:empty:before {
   color: rgb(107 114 128); /* gray-500 in dark mode */
 }
 
+/* Specific placeholder for AI Tutor input */
+.ai-tutor-input:empty:before {
+  content: attr(data-placeholder);
+  color: rgb(107 114 128); /* gray-500 */
+  pointer-events: none;
+  display: block;
+}
+
+.dark .ai-tutor-input:empty:before {
+  color: rgb(107 114 128); /* gray-500 in dark mode */
+}
+
 /* Math field styles for inline equations in notes */
 math-field {
   display: inline-block;
