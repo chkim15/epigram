@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, X, ImagePlus } from "lucide-react";
+import { Send, X, ImagePlus, Lightbulb, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
@@ -610,9 +610,9 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 min-h-0 overflow-hidden">
       {messages.length === 0 ? (
-        // Initial view with fixed positioning
-        <div className="flex-1 flex flex-col">
-          <div className="w-full max-w-7xl flex flex-col items-center px-8 mx-auto" style={{ paddingTop: '15vh' }}>
+        // Initial view with scrollable content
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="w-full max-w-7xl flex flex-col items-center px-8 mx-auto pb-8" style={{ paddingTop: '2rem' }}>
             {/* Large Header */}
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center gap-4">
@@ -713,6 +713,42 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
               Send one question at a time for optimal result<br />
               ⌘ + control + Shift + 4 to take a screenshot<br />
               ⌘ + V to paste image
+            </div>
+
+            {/* Usage Tips */}
+            <div className="max-w-3xl mx-auto mt-8 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center justify-center gap-2">
+                <Sparkles className="h-5 w-5 text-yellow-500" />
+                Usage Tips
+              </h3>
+
+              <div className="space-y-3">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-blue-500" />
+                    Active Learning Focus
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    This LLM is designed to support active learning. It won&apos;t immediately give full solutions. Instead, it will guide you with hints and prompting questions so you can work through the steps yourself.
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                    <Send className="h-4 w-4 text-green-500" />
+                    Requesting Full Solutions
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
+                    If you already understand the core idea of a problem and don&apos;t want to go through all the algebra, you can directly ask for the complete solution.
+                  </p>
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl p-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">Example input:</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                      &quot;I already understand the main idea of this problem. Please provide the complete step-by-step solution.&quot;
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           </div>
