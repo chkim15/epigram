@@ -699,7 +699,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                 <div className="flex items-center gap-3 mb-8">
                   <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-10 h-10 dark:invert" />
                   <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
-                    Epigram's Study Tips
+                    Epigram&apos;s Study Tips
                   </h2>
                 </div>
                 <div className="space-y-4">

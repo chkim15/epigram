@@ -22,6 +22,11 @@ interface PastedImage {
   name: string;
 }
 
+interface MathFieldElement extends HTMLElement {
+  value?: string;
+  getValue?: () => string;
+}
+
 export interface AITutorPageRef {
   resetToInitialView: () => void;
   getHasMessages: () => boolean;
@@ -320,7 +325,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
     mathField.addEventListener('focusout', () => {
       setIsEditingMath(false);
       // Get the actual value from the math field
-      const mathFieldElement = mathField as any;
+      const mathFieldElement = mathField as MathFieldElement;
       const value = mathFieldElement.value || mathFieldElement.getValue?.() || '';
 
       // Only remove if truly empty
@@ -335,7 +340,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
     // Listen for input changes to update the value attribute
     mathField.addEventListener('input', () => {
-      const mathFieldElement = mathField as any;
+      const mathFieldElement = mathField as MathFieldElement;
       const value = mathFieldElement.value || mathFieldElement.getValue?.() || '';
       mathField.setAttribute('value', value);
     });
@@ -355,7 +360,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
         const tagName = element.tagName.toLowerCase();
 
         if (tagName === 'math-field') {
-          const mathFieldElement = element as any;
+          const mathFieldElement = element as MathFieldElement;
           const latex = mathFieldElement.value || mathFieldElement.getValue?.() || element.getAttribute('value') || element.textContent || '';
           result += `$$${latex}$$`;
         } else if (tagName === 'br') {
@@ -922,7 +927,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
               </h3>
 
               <div className="space-y-3">
-                <div className="rounded-2xl p-4">
+                <div className="rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
                   <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
                     <Lightbulb className="h-4 w-4 text-blue-500" />
                     Active Learning Focus
@@ -932,7 +937,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   </p>
                 </div>
 
-                <div className="rounded-2xl p-4">
+                <div className="rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
                   <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
                     <Send className="h-4 w-4 text-green-500" />
                     Requesting Full Solutions
