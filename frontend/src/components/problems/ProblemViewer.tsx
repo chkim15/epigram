@@ -252,8 +252,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             return cleanProblem;
           });
 
+          // Filter out hard and very hard difficulty problems (only keep easy and medium)
+          const filteredProblems = cleanedProblems.filter((problem: Problem) =>
+            problem.difficulty === 'easy' || problem.difficulty === 'medium' || !problem.difficulty
+          );
+
           // Randomize the problems using Fisher-Yates shuffle
-          const shuffled = [...cleanedProblems];
+          const shuffled = [...filteredProblems];
           for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -825,7 +830,6 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   {problemHints['main'] && problemHints['main'].length > 0 && subproblems.length === 0 && (
                     <div className="mb-4">
                       {problemHints['main'].map((hint, index) => {
-                        const hintKey = `main_hint_${index}`;
                         const isRevealed = (revealedHints['main'] || 0) > index;
                         const canReveal = index === 0 || (revealedHints['main'] || 0) >= index;
                         
