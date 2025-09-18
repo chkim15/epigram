@@ -681,7 +681,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     return (
       <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
         <div className="rounded-2xl overflow-hidden flex h-full flex-col">
-          <div className="flex-1 overflow-y-auto min-h-0 bg-gray-50 dark:bg-gray-800 p-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-gray-900 p-3 custom-scrollbar">
             {viewMode === 'bookmarks' ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
@@ -695,55 +695,58 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                 </div>
               </div>
             ) : selectedTopicId === null ? (
-              <div className="max-w-5xl mx-auto p-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                  Study Tips
-                </h2>
+              <div className="max-w-5xl mx-auto px-6 pt-1.5 pb-6">
+                <div className="flex items-center gap-3 mb-8">
+                  <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-10 h-10 dark:invert" />
+                  <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                    Epigram's Study Tips
+                  </h2>
+                </div>
                 <div className="space-y-4">
-                  <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <Brain className="h-5 w-5 text-blue-500" />
-                      Work first, check later
+                      Work First, Check Later
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
                       Always attempt each problem on your own before looking at hints or solutions. Push your thinking as far as possible so you truly engage your brain.
                     </p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <FileText className="h-5 w-5 text-green-500" />
-                      Use handouts strategically
+                      Use Handouts Strategically
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
                       If you&apos;re unsure about the concepts, consult the handouts while solving problems. They&apos;re placed side-by-side for quick reference.
                     </p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <AlertCircle className="h-5 w-5 text-yellow-500" />
-                      Learn from mistakes
+                      Learn From Mistakes
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
                       When you get a problem wrong, bookmark it and explicitly write down what step or idea you missed. Then use handouts, textbooks, or AI support to figure out why you made the mistake and how to avoid it next time.
                     </p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <Shuffle className="h-5 w-5 text-purple-500" />
-                      Value multiple approaches
+                      Value Multiple Approaches
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
                       Pay close attention to problems that have more than one solution. These problems reveal important connections between different ideas and techniques.
                     </p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <Target className="h-5 w-5 text-red-500" />
-                      Practice with focus
+                      Practice With Focus
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
                       Set aside dedicated time for concentrated practice. Avoid distractions so you can work deeply and retain more.

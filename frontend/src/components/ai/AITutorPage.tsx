@@ -922,7 +922,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
               </h3>
 
               <div className="space-y-3">
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
+                <div className="rounded-2xl p-4">
                   <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
                     <Lightbulb className="h-4 w-4 text-blue-500" />
                     Active Learning Focus
@@ -932,7 +932,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   </p>
                 </div>
 
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
+                <div className="rounded-2xl p-4">
                   <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
                     <Send className="h-4 w-4 text-green-500" />
                     Requesting Full Solutions
@@ -940,7 +940,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
                     If you already understand the core idea of a problem and don&apos;t want to go through all the algebra, you can directly ask for the complete solution.
                   </p>
-                  <div className="bg-white dark:bg-gray-900 rounded-2xl p-2">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-2">
                     <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">Example input:</p>
                     <p className="text-sm text-gray-700 dark:text-gray-300 italic">
                       &quot;I already understand the main idea of this problem. Please provide the complete step-by-step solution.&quot;
