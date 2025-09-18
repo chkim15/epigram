@@ -831,7 +831,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
               {/* Input wrapper with constrained height */}
               <div className={cn(
                      "relative rounded-3xl border bg-white dark:bg-gray-800 overflow-hidden",
-                     "border-gray-200 dark:border-gray-700",
+                     "border-gray-300 dark:border-gray-700",
                      isDragging && "border-blue-500"
                    )}>
 
@@ -906,10 +906,10 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   {/* Upload button */}
                   <button
                     onClick={triggerFileUpload}
-                    className="h-8 w-16 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group mr-2 relative"
+                    className="h-8 w-16 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group mr-2 relative"
                     aria-label="Upload image"
                   >
-                    <ImagePlus className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={1.5} />
+                    <ImagePlus className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={2} />
                     {/* Tooltip */}
                     <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                       Image
@@ -919,10 +919,10 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   {/* Math input button */}
                   <button
                     onClick={insertMathField}
-                    className="h-8 w-16 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group relative"
+                    className="h-8 w-16 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group relative"
                     aria-label="Insert math equation"
                   >
-                    <Sigma className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={1.5} />
+                    <Sigma className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={2} />
                     {/* Tooltip */}
                     <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                       Math Input
@@ -1038,16 +1038,16 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
           {/* Fixed Input Area */}
           <div className="flex-shrink-0 bg-white dark:bg-gray-900">
             <div className="max-w-4xl mx-auto px-4 py-3">
-              <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 px-2">
+              <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-3xl border border-gray-300 dark:border-gray-700 px-2">
                 {/* Math input button */}
                 <button
                   onClick={insertMathFieldInChat}
-                  className="h-8 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group flex-shrink-0 relative"
+                  className="h-8 w-10 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group flex-shrink-0 relative"
                   aria-label="Insert math equation"
                 >
-                  <Sigma className="h-5 w-5 text-gray-700 dark:text-gray-300" strokeWidth={2} />
+                  <Sigma className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={2} />
                   {/* Tooltip */}
-                  <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-lg z-50">
+                  <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                     Math Input
                   </div>
                 </button>
