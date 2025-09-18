@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Send, X, ImagePlus, Lightbulb, Sparkles, Sigma } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MathContent } from "@/lib/utils/katex";
@@ -49,15 +48,11 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   // Start with loading state if we have an initial session to restore
   const [isRestoringSession, setIsRestoringSession] = useState(!!initialSessionId);
   const [isEditingMath, setIsEditingMath] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const contentEditableRef = useRef<HTMLDivElement>(null);
+  const chatContentEditableRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
-
-  useEffect(() => {
-    adjustTextareaHeight();
-  }, [input]);
 
   // Import MathLive when component mounts
   useEffect(() => {
@@ -75,32 +70,6 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
       });
     }
   }, []);
-
-  const adjustTextareaHeight = () => {
-    if (textareaRef.current) {
-      const textarea = textareaRef.current;
-      const currentValue = textarea.value;
-
-      // Check if there are actual line breaks in the content
-      const lineBreaks = (currentValue.match(/\n/g) || []).length;
-
-      // Determine base height based on current view
-      const isInitialView = messages.length === 0;
-      const baseHeight = isInitialView ? 90 : 50;
-
-      // Only expand height if there are line breaks
-      if (lineBreaks > 0) {
-        // Reset to min height to get accurate scrollHeight
-        textarea.style.height = `${baseHeight}px`;
-        // Expand based on content with line breaks
-        const newHeight = Math.max(baseHeight, Math.min(textarea.scrollHeight, 300));
-        textarea.style.height = `${newHeight}px`;
-      } else {
-        // Keep single line at base height - let it scroll horizontally if needed
-        textarea.style.height = `${baseHeight}px`;
-      }
-    }
-  };
 
   const compressImage = (file: File, maxWidth: number = 1200, maxHeight: number = 1200): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -256,7 +225,71 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
     setPastedImage(null);
   };
 
-  // Insert math field at cursor position in contentEditable
+  // Insert math field at cursor position in contentEditable (for chat view)
+  const insertMathFieldInChat = () => {
+    if (!chatContentEditableRef.current) return;
+
+    // Clean up any empty math fields first
+    const existingMathFields = chatContentEditableRef.current.querySelectorAll('math-field');
+    existingMathFields.forEach(field => {
+      if (!field.getAttribute('value')) {
+        field.remove();
+      }
+    });
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      // If no selection, focus the contentEditable and place cursor at end
+      chatContentEditableRef.current.focus();
+      const range = document.createRange();
+      range.selectNodeContents(chatContentEditableRef.current);
+      range.collapse(false);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      return insertMathFieldInChat(); // Retry with the new selection
+    }
+
+    const range = selection.getRangeAt(0);
+
+    // Check if the selection is within the contentEditable area
+    if (!chatContentEditableRef.current.contains(range.commonAncestorContainer)) {
+      // Focus the contentEditable and place cursor at end
+      chatContentEditableRef.current.focus();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(chatContentEditableRef.current);
+      newRange.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(newRange);
+      return insertMathFieldInChat(); // Retry with the new selection
+    }
+
+    // Create a new math-field element
+    const mathField = document.createElement('math-field');
+    const uniqueId = Date.now();
+    mathField.setAttribute('data-index', uniqueId.toString());
+    mathField.style.display = 'inline-block';
+    mathField.style.fontSize = 'inherit';
+    mathField.setAttribute('value', '');
+
+    // Insert the math field at cursor position
+    range.deleteContents();
+    range.insertNode(mathField);
+
+    // Add a space after the math field for better cursor placement
+    const spaceAfter = document.createTextNode('\u00A0'); // Non-breaking space
+    mathField.parentNode?.insertBefore(spaceAfter, mathField.nextSibling);
+
+    // Setup event listener for the math field (same as initial view)
+    setupSingleMathField(mathField);
+
+    // Focus the math field for editing
+    setTimeout(() => {
+      mathField.focus();
+      setIsEditingMath(true);
+    }, 0);
+  };
+
+  // Insert math field at cursor position in contentEditable (for initial view)
   const insertMathField = () => {
     if (!contentEditableRef.current) return;
 
@@ -553,21 +586,16 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
     }
   }, [initialSessionId]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
   const handleSendMessage = async () => {
     // For initial view: allow text or image, for chat view: only text
     const hasMessages = messages.length > 0;
 
-    // Get content from contentEditable for initial view
+    // Get content from contentEditable
     let messageContent = '';
     if (!hasMessages && contentEditableRef.current) {
       messageContent = htmlToStorage(contentEditableRef.current.innerHTML);
+    } else if (hasMessages && chatContentEditableRef.current) {
+      messageContent = htmlToStorage(chatContentEditableRef.current.innerHTML);
     } else {
       messageContent = input.trim();
     }
@@ -616,9 +644,11 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
-    // Clear the contentEditable for initial view
+    // Clear the contentEditable
     if (!hasMessages && contentEditableRef.current) {
       contentEditableRef.current.innerHTML = '';
+    } else if (hasMessages && chatContentEditableRef.current) {
+      chatContentEditableRef.current.innerHTML = '';
     }
     setPastedImage(null);
     setIsLoading(true);
@@ -1008,35 +1038,51 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
           {/* Fixed Input Area */}
           <div className="flex-shrink-0 bg-white dark:bg-gray-900">
             <div className="max-w-4xl mx-auto px-4 py-3">
-              <div className="relative">
-              <Textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type your answers or ask follow-up questions"
-                className="resize-none w-full pr-20 pt-3 pb-3 pl-4 rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-lg"
-                style={{
-                  outline: 'none',
-                  boxShadow: 'none',
-                  height: '50px',
-                  minHeight: '50px',
-                  width: '100%',
-                  display: 'block',
-                  overflow: 'auto'
-                }}
-                onFocus={(e) => {
-                  e.target.style.outline = 'none';
-                  e.target.style.boxShadow = 'none';
-                }}
-                rows={1}
-              />
+              <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 px-2">
+                {/* Math input button */}
+                <button
+                  onClick={insertMathFieldInChat}
+                  className="h-8 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group flex-shrink-0 relative"
+                  aria-label="Insert math equation"
+                >
+                  <Sigma className="h-5 w-5 text-gray-700 dark:text-gray-300" strokeWidth={2} />
+                  {/* Tooltip */}
+                  <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-lg z-50">
+                    Math Input
+                  </div>
+                </button>
 
-              <Button
-                onClick={handleSendMessage}
-                disabled={!input.trim() || isLoading}
-                className="absolute right-2 bottom-2 h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
-              >
+                {/* ContentEditable for chat input */}
+                <div
+                  ref={chatContentEditableRef}
+                  contentEditable
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey && !isEditingMath) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  onInput={() => {
+                    if (!isEditingMath) {
+                      const content = chatContentEditableRef.current?.innerHTML || '';
+                      setInput(htmlToStorage(content));
+                    }
+                  }}
+                  className="flex-1 min-h-[50px] max-h-[150px] overflow-y-auto py-3 px-2 outline-none bg-transparent text-lg custom-scrollbar chat-input-editable"
+                  style={{
+                    outline: 'none',
+                    boxShadow: 'none',
+                    fontSize: '18px',
+                    lineHeight: '1.5'
+                  }}
+                  data-placeholder="Type your answers or ask follow-up questions"
+                />
+
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!input.trim() || isLoading}
+                  className="h-8 px-3 mr-1 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium flex-shrink-0"
+                >
                 <span>SEND</span>
                 <Send className="h-3.5 w-3.5" />
               </Button>

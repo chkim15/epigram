@@ -41,6 +41,18 @@ div[contenteditable]:empty:before {
   color: rgb(107 114 128); /* gray-500 in dark mode */
 }
 
+/* Chat input placeholder */
+.chat-input-editable:empty:before {
+  content: attr(data-placeholder);
+  color: rgb(107 114 128);
+  pointer-events: none;
+  position: absolute;
+}
+
+.dark .chat-input-editable:empty:before {
+  color: rgba(156, 163, 175, 0.5);
+}
+
 /* Math field styles for inline equations in notes */
 math-field {
   display: inline-block;
