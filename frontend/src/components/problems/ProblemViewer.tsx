@@ -704,7 +704,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   </h2>
                 </div>
                 <div className="space-y-4">
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <Brain className="h-5 w-5 text-blue-500" />
                       Work First, Check Later
@@ -714,7 +714,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     </p>
                   </div>
 
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <FileText className="h-5 w-5 text-green-500" />
                       Use Handouts Strategically
@@ -724,7 +724,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     </p>
                   </div>
 
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <AlertCircle className="h-5 w-5 text-yellow-500" />
                       Learn From Mistakes
@@ -734,7 +734,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     </p>
                   </div>
 
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <Shuffle className="h-5 w-5 text-purple-500" />
                       Value Multiple Approaches
@@ -744,7 +744,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     </p>
                   </div>
 
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                       <Target className="h-5 w-5 text-red-500" />
                       Practice With Focus
