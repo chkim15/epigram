@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
 import { TutorSession } from "@/types/database";
@@ -23,13 +23,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const { user } = useAuthStore();
 
-  useEffect(() => {
-    if (user) {
-      fetchSessions();
-    }
-  }, [user, activeTab]);
-
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     setLoading(true);
     try {
       let query = supabase
@@ -52,7 +46,13 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, activeTab]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSessions();
+    }
+  }, [user, activeTab, fetchSessions]);
 
   const toggleBookmark = async (sessionId: string, currentState: boolean) => {
     try {
@@ -144,10 +144,15 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
   // Expand first group by default
   useEffect(() => {
     const firstGroup = Object.keys(groupedSessions)[0];
-    if (firstGroup && expandedGroups.size === 0) {
-      setExpandedGroups(new Set([firstGroup]));
+    if (firstGroup) {
+      setExpandedGroups(prev => {
+        if (prev.size === 0) {
+          return new Set([firstGroup]);
+        }
+        return prev;
+      });
     }
-  }, [sessions]);
+  }, [sessions, groupedSessions]);
 
   return (
     <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900">
@@ -222,6 +227,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
                         {/* Thumbnail */}
                         <div className="relative aspect-[5/3] overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                           {session.image_url ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
                             <img
                               src={session.image_url}
                               alt="Session thumbnail"

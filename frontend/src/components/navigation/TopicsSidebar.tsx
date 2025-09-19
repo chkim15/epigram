@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Topic } from "@/types/database";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Loader2, ChevronDown, ChevronRight, ChevronLeft, ChevronsLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Course {
@@ -38,7 +39,7 @@ interface TopicsSidebarProps {
 }
 
 
-export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onBookmarks, onLogoClick, onAITutor, onHistory, onStudyCalculus, mode = 'tutor', activeMenu }: TopicsSidebarProps) {
+export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onBookmarks, onLogoClick, onAITutor, onHistory, mode = 'tutor', activeMenu }: TopicsSidebarProps) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,19 +48,6 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [userSchool, setUserSchool] = useState<string | null>(null);
   const { user } = useAuthStore();
-
-  useEffect(() => {
-    fetchTopics();
-    if (user) {
-      fetchUserProfile();
-    }
-  }, [user]);
-
-  // Reset view to main when mode changes
-  useEffect(() => {
-    setCurrentView('main');
-    setSelectedCourse(null);
-  }, [mode]);
 
   const fetchTopics = async () => {
     try {
@@ -80,23 +68,36 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     }
   };
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('school')
         .eq('user_id', user.id)
         .single();
-      
+
       if (profile) {
         setUserSchool(profile.school);
       }
     } catch (err) {
       console.error('Error fetching user profile:', err);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchTopics();
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user, fetchUserProfile]);
+
+  // Reset view to main when mode changes
+  useEffect(() => {
+    setCurrentView('main');
+    setSelectedCourse(null);
+  }, [mode]);
 
   const selectCourse = (course: Course) => {
     setSelectedCourse(course);
@@ -279,7 +280,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
             className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             onClick={onLogoClick}
           >
-            <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8 dark:invert" />
+            <Image src="/epigram_logo.svg" alt="Epigram Logo" width={32} height={32} className="dark:invert" />
             <h2 className="font-bold text-xl text-gray-900 dark:text-white">
               Epigram
             </h2>

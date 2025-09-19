@@ -5,7 +5,7 @@ interface ActiveLearningPromptProps {
   problemKey?: string;
 }
 
-export default function ActiveLearningPrompt({ onScrollToAnswer, problemKey = 'main' }: ActiveLearningPromptProps) {
+export default function ActiveLearningPrompt({}: ActiveLearningPromptProps) {
 
   return (
     <div className="h-full flex items-center justify-center p-8">

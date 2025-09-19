@@ -1944,7 +1944,9 @@
                 
                 // Handle document creation/lookup based on data source
                 let documentUuid;
-                
+                // Save the original data source type for problem processing
+                const originalDataSourceType = dataSourceType;
+
                 if (dataSourceType === 'json' || dataSourceType === 'new_document') {
                     // For JSON files and new documents: Create document first (or get existing one)
                     console.log('Ensuring document exists in database...');
@@ -1952,12 +1954,8 @@
                     if (documentResult.data && documentResult.data.length > 0) {
                         documentUuid = documentResult.data[0].id;
                         console.log(`Document created/updated: ${problemsData.document.id} -> ${documentUuid}`);
-                        
-                        // If this was a new document, update the data source type to database
-                        if (dataSourceType === 'new_document') {
-                            dataSourceType = 'database';
-                            document.getElementById('fileInfo').textContent = `Document: ${problemsData.document.id}`;
-                        }
+
+                        // Don't change dataSourceType here - wait until after problems are processed
                     } else {
                         throw new Error('Failed to create/update document in database');
                     }
@@ -1990,9 +1988,13 @@
                         problem.version = newVersion;
                         problem.updated_at = new Date().toISOString();
                         
-                        if (dataSourceType === 'json') {
-                            // For JSON files: Insert new problems using the insertProblemWorking function
+                        if (originalDataSourceType === 'json' || originalDataSourceType === 'new_document') {
+                            // For JSON files and new documents: Insert new problems using the insertProblemWorking function
                             console.log(`Inserting new problem: ${problem.id}`);
+                            await insertProblemWorking(problem, documentUuid);
+                        } else if (!originalProblem) {
+                            // For database data: This is a NEW problem added to an existing document - INSERT it
+                            console.log(`Inserting new problem added to database document: ${problem.id}`);
                             await insertProblemWorking(problem, documentUuid);
                         } else {
                             // For database data: Update existing problems
@@ -2202,12 +2204,20 @@
                     localStorage.setItem('problemsData', JSON.stringify(problemsData));
                 }
                 
+                // Now that problems are processed, update the dataSourceType if it was a new document
+                if (originalDataSourceType === 'new_document') {
+                    dataSourceType = 'database';
+                    document.getElementById('fileInfo').textContent = `Document: ${problemsData.document.id}`;
+                }
+
                 // Reset button
                 originalButton.innerHTML = originalText;
                 originalButton.disabled = false;
-                
+
                 if (successfulUpdates === problemsToUpdate.length) {
-                    const sourceMessage = dataSourceType === 'json' ? 'All problems from JSON file' : 'Changed problems';
+                    const sourceMessage = originalDataSourceType === 'json' ? 'All problems from JSON file' :
+                                          originalDataSourceType === 'new_document' ? 'All problems from new document' :
+                                          'Changed problems';
                     showSuccess(`Database update completed! ${sourceMessage}: ${successfulUpdates} problem(s) updated successfully.`);
                 } else {
                     showError(`Partial update: ${successfulUpdates}/${problemsToUpdate.length} problem(s) updated successfully.`);

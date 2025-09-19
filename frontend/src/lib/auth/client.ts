@@ -134,7 +134,7 @@ export const auth = {
       }
 
       return { error: null };
-    } catch (error) {
+    } catch {
       return { error: { message: 'Failed to delete account' } };
     }
   },

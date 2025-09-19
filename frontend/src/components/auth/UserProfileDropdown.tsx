@@ -85,9 +85,10 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
           {/* Avatar */}
           <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center">
             {getAvatarUrl() ? (
-              <img 
-                src={getAvatarUrl()} 
-                alt="Profile" 
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={getAvatarUrl()}
+                alt="Profile"
                 className="w-full h-full object-cover"
               />
             ) : (

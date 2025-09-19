@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
 import { Send, X, ImagePlus, Lightbulb, Sparkles, Sigma } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
@@ -75,7 +76,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const img = new Image();
+        const img = document.createElement('img');
         img.onload = () => {
           const canvas = document.createElement('canvas');
           let width = img.width;
@@ -811,7 +812,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
             {/* Large Header */}
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center gap-4">
-                <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-20 h-20 dark:invert" />
+                <Image src="/epigram_logo.svg" alt="Epigram Logo" width={80} height={80} className="dark:invert" />
                 <h1 className="text-6xl font-bold text-gray-900 dark:text-white">Epigram</h1>
               </div>
             </div>
@@ -885,6 +886,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 {pastedImage && (
                   <div className="absolute top-3 left-3 right-3">
                     <div className="relative inline-block">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={pastedImage.url}
                         alt="Attached image"
@@ -999,6 +1001,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     <div key={message.id} className="flex justify-end">
                       <div className="max-w-fit rounded-3xl px-4 py-3 bg-gray-200 text-black dark:bg-gray-700 dark:text-white">
                         {message.image && (
+                          /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             src={message.image}
                             alt="Attached"

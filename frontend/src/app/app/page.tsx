@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import TopicsSidebar from "@/components/navigation/TopicsSidebar";
 import ProblemViewer from "@/components/problems/ProblemViewer";
 import ChatSidebar from "@/components/ai/ChatSidebar";
@@ -288,7 +289,7 @@ function AppPageContent() {
           </Sheet>
 
           <div className="flex items-center gap-2">
-            <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-8 h-8 dark:invert" />
+            <Image src="/epigram_logo.svg" alt="Epigram Logo" width={32} height={32} className="dark:invert" />
             <h1 className="font-bold text-xl">Epigram</h1>
           </div>
 

@@ -11,7 +11,7 @@ interface TopicHandoutsViewerProps {
 }
 
 export function TopicHandoutsViewer({ problemId }: TopicHandoutsViewerProps) {
-  const { currentProblemTopics, currentTopicHandouts, setCurrentProblemTopics, setCurrentTopicHandouts } = useProblemStore();
+  const { currentTopicHandouts, setCurrentProblemTopics, setCurrentTopicHandouts } = useProblemStore();
   const [activeTopicIndex, setActiveTopicIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

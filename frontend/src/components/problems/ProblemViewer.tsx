@@ -7,6 +7,7 @@ import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
 import {
   ChevronLeft,
   ChevronRight,
@@ -216,7 +217,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             // Remove duplicates that might occur when a problem has multiple topics
             const uniqueProblems = new Map<string, Problem>();
             problemsData.forEach((problem: Problem & { problem_topics?: unknown }) => {
-              const { problem_topics: _, ...cleanProblem } = problem;
+              const { problem_topics, ...cleanProblem } = problem;
               if (!uniqueProblems.has(cleanProblem.id)) {
                 uniqueProblems.set(cleanProblem.id, cleanProblem);
               }
@@ -253,7 +254,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
         if (problemsData) {
           // Remove the problem_topics array from each problem
           const cleanedProblems = problemsData.map((problem: Problem & { problem_topics?: unknown }) => {
-            const { problem_topics: _, ...cleanProblem } = problem;
+            const { problem_topics, ...cleanProblem } = problem;
             return cleanProblem;
           });
 
@@ -697,7 +698,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             ) : selectedTopicId === null ? (
               <div className="max-w-5xl mx-auto px-6 pt-1.5 pb-6">
                 <div className="flex items-center gap-3 mb-8">
-                  <img src="/epigram_logo.svg" alt="Epigram Logo" className="w-10 h-10 dark:invert" />
+                  <Image src="/epigram_logo.svg" alt="Epigram Logo" width={40} height={40} className="dark:invert" />
                   <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
                     Epigram&apos;s Study Tips
                   </h2>

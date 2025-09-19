@@ -966,8 +966,9 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                 {pastedImage && (
                   <div className="absolute top-3 left-3 right-14">
                     <div className="relative inline-block">
-                      <img 
-                        src={pastedImage.url} 
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={pastedImage.url}
                         alt="Pasted image" 
                         className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 object-cover"
                       />
