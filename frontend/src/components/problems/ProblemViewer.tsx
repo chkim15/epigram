@@ -1062,7 +1062,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     <div className="mt-4 space-y-2" data-answer-section="main">
                       <div className="flex gap-2">
                         <textarea
-                          className="flex-1 min-h-[66px] p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                          className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
                           placeholder="Type your answer here..."
                           value={answers['main'] || ''}
                           onChange={(e) => {
@@ -1189,7 +1189,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             <div className="mt-4 space-y-2" data-answer-section={`sub_${subproblem.key}`}>
                               <div className="flex gap-2">
                                 <textarea
-                                  className="flex-1 min-h-[66px] p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                                  className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
                                   placeholder="Type your answer here..."
                                   value={answers[`sub_${subproblem.key}`] || ''}
                                   onChange={(e) => {
