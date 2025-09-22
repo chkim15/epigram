@@ -23,7 +23,9 @@ import {
   FileText,
   AlertCircle,
   Shuffle,
-  Target
+  Target,
+  GraduationCap,
+  Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GeoGebraDialog from "@/components/geogebra/GeoGebraDialog";
@@ -696,62 +698,102 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                 </div>
               </div>
             ) : selectedTopicId === null ? (
-              <div className="max-w-5xl mx-auto px-6 pt-1.5 pb-6">
-                <div className="flex items-center gap-3 mb-8">
-                  <Image src="/epigram_logo.svg" alt="Epigram Logo" width={40} height={40} className="dark:invert" />
-                  <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
-                    Epigram&apos;s Study Tips
-                  </h2>
-                </div>
-                <div className="space-y-4">
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                      <Brain className="h-5 w-5 text-blue-500" />
-                      Work First, Check Later
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
-                      Always attempt each problem on your own before looking at hints or solutions. Push your thinking as far as possible so you truly engage your brain.
-                    </p>
+              <div className="max-w-7xl mx-auto px-6 pt-1.5 pb-6">
+                <div className="grid grid-cols-2 gap-8">
+                  {/* Left Column - Study Tips */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <Image src="/epigram_logo.svg" alt="Epigram Logo" width={40} height={40} className="dark:invert" />
+                      <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                        Epigram&apos;s Study Tips
+                      </h2>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                          <Brain className="h-5 w-5 text-blue-500" />
+                          Work First, Check Later
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                          Always attempt each problem <span className="font-semibold">on your own</span> before looking at hints or solutions. Push your thinking as far as possible so you truly engage your brain.
+                        </p>
+                      </div>
+
+                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-green-500" />
+                          Use Handouts Strategically
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                          If you&apos;re unsure about the concepts, <span className="font-semibold">consult the handouts</span> while solving problems. They&apos;re placed side-by-side for quick reference.
+                        </p>
+                      </div>
+
+                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                          <AlertCircle className="h-5 w-5 text-yellow-500" />
+                          Learn From Mistakes
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                          When you get a problem wrong, <span className="font-semibold">bookmark</span> it and explicitly write down what step or idea you missed. Then use handouts, textbooks, or AI support to figure out <span className="font-semibold">why you made the mistake</span> and <span className="font-semibold">how to avoid</span> it next time.
+                        </p>
+                      </div>
+
+                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                          <Shuffle className="h-5 w-5 text-purple-500" />
+                          Value Multiple Approaches
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                          Pay close attention to problems that have <span className="font-semibold">more than one solution</span>. These problems reveal important connections between different ideas and techniques.
+                        </p>
+                      </div>
+
+                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                          <Target className="h-5 w-5 text-red-500" />
+                          Practice With Focus
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                          Set aside dedicated time for <span className="font-semibold">concentrated practice</span>. Avoid distractions so you can work deeply and retain more.
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-green-500" />
-                      Use Handouts Strategically
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
-                      If you&apos;re unsure about the concepts, consult the handouts while solving problems. They&apos;re placed side-by-side for quick reference.
-                    </p>
-                  </div>
-
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-yellow-500" />
-                      Learn From Mistakes
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
-                      When you get a problem wrong, bookmark it and explicitly write down what step or idea you missed. Then use handouts, textbooks, or AI support to figure out why you made the mistake and how to avoid it next time.
-                    </p>
-                  </div>
-
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                      <Shuffle className="h-5 w-5 text-purple-500" />
-                      Value Multiple Approaches
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
-                      Pay close attention to problems that have more than one solution. These problems reveal important connections between different ideas and techniques.
-                    </p>
-                  </div>
-
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                      <Target className="h-5 w-5 text-red-500" />
-                      Practice With Focus
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
-                      Set aside dedicated time for concentrated practice. Avoid distractions so you can work deeply and retain more.
-                    </p>
+                  {/* Right Column - Problem Difficulty Strategy */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                        Problem Difficulty Strategy
+                      </h2>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                          <GraduationCap className="h-5 w-5 text-indigo-500" />
+                          AP Calculus and University Exams
+                          <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                            (Quiz, Midterm, Final)
+                          </span>
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                          Focus mainly on <span className="font-semibold">easy</span> and <span className="font-semibold">medium</span> problems, as these form the bulk of test questions. To strengthen problem-solving skills and build resilience, include a small number of <span className="font-semibold">hard</span> or <span className="font-semibold">very hard</span> problems.
+                        </p>
+                      </div>
+                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                          <Trophy className="h-5 w-5 text-amber-500" />
+                          Math Competitions
+                          <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                            (High School or College)
+                          </span>
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                          Prioritize <span className="font-semibold">hard</span> and <span className="font-semibold">very hard</span> problems, since competitions are designed to test deeper understanding, creativity, and advanced problem-solving skills.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
