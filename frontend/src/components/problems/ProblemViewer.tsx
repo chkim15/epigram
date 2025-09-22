@@ -70,6 +70,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   const [submitting, setSubmitting] = useState<{ [key: string]: boolean }>({});
   const [submitted, setSubmitted] = useState<{ [key: string]: boolean }>({});
   const [previousAnswers, setPreviousAnswers] = useState<{ [key: string]: UserAnswer[] }>({});
+  const [gradingFeedback, setGradingFeedback] = useState<{ [key: string]: { isCorrect: boolean; feedback?: string } }>({});
   const [geogebraOpen, setGeogebraOpen] = useState(false);
   const [scientificCalculatorOpen, setScientificCalculatorOpen] = useState(false);
   const [expandedHints, setExpandedHints] = useState<{ [key: string]: boolean }>({});
@@ -112,6 +113,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       setRevealedHints({});
       setSubmitted({});
       setPreviousAnswers({});
+      setGradingFeedback({});
       
       // Update current document based on the current problem's document_id
       if (allDocuments.length > 0) {
@@ -557,6 +559,17 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     }));
   };
 
+  const handleAnswerFocus = (key: string) => {
+    // Reset submitted state when user focuses on the input
+    setSubmitted(prev => ({ ...prev, [key]: false }));
+    // Also clear grading feedback for this field
+    setGradingFeedback(prev => {
+      const newFeedback = { ...prev };
+      delete newFeedback[key];
+      return newFeedback;
+    });
+  };
+
   const handleTextareaResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const textarea = e.target;
     textarea.style.height = 'auto';
@@ -609,14 +622,14 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     if (!user || !currentProblem || !answers[key]?.trim()) return;
 
     setSubmitting(prev => ({ ...prev, [key]: true }));
-    
+
     try {
       // Get the current attempt number
       const previousAttempts = previousAnswers[key] || [];
       const attemptNumber = previousAttempts.length + 1;
 
       // Submit the answer
-      const { error } = await supabase
+      const { data: insertData, error } = await supabase
         .from('user_answers')
         .insert({
           user_id: user.id,
@@ -624,40 +637,108 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
           subproblem_id: subproblemId,
           answer_text: answers[key].trim(),
           attempt_number: attemptNumber
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      // Get the correct answer for grading
+      let correctAnswer: string | null = null;
+      if (subproblemId) {
+        // Find the subproblem's correct answer
+        const subproblem = subproblems.find(sp => sp.id === subproblemId);
+        correctAnswer = subproblem?.correct_answer || null;
+        console.log('Subproblem correct answer:', correctAnswer);
+      } else {
+        // Use the main problem's correct answer
+        correctAnswer = currentProblem.correct_answer;
+        console.log('Main problem correct answer:', correctAnswer);
+      }
+
+      // Grade the answer if we have a correct answer
+      let isCorrect: boolean | null = null;
+      if (correctAnswer) {
+        console.log('Grading answer:', { userAnswer: answers[key].trim(), correctAnswer });
+        try {
+          const gradeResponse = await fetch('/api/grade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userAnswer: answers[key].trim(),
+              correctAnswer: correctAnswer,
+              problemText: subproblemId
+                ? subproblems.find(sp => sp.id === subproblemId)?.problem_text
+                : currentProblem.problem_text
+            })
+          });
+
+          console.log('Grade response status:', gradeResponse.status);
+          if (gradeResponse.ok) {
+            const gradeResult = await gradeResponse.json();
+            console.log('Grade result:', gradeResult);
+            isCorrect = gradeResult.isCorrect;
+
+            // Update the is_correct field in the database
+            const { error: updateError } = await supabase
+              .from('user_answers')
+              .update({ is_correct: isCorrect })
+              .eq('id', insertData.id);
+
+            if (updateError) {
+              console.error('Error updating grading result:', updateError);
+            } else {
+              console.log('Successfully updated is_correct to:', isCorrect);
+            }
+
+            // Show feedback to user (keep it visible permanently)
+            setGradingFeedback(prev => ({
+              ...prev,
+              [key]: {
+                isCorrect: isCorrect === true,  // Convert null to false
+                feedback: gradeResult.feedback || (isCorrect ? 'Correct!' : 'Incorrect')
+              }
+            }));
+          } else {
+            const errorText = await gradeResponse.text();
+            console.error(`Grading API error (${gradeResponse.status}):`, errorText);
+            // Continue without grading if API fails
+          }
+        } catch (gradeError) {
+          console.error('Error grading answer:', gradeError);
+          // Continue even if grading fails
+        }
+      } else {
+        console.log('No correct answer found - skipping grading');
+      }
+
       // Update state to show success
       setSubmitted(prev => ({ ...prev, [key]: true }));
-      
-      // Update previous answers
+
+      // Update previous answers with grading result
       const newAnswer: UserAnswer = {
-        id: '', // Will be generated by database
+        id: insertData.id,
         user_id: user.id,
         problem_id: currentProblem.id,
         subproblem_id: subproblemId,
         answer_text: answers[key].trim(),
-        is_correct: null,
+        is_correct: isCorrect,
         attempt_number: attemptNumber,
         submitted_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
-      
+
       setPreviousAnswers(prev => ({
         ...prev,
         [key]: [newAnswer, ...(prev[key] || [])]
       }));
 
-      // Reset submitted state after 2 seconds
-      setTimeout(() => {
-        setSubmitted(prev => ({ ...prev, [key]: false }));
-      }, 2000);
+      // Don't reset submitted state - keep it until user interacts with input
 
       // Dispatch custom event to notify SolutionsTab about the submission
-      window.dispatchEvent(new CustomEvent('answerSubmitted', { 
-        detail: { problemId: currentProblem.id, key } 
+      window.dispatchEvent(new CustomEvent('answerSubmitted', {
+        detail: { problemId: currentProblem.id, key }
       }));
 
     } catch (err) {
@@ -979,23 +1060,24 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   {/* Answer input for main problem (only if no subproblems) */}
                   {subproblems.length === 0 && (
                     <div className="mt-4 space-y-2" data-answer-section="main">
-                      <textarea
-                        className="w-full min-h-[66px] p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
-                        placeholder="Type your answer here..."
-                        value={answers['main'] || ''}
-                        onChange={(e) => {
-                          handleAnswerChange('main', e.target.value);
-                          handleTextareaResize(e);
-                        }}
-                        onInput={handleTextareaResize}
-                        disabled={submitting['main']}
-                      />
-                      <div className="flex items-center justify-between">
+                      <div className="flex gap-2">
+                        <textarea
+                          className="flex-1 min-h-[66px] p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                          placeholder="Type your answer here..."
+                          value={answers['main'] || ''}
+                          onChange={(e) => {
+                            handleAnswerChange('main', e.target.value);
+                            handleTextareaResize(e);
+                          }}
+                          onFocus={() => handleAnswerFocus('main')}
+                          onInput={handleTextareaResize}
+                          disabled={submitting['main']}
+                        />
                         <div className="relative inline-block group">
                           <Button
                             onClick={() => handleSubmitAnswer('main', null)}
                             disabled={!answers['main']?.trim() || submitting['main'] || !user}
-                            className="cursor-pointer rounded-xl"
+                            className="cursor-pointer rounded-xl h-[50px] px-4"
                             size="sm"
                           >
                             {submitting['main'] ? (
@@ -1015,6 +1097,21 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           </div>
                         </div>
                       </div>
+                      {gradingFeedback['main'] && (
+                        <div className={cn(
+                          "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium animate-in fade-in duration-300",
+                          gradingFeedback['main'].isCorrect
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                        )}>
+                          {gradingFeedback['main'].isCorrect ? (
+                            <Check className="h-4 w-4 flex-shrink-0" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          )}
+                          <span>{gradingFeedback['main'].feedback}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                   
@@ -1090,23 +1187,24 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             
                             {/* Answer input for subproblem */}
                             <div className="mt-4 space-y-2" data-answer-section={`sub_${subproblem.key}`}>
-                              <textarea
-                                className="w-full min-h-[66px] p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
-                                placeholder="Type your answer here..."
-                                value={answers[`sub_${subproblem.key}`] || ''}
-                                onChange={(e) => {
-                                  handleAnswerChange(`sub_${subproblem.key}`, e.target.value);
-                                  handleTextareaResize(e);
-                                }}
-                                onInput={handleTextareaResize}
-                                disabled={submitting[`sub_${subproblem.key}`]}
-                              />
-                              <div className="flex items-center justify-between">
+                              <div className="flex gap-2">
+                                <textarea
+                                  className="flex-1 min-h-[66px] p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                                  placeholder="Type your answer here..."
+                                  value={answers[`sub_${subproblem.key}`] || ''}
+                                  onChange={(e) => {
+                                    handleAnswerChange(`sub_${subproblem.key}`, e.target.value);
+                                    handleTextareaResize(e);
+                                  }}
+                                  onFocus={() => handleAnswerFocus(`sub_${subproblem.key}`)}
+                                  onInput={handleTextareaResize}
+                                  disabled={submitting[`sub_${subproblem.key}`]}
+                                />
                                 <div className="relative inline-block group">
                                   <Button
                                     onClick={() => handleSubmitAnswer(`sub_${subproblem.key}`, subproblem.id)}
                                     disabled={!answers[`sub_${subproblem.key}`]?.trim() || submitting[`sub_${subproblem.key}`] || !user}
-                                    className="cursor-pointer rounded-xl"
+                                    className="cursor-pointer rounded-xl h-[50px] px-4"
                                     size="sm"
                                   >
                                     {submitting[`sub_${subproblem.key}`] ? (
@@ -1126,6 +1224,21 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                   </div>
                                 </div>
                               </div>
+                              {gradingFeedback[`sub_${subproblem.key}`] && (
+                                <div className={cn(
+                                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium animate-in fade-in duration-300",
+                                  gradingFeedback[`sub_${subproblem.key}`].isCorrect
+                                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                )}>
+                                  {gradingFeedback[`sub_${subproblem.key}`].isCorrect ? (
+                                    <Check className="h-4 w-4 flex-shrink-0" />
+                                  ) : (
+                                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                  )}
+                                  <span>{gradingFeedback[`sub_${subproblem.key}`].feedback}</span>
+                                </div>
+                              )}
                             </div>
                           </CardContent>
                         </Card>

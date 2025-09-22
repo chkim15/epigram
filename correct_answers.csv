@@ -1,0 +1,339 @@
+correct_answer
+3
+4
+5
+16
+24
+"\[
+\boxed{-\frac{1}{6}}
+\]"
+"\[
+\boxed{[\,0,\,2\,)}.
+\]"
+"\[
+\boxed{\ 
+x(t)=\frac{x_0 e^{t}}{\,1-x_0+x_0 e^{t}\,}
+=\frac{1}{\,1+\left(\frac{1-x_0}{x_0}\right)e^{-t}}\quad (x_0>0)
+\ }
+\]"
+"\[
+\boxed{\,\dfrac{(1+9A^2)^{3/2}-1}{27}\,}
+\]"
+"\[
+\boxed{\,\displaystyle \int_{1/2}^{1}\sqrt{\frac{1-x}{x}}\;dx=\frac{\pi}{4}-\frac{1}{2}\,}
+\]"
+"\[
+\boxed{\,\int \frac{x^{2}}{x^{2}-7x+10}\,dx
+= x + \frac{25}{3}\ln|x-5| - \frac{4}{3}\ln|x-2| + C, \qquad x\neq 2,5.\,}
+\]"
+"\[
+\boxed{\,\int \frac{x^{2}+7x+9}{(x+1)^{2}(x+2)}\,dx
+= 2\ln|x+1| - \ln|x+2| - \frac{3}{x+1} + C.\,}
+\]"
+"\[
+\boxed{\,\int_{0}^{1} \sin \left(x^{2}\right) d x \approx 0.309524 \text{ with error } < 0.001.\,}
+\]"
+"\[
+\boxed{\,\int_{0}^{2}\frac{dx}{1+e^{x}}
+=2+\ln\!\left(\frac{2}{1+e^{2}}\right)
+=2-\ln\!\left(\frac{1+e^{2}}{2}\right).\,}
+\]"
+"\[
+\boxed{\,\lim_{x\to 0} (1+3\sin x)^{\frac{1}{x}}=e^{3}\,}
+\]"
+"\[
+\boxed{\,2+\frac{1}{4}(x-3)-\frac{1}{64}(x-3)^2\,}
+\]"
+"\[
+\boxed{\,f(x)=\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n+1}\,2\,x^{\,4n+3}}{(2n+1)!}
+=-2x^{3}+\frac{1}{3}x^{7}-\frac{1}{60}x^{11}+\cdots\quad (|x|<\infty).\,}
+\]"
+"\[
+\boxed{\,g(x)=3(x-4)^2 - 2(x-4)^3 + \frac{5}{2}(x-4)^4 + \frac{1}{6}(x-4)^5
++ O\!\big((x-4)^6\big).\,}
+\]"
+"\[
+\boxed{\,y(x)=C\,e^{\,x\cosh x-\sinh x}\,}
+\quad\text{(including the trivial solution \(y\equiv 0\) when \(C=0\)).}\]"
+"\[
+\boxed{\,y\!\left(\tfrac12\right)=\exp\!\left(1-\frac{\sqrt3}{2}\right).\,}
+\]"
+"\[
+\boxed{\;\int \frac{\sqrt{x^{2}-7}}{x}\,dx
+=\sqrt{x^{2}-7}-\sqrt{7}\,\arctan\!\Big(\frac{\sqrt{x^{2}-7}}{\sqrt{7}}\Big)+C,\quad (|x|\ge\sqrt{7}).\;}
+\]"
+"\[
+\boxed{\;\int \sec^{4}\theta\,d\theta=\tan\theta+\frac{1}{3}\tan^{3}\theta+C.\;}
+\]"
+"\[
+\boxed{\displaystyle \int \cos^{5}\theta\,\tan^{2}\theta\,d\theta
+=\frac{1}{3}\sin^{3}\theta-\frac{1}{5}\sin^{5}\theta+C.}
+\]"
+"\[
+\boxed{\displaystyle \lim_{x\to\infty} y(x)=\ln\!\left(e^{2}+\frac{\pi}{4}\right).}
+\]"
+"\[
+\boxed{\int 5x e^{2x}\,dx=\frac{5}{2}x e^{2x}-\frac{5}{4}e^{2x}+C
+=\frac{5e^{2x}}{4}(2x-1)+C.}
+\]"
+"\[
+\boxed{\mu=3,\qquad \sigma^{2}=\infty\ \text{(does not exist as a finite number).}}
+\]"
+"\[
+\boxed{\text{Degree-4 Taylor polynomial: } P_{4}(x)=2+16x^{4}}
+\qquad\Longrightarrow\qquad
+\boxed{\text{Coefficient of }x^{4}=16.}
+\]"
+"\[
+\boxed{\text{Interval of convergence } = (-3,\,-1]\, .}
+\]"
+"\[
+\boxed{\text{Interval of convergence } = [-4,\,0)\,;\ \text{conditional at }x=-4,\ \text{diverges at }x=0.}
+\]"
+"\[
+\boxed{\text{Interval of convergence } = [-4,\,2)\ \text{ (conditional at }x=-4\text{; diverges at }x=2).}
+\]"
+"\[
+\boxed{\text{Interval of convergence } = \left(\frac{7}{4},\,\frac{9}{4}\right] }
+\]
+(absolute convergence for \(|x-2|<\tfrac{1}{4}\); divergence at \(x=\tfrac{7}{4}\); conditional convergence at \(x=\tfrac{9}{4}\))."
+"\[
+\boxed{\text{Interval of convergence }=[-1,\,3].}
+\]"
+"\[
+\boxed{\text{The integral converges and } \displaystyle \int_{1}^{\infty}\frac{e^{1/x}+1}{x^{2}}\,dx = e.}
+\]"
+"\[
+\boxed{\text{The sequence converges and } \lim_{n\to\infty} a_n = 2.}
+\]"
+"\[
+\boxed{F(1)=5.}
+\]"
+"\[
+\boxed{k=1,\quad\text{the series converges for all }p>1\text{ and diverges for }p\le 1.}
+\]"
+"\[
+\boxed{V=2\pi.}
+\]"
+"\[
+\int \frac{dx}{x^{2}\sqrt{9-x^{2}}}
+=-\frac{1}{9}\cdot \frac{\sqrt{9-x^{2}}}{x}+C.
+\]"
+"\[
+\text{Absolute minimum: } \boxed{-5 \text{ at } x=-1}, 
+\qquad
+\text{Absolute maximum: } \boxed{5 \text{ at } x=1}.
+\]"
+"\[
+\text{Absolute minimum: } \boxed{f(-2)=-31},\qquad
+\text{Absolute maximum: } \boxed{f(2)=33}.
+\]"
+"\[
+\text{Final answer: } \boxed{V=\dfrac{\sqrt{2}\,\pi}{3}}.
+\]"
+"\[
+100 \ \text{m of the \$50 per meter fence}
+\]
+\[
+700 \ \text{m of the \$10 per meter fence}
+\]"
+"\[
+3
+\]"
+"\[
+f'(x) = \frac{2}{x^2}.
+\]"
+"\[
+f(x)=3x^{2}-\frac{3}{2}x^{14}+O\!\big(x^{26}\big)\quad (x\to 0),
+\]"
+"\[
+y=-6x+56
+\]"
+\[ 2400\pi\]
+\[-\frac{\ln(x^{2}+1)}{x} + 2\arctan(x) + C\]
+\[-\frac{1}{2}\]
+\[-\frac{1}{2}\]
+\[-\frac{1}{3}\]
+\[-\infty\]
+\[-1/e\]
+\[-1\]
+\[-1\]
+\[-1\]
+\[-1\]
+\[-2\]
+\[-2\]
+\[-3\]
+\[-e^{-x}+\frac{8}{3}x^{3/2}+\cot x-2x^{-6}+\pi x + C\]
+"\[(-2,-1)\]"
+"\[(1,1)\]"
+"\[(2,\,20)\ \text{and}\ (-2,\,-20)\]"
+\[(a)\]
+\[(c)\]
+"\[\,0,\; \tfrac{\pi}{4},\; \tfrac{\pi}{2},\; \pi,\; \tfrac{5\pi}{4},\; \tfrac{3\pi}{2},\; 2\pi\,\]"
+\[\boxed{-\frac{3}{4\pi}}\]
+\[\boxed{\frac{15}{4}}\]
+\[\boxed{\text{Sum the first }11\text{ terms to guarantee error }<0.002.}\]
+\[\dfrac{4}{3}\]
+\[\frac{\pi^{2}}{72}\]
+\[\frac{\pi+3}{2}\]
+\[\frac{1-\ln 2}{2}\]
+\[\frac{1}{16}\]
+\[\frac{1}{2}\]
+\[\frac{1}{2}\]
+\[\frac{1}{4}\]
+"\[\frac{1}{9}\big(9e^{2x}-8\big)\sqrt{\,4+9e^{2x}\,}+C\]"
+\[\frac{10}{\pi^{1/3}}\]
+\[\frac{10}{3}\]
+\[\frac{13}{12}\]
+\[\frac{153\pi}{5}\]
+\[\frac{1562}{5}\]
+\[\frac{16}{15}\]
+\[\frac{2}{\pi}\]
+\[\frac{2}{3}\]
+\[\frac{2}{5}\]
+\[\frac{2}{e}\]
+\[\frac{253}{12}\]
+\[\frac{3}{4}\]
+\[\frac{3\pi}{2}\]
+\[\frac{3\sqrt{2}}{2}\]
+\[\frac{4}{3}\]
+\[\frac{4}{3}\]
+\[\frac{5}{2}\]
+\[\frac{5}{2}\]
+\[\frac{5}{3}\]
+\[\frac{7\pi}{2}\]
+\[\frac{e^{\arctan x}}{1+x^{2}} \cot\!\bigl(e^{\arctan x}\bigr)\]
+"\[\int_{0}^{1.38}\Big(e^{-y^{2}}-(y-1)^{2}\Big)\,dy\]"
+"\[\int_{1}^{\infty}\frac{1}{x^{2}+x}\,dx \text{ converges and equals } \ln 2.\]"
+"\[\left(\sqrt[3]{16}, \, 2^{5/3}\right)\]"
+"\[\left[\frac{4}{3},\,2\right]\]"
+\[\ln 4\]
+\[\ln 4\]
+\[\ln\!\left(\frac{4}{3}\right)\]
+\[\ln\left|\frac{\sin x+3}{\sin x+1}\right|+C\]
+"\[\mathbb{E}[X]=1,\qquad \mathrm{Var}(X)=\tfrac{1}{2}\]"
+\[\sin(x^{4}) \cdot 2x\]
+\[\sum_{k=1}^{\infty} a_k \text{ diverges (by the term test). }\]
+\[\sum_{n=1}^{\infty}\frac{(2n)!}{n^{2n}}\ \text{converges absolutely.}\]
+"\[\text{Concave down on }(-\infty,-1),\ \text{concave up on }(-1,\infty),\ \text{inflection at }(-1,1)\]"
+"\[\text{Increasing on }(-\infty,-3)\cup(1,\infty);\ \text{decreasing on }(-3,1);\ 
+\text{local max at }(-3,3);\ \text{local min at }(1,-1).\]"
+\[\tfrac{\sqrt{3}}{2}\]
+\[\tfrac{1}{2e}\]
+\[\tfrac{3}{2} \;\; \text{radians per second}\]
+\[+\infty\]
+\[0.55\]
+\[0\]
+\[0\]
+\[1 + \sin(1)\]
+\[1\]
+\[1\]
+\[1\]
+\[1+\sqrt{2}\]
+\[11\]
+\[12\]
+\[12\]
+\[12\ln\!\left(\dfrac{4}{3}\right)\]
+\[13\]
+\[16\]
+\[18\]
+\[180 \pi\]
+\[2(\sin (\sin (x))-\sin (x) \cos (\sin (x)))\]
+\[2\]
+\[2\]
+\[2\ln\!\bigl(1+\sqrt{x}\bigr)+C\]
+\[20\]
+\[3.2\]
+\[3/2\]
+\[3\]
+\[3\]
+\[3\]
+\[3\]
+\[3\]
+\[3\]
+\[3\]
+\[3\pi\]
+\[32\]
+\[4\]
+\[40\]
+\[46\]
+\[4e^{2}\]
+\[4e^{2}\]
+\[4e^{6}\]
+\[5\ \text{cm}^2/\text{min}\]
+\[5\]
+\[5\pi\]
+\[50\]
+\[504\]
+\[51.25\]
+\[6\]
+\[6\]
+\[6x-6\]
+\[8\]
+\[8\]
+"\[a=-2,b=5\]"
+"\[a=1,\quad b=1,\quad c=-1\]"
+"\[a=3,\quad m=1,\quad b=4\]"
+"\[a=5,\; b=7\]"
+\[e^{-1/2}\]
+\[e^{-3/2}\]
+"\[f'(x)
+=-\frac{e^{1/x}}{x^{2}}
++\frac{1}{2\sqrt{x}\,(1+x)}
++4^{x}\ln 4
+-6x^{5}
++\frac{1}{2x},\quad x>0\]"
+\[f'(x) = 6x\]
+\[f'(x)=3x+5\]
+\[f(x)=3x^{5/3}-2x^{4}+\pi x+2\tan x-\frac{1}{x}-3\cos(4x)+C\]
+\[h(x)=2-5(x+1)-2(x+1)^2+O\!\big((x+1)^3\big)\]
+"\[k=\frac{1}{2}+n,\qquad n\in\mathbb{Z}\]"
+\[K=\frac{1}{4}\]
+"\[L = \frac{1}{2}, \quad M=+\infty\]"
+"\[L=3,\qquad \text{one valid choice is } \delta=5.\]"
+\[m=\dfrac{\pi}{6}\]
+\[m=\frac{1}{4}\]
+"\[r=3\ \text{ft},\quad h=18\ \text{ft}\]"
+"\[x = 600, \quad y = 300\]"
+"\[x=10\ \text{ft},\quad y=8\ \text{ft}\]"
+\[y=-\frac{1}{2}x+\frac{5\pi}{8}\]
+\[y=-12x+15\]
+\[y=\frac{1}{5}x+\frac{4}{5}\]
+\[y=\frac{6}{7}x+\frac{6}{7}\]
+"\textbf{Step 1: Critical points.}
+\[
+f'(x)=\frac{4}{3}\cdot\frac{1}{3}x^{-2/3}+\frac{16}{3}\cdot\Big(-\frac{2}{3}\Big)x^{-5/3}
+=\frac{4}{9}x^{-2/3}-\frac{32}{9}x^{-5/3}
+=\frac{4}{9}x^{-5/3}(x-8).
+\]
+On $(0,\infty)$, $x^{-5/3}>0$, so $f'(x)=0 \iff x=8$ (which is in $[1,27]$).
+\\
+\textbf{Step 2: Evaluate $f$ at endpoints and the critical point.}
+\[
+f(1)=\frac{4}{3}+\frac{16}{3}=\frac{20}{3},\qquad
+f(8)=\frac{4}{3}\cdot 2+\frac{16}{3}\cdot \frac{1}{4}=\frac{8}{3}+\frac{4}{3}=4,
+\]
+\[
+f(27)=\frac{4}{3}\cdot 3+\frac{16}{3}\cdot \frac{1}{9}=4+\frac{16}{27}=\frac{124}{27}.
+\]
+
+\textbf{Conclusion.} The smallest value among $\left\{\frac{20}{3},\,4,\,\frac{124}{27}\right\}$ is $4$, attained at $x=8$."
+"Denote by $A(t)$ and $B(t)$ the position of Alice and Bob at time $t$, respectively, and assume that both of those functions are differentiable. Consider the function $h(t) = A(t) - B(t)$.
+\par
+Let $k$ be the duration of the course. Then saying that Alice wins simply means $A(k) > B(k)$, or in other words, $h(k) > 0$. Since Alice and Bob start together, then we also have $h(0) = 0$. By the Mean Value Theorem, there is a time $t_0 \in (0, k)$ when:
+
+$$h'(t_0) = \frac{h(k) - h(0)}{k} > 0.$$
+
+We conclude that $A'(t_0) - B'(t_0) > 0$, or equivalently, $A'(t_0) > B'(t_0)$. This completes the proof."
+"I: D,\quad II: D,\quad III: C."
+"I: D,\quad II: D."
+Neither
+"Neither series converges; both fail the $n$th-term test since their terms
+tend to $1$ instead of $0$."
+Proof by the Intermediate Value Theorem.
+"The distance to the ice cream shop is decreasing at  
+$-\frac{2.5}{13} \, \text{m/s}$."
+"The full interval of convergence is
+\[
+\boxed{(-3,\,9]}\quad\text{(conditional at }x=9\text{)}.
+\]"
