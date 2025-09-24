@@ -65,7 +65,7 @@ export default function MissionPage() {
             </p>
 
             <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-              But this strength comes with risks. If students rely on AI only for answers, they risk losing the very skills that make human intelligence unique: asking the right questions, thinking creatively, and solving problems they've never seen before. These are exactly the abilities cultivated through mathematics education.
+              But this strength comes with risks. If students rely on AI only for answers, they risk losing the very skills that make human intelligence unique: asking the right questions, thinking creatively, and solving problems they&apos;ve never seen before. These are exactly the abilities cultivated through mathematics education.
             </p>
 
             <p className="text-lg text-gray-700 mb-8 leading-relaxed">

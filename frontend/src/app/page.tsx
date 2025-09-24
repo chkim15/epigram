@@ -49,12 +49,12 @@ export default function LandingPage() {
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
               <Link href="/signin">
-                <button className="px-4 py-2 text-black hover:opacity-70" style={{ fontSize: '14px' }}>
+                <button className="px-4 py-2 text-black hover:opacity-70 cursor-pointer" style={{ fontSize: '14px' }}>
                   Sign In
                 </button>
               </Link>
               <Link href="/app">
-                <button className="px-4 py-2.5 text-base font-medium text-white bg-black rounded-xl hover:bg-gray-800">
+                <button className="px-4 py-2.5 text-base font-medium text-white bg-black rounded-xl hover:bg-gray-800 cursor-pointer">
                   Get Started
                 </button>
               </Link>
@@ -76,11 +76,11 @@ export default function LandingPage() {
               Active Learning. Smarter Practice<br />Higher Grades
             </h1>
             <p className="text-lg text-gray-700 mb-8 leading-relaxed max-w-2xl mx-auto">
-              We don't just give answers. We guide you with personalized practice, active learning, and tutoring support that make math studying efficient and impactful.
+              We don&apos;t just give answers. We guide you with personalized practice, active learning, and tutoring support that make math studying efficient and impactful.
             </p>
             <div className="flex justify-center">
               <Link href="/app">
-                <button className="px-4 py-2.5 text-base font-medium text-white bg-black rounded-xl hover:bg-gray-800">
+                <button className="px-4 py-2.5 text-base font-medium text-white bg-black rounded-xl hover:bg-gray-800 cursor-pointer">
                   Get Started
                 </button>
               </Link>
@@ -403,7 +403,7 @@ export default function LandingPage() {
               </summary>
               <div className="pb-6 ml-11 text-gray-600" style={{ paddingLeft: '65px', paddingRight: '65px' }}>
                 <p className="pt-4">
-                  Currently, Epigram covers <strong>first-year university Calculus (AP AB/BC)</strong>. We're actively expanding to include other common <strong>college-level math courses and high school competitions</strong>.
+                  Currently, Epigram covers <strong>first-year university Calculus (AP AB/BC)</strong>. We&apos;re actively expanding to include other common <strong>college-level math courses and high school competitions</strong>.
                 </p>
               </div>
             </details>
@@ -464,7 +464,7 @@ export default function LandingPage() {
               </summary>
               <div className="pb-6 ml-11 text-gray-600" style={{ paddingLeft: '65px', paddingRight: '65px' }}>
                 <p className="pt-4">
-                  Your data is safe. We don't use your inputs to train models, and we never share your information with third parties, universities, or tech companies.
+                  Your data is safe. We don&apos;t use your inputs to train models, and we never share your information with third parties, universities, or tech companies.
                 </p>
               </div>
             </details>
