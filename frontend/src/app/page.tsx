@@ -109,10 +109,10 @@ export default function LandingPage() {
           {/* Main Heading */}
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">
-              Transform Your Learning Experience
+              Learn Math by Doing, Not Watching AI do it
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Discover innovative ways to master complex concepts through interactive practice and personalized guidance.
+              Epigram guides you through human-verified problems step-by-step with hints and key questions — building the problem-solving skills that top students use.
             </p>
           </div>
 
@@ -480,7 +480,7 @@ export default function LandingPage() {
               Start Your Journey to Math Excellence Today
             </h2>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of students who've mastered calculus through active learning, personalized practice, and AI-guided problem solving.
+              Join students who practice with purpose and see results.
             </p>
             <Link href="/app">
               <button className="px-8 py-4 text-base font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors cursor-pointer">
