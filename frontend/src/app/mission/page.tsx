@@ -3,11 +3,16 @@
 import Link from "next/link";
 import Image from "next/image";
 
+// Import Inter font
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
+
 export default function MissionPage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FAF8F3' }}>
+    <div className={`min-h-screen ${inter.className}`} style={{ backgroundColor: '#faf9f5' }}>
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full" style={{ backgroundColor: '#FAF8F3' }}>
+      <header className="sticky top-0 z-50 w-full bg-[#faf9f5]/80 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-6">
           <div className="flex h-20 items-center justify-between">
             {/* Logo and Nav Links */}
