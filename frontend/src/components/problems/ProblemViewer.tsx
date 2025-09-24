@@ -763,9 +763,9 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
   if (problemList.length === 0 && !isLoading) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
         <div className="rounded-2xl overflow-hidden flex h-full flex-col">
-          <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-gray-900 p-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto min-h-0 p-3 custom-scrollbar" style={{ backgroundColor: '#faf9f5' }}>
             {viewMode === 'bookmarks' ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
@@ -790,52 +790,52 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                       </h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                      <div className="backdrop-blur-md rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.9)', border: '1px solid rgb(240,238,230)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: '#3d3929' }}>
                           <Brain className="h-5 w-5 text-blue-500" />
                           Work First, Check Later
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                        <p className="leading-relaxed ml-7" style={{ color: '#666' }}>
                           Always attempt each problem <span className="font-semibold">on your own</span> before looking at hints or solutions. Push your thinking as far as possible so you truly engage your brain.
                         </p>
                       </div>
 
-                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                      <div className="backdrop-blur-md rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.9)', border: '1px solid rgb(240,238,230)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: '#3d3929' }}>
                           <FileText className="h-5 w-5 text-green-500" />
                           Use Handouts Strategically
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                        <p className="leading-relaxed ml-7" style={{ color: '#666' }}>
                           If you&apos;re unsure about the concepts, <span className="font-semibold">consult the handouts</span> while solving problems. They&apos;re placed side-by-side for quick reference.
                         </p>
                       </div>
 
-                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                      <div className="backdrop-blur-md rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.9)', border: '1px solid rgb(240,238,230)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: '#3d3929' }}>
                           <AlertCircle className="h-5 w-5 text-yellow-500" />
                           Learn From Mistakes
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                        <p className="leading-relaxed ml-7" style={{ color: '#666' }}>
                           When you get a problem wrong, <span className="font-semibold">bookmark</span> it and explicitly write down what step or idea you missed. Then use handouts, textbooks, or AI support to figure out <span className="font-semibold">why you made the mistake</span> and <span className="font-semibold">how to avoid</span> it next time.
                         </p>
                       </div>
 
-                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                      <div className="backdrop-blur-md rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.9)', border: '1px solid rgb(240,238,230)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: '#3d3929' }}>
                           <Shuffle className="h-5 w-5 text-purple-500" />
                           Value Multiple Approaches
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                        <p className="leading-relaxed ml-7" style={{ color: '#666' }}>
                           Pay close attention to problems that have <span className="font-semibold">more than one solution</span>. These problems reveal important connections between different ideas and techniques.
                         </p>
                       </div>
 
-                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                      <div className="backdrop-blur-md rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.9)', border: '1px solid rgb(240,238,230)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: '#3d3929' }}>
                           <Target className="h-5 w-5 text-red-500" />
                           Practice With Focus
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                        <p className="leading-relaxed ml-7" style={{ color: '#666' }}>
                           Set aside dedicated time for <span className="font-semibold">concentrated practice</span>. Avoid distractions so you can work deeply and retain more.
                         </p>
                       </div>
@@ -850,27 +850,27 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                       </h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                      <div className="backdrop-blur-md rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.9)', border: '1px solid rgb(240,238,230)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: '#3d3929' }}>
                           <GraduationCap className="h-5 w-5 text-indigo-500" />
                           AP Calculus and University Exams
                           <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
                             (Quiz, Midterm, Final)
                           </span>
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                        <p className="leading-relaxed ml-7" style={{ color: '#666' }}>
                           Focus mainly on <span className="font-semibold">easy</span> and <span className="font-semibold">medium</span> problems, as these form the bulk of test questions. To strengthen problem-solving skills and build resilience, include a small number of <span className="font-semibold">hard</span> or <span className="font-semibold">very hard</span> problems.
                         </p>
                       </div>
-                      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                      <div className="backdrop-blur-md rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.9)', border: '1px solid rgb(240,238,230)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: '#3d3929' }}>
                           <Trophy className="h-5 w-5 text-amber-500" />
                           Math Competitions
                           <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
                             (High School or College)
                           </span>
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed ml-7">
+                        <p className="leading-relaxed ml-7" style={{ color: '#666' }}>
                           Prioritize <span className="font-semibold">hard</span> and <span className="font-semibold">very hard</span> problems, since competitions are designed to test deeper understanding, creativity, and advanced problem-solving skills.
                         </p>
                       </div>
@@ -895,15 +895,15 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   }
 
   return (
-    <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
+    <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
+      <div className="rounded-2xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
       {/* Problem Content */}
-      <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-gray-900 p-3 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto min-h-0 p-3 custom-scrollbar" style={{ backgroundColor: '#faf9f5' }}>
         <div className="w-full space-y-6 min-w-0">
           {currentProblem && (
             <>
               {/* Main Problem */}
-              <Card className="w-full border-0 shadow-none">
+              <Card className="w-full border-0 shadow-none" style={{ backgroundColor: 'transparent' }}>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <span>Problem {currentProblemIndex + 1}</span>
@@ -916,12 +916,32 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           disabled={!user || completedLoading}
                           className={cn(
                             "!p-1 rounded-lg transition-colors disabled:opacity-100",
-                            user ? "cursor-pointer" : "cursor-default",
-                            user && isCompleted 
-                              ? "bg-green-600 text-white hover:bg-green-700 border-green-600" 
-                              : user ? "hover:bg-gray-50 dark:hover:bg-gray-800" : ""
+                            user ? "cursor-pointer" : "cursor-default"
                           )}
-                          style={{ pointerEvents: user && !completedLoading ? 'auto' : 'none' }}
+                          style={{
+                            pointerEvents: user && !completedLoading ? 'auto' : 'none',
+                            backgroundColor: user && isCompleted ? '#16a34a' : '#faf9f5',
+                            borderColor: user && isCompleted ? '#16a34a' : 'rgb(240,238,230)',
+                            color: user && isCompleted ? 'white' : '#3d3929'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (user && !completedLoading) {
+                              if (isCompleted) {
+                                e.currentTarget.style.backgroundColor = '#15803d';
+                              } else {
+                                e.currentTarget.style.backgroundColor = '#f5f4ee';
+                              }
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (user && !completedLoading) {
+                              if (isCompleted) {
+                                e.currentTarget.style.backgroundColor = '#16a34a';
+                              } else {
+                                e.currentTarget.style.backgroundColor = '#faf9f5';
+                              }
+                            }
+                          }}
                         >
                           <Check className="!h-6 !w-6" />
                         </Button>
@@ -947,12 +967,24 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           disabled={!user || bookmarkLoading}
                           className={cn(
                             "!p-1 rounded-lg transition-colors disabled:opacity-100",
-                            user ? "cursor-pointer" : "cursor-default",
-                            user && isBookmarked 
-                              ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20" 
-                              : user ? "hover:bg-gray-50 dark:hover:bg-gray-800" : ""
+                            user ? "cursor-pointer" : "cursor-default"
                           )}
-                          style={{ pointerEvents: user && !bookmarkLoading ? 'auto' : 'none' }}
+                          style={{
+                            pointerEvents: user && !bookmarkLoading ? 'auto' : 'none',
+                            backgroundColor: '#faf9f5',
+                            borderColor: 'rgb(240,238,230)',
+                            color: user && isBookmarked ? '#eab308' : '#3d3929'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (user && !bookmarkLoading) {
+                              e.currentTarget.style.backgroundColor = '#f5f4ee';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (user && !bookmarkLoading) {
+                              e.currentTarget.style.backgroundColor = '#faf9f5';
+                            }
+                          }}
                         >
                           <Bookmark className={cn(
                             "!h-6 !w-6",
@@ -977,7 +1009,18 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         variant="outline"
                         size="default"
                         onClick={() => setScientificCalculatorOpen(true)}
-                        className="!p-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                        className="!p-1 cursor-pointer rounded-lg"
+                        style={{
+                          backgroundColor: '#faf9f5',
+                          borderColor: 'rgb(240,238,230)',
+                          color: '#3d3929'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f5f4ee';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#faf9f5';
+                        }}
                         title="Open Scientific Calculator"
                       >
                         <Calculator className="!h-6 !w-6" />
@@ -986,7 +1029,18 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         variant="outline"
                         size="default"
                         onClick={() => setGeogebraOpen(true)}
-                        className="!p-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                        className="!p-1 cursor-pointer rounded-lg"
+                        style={{
+                          backgroundColor: '#faf9f5',
+                          borderColor: 'rgb(240,238,230)',
+                          color: '#3d3929'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f5f4ee';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#faf9f5';
+                        }}
                         title="Open Graphing Calculator"
                       >
                         <LineChart className="!h-6 !w-6" />
@@ -1015,13 +1069,14 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             {!isRevealed ? (
                               <button
                                 onClick={() => setRevealedHints(prev => ({ ...prev, main: (prev.main || 0) + 1 }))}
-                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer border"
+                                style={{ borderColor: '#a16207' }}
                               >
                                 <Lightbulb className="h-4 w-4" />
                                 <span>Show Hint {index + 1}</span>
                               </button>
                             ) : (
-                              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
+                              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border" style={{ borderColor: '#a16207' }}>
                                 <div className="prose max-w-none dark:prose-invert text-sm">
                                   <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                 </div>
@@ -1062,7 +1117,11 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     <div className="mt-4 space-y-2" data-answer-section="main">
                       <div className="flex gap-2">
                         <textarea
-                          className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                          className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl bg-white border resize-none overflow-hidden focus:outline-none"
+                          style={{
+                            borderColor: 'rgb(240,238,230)',
+                            color: '#141310'
+                          }}
                           placeholder="Type your answer here..."
                           value={answers['main'] || ''}
                           onChange={(e) => {
@@ -1119,9 +1178,9 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   {subproblems.length > 0 && (
                     <div className="space-y-4">
                       {subproblems.map((subproblem) => (
-                        <Card key={subproblem.id} className="w-full max-w-full border-0 shadow-none py-3 gap-0">
+                        <Card key={subproblem.id} className="w-full max-w-full shadow-none py-3 gap-0 border-0 rounded-xl" style={{ backgroundColor: '#faf9f5' }}>
                           <CardContent className="px-0">
-                            <div className="font-medium text-blue-600 dark:text-blue-400 mb-2 text-lg">
+                            <div className="font-medium mb-2 text-lg" style={{ color: '#a16207' }}>
                               {subproblem.key}.
                             </div>
                             <div className="prose max-w-none dark:prose-invert overflow-hidden break-words">
@@ -1143,13 +1202,14 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                       {!isRevealed ? (
                                         <button
                                           onClick={() => setRevealedHints(prev => ({ ...prev, [hintKey]: (prev[hintKey] || 0) + 1 }))}
-                                          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                                          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer border"
+                                          style={{ borderColor: '#a16207' }}
                                         >
                                           <Lightbulb className="h-4 w-4" />
                                           <span>Show Hint {index + 1}</span>
                                         </button>
                                       ) : (
-                                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
+                                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border" style={{ borderColor: '#a16207' }}>
                                           <div className="prose max-w-none dark:prose-invert text-sm">
                                             <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                           </div>
@@ -1189,7 +1249,11 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             <div className="mt-4 space-y-2" data-answer-section={`sub_${subproblem.key}`}>
                               <div className="flex gap-2">
                                 <textarea
-                                  className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden focus:outline-none"
+                                  className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl bg-white border resize-none overflow-hidden focus:outline-none"
+                                  style={{
+                                    borderColor: 'rgb(240,238,230)',
+                                    color: '#141310'
+                                  }}
                                   placeholder="Type your answer here..."
                                   value={answers[`sub_${subproblem.key}`] || ''}
                                   onChange={(e) => {
@@ -1254,7 +1318,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       </div>
 
       {/* Bottom Navigation */}
-      <div className="bg-white p-4 dark:bg-gray-900 h-[58px] flex flex-col justify-center flex-shrink-0">
+      <div className="p-4 h-[58px] flex flex-col justify-center flex-shrink-0" style={{ backgroundColor: '#faf9f5' }}>
         <div className="flex items-center justify-center">
           <div className="flex items-center space-x-4">
             <Button
@@ -1263,11 +1327,16 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               onClick={previousProblem}
               disabled={!canGoPrevious()}
               className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
+              style={{
+                backgroundColor: '#faf9f5',
+                borderColor: 'rgb(240,238,230)',
+                color: '#3d3929'
+              }}
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="text-sm" style={{ color: '#666' }}>
               Problem {currentProblemIndex + 1} of {problemList.length}
             </span>
             <Button
@@ -1276,6 +1345,11 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               onClick={nextProblem}
               disabled={!canGoNext()}
               className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
+              style={{
+                backgroundColor: '#faf9f5',
+                borderColor: 'rgb(240,238,230)',
+                color: '#3d3929'
+              }}
             >
               Next
               <ChevronRight className="h-4 w-4" />

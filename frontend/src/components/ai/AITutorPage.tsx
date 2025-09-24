@@ -795,16 +795,16 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   // Show loading state while restoring session
   if (isRestoringSession) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900">
+      <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: '#faf9f5' }}>
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: '#3d3929', borderTopColor: 'transparent' }} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 min-h-0 overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden" style={{ backgroundColor: '#faf9f5' }}>
       {messages.length === 0 ? (
         // Initial view with scrollable content
         <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -831,10 +831,12 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
               {/* Input wrapper with constrained height */}
               <div className={cn(
-                     "relative rounded-3xl border bg-white dark:bg-gray-800 overflow-hidden",
-                     "border-gray-300 dark:border-gray-700",
+                     "relative rounded-3xl border overflow-hidden",
                      isDragging && "border-blue-500"
-                   )}>
+                   )} style={{
+                     backgroundColor: 'white',
+                     borderColor: isDragging ? '#3b82f6' : 'rgb(240,238,230)'
+                   }}>
 
                 {/* Drag overlay indicator */}
                 {isDragging && (
@@ -908,10 +910,20 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   {/* Upload button */}
                   <button
                     onClick={triggerFileUpload}
-                    className="h-8 w-16 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group mr-2 relative"
+                    className="h-8 w-16 rounded-xl border cursor-pointer flex items-center justify-center group mr-2 relative"
+                    style={{
+                      backgroundColor: '#faf9f5',
+                      borderColor: 'rgb(240,238,230)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f5f4ee';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#faf9f5';
+                    }}
                     aria-label="Upload image"
                   >
-                    <ImagePlus className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={2} />
+                    <ImagePlus className="h-5 w-5" strokeWidth={2} style={{ color: '#141310' }} />
                     {/* Tooltip */}
                     <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                       Image
@@ -921,10 +933,20 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   {/* Math input button */}
                   <button
                     onClick={insertMathField}
-                    className="h-8 w-16 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group relative"
+                    className="h-8 w-16 rounded-xl border cursor-pointer flex items-center justify-center group relative"
+                    style={{
+                      backgroundColor: '#faf9f5',
+                      borderColor: 'rgb(240,238,230)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f5f4ee';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#faf9f5';
+                    }}
                     aria-label="Insert math equation"
                   >
-                    <Sigma className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={2} />
+                    <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: '#141310' }} />
                     {/* Tooltip */}
                     <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                       Math Input
@@ -935,7 +957,20 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   <Button
                     onClick={handleSendMessage}
                     disabled={(!input && !pastedImage) || isLoading}
-                    className="ml-auto h-8 px-3 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
+                    className="ml-auto h-8 px-3 rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
+                    style={{
+                      backgroundColor: '#141310'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!e.currentTarget.disabled) {
+                        e.currentTarget.style.backgroundColor = 'rgba(20, 19, 16, 0.9)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!e.currentTarget.disabled) {
+                        e.currentTarget.style.backgroundColor = '#141310';
+                      }
+                    }}
                   >
                     <span>SEND</span>
                     <Send className="h-3.5 w-3.5" />
@@ -959,7 +994,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
               </h3>
 
               <div className="space-y-3">
-                <div className="rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="rounded-2xl p-4 border" style={{ borderColor: 'rgb(240,238,230)' }}>
                   <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
                     <Lightbulb className="h-4 w-4 text-blue-500" />
                     Active Learning Focus
@@ -969,7 +1004,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   </p>
                 </div>
 
-                <div className="rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="rounded-2xl p-4 border" style={{ borderColor: 'rgb(240,238,230)' }}>
                   <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
                     <Send className="h-4 w-4 text-green-500" />
                     Requesting Full Solutions
@@ -977,7 +1012,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
                     If you already understand the core idea of a problem and don&apos;t want to go through all the algebra, you can directly ask for the complete solution.
                   </p>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-2">
+                  <div className="rounded-2xl p-2" style={{ backgroundColor: '#f5f4ee' }}>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">Example input:</p>
                     <p className="text-sm text-gray-700 dark:text-gray-300 italic">
                       &quot;I already understand the main idea of this problem. Please provide the complete step-by-step solution.&quot;
@@ -1045,10 +1080,20 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 {/* Math input button */}
                 <button
                   onClick={insertMathFieldInChat}
-                  className="h-8 w-10 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center group flex-shrink-0 relative"
+                  className="h-8 w-10 rounded-xl border cursor-pointer flex items-center justify-center group flex-shrink-0 relative"
+                  style={{
+                    backgroundColor: '#faf9f5',
+                    borderColor: 'rgb(240,238,230)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f5f4ee';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#faf9f5';
+                  }}
                   aria-label="Insert math equation"
                 >
-                  <Sigma className="h-5 w-5 text-gray-600 dark:text-gray-400" strokeWidth={2} />
+                  <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: '#141310' }} />
                   {/* Tooltip */}
                   <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                     Math Input
@@ -1084,7 +1129,20 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 <Button
                   onClick={handleSendMessage}
                   disabled={!input.trim() || isLoading}
-                  className="h-8 px-3 mr-1 rounded-xl bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium flex-shrink-0"
+                  className="h-8 px-3 mr-1 rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium flex-shrink-0"
+                  style={{
+                    backgroundColor: '#141310'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!e.currentTarget.disabled) {
+                      e.currentTarget.style.backgroundColor = 'rgba(20, 19, 16, 0.9)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!e.currentTarget.disabled) {
+                      e.currentTarget.style.backgroundColor = '#141310';
+                    }
+                  }}
                 >
                 <span>SEND</span>
                 <Send className="h-3.5 w-3.5" />

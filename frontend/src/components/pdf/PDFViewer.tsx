@@ -198,18 +198,30 @@ export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* PDF Toolbar - Layout independent */}
-      <div className="flex items-center justify-center px-4 py-0 bg-white dark:bg-gray-900 flex-shrink-0">
+      <div className="flex items-center justify-center px-4 py-0 flex-shrink-0" style={{ backgroundColor: '#faf9f5' }}>
         {/* Page counter and Page Width Selector */}
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="text-sm" style={{ color: '#666' }}>
             {loading ? '...' : `${currentPage} / ${numPages}`}
           </span>
           
           <Select value={selectedPageWidth} onValueChange={handlePageWidthChange}>
-            <SelectTrigger className="w-32 h-8 text-sm">
+            <SelectTrigger
+              className="w-32 h-8 text-sm"
+              style={{
+                backgroundColor: '#faf9f5',
+                borderColor: 'rgb(240,238,230)',
+                color: '#3d3929'
+              }}
+            >
               <SelectValue placeholder="Page fit" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              style={{
+                backgroundColor: '#faf9f5',
+                borderColor: 'rgb(240,238,230)'
+              }}
+            >
               {pageWidthOptions.map((option) => (
                 <SelectItem key={option.id} value={option.id}>
                   {option.label}
@@ -226,7 +238,7 @@ export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
         className="flex-1 overflow-hidden relative pdf-content-container"
       >
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-10">
+          <div className="absolute inset-0 flex items-center justify-center z-10" style={{ backgroundColor: '#faf9f5' }}>
             <div className="flex items-center space-x-2 text-gray-500">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm">Loading PDF...</span>

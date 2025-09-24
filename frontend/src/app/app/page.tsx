@@ -20,6 +20,11 @@ import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
+// Import Inter font
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
+
 function AppPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -216,13 +221,13 @@ function AppPageContent() {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col">
+    <div className={`w-full h-screen flex flex-col ${inter.className}`} style={{ backgroundColor: '#faf9f5' }}>
       {/* Mobile Header */}
-      <div className="flex flex-col border-b bg-white dark:bg-gray-900 lg:hidden">
+      <div className="flex flex-col border-b border-[rgb(240,238,230)] lg:hidden" style={{ backgroundColor: '#faf9f5' }}>
         <div className="flex items-center justify-between h-14 px-4">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <button className="cursor-pointer h-10 w-10 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <button className="cursor-pointer h-10 w-10 flex items-center justify-center rounded-md transition-colors" style={{ '--hover-bg': '#e9e6dc' } as React.CSSProperties} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e9e6dc'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
@@ -290,7 +295,7 @@ function AppPageContent() {
 
           <div className="flex items-center gap-2">
             <Image src="/epigram_logo.svg" alt="Epigram Logo" width={32} height={32} className="dark:invert" />
-            <h1 className="font-bold text-xl">Epigram</h1>
+            <h1 className="font-bold text-xl" style={{ color: '#3d3929' }}>Epigram</h1>
           </div>
 
           <div className="w-6 h-6" />
@@ -299,28 +304,30 @@ function AppPageContent() {
         {/* Mobile Mode Toggle */}
         {selectedTopicId && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && (
           <div className="flex items-center justify-center px-4 py-2">
-            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <div className="flex items-center rounded-lg p-1" style={{ backgroundColor: '#e9e6dc' }}>
               <button
                 onClick={() => setContentMode('problems')}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
-                  contentMode === 'problems'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-all cursor-pointer"
+                style={{
+                  backgroundColor: contentMode === 'problems' ? '#faf9f5' : 'transparent',
+                  color: contentMode === 'problems' ? '#141310' : '#666',
+                  boxShadow: contentMode === 'problems' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
+                }}
               >
                 <Book className="h-3.5 w-3.5" />
-                <span className="text-xs font-medium">Problems</span>
+                <span className="text-xs font-medium" style={{ color: contentMode === 'problems' ? '#141310' : '#666' }}>Problems</span>
               </button>
               <button
                 onClick={() => setContentMode('handouts')}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
-                  contentMode === 'handouts'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-all cursor-pointer"
+                style={{
+                  backgroundColor: contentMode === 'handouts' ? '#faf9f5' : 'transparent',
+                  color: contentMode === 'handouts' ? '#141310' : '#666',
+                  boxShadow: contentMode === 'handouts' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
+                }}
               >
                 <FileText className="h-3.5 w-3.5" />
-                <span className="text-xs font-medium">Handouts</span>
+                <span className="text-xs font-medium" style={{ color: contentMode === 'handouts' ? '#141310' : '#666' }}>Handouts</span>
               </button>
             </div>
           </div>
@@ -330,7 +337,7 @@ function AppPageContent() {
       {/* Desktop Layout */}
       <div className="flex flex-1 w-full relative min-h-0">
         {/* Left Sidebar - Topics */}
-        <div className={`hidden ${isSidebarOpen ? 'w-60' : 'w-0'} transition-all duration-300 flex-shrink-0 bg-gray-50 border-r border-gray-100 dark:bg-gray-900 dark:border-gray-800 lg:flex flex-col relative h-full`}>
+        <div className={`hidden ${isSidebarOpen ? 'w-60' : 'w-0'} transition-all duration-300 flex-shrink-0 border-r border-[rgb(240,238,230)] lg:flex flex-col relative h-full`} style={{ backgroundColor: '#f5f4ee' }}>
           {isSidebarOpen && (
             <TopicsSidebar 
               selectedTopicId={selectedTopicId}
@@ -374,27 +381,47 @@ function AppPageContent() {
           )}
           {/* Mode Toggle */}
           {isSidebarOpen && (
-            <div className="absolute bottom-16 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
-              <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+            <div className="absolute bottom-16 left-0 right-0 p-4" style={{ backgroundColor: '#f5f4ee' }}>
+              <div className="flex items-center justify-center rounded-xl p-1" style={{ backgroundColor: '#e9e6dc' }}>
                 <button
                   onClick={() => handleSidebarModeChange('tutor')}
-                  className={cn(
-                    "flex-1 py-1.5 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer",
-                    sidebarMode === 'tutor'
-                      ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                  )}
+                  className="flex-1 py-1.5 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: sidebarMode === 'tutor' ? '#3d3929' : 'transparent',
+                    color: sidebarMode === 'tutor' ? '#faf9f5' : '#666',
+                    boxShadow: sidebarMode === 'tutor' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (sidebarMode !== 'tutor') {
+                      e.currentTarget.style.color = '#3d3929';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (sidebarMode !== 'tutor') {
+                      e.currentTarget.style.color = '#666';
+                    }
+                  }}
                 >
                   Tutor
                 </button>
                 <button
                   onClick={() => handleSidebarModeChange('practice')}
-                  className={cn(
-                    "flex-1 py-1.5 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer",
-                    sidebarMode === 'practice'
-                      ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                  )}
+                  className="flex-1 py-1.5 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: sidebarMode === 'practice' ? '#3d3929' : 'transparent',
+                    color: sidebarMode === 'practice' ? '#faf9f5' : '#666',
+                    boxShadow: sidebarMode === 'practice' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (sidebarMode !== 'practice') {
+                      e.currentTarget.style.color = '#3d3929';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (sidebarMode !== 'practice') {
+                      e.currentTarget.style.color = '#666';
+                    }
+                  }}
                 >
                   Practice
                 </button>
@@ -403,7 +430,7 @@ function AppPageContent() {
           )}
           {/* Bottom Auth Section */}
           {isSidebarOpen && (
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 dark:bg-gray-900">
+            <div className="absolute bottom-0 left-0 right-0 p-4" style={{ backgroundColor: '#f5f4ee' }}>
               {isAuthenticated && user ? (
                 <UserProfileDropdown user={user} />
               ) : (
@@ -426,11 +453,11 @@ function AppPageContent() {
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             onLogoClick={handleLogoClick}
-            showModeToggle={selectedTopicId !== null && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' && selectedTopicInfo?.main_topic !== 'Quick References'}
+            showModeToggle={selectedTopicId !== null && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' && viewMode !== 'history' && selectedTopicInfo?.main_topic !== 'Quick References'}
             contentMode={contentMode}
             onContentModeChange={setContentMode}
             topicDisplay={
-              selectedTopicInfo && viewMode !== 'create-practice' && viewMode !== 'ai-tutor'
+              selectedTopicInfo && viewMode !== 'create-practice' && viewMode !== 'ai-tutor' && viewMode !== 'history'
                 ? `${selectedTopicInfo.main_topic} - ${selectedTopicInfo.subtopic}`
                 : undefined
             }
@@ -507,7 +534,7 @@ export default function AppPage() {
     <Suspense fallback={
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: '#3d3929', borderTopColor: 'transparent' }} />
         </div>
       </div>
     }>

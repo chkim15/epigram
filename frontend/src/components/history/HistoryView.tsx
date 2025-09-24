@@ -155,7 +155,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
   }, [sessions, groupedSessions]);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900">
+    <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#faf9f5' }}>
       <div className="max-w-6xl mx-auto px-4 py-4">
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">History</h1>
 
@@ -166,9 +166,10 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
             className={cn(
               "pb-3 px-1 text-lg font-medium transition-colors cursor-pointer",
               activeTab === 'all'
-                ? "text-blue-600 border-b-2 border-blue-600"
+                ? "border-b-2"
                 : "text-gray-500 hover:text-gray-700"
             )}
+            style={activeTab === 'all' ? { color: '#a16207', borderColor: '#a16207' } : {}}
           >
             All
           </button>
@@ -177,9 +178,10 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
             className={cn(
               "pb-3 px-1 text-lg font-medium transition-colors cursor-pointer",
               activeTab === 'bookmarks'
-                ? "text-blue-600 border-b-2 border-blue-600"
+                ? "border-b-2"
                 : "text-gray-500 hover:text-gray-700"
             )}
+            style={activeTab === 'bookmarks' ? { color: '#a16207', borderColor: '#a16207' } : {}}
           >
             Bookmarks
           </button>

@@ -423,6 +423,146 @@ supabase/migrations/20250118_add_problem_topics_junction.sql  # Junction table f
 - **Dark mode support** - Fixed white backgrounds in ProblemViewer and toggle switch
 - **Proper overflow handling** - Fixed scrolling issues in Solutions and Comments tabs
 
+### Color Scheme & Design System (January 2025)
+
+**Comprehensive Color Overhaul - Warm Palette Implementation**
+
+The application underwent a complete visual transformation from default styling to a cohesive warm color palette matching the landing page design. All fonts were standardized to **Inter** across the entire application.
+
+#### Primary Color Palette
+
+**Core Colors:**
+- **Background**: `#faf9f5` - Primary background for main content areas
+- **Border**: `rgb(240,238,230)` - Standard border color for consistency
+- **Foreground/Text**: `#141310` - Primary text color (updated from initial #3d3929)
+- **Sidebar Background**: `#f5f4ee` - Secondary background for navigation areas
+- **Sidebar Accent**: `#e9e6dc` - Accent color for sidebar toggles and highlights
+
+**Accent Colors:**
+- **Hint/Warning**: `#a16207` - Used for hint borders, buttons, and subproblem markers
+- **White**: `#ffffff` - Reserved for input fields and cards requiring high contrast
+- **Hover States**: `#f5f4ee` - Standard hover background for buttons
+
+#### Font Implementation
+
+**Inter Font Integration:**
+```typescript
+// Applied to main app layout
+import { Inter } from 'next/font/google';
+const inter = Inter({ subsets: ['latin'] });
+
+// Usage in component
+<div className={inter.className}>
+  {/* Application content */}
+</div>
+```
+
+#### Component-Specific Styling Guidelines
+
+**Header and Navigation (`UnifiedHeader.tsx`, `TopicsSidebar.tsx`):**
+- Header background: `#faf9f5`
+- Button backgrounds: `#faf9f5` with `#f5f4ee` hover states
+- Border colors: `rgb(240,238,230)` for consistency
+- Mode toggle backgrounds: `#e9e6dc` with white active states
+- Menu button colors: `#141310` foreground with proper hover states
+
+**Problem Viewer (`ProblemViewer.tsx`):**
+- Card backgrounds: `transparent` to inherit from parent
+- Navigation button styling: Consistent with header buttons
+- Answer input fields: White background with `rgb(240,238,230)` borders
+- Hint system: `#a16207` for borders, buttons, and content highlights
+- Subproblem markers: `#a16207` color for a, b, c indicators
+
+**Chat Interface (`ChatSidebar.tsx`):**
+- Tab container: Inherits from main background
+- Active tab states: `bg-[#141310]` with white text
+- Tab font size: Increased from `text-xs` to `text-sm` for better readability
+- Send button: `#141310` background
+- Input fields: White background for contrast
+
+**Interactive Elements:**
+- **Cursor Behavior**: ALL interactive elements use `cursor-pointer` class
+- **Hover Effects**: Consistent opacity/color transitions across buttons and links
+- **Button States**: Standard pattern of background color changes on hover
+- **Input Fields**: White backgrounds with `rgb(240,238,230)` borders for form contrast
+
+#### Implementation Patterns
+
+**Standard Button Pattern:**
+```typescript
+<Button
+  className="h-8 px-3 rounded-xl cursor-pointer border"
+  style={{
+    backgroundColor: '#faf9f5',
+    color: '#141310',
+    borderColor: 'rgb(240,238,230)'
+  }}
+  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f4ee'}
+  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#faf9f5'}
+>
+  Button Text
+</Button>
+```
+
+**Input Field Pattern:**
+```typescript
+<input
+  className="h-[50px] py-2 px-3 rounded-xl bg-white border focus:outline-none"
+  style={{
+    borderColor: 'rgb(240,238,230)',
+    color: '#141310'
+  }}
+/>
+```
+
+**Hint/Accent Element Pattern:**
+```typescript
+<button
+  style={{
+    borderColor: '#a16207',
+    color: '#a16207'
+  }}
+>
+  Hint Element
+</button>
+```
+
+#### Files Modified for Color Scheme
+
+**Complete styling overhaul applied to:**
+- `/src/app/page.tsx` - Landing page with ESLint fixes
+- `/src/app/app/page.tsx` - Main app with Inter font integration
+- `/src/components/layout/UnifiedHeader.tsx` - Header styling consistency
+- `/src/components/navigation/TopicsSidebar.tsx` - Sidebar color palette
+- `/src/components/problems/ProblemViewer.tsx` - Problem display styling
+- `/src/components/ai/ChatSidebar.tsx` - Chat interface colors
+- `/src/components/ai/AITutorPage.tsx` - AI tutor page consistency
+- Multiple PDF viewer components for theme integration
+
+#### Build Fixes Applied
+
+**ESLint Compliance:**
+- Fixed `react/no-unescaped-entities` errors by replacing `'` with `&apos;` in JSX
+- Resolved TypeScript strict typing issues
+- Maintained consistent import patterns
+
+**Common Styling Pitfalls Avoided:**
+- No white backgrounds left unintentionally (systematic replacement)
+- Consistent border colors across all components
+- Proper hover state implementations with style objects
+- Maintained accessibility through sufficient color contrast ratios
+
+#### Design Consistency Rules
+
+**When adding new components:**
+1. **Always use Inter font** - Import and apply Inter font family
+2. **Use established color variables** - Reference the primary palette above
+3. **Apply cursor-pointer** - Add to all interactive elements
+4. **Implement hover states** - Use consistent patterns for user feedback
+5. **White backgrounds only for inputs** - Reserve white for form fields requiring contrast
+6. **Border consistency** - Use `rgb(240,238,230)` for standard borders
+7. **Hint elements use #a16207** - Apply to warnings, hints, and accent markers
+
 ## COMMON ISSUES & SOLUTIONS
 
 ### Build & Deployment Issues

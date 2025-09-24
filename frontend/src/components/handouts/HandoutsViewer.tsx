@@ -125,9 +125,9 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
-          <div className="flex items-center justify-center h-full bg-white dark:bg-gray-900">
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
+        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
+          <div className="flex items-center justify-center h-full" style={{ backgroundColor: '#faf9f5' }}>
             <div className="text-gray-500">Loading handout...</div>
           </div>
         </div>
@@ -138,9 +138,9 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
   // Error state
   if (error) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
-          <div className="flex flex-col items-center justify-center h-full space-y-2 bg-white dark:bg-gray-900">
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
+        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
+          <div className="flex flex-col items-center justify-center h-full space-y-2" style={{ backgroundColor: '#faf9f5' }}>
             <AlertCircle className="h-8 w-8 text-red-500" />
             <div className="text-gray-700 dark:text-gray-300">{error}</div>
           </div>
@@ -152,9 +152,9 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
   // No topic selected
   if (!selectedTopicId || !handout) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
-          <div className="flex flex-col items-center justify-center h-full space-y-3 bg-white dark:bg-gray-900">
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
+        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
+          <div className="flex flex-col items-center justify-center h-full space-y-3" style={{ backgroundColor: '#faf9f5' }}>
             <FileText className="h-12 w-12 text-gray-400" />
             <div className="text-gray-500 dark:text-gray-400">Select a topic to view handouts</div>
           </div>
@@ -166,9 +166,9 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
   // No handout available for this topic
   if (!handout.file_url) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
-          <div className="flex flex-col items-center justify-center h-full space-y-3 bg-white dark:bg-gray-900">
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
+        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
+          <div className="flex flex-col items-center justify-center h-full space-y-3" style={{ backgroundColor: '#faf9f5' }}>
             <FileText className="h-12 w-12 text-gray-400" />
             <div className="text-gray-500 dark:text-gray-400">
               Handout not yet available for {handout.topic_name}
@@ -181,8 +181,8 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
 
   // Display PDF
   return (
-    <div className="flex h-full flex-col min-h-0 px-2 py-2 bg-white dark:bg-gray-900">
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex h-full flex-col">
+    <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
+      <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
         <div className="flex-1 min-h-0">
           <PDFViewerSimple 
             pdfUrl={handout.file_url}

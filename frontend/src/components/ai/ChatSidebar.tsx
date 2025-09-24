@@ -276,7 +276,7 @@ function SolutionsTab({
                   className={cn(
                     "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                     activeSubTab === 'solutions' && selectedProblemSolution === index
-                      ? "bg-black text-white"
+                      ? "bg-[#141310] text-white"
                       : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                   )}
                 >
@@ -290,7 +290,7 @@ function SolutionsTab({
               className={cn(
                 "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                 activeSubTab === 'solutions'
-                  ? "bg-black text-white"
+                  ? "bg-[#141310] text-white"
                   : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
               )}
             >
@@ -303,7 +303,7 @@ function SolutionsTab({
               className={cn(
                 "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                 activeSubTab === 'comments'
-                  ? "bg-black text-white"
+                  ? "bg-[#141310] text-white"
                   : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
               )}
             >
@@ -362,7 +362,7 @@ function SolutionsTab({
                               className={cn(
                                 "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                                 selectedIndex === index
-                                  ? "bg-black text-white"
+                                  ? "bg-[#141310] text-white"
                                   : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                               )}
                             >
@@ -824,20 +824,19 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
       ] as const;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100%' }}>
+    <div className="h-full flex flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100%', backgroundColor: '#faf9f5' }}>
       {/* Navigation Tabs */}
-      <div className="flex-shrink-0 flex bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl m-2 p-1">
+      <div className="flex-shrink-0 flex border rounded-xl m-2 p-1" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
         {tabs.map((tab) => (
           <Button
             key={tab.id}
             variant="ghost"
             size="sm"
-            className={cn(
-              "flex-1 text-xs h-8 rounded-lg transition-all cursor-pointer",
-              activeTab === tab.id 
-                ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white" 
-                : "hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
-            )}
+            className="flex-1 text-sm h-8 rounded-lg transition-all cursor-pointer"
+            style={{
+              backgroundColor: activeTab === tab.id ? '#e9e6dc' : 'transparent',
+              color: activeTab === tab.id ? '#141310' : '#666'
+            }}
             onClick={() => setActiveTab(tab.id)}
           >
             <tab.icon className="h-3 w-3 mr-1" />
@@ -847,7 +846,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden" style={{ backgroundColor: '#faf9f5' }}>
         {activeTab === 'chat' && (
           <div className="h-full flex flex-col relative overflow-hidden">
             {/* New Chat Icon - Only show when messages exist */}
@@ -868,7 +867,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
               </Button>
             )}
             {/* Messages Area - Scrollable */}
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar chat-messages-area">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar chat-messages-area" style={{ backgroundColor: '#faf9f5' }}>
               {messages.length === 0 && !isLoading ? (
                 /* AI Tutor Header - Different content based on mode */
                 <div className="h-full flex items-center justify-center">
@@ -887,7 +886,20 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                           <button
                             key={index}
                             onClick={() => handleExampleClick(question)}
-                            className="block w-full text-left px-3 py-2 text-sm rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
+                            className="block w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors cursor-pointer"
+                            style={{
+                              backgroundColor: '#faf9f5',
+                              borderColor: 'rgb(240,238,230)',
+                              color: '#666'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#f5f4ee';
+                              e.currentTarget.style.borderColor = 'rgb(220,216,208)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#faf9f5';
+                              e.currentTarget.style.borderColor = 'rgb(240,238,230)';
+                            }}
                           >
                             {question}
                           </button>
@@ -938,7 +950,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
             </div>
 
             {/* Fixed Input Area - Always Visible */}
-            <div className="flex-shrink-0 bg-white dark:bg-gray-900 px-2 py-2 border-t border-gray-200 dark:border-gray-700 relative">
+            <div className="flex-shrink-0 px-2 py-2 border-t relative" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
               <div className="relative">
                 <Textarea
                   ref={textareaRef}
@@ -948,12 +960,13 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                   onPaste={handlePaste}
                   placeholder="Ask questions about math"
                   className={cn(
-                    "chat-input-textarea resize-none w-full pr-12 pb-8 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400",
+                    "chat-input-textarea resize-none w-full pr-12 pb-8 rounded-2xl border bg-white placeholder:text-gray-500",
                     pastedImage ? "min-h-[140px] pt-16" : "min-h-[90px] pt-3"
                   )}
                   style={{
                     outline: 'none',
                     boxShadow: 'none',
+                    borderColor: 'rgb(240,238,230)'
                   }}
                   onFocus={(e) => {
                     e.target.style.outline = 'none';
@@ -988,7 +1001,20 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                   onClick={handleSendMessage}
                   disabled={(!input.trim() && !pastedImage) || isLoading}
                   size="icon"
-                  className="absolute right-2 bottom-2 h-8 w-8 rounded-lg bg-black hover:bg-black/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed"
+                  className="absolute right-2 bottom-2 h-8 w-8 rounded-lg disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: '#141310'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!e.currentTarget.disabled) {
+                      e.currentTarget.style.backgroundColor = 'rgba(20, 19, 16, 0.9)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!e.currentTarget.disabled) {
+                      e.currentTarget.style.backgroundColor = '#141310';
+                    }
+                  }}
                 >
                   <Send className="h-4 w-4" />
                 </Button>

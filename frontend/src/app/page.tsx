@@ -49,7 +49,7 @@ export default function LandingPage() {
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
               <Link href="/signin">
-                <button className="px-4 py-2 text-black hover:opacity-70 cursor-pointer" style={{ fontSize: '14px' }}>
+                <button className="px-4 py-2 hover:opacity-70 cursor-pointer" style={{ fontSize: '14px', color: '#141310' }}>
                   Sign In
                 </button>
               </Link>

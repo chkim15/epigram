@@ -776,9 +776,9 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
   }
 
   return (
-    <div className="flex h-full bg-white dark:bg-gray-900">
+    <div className="flex h-full" style={{ backgroundColor: '#faf9f5' }}>
       {/* Left sidebar - Practice Sessions List */}
-      <div className="w-64 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
+      <div className="w-64 border-r p-4 overflow-y-auto" style={{ borderColor: 'rgb(240,238,230)' }}>
         <div>
           <h3 className="text-lg font-semibold mb-4">Saved Sessions</h3>
           <div>
@@ -795,7 +795,17 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                 {practiceSessions.map(session => (
                   <div
                     key={session.id}
-                    className="p-3 border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="p-3 border rounded-xl transition-colors"
+                    style={{
+                      backgroundColor: '#faf9f5',
+                      borderColor: 'rgb(240,238,230)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f5f4ee';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#faf9f5';
+                    }}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -866,7 +876,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
           {/* Left Column: Session Name and Topics */}
           <div className="space-y-6">
             {/* Session Name */}
-            <Card className="rounded-xl">
+            <Card className="rounded-xl border" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Session Name</CardTitle>
               </CardHeader>
@@ -876,12 +886,17 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                   onChange={(e) => setSessionName(e.target.value)}
                   placeholder="Enter session name"
                   className="w-full"
+                  style={{
+                    borderColor: 'rgb(240,238,230)',
+                    backgroundColor: 'white',
+                    color: '#141310'
+                  }}
                 />
               </CardContent>
             </Card>
 
             {/* Topics */}
-            <Card className="flex-1 rounded-xl">
+            <Card className="flex-1 rounded-xl border" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Topics</CardTitle>
@@ -892,7 +907,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
               </CardHeader>
               <CardContent className="space-y-4">
                 {courses.map(course => (
-                  <div key={course.id} className="border rounded-xl p-4">
+                  <div key={course.id} className="border rounded-xl p-4" style={{ borderColor: 'rgb(240,238,230)' }}>
                     {/* Course Level - Clickable entire row */}
                     <div 
                       className="flex items-center justify-between mb-3 cursor-pointer"
@@ -920,7 +935,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                     {expandedCourses.has(course.id) && (
                       <div className="ml-6 space-y-3">
                         {course.mainTopics.map(mainTopic => (
-                          <div key={mainTopic.id} className="border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                          <div key={mainTopic.id} className="border-l-2 pl-4" style={{ borderColor: 'rgb(240,238,230)' }}>
                             <div 
                               className="flex items-center justify-between mb-2 cursor-pointer"
                               onClick={() => toggleMainTopicExpansion(mainTopic.id)}
@@ -971,7 +986,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
           </div>
 
           {/* Practice Settings - Right side */}
-            <Card className="h-fit rounded-xl">
+            <Card className="h-fit rounded-xl border" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
               <CardHeader>
                 <CardTitle>Practice Settings</CardTitle>
               </CardHeader>
@@ -987,9 +1002,23 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                         className={cn(
                           "flex items-center gap-1 px-1.5 py-1 rounded-lg border cursor-pointer transition-all text-xs",
                           selectedDifficulties.has(difficulty)
-                            ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
-                            : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                            ? "bg-gray-50 dark:bg-gray-800"
+                            : ""
                         )}
+                        style={{
+                          borderColor: 'rgb(240,238,230)',
+                          backgroundColor: selectedDifficulties.has(difficulty) ? '#f5f4ee' : 'transparent'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!selectedDifficulties.has(difficulty)) {
+                            e.currentTarget.style.backgroundColor = '#f5f4ee';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!selectedDifficulties.has(difficulty)) {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }
+                        }}
                       >
                         <div className="relative flex items-center justify-center">
                           <Checkbox
@@ -1012,11 +1041,22 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       onClick={() => setExcludeBookmarked(!excludeBookmarked)}
                       className={cn(
                         "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-32",
-                        excludeBookmarked
-                          ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
-                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
                         !user && "opacity-50 cursor-not-allowed"
                       )}
+                      style={{
+                        borderColor: 'rgb(240,238,230)',
+                        backgroundColor: excludeBookmarked ? '#f5f4ee' : 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (user && !excludeBookmarked) {
+                          e.currentTarget.style.backgroundColor = '#f5f4ee';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (user && !excludeBookmarked) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
                     >
                       <Checkbox
                         checked={excludeBookmarked}
@@ -1030,11 +1070,22 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       onClick={() => setExcludeCompleted(!excludeCompleted)}
                       className={cn(
                         "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-32",
-                        excludeCompleted
-                          ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
-                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
                         !user && "opacity-50 cursor-not-allowed"
                       )}
+                      style={{
+                        borderColor: 'rgb(240,238,230)',
+                        backgroundColor: excludeCompleted ? '#f5f4ee' : 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (user && !excludeCompleted) {
+                          e.currentTarget.style.backgroundColor = '#f5f4ee';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (user && !excludeCompleted) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
                     >
                       <Checkbox
                         checked={excludeCompleted}
@@ -1057,7 +1108,11 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       max={Math.min(20, availableQuestions || 20)}
                       value={Math.min(problemCount, Math.min(20, availableQuestions || 20))}
                       onChange={(e) => setProblemCount(parseInt(e.target.value) || 5)}
-                      className="w-20 px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent"
+                      className="w-20 px-3 py-1.5 text-sm border rounded-lg bg-white text-gray-900 focus:outline-none"
+                      style={{
+                        borderColor: 'rgb(240,238,230)',
+                        color: '#141310'
+                      }}
                     />
                     <span className="text-sm text-gray-600 dark:text-gray-400">problems</span>
                   </div>

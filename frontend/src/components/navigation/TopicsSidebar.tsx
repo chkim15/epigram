@@ -247,7 +247,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+        <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#666' }} />
       </div>
     );
   }
@@ -255,7 +255,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   if (error) {
     return (
       <div className="p-4">
-        <div className="rounded-lg bg-red-50 p-3 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-lg p-3" style={{ backgroundColor: '#ffeaea', color: '#dc2626' }}>
           {error}
         </div>
         <Button 
@@ -281,7 +281,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
             onClick={onLogoClick}
           >
             <Image src="/epigram_logo.svg" alt="Epigram Logo" width={32} height={32} className="dark:invert" />
-            <h2 className="font-bold text-xl text-gray-900 dark:text-white">
+            <h2 className="font-bold text-xl" style={{ color: '#3d3929' }}>
               Epigram
             </h2>
           </div>
@@ -327,12 +327,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   <div className="mb-2">
                     <Button
                       variant="ghost"
-                      className={cn(
-                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl",
-                        activeMenu === 'ai-tutor'
-                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
-                          : "text-gray-700 dark:text-gray-300"
-                      )}
+                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
+                      style={{
+                        backgroundColor: activeMenu === 'ai-tutor' ? '#e9e6dc' : 'transparent',
+                        color: activeMenu === 'ai-tutor' ? '#141310' : '#141310'
+                      }}
                       onClick={onAITutor}
                     >
                       <span className="flex-1 text-left">AI Tutor</span>
@@ -343,12 +342,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   <div className="mb-2">
                     <Button
                       variant="ghost"
-                      className={cn(
-                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl",
-                        activeMenu === 'history'
-                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
-                          : "text-gray-700 dark:text-gray-300"
-                      )}
+                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
+                      style={{
+                        backgroundColor: activeMenu === 'history' ? '#e9e6dc' : 'transparent',
+                        color: activeMenu === 'history' ? '#141310' : '#141310'
+                      }}
                       onClick={onHistory}
                     >
                       <span className="flex-1 text-left">History</span>
@@ -364,7 +362,8 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       <CollapsibleTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl text-gray-700 dark:text-gray-300"
+                          className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
+                          style={{ color: '#141310' }}
                         >
                           <span className="flex-1 text-left">Handouts/Problems</span>
                           <ChevronDown className="h-4 w-4" />
@@ -376,12 +375,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                             <Button
                               key={course.id}
                               variant="ghost"
-                              className={cn(
-                                "w-full justify-start py-2 px-3 font-medium cursor-pointer rounded-xl",
-                                selectedCourse?.id === course.id
-                                  ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
-                                  : "text-gray-700 dark:text-gray-300"
-                              )}
+                              className="w-full justify-start py-2 px-3 font-medium cursor-pointer rounded-xl"
+                              style={{
+                                backgroundColor: selectedCourse?.id === course.id ? '#e9e6dc' : 'transparent',
+                                color: selectedCourse?.id === course.id ? '#3d3929' : '#666'
+                              }}
                               onClick={() => selectCourse(course)}
                             >
                               <span className="flex-1 text-left">{course.name}</span>
@@ -397,12 +395,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   <div className="mb-2">
                     <Button
                       variant="ghost"
-                      className={cn(
-                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl",
-                        activeMenu === 'create-practice'
-                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
-                          : "text-gray-700 dark:text-gray-300"
-                      )}
+                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
+                      style={{
+                        backgroundColor: activeMenu === 'create-practice' ? '#e9e6dc' : 'transparent',
+                        color: activeMenu === 'create-practice' ? '#141310' : '#141310'
+                      }}
                       onClick={onCreatePractice}
                     >
                       <span className="flex-1 text-left">Create Practice</span>
@@ -413,12 +410,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   <div className="mb-4 relative group">
                     <Button
                       variant="ghost"
-                      className={cn(
-                        "w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl disabled:opacity-100",
-                        activeMenu === 'bookmarks'
-                          ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
-                          : "text-gray-700 dark:text-gray-300"
-                      )}
+                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl disabled:opacity-100"
+                      style={{
+                        backgroundColor: activeMenu === 'bookmarks' ? '#e9e6dc' : 'transparent',
+                        color: activeMenu === 'bookmarks' ? '#141310' : '#141310'
+                      }}
                       onClick={onBookmarks}
                       disabled={!user}
                       style={{ pointerEvents: user ? 'auto' : 'none' }}
@@ -426,9 +422,9 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       <span className="flex-1 text-left">Bookmarks</span>
                     </Button>
                     {!user && (
-                      <div className="absolute left-12 bottom-full mb-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
+                      <div className="absolute left-12 bottom-full mb-1 px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50" style={{ backgroundColor: '#3d3929', color: '#faf9f5' }}>
                         Please sign in
-                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4" style={{ borderTopColor: '#3d3929' }} />
                       </div>
                     )}
                   </div>
@@ -449,7 +445,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                 <div className="p-4 pb-32">
               {selectedCourse && (
                 <>
-                  <h3 className="font-semibold text-lg mb-4">{selectedCourse.name}</h3>
+                  <h3 className="font-semibold text-lg mb-4" style={{ color: '#3d3929' }}>{selectedCourse.name}</h3>
                   {(selectedCourse.name === 'Special Topics' || selectedCourse.name === 'Calculus Essentials') ? (
                     // For Special Topics and Calculus Essentials, show topics directly without section dropdown
                     <div className="space-y-1">
@@ -457,12 +453,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                         <Button
                           key={topic.id}
                           variant={selectedTopicId === topic.id ? "default" : "ghost"}
-                          className={cn(
-                            "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl",
-                            selectedTopicId === topic.id
-                              ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
-                              : "text-gray-700 dark:text-gray-300"
-                          )}
+                          className="w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl"
+                          style={{
+                            backgroundColor: selectedTopicId === topic.id ? '#e9e6dc' : 'transparent',
+                            color: selectedTopicId === topic.id ? '#3d3929' : '#666'
+                          }}
                           onClick={() => onSelectTopic(topic.id)}
                         >
                           <span className="flex-1 leading-relaxed whitespace-normal break-words">
@@ -482,7 +477,8 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                           <CollapsibleTrigger asChild>
                             <Button
                               variant="ghost"
-                              className="w-full justify-start py-2 px-3 font-medium cursor-pointer rounded-xl text-gray-700 dark:text-gray-300"
+                              className="w-full justify-start py-2 px-3 font-medium cursor-pointer rounded-xl"
+                              style={{ color: '#141310' }}
                             >
                               <span className={cn(
                                 "flex-1 text-left",
@@ -501,12 +497,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                                 <Button
                                   key={topic.id}
                                   variant={selectedTopicId === topic.id ? "default" : "ghost"}
-                                  className={cn(
-                                    "w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl",
-                                    selectedTopicId === topic.id
-                                      ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
-                                      : "text-gray-700 dark:text-gray-300"
-                                  )}
+                                  className="w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl"
+                                  style={{
+                                    backgroundColor: selectedTopicId === topic.id ? '#e9e6dc' : 'transparent',
+                                    color: selectedTopicId === topic.id ? '#3d3929' : '#666'
+                                  }}
                                   onClick={() => onSelectTopic(topic.id)}
                                 >
                                   <span className="flex-1 leading-relaxed whitespace-normal break-words">

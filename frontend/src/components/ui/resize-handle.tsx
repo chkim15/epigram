@@ -27,11 +27,23 @@ export default function ResizeHandle({ onMouseDown, className }: ResizeHandlePro
     <div
       className={cn(
         "relative flex items-center justify-center group cursor-col-resize",
-        "w-1 hover:w-2 transition-all duration-150 ease-in-out",
-        "bg-transparent hover:bg-gray-300 dark:hover:bg-gray-600",
-        isDragging && "bg-gray-300 dark:bg-gray-600 w-2",
+        "w-1 transition-all duration-150 ease-in-out",
+        "bg-transparent",
         className
       )}
+      style={{
+        backgroundColor: isDragging ? 'rgb(240,238,230)' : '#f5f4ee'
+      }}
+      onMouseEnter={(e) => {
+        if (!isDragging) {
+          e.currentTarget.style.backgroundColor = 'rgb(240,238,230)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isDragging) {
+          e.currentTarget.style.backgroundColor = '#f5f4ee';
+        }
+      }}
       onMouseDown={handleMouseDown}
     >
       
