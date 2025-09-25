@@ -413,11 +413,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl disabled:opacity-100"
                       style={{
                         backgroundColor: activeMenu === 'bookmarks' ? '#e9e6dc' : 'transparent',
-                        color: activeMenu === 'bookmarks' ? '#141310' : '#141310'
+                        color: activeMenu === 'bookmarks' ? '#141310' : '#141310',
+                        pointerEvents: user ? 'auto' : 'none'
                       }}
                       onClick={onBookmarks}
                       disabled={!user}
-                      style={{ pointerEvents: user ? 'auto' : 'none' }}
                     >
                       <span className="flex-1 text-left">Bookmarks</span>
                     </Button>

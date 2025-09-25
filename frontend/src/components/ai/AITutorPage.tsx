@@ -1051,7 +1051,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   ) : (
                     // AI response - full width with white background
                     <div key={message.id} className="w-full">
-                      <div className="w-full bg-white dark:bg-gray-800 rounded-lg p-6">
+                      <div className="w-full rounded-lg p-6" style={{ backgroundColor: '#faf9f5' }}>
                         <div className="prose prose-base dark:prose-invert max-w-none">
                           <MathContent content={message.content} />
                         </div>
@@ -1061,7 +1061,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 ))}
                 {isLoading && !isStreaming && (
                   <div className="w-full">
-                    <div className="w-full bg-white dark:bg-gray-800 rounded-lg p-6">
+                    <div className="w-full rounded-lg p-6" style={{ backgroundColor: '#faf9f5' }}>
                       <div className="flex space-x-1">
                         <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
                         <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
@@ -1074,9 +1074,9 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
             </div>
 
           {/* Fixed Input Area */}
-          <div className="flex-shrink-0 bg-white dark:bg-gray-900">
+          <div className="flex-shrink-0" style={{ backgroundColor: '#faf9f5' }}>
             <div className="max-w-4xl mx-auto px-4 py-3">
-              <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-3xl border border-gray-300 dark:border-gray-700 px-2">
+              <div className="flex items-center gap-2 rounded-3xl border px-2" style={{ backgroundColor: 'white', borderColor: 'rgb(240,238,230)' }}>
                 {/* Math input button */}
                 <button
                   onClick={insertMathFieldInChat}
