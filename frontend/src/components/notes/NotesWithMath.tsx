@@ -739,7 +739,6 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
           className={cn(
             "w-full h-full",
             "!border-0 !border-none",
-            "bg-white dark:bg-gray-900",
             "!ring-0 !ring-offset-0",
             "focus:!ring-0 focus:!ring-offset-0 focus:!outline-none focus:!border-0",
             "focus-visible:!ring-0 focus-visible:!ring-offset-0 focus-visible:!border-0",
@@ -751,6 +750,7 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
             "[&:empty]:before:text-gray-400 dark:[&:empty]:before:text-gray-500"
           )}
           style={{
+            backgroundColor: '#faf9f5',
             boxShadow: 'none',
             outline: 'none',
             border: 'none',

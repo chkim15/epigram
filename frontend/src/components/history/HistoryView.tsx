@@ -54,6 +54,13 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
     }
   }, [user, activeTab, fetchSessions]);
 
+  // Auto-expand all groups when sessions change
+  useEffect(() => {
+    const grouped = groupSessionsByDate(sessions);
+    const allGroupKeys = Object.keys(grouped);
+    setExpandedGroups(new Set(allGroupKeys));
+  }, [sessions]);
+
   const toggleBookmark = async (sessionId: string, currentState: boolean) => {
     try {
       const { error } = await supabase

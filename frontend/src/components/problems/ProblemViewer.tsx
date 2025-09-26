@@ -920,14 +920,14 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           )}
                           style={{
                             pointerEvents: user && !completedLoading ? 'auto' : 'none',
-                            backgroundColor: user && isCompleted ? '#16a34a' : '#faf9f5',
-                            borderColor: user && isCompleted ? '#16a34a' : 'rgb(240,238,230)',
+                            backgroundColor: user && isCompleted ? '#4a7c59' : '#faf9f5',
+                            borderColor: user && isCompleted ? '#4a7c59' : 'rgb(240,238,230)',
                             color: user && isCompleted ? 'white' : '#3d3929'
                           }}
                           onMouseEnter={(e) => {
                             if (user && !completedLoading) {
                               if (isCompleted) {
-                                e.currentTarget.style.backgroundColor = '#15803d';
+                                e.currentTarget.style.backgroundColor = '#3d6847';
                               } else {
                                 e.currentTarget.style.backgroundColor = 'var(--secondary)';
                               }
@@ -936,7 +936,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           onMouseLeave={(e) => {
                             if (user && !completedLoading) {
                               if (isCompleted) {
-                                e.currentTarget.style.backgroundColor = '#16a34a';
+                                e.currentTarget.style.backgroundColor = '#4a7c59';
                               } else {
                                 e.currentTarget.style.backgroundColor = '#faf9f5';
                               }
@@ -998,12 +998,6 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           Please sign in
                           <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
                         </div>
-                        {user && (
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
-                            {isBookmarked ? "Remove bookmark" : "Add bookmark"}
-                            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
-                          </div>
-                        )}
                       </div>
                       <Button
                         variant="outline"
@@ -1158,11 +1152,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                       </div>
                       {gradingFeedback['main'] && (
                         <div className={cn(
-                          "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium animate-in fade-in duration-300",
-                          gradingFeedback['main'].isCorrect
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                        )}>
+                          "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium animate-in fade-in duration-300 font-sans"
+                        )}
+                        style={{
+                          backgroundColor: gradingFeedback['main'].isCorrect ? '#4a7c59' : '#a0442c',
+                          color: 'white',
+                          fontFamily: 'Inter, sans-serif'
+                        }}>
                           {gradingFeedback['main'].isCorrect ? (
                             <Check className="h-4 w-4 flex-shrink-0" />
                           ) : (
@@ -1290,11 +1286,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                               </div>
                               {gradingFeedback[`sub_${subproblem.key}`] && (
                                 <div className={cn(
-                                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium animate-in fade-in duration-300",
-                                  gradingFeedback[`sub_${subproblem.key}`].isCorrect
-                                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                )}>
+                                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium animate-in fade-in duration-300 font-sans"
+                                )}
+                                style={{
+                                  backgroundColor: gradingFeedback[`sub_${subproblem.key}`].isCorrect ? '#4a7c59' : '#a0442c',
+                                  color: 'white',
+                                  fontFamily: 'Inter, sans-serif'
+                                }}>
                                   {gradingFeedback[`sub_${subproblem.key}`].isCorrect ? (
                                     <Check className="h-4 w-4 flex-shrink-0" />
                                   ) : (

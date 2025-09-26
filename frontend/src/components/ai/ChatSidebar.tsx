@@ -273,12 +273,22 @@ function SolutionsTab({
                     setActiveSubTab('solutions');
                     setSelectedProblemSolution(index);
                   }}
-                  className={cn(
-                    "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
-                    activeSubTab === 'solutions' && selectedProblemSolution === index
-                      ? "bg-foreground text-background"
-                      : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                  )}
+                  className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
+                  style={{
+                    backgroundColor: activeSubTab === 'solutions' && selectedProblemSolution === index ? '#a16207' : '#f5f4ee',
+                    color: activeSubTab === 'solutions' && selectedProblemSolution === index ? 'white' : '#141310',
+                    borderColor: '#e9e6dc'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!(activeSubTab === 'solutions' && selectedProblemSolution === index)) {
+                      e.currentTarget.style.backgroundColor = '#e9e6dc';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!(activeSubTab === 'solutions' && selectedProblemSolution === index)) {
+                      e.currentTarget.style.backgroundColor = '#f5f4ee';
+                    }
+                  }}
                 >
                   Solution {index + 1}
                 </button>
@@ -287,12 +297,22 @@ function SolutionsTab({
           ) : hasSolutions ? (
             <button
               onClick={() => setActiveSubTab('solutions')}
-              className={cn(
-                "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
-                activeSubTab === 'solutions'
-                  ? "bg-foreground text-background"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-              )}
+              className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
+              style={{
+                backgroundColor: activeSubTab === 'solutions' ? '#a16207' : '#f5f4ee',
+                color: activeSubTab === 'solutions' ? 'white' : '#141310',
+                borderColor: '#e9e6dc'
+              }}
+              onMouseEnter={(e) => {
+                if (activeSubTab !== 'solutions') {
+                  e.currentTarget.style.backgroundColor = '#e9e6dc';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeSubTab !== 'solutions') {
+                  e.currentTarget.style.backgroundColor = '#f5f4ee';
+                }
+              }}
             >
               Solution
             </button>
@@ -300,12 +320,22 @@ function SolutionsTab({
           {hasComments && (
             <button
               onClick={() => setActiveSubTab('comments')}
-              className={cn(
-                "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
-                activeSubTab === 'comments'
-                  ? "bg-foreground text-background"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-              )}
+              className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
+              style={{
+                backgroundColor: activeSubTab === 'comments' ? '#a16207' : '#f5f4ee',
+                color: activeSubTab === 'comments' ? 'white' : '#141310',
+                borderColor: '#e9e6dc'
+              }}
+              onMouseEnter={(e) => {
+                if (activeSubTab !== 'comments') {
+                  e.currentTarget.style.backgroundColor = '#e9e6dc';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeSubTab !== 'comments') {
+                  e.currentTarget.style.backgroundColor = '#f5f4ee';
+                }
+              }}
             >
               Comments
             </button>
@@ -350,8 +380,8 @@ function SolutionsTab({
                   
                   return (
                     <div key={key}>
-                      <div className="font-medium text-blue-600 dark:text-blue-400 mb-2">
-                        Part {key}
+                      <div className="text-lg font-medium mb-2" style={{ color: '#a16207' }}>
+                        {key}.
                       </div>
                       {solutions.length > 1 && (
                         <div className="flex gap-2 mb-3">
@@ -397,8 +427,8 @@ function SolutionsTab({
               <div className="space-y-4">
                 {currentSubproblems.filter(sp => sp.comment).map((subproblem) => (
                   <div key={subproblem.id}>
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Part {subproblem.key}
+                    <h3 className="text-lg font-medium mb-2" style={{ color: '#a16207' }}>
+                      {subproblem.key}.
                     </h3>
                     <div className="prose max-w-none dark:prose-invert">
                       <MathContent content={subproblem.comment || ''} documentId={currentDocument?.document_id} />
