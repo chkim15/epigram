@@ -798,52 +798,52 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                       </h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="backdrop-blur-md rounded-2xl p-4 bg-white/90 dark:bg-gray-800/90 border border-[rgb(240,238,230)] dark:border-gray-600">
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-[#3d3929] dark:text-gray-200">
+                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Brain className="h-5 w-5 text-blue-500" />
                           Work First, Check Later
                         </h3>
-                        <p className="leading-relaxed ml-7 text-gray-600 dark:text-gray-300">
+                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Always attempt each problem <span className="font-semibold">on your own</span> before looking at hints or solutions. Push your thinking as far as possible so you truly engage your brain.
                         </p>
                       </div>
 
-                      <div className="backdrop-blur-md rounded-2xl p-4 bg-white/90 dark:bg-gray-800/90 border border-[rgb(240,238,230)] dark:border-gray-600">
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-[#3d3929] dark:text-gray-200">
+                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <FileText className="h-5 w-5 text-green-500" />
                           Use Handouts Strategically
                         </h3>
-                        <p className="leading-relaxed ml-7 text-gray-600 dark:text-gray-300">
+                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           If you&apos;re unsure about the concepts, <span className="font-semibold">consult the handouts</span> while solving problems. They&apos;re placed side-by-side for quick reference.
                         </p>
                       </div>
 
-                      <div className="backdrop-blur-md rounded-2xl p-4 bg-white/90 dark:bg-gray-800/90 border border-[rgb(240,238,230)] dark:border-gray-600">
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-[#3d3929] dark:text-gray-200">
+                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <AlertCircle className="h-5 w-5 text-yellow-500" />
                           Learn From Mistakes
                         </h3>
-                        <p className="leading-relaxed ml-7 text-gray-600 dark:text-gray-300">
+                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           When you get a problem wrong, <span className="font-semibold">bookmark</span> it and explicitly write down what step or idea you missed. Then use handouts, textbooks, or AI support to figure out <span className="font-semibold">why you made the mistake</span> and <span className="font-semibold">how to avoid</span> it next time.
                         </p>
                       </div>
 
-                      <div className="backdrop-blur-md rounded-2xl p-4 bg-white/90 dark:bg-gray-800/90 border border-[rgb(240,238,230)] dark:border-gray-600">
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-[#3d3929] dark:text-gray-200">
+                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Shuffle className="h-5 w-5 text-purple-500" />
                           Value Multiple Approaches
                         </h3>
-                        <p className="leading-relaxed ml-7 text-gray-600 dark:text-gray-300">
+                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Pay close attention to problems that have <span className="font-semibold">more than one solution</span>. These problems reveal important connections between different ideas and techniques.
                         </p>
                       </div>
 
-                      <div className="backdrop-blur-md rounded-2xl p-4 bg-white/90 dark:bg-gray-800/90 border border-[rgb(240,238,230)] dark:border-gray-600">
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-[#3d3929] dark:text-gray-200">
+                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Target className="h-5 w-5 text-red-500" />
                           Practice With Focus
                         </h3>
-                        <p className="leading-relaxed ml-7 text-gray-600 dark:text-gray-300">
+                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Set aside dedicated time for <span className="font-semibold">concentrated practice</span>. Avoid distractions so you can work deeply and retain more.
                         </p>
                       </div>
@@ -853,32 +853,32 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   {/* Right Column - Problem Difficulty Strategy */}
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                      <h2 className="text-3xl font-extrabold" style={{ color: 'var(--foreground)' }}>
                         Problem Difficulty Strategy
                       </h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="backdrop-blur-md rounded-2xl p-4 bg-white/90 dark:bg-gray-800/90 border border-[rgb(240,238,230)] dark:border-gray-600">
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-[#3d3929] dark:text-gray-200">
+                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <GraduationCap className="h-5 w-5 text-indigo-500" />
                           AP Calculus and University Exams
-                          <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                          <span className="text-sm font-normal" style={{ color: 'var(--foreground)', opacity: 0.6 }}>
                             (Quiz, Midterm, Final)
                           </span>
                         </h3>
-                        <p className="leading-relaxed ml-7 text-gray-600 dark:text-gray-300">
+                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Focus mainly on <span className="font-semibold">easy</span> and <span className="font-semibold">medium</span> problems, as these form the bulk of test questions. To strengthen problem-solving skills and build resilience, include a small number of <span className="font-semibold">hard</span> or <span className="font-semibold">very hard</span> problems.
                         </p>
                       </div>
-                      <div className="backdrop-blur-md rounded-2xl p-4 bg-white/90 dark:bg-gray-800/90 border border-[rgb(240,238,230)] dark:border-gray-600">
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-[#3d3929] dark:text-gray-200">
+                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Trophy className="h-5 w-5 text-amber-500" />
                           Math Competitions
-                          <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                          <span className="text-sm font-normal" style={{ color: 'var(--foreground)', opacity: 0.6 }}>
                             (High School or College)
                           </span>
                         </h3>
-                        <p className="leading-relaxed ml-7 text-gray-600 dark:text-gray-300">
+                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Prioritize <span className="font-semibold">hard</span> and <span className="font-semibold">very hard</span> problems, since competitions are designed to test deeper understanding, creativity, and advanced problem-solving skills.
                         </p>
                       </div>

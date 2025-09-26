@@ -297,7 +297,7 @@ math-field:focus {
   --popover-foreground: oklch(0.9211 0.0040 106.4781);
   --primary: oklch(0.6724 0.1308 38.7559);
   --primary-foreground: oklch(1.0000 0 0);
-  --secondary: oklch(0.9818 0.0054 95.0986);
+  --secondary: oklch(0.3085 0.0035 106.6039);
   --secondary-foreground: oklch(0.3085 0.0035 106.6039);
   --muted: oklch(0.2213 0.0038 106.7070);
   --muted-foreground: oklch(0.7713 0.0169 99.0657);
@@ -319,7 +319,7 @@ math-field:focus {
   --sidebar-primary-foreground: oklch(0.9881 0 0);
   --sidebar-accent: oklch(0.1680 0.0020 106.6177);
   --sidebar-accent-foreground: oklch(0.8074 0.0142 93.0137);
-  --sidebar-border: oklch(0.9401 0 0);
+  --sidebar-border: oklch(0.3618 0.0101 106.8928);
   --sidebar-ring: oklch(0.7731 0 0);
 }
 

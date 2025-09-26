@@ -989,7 +989,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
             </div>
 
             {/* Instructional text */}
-            <div className="text-center mt-4 text-gray-500 dark:text-gray-400 text-sm">
+            <div className="text-center mt-4 text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
               Send one question at a time for optimal result<br />
               ⌘ + control + Shift + 4 to take a screenshot<br />
               ⌘ + V to paste image
@@ -997,33 +997,33 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
             {/* Usage Tips */}
             <div className="max-w-3xl mt-8 space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                 <Sparkles className="h-5 w-5 text-yellow-500" />
                 Usage Tips
               </h3>
 
               <div className="space-y-3">
-                <div className="rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
-                  <h4 className="font-medium text-gray-900 dark:text-gray-300 mb-1 flex items-center gap-2">
+                <div className="rounded-2xl p-4 border" style={{ borderColor: 'var(--border)' }}>
+                  <h4 className="font-medium mb-1 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                     <Lightbulb className="h-4 w-4 text-blue-500" />
                     Active Learning Focus
                   </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                     This LLM is designed to support active learning. It won&apos;t immediately give full solutions. Instead, it will guide you with hints and prompting questions so you can work through the steps yourself.
                   </p>
                 </div>
 
-                <div className="rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
-                  <h4 className="font-medium text-gray-900 dark:text-gray-300 mb-1 flex items-center gap-2">
+                <div className="rounded-2xl p-4 border" style={{ borderColor: 'var(--border)' }}>
+                  <h4 className="font-medium mb-1 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                     <MessageSquare className="h-4 w-4 text-green-500" />
                     Requesting Full Solutions
                   </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
+                  <p className="text-sm leading-relaxed mb-2" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                     If you already understand the core idea of a problem and don&apos;t want to go through all the algebra, you can directly ask for the complete solution.
                   </p>
                   <div className="rounded-2xl p-2" style={{ backgroundColor: 'var(--secondary)' }}>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">Example input:</p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                    <p className="text-xs mb-1" style={{ color: 'var(--foreground)', opacity: 0.6 }}>Example input:</p>
+                    <p className="text-sm italic" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                       &quot;I already understand the main idea of this problem. Please provide the complete step-by-step solution.&quot;
                     </p>
                   </div>
