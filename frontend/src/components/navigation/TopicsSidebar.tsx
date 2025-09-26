@@ -247,7 +247,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#666' }} />
+        <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--sidebar-foreground)' }} />
       </div>
     );
   }
@@ -255,7 +255,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   if (error) {
     return (
       <div className="p-4">
-        <div className="rounded-lg p-3" style={{ backgroundColor: '#ffeaea', color: '#dc2626' }}>
+        <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--destructive)', color: 'var(--destructive-foreground)' }}>
           {error}
         </div>
         <Button 
@@ -281,7 +281,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
             onClick={onLogoClick}
           >
             <Image src="/epigram_logo.svg" alt="Epigram Logo" width={32} height={32} className="dark:invert" />
-            <h2 className="font-bold text-xl" style={{ color: '#3d3929' }}>
+            <h2 className="font-bold text-xl" style={{ color: 'var(--sidebar-foreground)' }}>
               Epigram
             </h2>
           </div>
@@ -330,7 +330,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
                       style={{
                         backgroundColor: activeMenu === 'ai-tutor' ? 'var(--muted)' : 'transparent',
-                        color: activeMenu === 'ai-tutor' ? '#141310' : '#141310'
+                        color: 'var(--sidebar-foreground)'
                       }}
                       onClick={onAITutor}
                     >
@@ -345,7 +345,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
                       style={{
                         backgroundColor: activeMenu === 'history' ? 'var(--muted)' : 'transparent',
-                        color: activeMenu === 'history' ? '#141310' : '#141310'
+                        color: 'var(--sidebar-foreground)'
                       }}
                       onClick={onHistory}
                     >
@@ -378,7 +378,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                               className="w-full justify-start py-2 px-3 font-medium cursor-pointer rounded-xl"
                               style={{
                                 backgroundColor: selectedCourse?.id === course.id ? 'var(--muted)' : 'transparent',
-                                color: selectedCourse?.id === course.id ? '#3d3929' : '#666'
+                                color: selectedCourse?.id === course.id ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)'
                               }}
                               onClick={() => selectCourse(course)}
                             >
@@ -398,7 +398,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
                       style={{
                         backgroundColor: activeMenu === 'create-practice' ? 'var(--muted)' : 'transparent',
-                        color: activeMenu === 'create-practice' ? '#141310' : '#141310'
+                        color: 'var(--sidebar-foreground)'
                       }}
                       onClick={onCreatePractice}
                     >
@@ -413,7 +413,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl disabled:opacity-100"
                       style={{
                         backgroundColor: activeMenu === 'bookmarks' ? 'var(--muted)' : 'transparent',
-                        color: activeMenu === 'bookmarks' ? '#141310' : '#141310',
+                        color: 'var(--sidebar-foreground)',
                         pointerEvents: user ? 'auto' : 'none'
                       }}
                       onClick={onBookmarks}
@@ -424,7 +424,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                     {!user && (
                       <div className="absolute left-12 bottom-full mb-1 px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50" style={{ backgroundColor: 'var(--foreground)', color: 'var(--background)' }}>
                         Please sign in
-                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4" style={{ borderTopColor: '#3d3929' }} />
+                        <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4" style={{ borderTopColor: 'var(--sidebar-foreground)' }} />
                       </div>
                     )}
                   </div>
@@ -445,7 +445,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                 <div className="p-4 pb-32">
               {selectedCourse && (
                 <>
-                  <h3 className="font-semibold text-lg mb-4" style={{ color: '#3d3929' }}>{selectedCourse.name}</h3>
+                  <h3 className="font-semibold text-lg mb-4" style={{ color: 'var(--sidebar-foreground)' }}>{selectedCourse.name}</h3>
                   {(selectedCourse.name === 'Special Topics' || selectedCourse.name === 'Calculus Essentials') ? (
                     // For Special Topics and Calculus Essentials, show topics directly without section dropdown
                     <div className="space-y-1">
@@ -456,7 +456,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                           className="w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl"
                           style={{
                             backgroundColor: selectedTopicId === topic.id ? 'var(--muted)' : 'transparent',
-                            color: selectedTopicId === topic.id ? '#3d3929' : '#666'
+                            color: selectedTopicId === topic.id ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)'
                           }}
                           onClick={() => onSelectTopic(topic.id)}
                         >
@@ -500,7 +500,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                                   className="w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl"
                                   style={{
                                     backgroundColor: selectedTopicId === topic.id ? 'var(--muted)' : 'transparent',
-                                    color: selectedTopicId === topic.id ? '#3d3929' : '#666'
+                                    color: selectedTopicId === topic.id ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)'
                                   }}
                                   onClick={() => onSelectTopic(topic.id)}
                                 >

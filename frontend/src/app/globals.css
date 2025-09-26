@@ -263,7 +263,7 @@ math-field:focus {
   --destructive: oklch(0.1908 0.0020 106.5859);
   --destructive-foreground: oklch(1.0000 0 0);
   --border: oklch(0.8847 0.0069 97.3627);
-  --input: oklch(0.7621 0.0156 98.3528);
+  --input: oklch(1 0 0);
   --ring: oklch(0.534 0.133 66.527); /* #a16207 */
   --chart-1: oklch(0.5583 0.1276 42.9956);
   --chart-2: oklch(0.6898 0.1581 290.4107);

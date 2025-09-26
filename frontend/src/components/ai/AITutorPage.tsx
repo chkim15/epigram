@@ -797,7 +797,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
     return (
       <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: 'var(--background)' }}>
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: '#3d3929', borderTopColor: 'transparent' }} />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: 'var(--foreground)', borderTopColor: 'transparent' }} />
         </div>
       </div>
     );
@@ -812,7 +812,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
             {/* Large Header */}
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center gap-4">
-                <Image src="/epigram_logo.svg" alt="Epigram Logo" width={80} height={80} className="dark:invert" />
+                <Image src="/epigram_logo.svg" alt="Epigram Logo" width={80} height={80} />
                 <h1 className="text-6xl font-bold text-gray-900 dark:text-white">Epigram</h1>
               </div>
             </div>
@@ -834,8 +834,8 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                      "relative rounded-3xl border overflow-hidden",
                      isDragging && "border-blue-500"
                    )} style={{
-                     backgroundColor: 'white',
-                     borderColor: isDragging ? '#3b82f6' : 'rgb(240,238,230)'
+                     backgroundColor: 'var(--input)',
+                     borderColor: isDragging ? 'var(--primary)' : 'var(--border)'
                    }}>
 
                 {/* Drag overlay indicator */}
@@ -867,13 +867,15 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     }
                   }}
                   className={cn(
-                    "resize-none w-full pr-24 pl-6 text-gray-900 dark:text-gray-100 text-xl ai-tutor-input",
+                    "resize-none w-full pr-24 pl-6 text-xl ai-tutor-input",
                     pastedImage ? "pt-[170px]" : "pt-6"
                   )}
                   style={{
+                    backgroundColor: 'var(--input)',
+                    color: 'var(--foreground)',
                     outline: 'none',
                     boxShadow: 'none',
-                    height: pastedImage ? '240px' : '140px',  // Reduced height to leave room for buttons
+                    height: pastedImage ? '240px' : '140px',
                     maxHeight: pastedImage ? '240px' : '140px',
                     width: '100%',
                     display: 'block',
@@ -906,26 +908,26 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 )}
 
                 {/* Bottom button row - no separator, no background */}
-                <div className="relative h-14 flex items-center px-4">
+                <div className="relative h-14 flex items-center px-4" style={{ backgroundColor: 'var(--input)' }}>
                   {/* Upload button */}
                   <button
                     onClick={triggerFileUpload}
                     className="h-8 w-16 rounded-xl border cursor-pointer flex items-center justify-center group mr-2 relative"
                     style={{
                       backgroundColor: 'var(--background)',
-                      borderColor: 'rgb(240,238,230)'
+                      borderColor: 'var(--border)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#f5f4ee';
+                      e.currentTarget.style.backgroundColor = 'var(--secondary)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#faf9f5';
+                      e.currentTarget.style.backgroundColor = 'var(--background)';
                     }}
                     aria-label="Upload image"
                   >
                     <ImagePlus className="h-5 w-5" strokeWidth={2} style={{ color: 'var(--foreground)' }} />
                     {/* Tooltip */}
-                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
+                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm border" style={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', color: 'var(--popover-foreground)' }}>
                       Image
                     </div>
                   </button>
@@ -936,19 +938,19 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     className="h-8 w-16 rounded-xl border cursor-pointer flex items-center justify-center group relative"
                     style={{
                       backgroundColor: 'var(--background)',
-                      borderColor: 'rgb(240,238,230)'
+                      borderColor: 'var(--border)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#f5f4ee';
+                      e.currentTarget.style.backgroundColor = 'var(--secondary)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#faf9f5';
+                      e.currentTarget.style.backgroundColor = 'var(--background)';
                     }}
                     aria-label="Insert math equation"
                   >
                     <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: 'var(--foreground)' }} />
                     {/* Tooltip */}
-                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
+                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm border" style={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', color: 'var(--popover-foreground)' }}>
                       Math Input
                     </div>
                   </button>
@@ -993,8 +995,8 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
               </h3>
 
               <div className="space-y-3">
-                <div className="rounded-2xl p-4 border" style={{ borderColor: 'rgb(240,238,230)' }}>
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                <div className="rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-300 mb-1 flex items-center gap-2">
                     <Lightbulb className="h-4 w-4 text-blue-500" />
                     Active Learning Focus
                   </h4>
@@ -1003,15 +1005,15 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   </p>
                 </div>
 
-                <div className="rounded-2xl p-4 border" style={{ borderColor: 'rgb(240,238,230)' }}>
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                <div className="rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-300 mb-1 flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-green-500" />
                     Requesting Full Solutions
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
                     If you already understand the core idea of a problem and don&apos;t want to go through all the algebra, you can directly ask for the complete solution.
                   </p>
-                  <div className="rounded-2xl p-2" style={{ backgroundColor: '#f5f4ee' }}>
+                  <div className="rounded-2xl p-2" style={{ backgroundColor: 'var(--secondary)' }}>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">Example input:</p>
                     <p className="text-sm text-gray-700 dark:text-gray-300 italic">
                       &quot;I already understand the main idea of this problem. Please provide the complete step-by-step solution.&quot;
@@ -1075,7 +1077,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
           {/* Fixed Input Area */}
           <div className="flex-shrink-0" style={{ backgroundColor: 'var(--background)' }}>
             <div className="max-w-4xl mx-auto px-4 py-3">
-              <div className="flex items-center gap-2 rounded-3xl border px-2" style={{ backgroundColor: 'white', borderColor: 'rgb(240,238,230)' }}>
+              <div className="flex items-center gap-2 rounded-3xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
                 {/* Math input button */}
                 <button
                   onClick={insertMathFieldInChat}
@@ -1085,10 +1087,10 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     borderColor: 'rgb(240,238,230)'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f5f4ee';
+                    e.currentTarget.style.backgroundColor = 'var(--secondary)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#faf9f5';
+                    e.currentTarget.style.backgroundColor = 'var(--background)';
                   }}
                   aria-label="Insert math equation"
                 >

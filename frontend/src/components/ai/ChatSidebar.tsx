@@ -275,19 +275,8 @@ function SolutionsTab({
                   }}
                   className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
                   style={{
-                    backgroundColor: activeSubTab === 'solutions' && selectedProblemSolution === index ? '#a16207' : '#f5f4ee',
-                    color: activeSubTab === 'solutions' && selectedProblemSolution === index ? 'white' : '#141310',
-                    borderColor: '#e9e6dc'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!(activeSubTab === 'solutions' && selectedProblemSolution === index)) {
-                      e.currentTarget.style.backgroundColor = '#e9e6dc';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!(activeSubTab === 'solutions' && selectedProblemSolution === index)) {
-                      e.currentTarget.style.backgroundColor = '#f5f4ee';
-                    }
+                    backgroundColor: activeSubTab === 'solutions' && selectedProblemSolution === index ? 'var(--primary)' : 'var(--secondary)',
+                    color: activeSubTab === 'solutions' && selectedProblemSolution === index ? 'var(--primary-foreground)' : 'var(--foreground)'
                   }}
                 >
                   Solution {index + 1}
@@ -299,19 +288,8 @@ function SolutionsTab({
               onClick={() => setActiveSubTab('solutions')}
               className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
               style={{
-                backgroundColor: activeSubTab === 'solutions' ? '#a16207' : '#f5f4ee',
-                color: activeSubTab === 'solutions' ? 'white' : '#141310',
-                borderColor: '#e9e6dc'
-              }}
-              onMouseEnter={(e) => {
-                if (activeSubTab !== 'solutions') {
-                  e.currentTarget.style.backgroundColor = '#e9e6dc';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeSubTab !== 'solutions') {
-                  e.currentTarget.style.backgroundColor = '#f5f4ee';
-                }
+                backgroundColor: activeSubTab === 'solutions' ? 'var(--primary)' : 'var(--secondary)',
+                color: activeSubTab === 'solutions' ? 'var(--primary-foreground)' : 'var(--foreground)'
               }}
             >
               Solution
@@ -322,19 +300,8 @@ function SolutionsTab({
               onClick={() => setActiveSubTab('comments')}
               className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
               style={{
-                backgroundColor: activeSubTab === 'comments' ? '#a16207' : '#f5f4ee',
-                color: activeSubTab === 'comments' ? 'white' : '#141310',
-                borderColor: '#e9e6dc'
-              }}
-              onMouseEnter={(e) => {
-                if (activeSubTab !== 'comments') {
-                  e.currentTarget.style.backgroundColor = '#e9e6dc';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeSubTab !== 'comments') {
-                  e.currentTarget.style.backgroundColor = '#f5f4ee';
-                }
+                backgroundColor: activeSubTab === 'comments' ? 'var(--primary)' : 'var(--secondary)',
+                color: activeSubTab === 'comments' ? 'var(--primary-foreground)' : 'var(--foreground)'
               }}
             >
               Comments
@@ -864,7 +831,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
             size="sm"
             className="flex-1 text-sm h-8 rounded-lg transition-all cursor-pointer"
             style={{
-              backgroundColor: activeTab === tab.id ? '#e9e6dc' : 'transparent',
+              backgroundColor: activeTab === tab.id ? 'var(--sidebar-accent)' : 'transparent',
               color: activeTab === tab.id ? 'var(--foreground)' : 'var(--muted-foreground)'
             }}
             onClick={() => setActiveTab(tab.id)}
@@ -916,19 +883,11 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                           <button
                             key={index}
                             onClick={() => handleExampleClick(question)}
-                            className="block w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors cursor-pointer"
+                            className="block w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors cursor-pointer hover:opacity-80"
                             style={{
                               backgroundColor: 'var(--background)',
                               borderColor: 'var(--border)',
-                              color: '#666'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#f5f4ee';
-                              e.currentTarget.style.borderColor = 'rgb(220,216,208)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = '#faf9f5';
-                              e.currentTarget.style.borderColor = 'rgb(240,238,230)';
+                              color: 'var(--muted-foreground)'
                             }}
                           >
                             {question}
@@ -990,13 +949,15 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                   onPaste={handlePaste}
                   placeholder="Ask questions about math"
                   className={cn(
-                    "chat-input-textarea resize-none w-full pr-12 pb-8 rounded-2xl border bg-white placeholder:text-gray-500",
+                    "chat-input-textarea resize-none w-full pr-12 pb-8 rounded-2xl border",
                     pastedImage ? "min-h-[140px] pt-16" : "min-h-[90px] pt-3"
                   )}
                   style={{
+                    backgroundColor: 'var(--input)',
+                    color: 'var(--foreground)',
+                    borderColor: 'var(--border)',
                     outline: 'none',
-                    boxShadow: 'none',
-                    borderColor: 'var(--border)'
+                    boxShadow: 'none'
                   }}
                   onFocus={(e) => {
                     e.target.style.outline = 'none';

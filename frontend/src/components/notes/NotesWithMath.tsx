@@ -750,7 +750,6 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
             "[&:empty]:before:text-gray-400 dark:[&:empty]:before:text-gray-500"
           )}
           style={{
-            backgroundColor: '#faf9f5',
             boxShadow: 'none',
             outline: 'none',
             border: 'none',
