@@ -54,8 +54,16 @@ export default function UnifiedHeader({
             className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             onClick={onLogoClick}
           >
-            <Image src="/epigram_logo.svg" alt="Epigram Logo" width={32} height={32} className="dark:invert" />
-            <h1 className="font-bold text-xl" style={{ color: '#3d3929' }}>Epigram</h1>
+            <Image
+              src="/epigram_logo.svg"
+              alt="Epigram Logo"
+              width={32}
+              height={32}
+              style={{
+                filter: 'var(--logo-filter, none)'
+              }}
+            />
+            <h1 className="font-bold text-xl" style={{ color: 'var(--epigram-text-color)' }}>Epigram</h1>
           </div>
         </>
       )}

@@ -280,8 +280,16 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
             className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             onClick={onLogoClick}
           >
-            <Image src="/epigram_logo.svg" alt="Epigram Logo" width={32} height={32} className="dark:invert" />
-            <h2 className="font-bold text-xl" style={{ color: 'var(--sidebar-foreground)' }}>
+            <Image
+              src="/epigram_logo.svg"
+              alt="Epigram Logo"
+              width={32}
+              height={32}
+              style={{
+                filter: 'var(--logo-filter, none)'
+              }}
+            />
+            <h2 className="font-bold text-xl" style={{ color: 'var(--epigram-text-color)' }}>
               Epigram
             </h2>
           </div>

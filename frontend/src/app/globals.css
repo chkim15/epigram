@@ -209,6 +209,8 @@ math-field:focus {
 /* Epigram Theme (Default - Warm Palette) */
 :root, [data-theme="epigram"] {
   --radius: 0.625rem;
+  --logo-filter: none;
+  --epigram-text-color: #000000;
   /* Core colors from current design */
   --background: oklch(0.989 0.003 73.426); /* #faf9f5 */
   --foreground: oklch(0.235 0.019 73.426); /* #141310 */
@@ -246,6 +248,8 @@ math-field:focus {
 /* Claude Light Theme */
 [data-theme="claude-light"] {
   --radius: 0.5rem;
+  --logo-filter: none;
+  --epigram-text-color: #000000;
   --background: oklch(0.9818 0.0054 95.0986);
   --foreground: oklch(0.3438 0.0269 95.7226);
   --card: oklch(0.9818 0.0054 95.0986);
@@ -283,6 +287,8 @@ math-field:focus {
 /* Claude Dark Theme */
 [data-theme="claude-dark"] {
   --radius: 0.5rem;
+  --logo-filter: brightness(0) saturate(100%) invert(83%) sepia(8%) saturate(420%) hue-rotate(7deg) brightness(96%) contrast(90%);
+  --epigram-text-color: #c3c0b6;
   --background: oklch(0.2679 0.0036 106.6427);
   --foreground: oklch(0.8074 0.0142 93.0137);
   --card: oklch(0.2679 0.0036 106.6427);
@@ -300,7 +306,7 @@ math-field:focus {
   --destructive: oklch(0.6368 0.2078 25.3313);
   --destructive-foreground: oklch(1.0000 0 0);
   --border: oklch(0.3618 0.0101 106.8928);
-  --input: oklch(0.4336 0.0113 100.2195);
+  --input: #2e2e2a;
   --ring: oklch(0.6724 0.1308 38.7559);
   --chart-1: oklch(0.5583 0.1276 42.9956);
   --chart-2: oklch(0.6898 0.1581 290.4107);

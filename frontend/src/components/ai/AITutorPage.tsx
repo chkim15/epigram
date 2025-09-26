@@ -812,8 +812,16 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
             {/* Large Header */}
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center gap-4">
-                <Image src="/epigram_logo.svg" alt="Epigram Logo" width={80} height={80} />
-                <h1 className="text-6xl font-bold text-gray-900 dark:text-white">Epigram</h1>
+                <Image
+                  src="/epigram_logo.svg"
+                  alt="Epigram Logo"
+                  width={80}
+                  height={80}
+                  style={{
+                    filter: 'var(--logo-filter, none)'
+                  }}
+                />
+                <h1 className="text-6xl font-bold" style={{ color: 'var(--epigram-text-color)' }}>Epigram</h1>
               </div>
             </div>
 

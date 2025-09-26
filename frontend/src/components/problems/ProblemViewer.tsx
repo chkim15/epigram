@@ -784,8 +784,16 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   {/* Left Column - Study Tips */}
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <Image src="/epigram_logo.svg" alt="Epigram Logo" width={40} height={40} className="dark:invert" />
-                      <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                      <Image
+                        src="/epigram_logo.svg"
+                        alt="Epigram Logo"
+                        width={40}
+                        height={40}
+                        style={{
+                          filter: 'var(--logo-filter, none)'
+                        }}
+                      />
+                      <h2 className="text-3xl font-extrabold" style={{ color: 'var(--epigram-text-color)' }}>
                         Epigram&apos;s Study Tips
                       </h2>
                     </div>
