@@ -776,9 +776,9 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
   }
 
   return (
-    <div className="flex h-full" style={{ backgroundColor: '#faf9f5' }}>
+    <div className="flex h-full" style={{ backgroundColor: 'var(--background)' }}>
       {/* Left sidebar - Practice Sessions List */}
-      <div className="w-64 border-r p-4 overflow-y-auto" style={{ borderColor: 'rgb(240,238,230)' }}>
+      <div className="w-64 border-r p-4 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
         <div>
           <h3 className="text-lg font-semibold mb-4">Saved Sessions</h3>
           <div>
@@ -797,8 +797,8 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                     key={session.id}
                     className="p-3 border rounded-xl transition-colors"
                     style={{
-                      backgroundColor: '#faf9f5',
-                      borderColor: 'rgb(240,238,230)'
+                      backgroundColor: 'var(--background)',
+                      borderColor: 'var(--border)'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = '#f5f4ee';
@@ -876,7 +876,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
           {/* Left Column: Session Name and Topics */}
           <div className="space-y-6">
             {/* Session Name */}
-            <Card className="rounded-xl border" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
+            <Card className="rounded-xl border" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Session Name</CardTitle>
               </CardHeader>
@@ -887,7 +887,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                   placeholder="Enter session name"
                   className="w-full"
                   style={{
-                    borderColor: 'rgb(240,238,230)',
+                    borderColor: 'var(--border)',
                     backgroundColor: 'white',
                     color: '#141310'
                   }}
@@ -896,7 +896,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
             </Card>
 
             {/* Topics */}
-            <Card className="flex-1 rounded-xl border" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
+            <Card className="flex-1 rounded-xl border" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Topics</CardTitle>
@@ -907,7 +907,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
               </CardHeader>
               <CardContent className="space-y-4">
                 {courses.map(course => (
-                  <div key={course.id} className="border rounded-xl p-4" style={{ borderColor: 'rgb(240,238,230)' }}>
+                  <div key={course.id} className="border rounded-xl p-4" style={{ borderColor: 'var(--border)' }}>
                     {/* Course Level - Clickable entire row */}
                     <div 
                       className="flex items-center justify-between mb-3 cursor-pointer"
@@ -935,7 +935,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                     {expandedCourses.has(course.id) && (
                       <div className="ml-6 space-y-3">
                         {course.mainTopics.map(mainTopic => (
-                          <div key={mainTopic.id} className="border-l-2 pl-4" style={{ borderColor: 'rgb(240,238,230)' }}>
+                          <div key={mainTopic.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--border)' }}>
                             <div 
                               className="flex items-center justify-between mb-2 cursor-pointer"
                               onClick={() => toggleMainTopicExpansion(mainTopic.id)}
@@ -986,7 +986,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
           </div>
 
           {/* Practice Settings - Right side */}
-            <Card className="h-fit rounded-xl border" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
+            <Card className="h-fit rounded-xl border" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
               <CardHeader>
                 <CardTitle>Practice Settings</CardTitle>
               </CardHeader>
@@ -1006,7 +1006,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                             : ""
                         )}
                         style={{
-                          borderColor: 'rgb(240,238,230)',
+                          borderColor: 'var(--border)',
                           backgroundColor: selectedDifficulties.has(difficulty) ? '#f5f4ee' : 'transparent'
                         }}
                         onMouseEnter={(e) => {
@@ -1044,7 +1044,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                         !user && "opacity-50 cursor-not-allowed"
                       )}
                       style={{
-                        borderColor: 'rgb(240,238,230)',
+                        borderColor: 'var(--border)',
                         backgroundColor: excludeBookmarked ? '#f5f4ee' : 'transparent'
                       }}
                       onMouseEnter={(e) => {
@@ -1073,7 +1073,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                         !user && "opacity-50 cursor-not-allowed"
                       )}
                       style={{
-                        borderColor: 'rgb(240,238,230)',
+                        borderColor: 'var(--border)',
                         backgroundColor: excludeCompleted ? '#f5f4ee' : 'transparent'
                       }}
                       onMouseEnter={(e) => {
@@ -1110,7 +1110,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       onChange={(e) => setProblemCount(parseInt(e.target.value) || 5)}
                       className="w-20 px-3 py-1.5 text-sm border rounded-lg bg-white text-gray-900 focus:outline-none"
                       style={{
-                        borderColor: 'rgb(240,238,230)',
+                        borderColor: 'var(--border)',
                         color: '#141310'
                       }}
                     />

@@ -155,7 +155,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
   }, [sessions, groupedSessions]);
 
   return (
-    <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#faf9f5' }}>
+    <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--background)' }}>
       <div className="max-w-6xl mx-auto px-4 py-4">
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">History</h1>
 

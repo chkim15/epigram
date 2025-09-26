@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, FileText, BookOpen, X, SquarePen, MessagesSquare } from "lucide-react";
+import { ArrowUp, FileText, BookOpen, X, SquarePen, MessagesSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
@@ -276,7 +276,7 @@ function SolutionsTab({
                   className={cn(
                     "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                     activeSubTab === 'solutions' && selectedProblemSolution === index
-                      ? "bg-[#141310] text-white"
+                      ? "bg-foreground text-background"
                       : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                   )}
                 >
@@ -290,7 +290,7 @@ function SolutionsTab({
               className={cn(
                 "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                 activeSubTab === 'solutions'
-                  ? "bg-[#141310] text-white"
+                  ? "bg-foreground text-background"
                   : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
               )}
             >
@@ -303,7 +303,7 @@ function SolutionsTab({
               className={cn(
                 "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                 activeSubTab === 'comments'
-                  ? "bg-[#141310] text-white"
+                  ? "bg-foreground text-background"
                   : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
               )}
             >
@@ -362,7 +362,7 @@ function SolutionsTab({
                               className={cn(
                                 "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
                                 selectedIndex === index
-                                  ? "bg-[#141310] text-white"
+                                  ? "bg-foreground text-background"
                                   : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                               )}
                             >
@@ -824,9 +824,9 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
       ] as const;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100%', backgroundColor: '#faf9f5' }}>
+    <div className="h-full flex flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100%', backgroundColor: 'var(--background)' }}>
       {/* Navigation Tabs */}
-      <div className="flex-shrink-0 flex border rounded-xl m-2 p-1" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
+      <div className="flex-shrink-0 flex border rounded-xl m-2 p-1" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
         {tabs.map((tab) => (
           <Button
             key={tab.id}
@@ -835,7 +835,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
             className="flex-1 text-sm h-8 rounded-lg transition-all cursor-pointer"
             style={{
               backgroundColor: activeTab === tab.id ? '#e9e6dc' : 'transparent',
-              color: activeTab === tab.id ? '#141310' : '#666'
+              color: activeTab === tab.id ? 'var(--foreground)' : 'var(--muted-foreground)'
             }}
             onClick={() => setActiveTab(tab.id)}
           >
@@ -846,7 +846,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 overflow-hidden" style={{ backgroundColor: '#faf9f5' }}>
+      <div className="flex-1 min-h-0 overflow-hidden" style={{ backgroundColor: 'var(--background)' }}>
         {activeTab === 'chat' && (
           <div className="h-full flex flex-col relative overflow-hidden">
             {/* New Chat Icon - Only show when messages exist */}
@@ -867,7 +867,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
               </Button>
             )}
             {/* Messages Area - Scrollable */}
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar chat-messages-area" style={{ backgroundColor: '#faf9f5' }}>
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar chat-messages-area" style={{ backgroundColor: 'var(--background)' }}>
               {messages.length === 0 && !isLoading ? (
                 /* AI Tutor Header - Different content based on mode */
                 <div className="h-full flex items-center justify-center">
@@ -888,8 +888,8 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                             onClick={() => handleExampleClick(question)}
                             className="block w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors cursor-pointer"
                             style={{
-                              backgroundColor: '#faf9f5',
-                              borderColor: 'rgb(240,238,230)',
+                              backgroundColor: 'var(--background)',
+                              borderColor: 'var(--border)',
                               color: '#666'
                             }}
                             onMouseEnter={(e) => {
@@ -950,7 +950,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
             </div>
 
             {/* Fixed Input Area - Always Visible */}
-            <div className="flex-shrink-0 px-2 py-2 border-t relative" style={{ backgroundColor: '#faf9f5', borderColor: 'rgb(240,238,230)' }}>
+            <div className="flex-shrink-0 px-2 py-2 border-t relative" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
               <div className="relative">
                 <Textarea
                   ref={textareaRef}
@@ -966,7 +966,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                   style={{
                     outline: 'none',
                     boxShadow: 'none',
-                    borderColor: 'rgb(240,238,230)'
+                    borderColor: 'var(--border)'
                   }}
                   onFocus={(e) => {
                     e.target.style.outline = 'none';
@@ -1003,20 +1003,20 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                   size="icon"
                   className="absolute right-2 bottom-2 h-8 w-8 rounded-lg disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed"
                   style={{
-                    backgroundColor: '#141310'
+                    backgroundColor: 'var(--primary)'
                   }}
                   onMouseEnter={(e) => {
                     if (!e.currentTarget.disabled) {
-                      e.currentTarget.style.backgroundColor = 'rgba(20, 19, 16, 0.9)';
+                      e.currentTarget.style.opacity = '0.9';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!e.currentTarget.disabled) {
-                      e.currentTarget.style.backgroundColor = '#141310';
+                      e.currentTarget.style.opacity = '1';
                     }
                   }}
                 >
-                  <Send className="h-4 w-4" />
+                  <ArrowUp className="h-4 w-4 text-white" />
                 </Button>
               </div>
             </div>

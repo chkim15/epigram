@@ -763,9 +763,9 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
   if (problemList.length === 0 && !isLoading) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: 'var(--background)' }}>
         <div className="rounded-2xl overflow-hidden flex h-full flex-col">
-          <div className="flex-1 overflow-y-auto min-h-0 p-3 custom-scrollbar" style={{ backgroundColor: '#faf9f5' }}>
+          <div className="flex-1 overflow-y-auto min-h-0 p-3 custom-scrollbar" style={{ backgroundColor: 'var(--background)' }}>
             {viewMode === 'bookmarks' ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
@@ -895,10 +895,10 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   }
 
   return (
-    <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
-      <div className="rounded-2xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
+    <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: 'var(--background)' }}>
+      <div className="rounded-2xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'var(--border)' }}>
       {/* Problem Content */}
-      <div className="flex-1 overflow-y-auto min-h-0 p-3 custom-scrollbar" style={{ backgroundColor: '#faf9f5' }}>
+      <div className="flex-1 overflow-y-auto min-h-0 p-3 custom-scrollbar" style={{ backgroundColor: 'var(--background)' }}>
         <div className="w-full space-y-6 min-w-0">
           {currentProblem && (
             <>
@@ -929,7 +929,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                               if (isCompleted) {
                                 e.currentTarget.style.backgroundColor = '#15803d';
                               } else {
-                                e.currentTarget.style.backgroundColor = '#f5f4ee';
+                                e.currentTarget.style.backgroundColor = 'var(--secondary)';
                               }
                             }
                           }}
@@ -971,13 +971,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           )}
                           style={{
                             pointerEvents: user && !bookmarkLoading ? 'auto' : 'none',
-                            backgroundColor: '#faf9f5',
-                            borderColor: 'rgb(240,238,230)',
+                            backgroundColor: 'var(--background)',
+                            borderColor: 'var(--border)',
                             color: user && isBookmarked ? '#eab308' : '#3d3929'
                           }}
                           onMouseEnter={(e) => {
                             if (user && !bookmarkLoading) {
-                              e.currentTarget.style.backgroundColor = '#f5f4ee';
+                              e.currentTarget.style.backgroundColor = 'var(--secondary)';
                             }
                           }}
                           onMouseLeave={(e) => {
@@ -1011,12 +1011,12 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         onClick={() => setScientificCalculatorOpen(true)}
                         className="!p-1 cursor-pointer rounded-lg"
                         style={{
-                          backgroundColor: '#faf9f5',
-                          borderColor: 'rgb(240,238,230)',
+                          backgroundColor: 'var(--background)',
+                          borderColor: 'var(--border)',
                           color: '#3d3929'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f5f4ee';
+                          e.currentTarget.style.backgroundColor = 'var(--secondary)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = '#faf9f5';
@@ -1031,12 +1031,12 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         onClick={() => setGeogebraOpen(true)}
                         className="!p-1 cursor-pointer rounded-lg"
                         style={{
-                          backgroundColor: '#faf9f5',
-                          borderColor: 'rgb(240,238,230)',
+                          backgroundColor: 'var(--background)',
+                          borderColor: 'var(--border)',
                           color: '#3d3929'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f5f4ee';
+                          e.currentTarget.style.backgroundColor = 'var(--secondary)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = '#faf9f5';
@@ -1070,13 +1070,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                               <button
                                 onClick={() => setRevealedHints(prev => ({ ...prev, main: (prev.main || 0) + 1 }))}
                                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer border"
-                                style={{ borderColor: '#a16207' }}
+                                style={{ borderColor: 'var(--primary)' }}
                               >
                                 <Lightbulb className="h-4 w-4" />
                                 <span>Show Hint {index + 1}</span>
                               </button>
                             ) : (
-                              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border" style={{ borderColor: '#a16207' }}>
+                              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border" style={{ borderColor: 'var(--primary)' }}>
                                 <div className="prose max-w-none dark:prose-invert text-sm">
                                   <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                 </div>
@@ -1119,8 +1119,8 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         <textarea
                           className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl bg-white border resize-none overflow-hidden focus:outline-none"
                           style={{
-                            borderColor: 'rgb(240,238,230)',
-                            color: '#141310'
+                            borderColor: 'var(--border)',
+                            color: 'var(--foreground)'
                           }}
                           placeholder="Type your answer here..."
                           value={answers['main'] || ''}
@@ -1178,9 +1178,9 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   {subproblems.length > 0 && (
                     <div className="space-y-4">
                       {subproblems.map((subproblem) => (
-                        <Card key={subproblem.id} className="w-full max-w-full shadow-none py-3 gap-0 border-0 rounded-xl" style={{ backgroundColor: '#faf9f5' }}>
+                        <Card key={subproblem.id} className="w-full max-w-full shadow-none py-3 gap-0 border-0 rounded-xl" style={{ backgroundColor: 'var(--background)' }}>
                           <CardContent className="px-0">
-                            <div className="font-medium mb-2 text-lg" style={{ color: '#a16207' }}>
+                            <div className="font-medium mb-2 text-lg" style={{ color: 'var(--primary)' }}>
                               {subproblem.key}.
                             </div>
                             <div className="prose max-w-none dark:prose-invert overflow-hidden break-words">
@@ -1203,13 +1203,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                         <button
                                           onClick={() => setRevealedHints(prev => ({ ...prev, [hintKey]: (prev[hintKey] || 0) + 1 }))}
                                           className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer border"
-                                          style={{ borderColor: '#a16207' }}
+                                          style={{ borderColor: 'var(--primary)' }}
                                         >
                                           <Lightbulb className="h-4 w-4" />
                                           <span>Show Hint {index + 1}</span>
                                         </button>
                                       ) : (
-                                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border" style={{ borderColor: '#a16207' }}>
+                                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border" style={{ borderColor: 'var(--primary)' }}>
                                           <div className="prose max-w-none dark:prose-invert text-sm">
                                             <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                           </div>
@@ -1251,8 +1251,8 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                 <textarea
                                   className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl bg-white border resize-none overflow-hidden focus:outline-none"
                                   style={{
-                                    borderColor: 'rgb(240,238,230)',
-                                    color: '#141310'
+                                    borderColor: 'var(--border)',
+                                    color: 'var(--foreground)'
                                   }}
                                   placeholder="Type your answer here..."
                                   value={answers[`sub_${subproblem.key}`] || ''}
@@ -1318,7 +1318,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       </div>
 
       {/* Bottom Navigation */}
-      <div className="p-4 h-[58px] flex flex-col justify-center flex-shrink-0" style={{ backgroundColor: '#faf9f5' }}>
+      <div className="p-4 h-[58px] flex flex-col justify-center flex-shrink-0" style={{ backgroundColor: 'var(--background)' }}>
         <div className="flex items-center justify-center">
           <div className="flex items-center space-x-4">
             <Button
@@ -1328,8 +1328,8 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               disabled={!canGoPrevious()}
               className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
               style={{
-                backgroundColor: '#faf9f5',
-                borderColor: 'rgb(240,238,230)',
+                backgroundColor: 'var(--background)',
+                borderColor: 'var(--border)',
                 color: '#3d3929'
               }}
             >
@@ -1346,8 +1346,8 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               disabled={!canGoNext()}
               className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
               style={{
-                backgroundColor: '#faf9f5',
-                borderColor: 'rgb(240,238,230)',
+                backgroundColor: 'var(--background)',
+                borderColor: 'var(--border)',
                 color: '#3d3929'
               }}
             >

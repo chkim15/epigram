@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, X, ImagePlus, Lightbulb, Sparkles, Sigma } from "lucide-react";
+import { ArrowUp, X, ImagePlus, Lightbulb, Sparkles, Sigma, MessageSquare } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { MathContent } from "@/lib/utils/katex";
@@ -795,7 +795,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   // Show loading state while restoring session
   if (isRestoringSession) {
     return (
-      <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: '#faf9f5' }}>
+      <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: 'var(--background)' }}>
         <div className="text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: '#3d3929', borderTopColor: 'transparent' }} />
         </div>
@@ -804,7 +804,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden" style={{ backgroundColor: '#faf9f5' }}>
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden" style={{ backgroundColor: 'var(--background)' }}>
       {messages.length === 0 ? (
         // Initial view with scrollable content
         <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -912,7 +912,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     onClick={triggerFileUpload}
                     className="h-8 w-16 rounded-xl border cursor-pointer flex items-center justify-center group mr-2 relative"
                     style={{
-                      backgroundColor: '#faf9f5',
+                      backgroundColor: 'var(--background)',
                       borderColor: 'rgb(240,238,230)'
                     }}
                     onMouseEnter={(e) => {
@@ -923,7 +923,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     }}
                     aria-label="Upload image"
                   >
-                    <ImagePlus className="h-5 w-5" strokeWidth={2} style={{ color: '#141310' }} />
+                    <ImagePlus className="h-5 w-5" strokeWidth={2} style={{ color: 'var(--foreground)' }} />
                     {/* Tooltip */}
                     <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                       Image
@@ -935,7 +935,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     onClick={insertMathField}
                     className="h-8 w-16 rounded-xl border cursor-pointer flex items-center justify-center group relative"
                     style={{
-                      backgroundColor: '#faf9f5',
+                      backgroundColor: 'var(--background)',
                       borderColor: 'rgb(240,238,230)'
                     }}
                     onMouseEnter={(e) => {
@@ -946,7 +946,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     }}
                     aria-label="Insert math equation"
                   >
-                    <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: '#141310' }} />
+                    <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: 'var(--foreground)' }} />
                     {/* Tooltip */}
                     <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                       Math Input
@@ -957,23 +957,22 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   <Button
                     onClick={handleSendMessage}
                     disabled={(!input && !pastedImage) || isLoading}
-                    className="ml-auto h-8 px-3 rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium"
+                    className="ml-auto h-10 w-10 rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
                     style={{
-                      backgroundColor: '#141310'
+                      backgroundColor: 'var(--primary)'
                     }}
                     onMouseEnter={(e) => {
                       if (!e.currentTarget.disabled) {
-                        e.currentTarget.style.backgroundColor = 'rgba(20, 19, 16, 0.9)';
+                        e.currentTarget.style.opacity = '0.9';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!e.currentTarget.disabled) {
-                        e.currentTarget.style.backgroundColor = '#141310';
+                        e.currentTarget.style.opacity = '1';
                       }
                     }}
                   >
-                    <span>SEND</span>
-                    <Send className="h-3.5 w-3.5" />
+                    <ArrowUp className="!w-[22px] !h-[22px] text-white" />
                   </Button>
                 </div>
               </div>
@@ -1006,7 +1005,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
                 <div className="rounded-2xl p-4 border" style={{ borderColor: 'rgb(240,238,230)' }}>
                   <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-                    <Send className="h-4 w-4 text-green-500" />
+                    <MessageSquare className="h-4 w-4 text-green-500" />
                     Requesting Full Solutions
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
@@ -1034,7 +1033,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   message.role === 'user' ? (
                     // User message - keep as bubble on right
                     <div key={message.id} className="flex justify-end">
-                      <div className="max-w-fit rounded-3xl px-4 py-3 bg-gray-200 text-black dark:bg-gray-700 dark:text-white">
+                      <div className="max-w-fit rounded-3xl px-4 py-3" style={{ backgroundColor: 'var(--sidebar-accent)', color: 'var(--sidebar-accent-foreground)' }}>
                         {message.image && (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img
@@ -1051,7 +1050,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   ) : (
                     // AI response - full width with white background
                     <div key={message.id} className="w-full">
-                      <div className="w-full rounded-lg p-6" style={{ backgroundColor: '#faf9f5' }}>
+                      <div className="w-full rounded-lg p-6" style={{ backgroundColor: 'var(--background)' }}>
                         <div className="prose prose-base dark:prose-invert max-w-none">
                           <MathContent content={message.content} />
                         </div>
@@ -1061,7 +1060,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 ))}
                 {isLoading && !isStreaming && (
                   <div className="w-full">
-                    <div className="w-full rounded-lg p-6" style={{ backgroundColor: '#faf9f5' }}>
+                    <div className="w-full rounded-lg p-6" style={{ backgroundColor: 'var(--background)' }}>
                       <div className="flex space-x-1">
                         <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
                         <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
@@ -1074,7 +1073,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
             </div>
 
           {/* Fixed Input Area */}
-          <div className="flex-shrink-0" style={{ backgroundColor: '#faf9f5' }}>
+          <div className="flex-shrink-0" style={{ backgroundColor: 'var(--background)' }}>
             <div className="max-w-4xl mx-auto px-4 py-3">
               <div className="flex items-center gap-2 rounded-3xl border px-2" style={{ backgroundColor: 'white', borderColor: 'rgb(240,238,230)' }}>
                 {/* Math input button */}
@@ -1082,7 +1081,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   onClick={insertMathFieldInChat}
                   className="h-8 w-10 rounded-xl border cursor-pointer flex items-center justify-center group flex-shrink-0 relative"
                   style={{
-                    backgroundColor: '#faf9f5',
+                    backgroundColor: 'var(--background)',
                     borderColor: 'rgb(240,238,230)'
                   }}
                   onMouseEnter={(e) => {
@@ -1093,7 +1092,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   }}
                   aria-label="Insert math equation"
                 >
-                  <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: '#141310' }} />
+                  <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: 'var(--foreground)' }} />
                   {/* Tooltip */}
                   <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                     Math Input
@@ -1129,23 +1128,22 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 <Button
                   onClick={handleSendMessage}
                   disabled={!input.trim() || isLoading}
-                  className="h-8 px-3 mr-1 rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 text-white text-sm font-medium flex-shrink-0"
+                  className="h-8 w-8 mr-1 rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0"
                   style={{
-                    backgroundColor: '#141310'
+                    backgroundColor: 'var(--primary)'
                   }}
                   onMouseEnter={(e) => {
                     if (!e.currentTarget.disabled) {
-                      e.currentTarget.style.backgroundColor = 'rgba(20, 19, 16, 0.9)';
+                      e.currentTarget.style.opacity = '0.9';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!e.currentTarget.disabled) {
-                      e.currentTarget.style.backgroundColor = '#141310';
+                      e.currentTarget.style.opacity = '1';
                     }
                   }}
                 >
-                <span>SEND</span>
-                <Send className="h-3.5 w-3.5" />
+                <ArrowUp className="h-4 w-4 text-white" />
               </Button>
               </div>
             </div>

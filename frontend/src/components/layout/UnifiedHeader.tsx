@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, FileText, Book, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { ThemeSelector } from "@/components/ui/theme-selector";
 
 interface UnifiedHeaderProps {
   className?: string;
@@ -36,14 +37,14 @@ export default function UnifiedHeader({
     <div className={cn(
       "h-[46px] flex flex-shrink-0 px-4 items-center w-full",
       className
-    )} style={{ backgroundColor: '#faf9f5' }}>
+    )} style={{ backgroundColor: 'var(--background)' }}>
       {/* Hamburger button and logo when sidebar is collapsed */}
       {!isSidebarOpen && onToggleSidebar && (
         <>
           <button
             onClick={onToggleSidebar}
             className="mr-3 mt-1 h-8 w-8 flex items-center justify-center rounded-md transition-colors cursor-pointer"
-            style={{ '--hover-bg': '#e9e6dc' } as React.CSSProperties}
+            style={{ '--hover-bg': 'var(--muted)' } as React.CSSProperties}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e9e6dc'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
@@ -68,19 +69,19 @@ export default function UnifiedHeader({
             size="sm"
             className="h-8 px-3 rounded-xl cursor-pointer border"
             style={{
-              backgroundColor: '#faf9f5',
+              backgroundColor: 'var(--background)',
               color: '#3d3929',
-              borderColor: 'rgb(240,238,230)'
+              borderColor: 'var(--border)'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f4ee'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#faf9f5'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--background)'}
           >
             <Plus className="h-4 w-4 mr-1" />
             New Question
           </Button>
         )}
         {topicDisplay && (
-          <div className="text-sm font-medium" style={{ color: '#666' }}>
+          <div className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
             {topicDisplay}
           </div>
         )}
@@ -97,13 +98,13 @@ export default function UnifiedHeader({
 
       {/* Mode Toggle - Fixed center position */}
       {showModeToggle && onContentModeChange && (
-        <div className="flex items-center rounded-xl p-1" style={{ backgroundColor: '#e9e6dc' }}>
+        <div className="flex items-center rounded-xl p-1" style={{ backgroundColor: 'var(--muted)' }}>
           <button
             onClick={() => onContentModeChange('handouts')}
             className="flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all cursor-pointer"
             style={{
               backgroundColor: contentMode === 'handouts' ? '#faf9f5' : 'transparent',
-              color: contentMode === 'handouts' ? '#141310' : '#666',
+              color: contentMode === 'handouts' ? '#141310' : 'var(--muted-foreground)',
               boxShadow: contentMode === 'handouts' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
             }}
           >
@@ -115,7 +116,7 @@ export default function UnifiedHeader({
             className="flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all cursor-pointer"
             style={{
               backgroundColor: contentMode === 'problems' ? '#faf9f5' : 'transparent',
-              color: contentMode === 'problems' ? '#141310' : '#666',
+              color: contentMode === 'problems' ? '#141310' : 'var(--muted-foreground)',
               boxShadow: contentMode === 'problems' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
             }}
           >
@@ -128,18 +129,24 @@ export default function UnifiedHeader({
       {/* Flexible spacer to push right-side actions */}
       <div className="flex-1" />
 
+      {/* Theme Selector */}
+      <ThemeSelector />
+
+      {/* Spacer between theme selector and Get Help button */}
+      <div className="w-2" />
+
       {/* Get Help Button */}
       <Button
         size="sm"
         onClick={() => window.open('/contact', '_blank')}
         className="h-8 px-3 rounded-xl cursor-pointer border shadow-none"
         style={{
-          backgroundColor: '#faf9f5',
-          color: '#141310',
-          borderColor: 'rgb(240,238,230)'
+          backgroundColor: 'var(--background)',
+          color: 'var(--foreground)',
+          borderColor: 'var(--border)'
         }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f4ee'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#faf9f5'}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--background)'}
       >
         Get Help
       </Button>

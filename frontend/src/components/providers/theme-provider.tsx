@@ -12,13 +12,16 @@ export function ThemeProvider({
   defaultTheme?: string;
   enableSystem?: boolean;
   storageKey?: string;
+  themes?: string[];
 }) {
   return (
     <NextThemesProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem={true}
+      attribute="data-theme"
+      defaultTheme="claude-light"
+      enableSystem={false}
       storageKey="epigram-theme"
+      themes={["claude-light", "claude-dark"]}
+      enableColorScheme={false}
       {...props}
     >
       {children}
