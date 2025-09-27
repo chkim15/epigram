@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Settings, CreditCard, Moon, LogOut, ChevronDown, BookOpen } from 'lucide-react';
+import { Settings, CreditCard, LogOut, ChevronDown, BookOpen } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { User } from '@supabase/supabase-js';
 import SettingsModal from '@/components/settings/SettingsModal';
@@ -16,7 +16,6 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   const router = useRouter();
   const { signOut } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isActiveLearningMode, toggleActiveLearningMode } = useActiveLearning();
@@ -57,12 +56,6 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle dark mode toggle
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
-    // You can save this preference to localStorage or user preferences
-  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -117,7 +110,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute bottom-full left-0 right-0 mb-1 rounded-lg shadow-lg border py-1" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
+        <div className="absolute bottom-full left-0 right-0 mb-1 rounded-xl shadow-lg border py-1" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
           {/* Settings */}
           <button
             onClick={handleSettingsClick}
@@ -140,25 +133,6 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
             <span>Pricing</span>
           </button>
 
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={toggleDarkMode}
-            className="w-full flex items-center justify-between px-3 py-1.5 transition-colors cursor-pointer text-sm"
-            style={{ color: 'var(--foreground)' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            <div className="flex items-center gap-2">
-              <Moon className="w-3.5 h-3.5" />
-              <span>Dark mode</span>
-            </div>
-            <div className="relative">
-              <div className="w-8 h-4 rounded-full transition-colors" style={{
-                backgroundColor: darkMode ? '#10b981' : 'var(--muted)'
-              }}></div>
-              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${darkMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}></div>
-            </div>
-          </button>
 
           {/* Active Learning Toggle */}
           <button

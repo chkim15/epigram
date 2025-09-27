@@ -800,7 +800,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     <div className="space-y-4">
                       <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                          <Brain className="h-5 w-5 text-blue-500" />
+                          <Brain className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Work First, Check Later
                         </h3>
                         <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
@@ -810,7 +810,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
                       <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                          <FileText className="h-5 w-5 text-green-500" />
+                          <FileText className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Use Handouts Strategically
                         </h3>
                         <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
@@ -820,7 +820,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
                       <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                          <AlertCircle className="h-5 w-5 text-yellow-500" />
+                          <AlertCircle className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Learn From Mistakes
                         </h3>
                         <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
@@ -830,7 +830,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
                       <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                          <Shuffle className="h-5 w-5 text-purple-500" />
+                          <Shuffle className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Value Multiple Approaches
                         </h3>
                         <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
@@ -840,7 +840,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
                       <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                          <Target className="h-5 w-5 text-red-500" />
+                          <Target className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Practice With Focus
                         </h3>
                         <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
@@ -860,7 +860,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     <div className="space-y-4">
                       <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                          <GraduationCap className="h-5 w-5 text-indigo-500" />
+                          <GraduationCap className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           AP Calculus and University Exams
                           <span className="text-sm font-normal" style={{ color: 'var(--foreground)', opacity: 0.6 }}>
                             (Quiz, Midterm, Final)
@@ -872,7 +872,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                       </div>
                       <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                          <Trophy className="h-5 w-5 text-amber-500" />
+                          <Trophy className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Math Competitions
                           <span className="text-sm font-normal" style={{ color: 'var(--foreground)', opacity: 0.6 }}>
                             (High School or College)

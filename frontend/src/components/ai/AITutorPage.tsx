@@ -902,11 +902,15 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                       <img
                         src={pastedImage.url}
                         alt="Attached image"
-                        className="max-w-[400px] max-h-[150px] rounded-lg object-contain border border-gray-300 dark:border-gray-600"
+                        className="max-w-[400px] max-h-[150px] rounded-lg object-contain border"
+                        style={{ borderColor: 'var(--border)' }}
                       />
                       <button
                         onClick={removeImage}
-                        className="absolute -top-1 -right-1 bg-gray-500 hover:bg-gray-600 text-white rounded-full p-0.5 transition-colors cursor-pointer shadow-sm"
+                        className="absolute -top-1 -right-1 rounded-full p-0.5 transition-colors cursor-pointer shadow-sm"
+                        style={{ backgroundColor: 'var(--muted-foreground)', color: 'white' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--foreground)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--muted-foreground)'}
                         aria-label="Remove image"
                       >
                         <X className="h-3 w-3" />
@@ -967,7 +971,10 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   <Button
                     onClick={handleSendMessage}
                     disabled={(!input && !pastedImage) || isLoading}
-                    className="ml-auto h-10 w-10 rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                    className="ml-auto h-10 w-10 rounded-xl cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                    style={{
+                      backgroundColor: (!input && !pastedImage) || isLoading ? 'var(--muted)' : 'var(--primary)'
+                    }}
                     style={{
                       backgroundColor: 'var(--primary)'
                     }}
@@ -998,14 +1005,14 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
             {/* Usage Tips */}
             <div className="max-w-3xl mt-8 space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                <Sparkles className="h-5 w-5 text-yellow-500" />
+                <Sparkles className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                 Usage Tips
               </h3>
 
               <div className="space-y-3">
                 <div className="rounded-2xl p-4 border" style={{ borderColor: 'var(--border)' }}>
                   <h4 className="font-medium mb-1 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                    <Lightbulb className="h-4 w-4 text-blue-500" />
+                    <Lightbulb className="h-4 w-4" style={{ color: 'var(--primary)' }} />
                     Active Learning Focus
                   </h4>
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
@@ -1015,7 +1022,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
                 <div className="rounded-2xl p-4 border" style={{ borderColor: 'var(--border)' }}>
                   <h4 className="font-medium mb-1 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-                    <MessageSquare className="h-4 w-4 text-green-500" />
+                    <MessageSquare className="h-4 w-4" style={{ color: 'var(--primary)' }} />
                     Requesting Full Solutions
                   </h4>
                   <p className="text-sm leading-relaxed mb-2" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
@@ -1049,7 +1056,8 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                           <img
                             src={message.image}
                             alt="Attached"
-                            className="h-32 max-w-full rounded-lg mb-2 object-contain border border-gray-300 dark:border-gray-600"
+                            className="h-32 max-w-full rounded-lg mb-2 object-contain border"
+                            style={{ borderColor: 'var(--border)' }}
                           />
                         )}
                         <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -1072,9 +1080,9 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   <div className="w-full">
                     <div className="w-full rounded-lg p-6" style={{ backgroundColor: 'var(--background)' }}>
                       <div className="flex space-x-1">
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
+                        <div className="h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]" style={{ backgroundColor: 'var(--muted-foreground)' }}></div>
+                        <div className="h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]" style={{ backgroundColor: 'var(--muted-foreground)' }}></div>
+                        <div className="h-2 w-2 animate-bounce rounded-full" style={{ backgroundColor: 'var(--muted-foreground)' }}></div>
                       </div>
                     </div>
                   </div>
@@ -1092,7 +1100,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   className="h-8 w-10 rounded-xl border cursor-pointer flex items-center justify-center group flex-shrink-0 relative"
                   style={{
                     backgroundColor: 'var(--background)',
-                    borderColor: 'rgb(240,238,230)'
+                    borderColor: 'var(--border)'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'var(--secondary)';
@@ -1104,7 +1112,15 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 >
                   <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: 'var(--foreground)' }} />
                   {/* Tooltip */}
-                  <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm">
+                  <div
+                    className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm"
+                    style={{
+                      backgroundColor: 'var(--popover)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--popover-foreground)',
+                      border: '1px solid var(--border)'
+                    }}
+                  >
                     Math Input
                   </div>
                 </button>
@@ -1138,9 +1154,9 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 <Button
                   onClick={handleSendMessage}
                   disabled={!input.trim() || isLoading}
-                  className="h-8 w-8 mr-1 rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0"
+                  className="h-8 w-8 mr-1 rounded-xl cursor-pointer disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0"
                   style={{
-                    backgroundColor: 'var(--primary)'
+                    backgroundColor: (!input.trim() || isLoading) ? 'var(--muted)' : 'var(--primary)'
                   }}
                   onMouseEnter={(e) => {
                     if (!e.currentTarget.disabled) {

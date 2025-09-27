@@ -78,7 +78,7 @@ export default function UnifiedHeader({
             className="h-8 px-3 rounded-xl cursor-pointer border"
             style={{
               backgroundColor: 'var(--background)',
-              color: '#3d3929',
+              color: 'var(--foreground)',
               borderColor: 'var(--border)'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}

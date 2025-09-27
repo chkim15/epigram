@@ -22,7 +22,8 @@
 /* Placeholder for contentEditable */
 div[contenteditable]:empty:before {
   content: attr(data-placeholder);
-  color: rgb(107 114 128); /* gray-500 */
+  color: var(--foreground);
+  opacity: 0.8;
   pointer-events: none;
 }
 
@@ -33,7 +34,8 @@ div[contenteditable]:empty:before {
 /* Specific placeholder for AI Tutor input */
 .ai-tutor-input:empty:before {
   content: attr(data-placeholder);
-  color: rgb(107 114 128); /* gray-500 */
+  color: var(--foreground);
+  opacity: 0.8;
   pointer-events: none;
   display: block;
 }
@@ -45,7 +47,8 @@ div[contenteditable]:empty:before {
 /* Chat input placeholder */
 .chat-input-editable:empty:before {
   content: attr(data-placeholder);
-  color: rgb(107 114 128);
+  color: var(--foreground);
+  opacity: 0.8;
   pointer-events: none;
   position: absolute;
 }
