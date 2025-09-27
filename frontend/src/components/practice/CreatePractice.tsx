@@ -755,8 +755,8 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading topics...</p>
+          <Loader2 className="mx-auto h-8 w-8 animate-spin" style={{ color: 'var(--primary)' }} />
+          <p className="mt-4" style={{ color: 'var(--muted-foreground)' }}>Loading topics...</p>
         </div>
       </div>
     );
@@ -766,7 +766,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">{error}</p>
+          <p style={{ color: 'var(--destructive)' }}>{error}</p>
           <Button onClick={fetchTopics} className="mt-4 cursor-pointer">
             Retry
           </Button>
@@ -780,14 +780,14 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
       {/* Left sidebar - Practice Sessions List */}
       <div className="w-64 border-r p-4 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
         <div>
-          <h3 className="text-lg font-semibold mb-4">Saved Sessions</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Saved Sessions</h3>
           <div>
             {!user ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
                 Sign in to save and load practice sessions
               </p>
             ) : practiceSessions.length === 0 ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
                 No saved sessions yet. Create your first practice session!
               </p>
             ) : (
@@ -801,22 +801,22 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       borderColor: 'var(--border)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#f5f4ee';
+                      e.currentTarget.style.backgroundColor = 'var(--secondary)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#faf9f5';
+                      e.currentTarget.style.backgroundColor = 'var(--background)';
                     }}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium text-sm">{session.name}</h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <h4 className="font-medium text-sm" style={{ color: 'var(--foreground)' }}>{session.name}</h4>
+                        <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>
                           {session.problem_count
                             ? `${session.problem_count} problems`
                             : `${(session.topic_ids || (session as {topicIds?: number[]}).topicIds || []).length} topics, ${session.difficulties.length} difficulties`
                           }
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)', opacity: 0.7 }}>
                           {new Date(session.created_at || (session as {createdAt?: string}).createdAt || Date.now()).toLocaleDateString()}
                         </p>
                       </div>
@@ -836,16 +836,19 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                             <Play className="h-4 w-4" />
                           </Button>
                           {!user && (
-                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50" style={{ backgroundColor: 'var(--popover)', color: 'var(--popover-foreground)', border: '1px solid var(--border)' }}>
                               Please sign in
-                              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4" style={{ borderTopColor: 'var(--border)' }} />
                             </div>
                           )}
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 cursor-pointer hover:text-red-600"
+                          className="h-8 w-8 cursor-pointer"
+                          style={{ color: 'var(--muted-foreground)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--destructive)'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted-foreground)'}
                           onClick={() => handleDeleteSession(session.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -864,10 +867,10 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
       <div className="flex-1 overflow-y-auto py-6 pl-6 pr-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--foreground)' }}>
             Create Practice Session
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p style={{ color: 'var(--muted-foreground)' }}>
             Select topics and difficulty levels to create a custom practice session
           </p>
         </div>
@@ -878,7 +881,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
             {/* Session Name */}
             <Card className="rounded-xl border" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Session Name</CardTitle>
+                <CardTitle className="text-base" style={{ color: 'var(--foreground)' }}>Session Name</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <Input
@@ -888,8 +891,8 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                   className="w-full"
                   style={{
                     borderColor: 'var(--border)',
-                    backgroundColor: 'white',
-                    color: '#141310'
+                    backgroundColor: 'var(--background)',
+                    color: 'var(--foreground)'
                   }}
                 />
               </CardContent>
@@ -899,8 +902,8 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
             <Card className="flex-1 rounded-xl border" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>Topics</CardTitle>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <CardTitle style={{ color: 'var(--foreground)' }}>Topics</CardTitle>
+                  <div className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
                     <span className="font-medium">{availableQuestions}</span> available problems
                   </div>
                 </div>
@@ -920,13 +923,13 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                           onClick={(e) => e.stopPropagation()}
                           className="cursor-pointer"
                         />
-                        <span className="font-semibold text-lg">{course.name}</span>
+                        <span className="font-semibold text-lg" style={{ color: 'var(--foreground)' }}>{course.name}</span>
                       </div>
                       <div className="p-1">
                         {expandedCourses.has(course.id) ? (
-                          <ChevronDown className="h-4 w-4" />
+                          <ChevronDown className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
                         ) : (
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
                         )}
                       </div>
                     </div>
@@ -947,13 +950,13 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                                   onClick={(e) => e.stopPropagation()}
                                   className="cursor-pointer"
                                 />
-                                <span className="font-medium">{mainTopic.name}</span>
+                                <span className="font-medium" style={{ color: 'var(--foreground)' }}>{mainTopic.name}</span>
                               </div>
                               <div className="p-1">
                                 {expandedMainTopics.has(mainTopic.id) ? (
-                                  <ChevronDown className="h-4 w-4" />
+                                  <ChevronDown className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
                                 ) : (
-                                  <ChevronRight className="h-4 w-4" />
+                                  <ChevronRight className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
                                 )}
                               </div>
                             </div>
@@ -968,7 +971,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                                       onCheckedChange={() => toggleSubtopicSelection(course.id, mainTopic.id, subtopic.id)}
                                       className="cursor-pointer"
                                     />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                    <span className="text-sm" style={{ color: 'var(--foreground)' }}>
                                       {subtopic.name}
                                     </span>
                                   </div>
@@ -988,30 +991,25 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
           {/* Practice Settings - Right side */}
             <Card className="h-fit rounded-xl border" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
               <CardHeader>
-                <CardTitle>Practice Settings</CardTitle>
+                <CardTitle style={{ color: 'var(--foreground)' }}>Practice Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Difficulty Levels */}
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Difficulty Levels</p>
+                  <p className="text-sm mb-3" style={{ color: 'var(--muted-foreground)' }}>Difficulty Levels</p>
                   <div className="flex flex-wrap gap-1.5">
                     {(['easy', 'medium', 'hard', 'very_hard'] as Difficulty[]).map(difficulty => (
                       <div
                         key={difficulty}
                         onClick={() => toggleDifficulty(difficulty)}
-                        className={cn(
-                          "flex items-center gap-1 px-1.5 py-1 rounded-lg border cursor-pointer transition-all text-xs",
-                          selectedDifficulties.has(difficulty)
-                            ? "bg-gray-50 dark:bg-gray-800"
-                            : ""
-                        )}
+                        className="flex items-center gap-1 px-1.5 py-1 rounded-lg border cursor-pointer transition-all text-xs"
                         style={{
                           borderColor: 'var(--border)',
-                          backgroundColor: selectedDifficulties.has(difficulty) ? '#f5f4ee' : 'transparent'
+                          backgroundColor: selectedDifficulties.has(difficulty) ? 'var(--secondary)' : 'transparent'
                         }}
                         onMouseEnter={(e) => {
                           if (!selectedDifficulties.has(difficulty)) {
-                            e.currentTarget.style.backgroundColor = '#f5f4ee';
+                            e.currentTarget.style.backgroundColor = 'var(--secondary)';
                           }
                         }}
                         onMouseLeave={(e) => {
@@ -1024,10 +1022,10 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                           <Checkbox
                             checked={selectedDifficulties.has(difficulty)}
                             onCheckedChange={() => toggleDifficulty(difficulty)}
-                            className="cursor-pointer h-2.5 w-2.5 flex items-center justify-center"
+                            className="cursor-pointer h-3 w-3 flex items-center justify-center"
                           />
                         </div>
-                        <span className="text-xs font-medium">{getDifficultyLabel(difficulty)}</span>
+                        <span className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>{getDifficultyLabel(difficulty)}</span>
                       </div>
                     ))}
                   </div>
@@ -1035,21 +1033,21 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
 
                 {/* Problem Filters */}
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Exclude:</p>
+                  <p className="text-sm mb-3" style={{ color: 'var(--muted-foreground)' }}>Exclude:</p>
                   <div className="space-y-2">
                     <div
                       onClick={() => setExcludeBookmarked(!excludeBookmarked)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-32",
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-36",
                         !user && "opacity-50 cursor-not-allowed"
                       )}
                       style={{
                         borderColor: 'var(--border)',
-                        backgroundColor: excludeBookmarked ? '#f5f4ee' : 'transparent'
+                        backgroundColor: excludeBookmarked ? 'var(--secondary)' : 'transparent'
                       }}
                       onMouseEnter={(e) => {
                         if (user && !excludeBookmarked) {
-                          e.currentTarget.style.backgroundColor = '#f5f4ee';
+                          e.currentTarget.style.backgroundColor = 'var(--secondary)';
                         }
                       }}
                       onMouseLeave={(e) => {
@@ -1064,21 +1062,21 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                         className="cursor-pointer h-4 w-4"
                         disabled={!user}
                       />
-                      <span className="text-sm font-medium">Bookmarked</span>
+                      <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Bookmarked</span>
                     </div>
                     <div
                       onClick={() => setExcludeCompleted(!excludeCompleted)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-32",
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-36",
                         !user && "opacity-50 cursor-not-allowed"
                       )}
                       style={{
                         borderColor: 'var(--border)',
-                        backgroundColor: excludeCompleted ? '#f5f4ee' : 'transparent'
+                        backgroundColor: excludeCompleted ? 'var(--secondary)' : 'transparent'
                       }}
                       onMouseEnter={(e) => {
                         if (user && !excludeCompleted) {
-                          e.currentTarget.style.backgroundColor = '#f5f4ee';
+                          e.currentTarget.style.backgroundColor = 'var(--secondary)';
                         }
                       }}
                       onMouseLeave={(e) => {
@@ -1093,14 +1091,14 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                         className="cursor-pointer h-4 w-4"
                         disabled={!user}
                       />
-                      <span className="text-sm font-medium">Completed</span>
+                      <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Completed</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Number of Problems */}
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Number of Problems</p>
+                  <p className="text-sm mb-3" style={{ color: 'var(--muted-foreground)' }}>Number of Problems</p>
                   <div className="flex items-center gap-3">
                     <input
                       type="number"
@@ -1108,13 +1106,14 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       max={Math.min(20, availableQuestions || 20)}
                       value={Math.min(problemCount, Math.min(20, availableQuestions || 20))}
                       onChange={(e) => setProblemCount(parseInt(e.target.value) || 5)}
-                      className="w-20 px-3 py-1.5 text-sm border rounded-lg bg-white text-gray-900 focus:outline-none"
+                      className="w-20 px-3 py-1.5 text-sm border rounded-lg focus:outline-none"
                       style={{
                         borderColor: 'var(--border)',
-                        color: '#141310'
+                        backgroundColor: 'var(--background)',
+                        color: 'var(--foreground)'
                       }}
                     />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">problems</span>
+                    <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>problems</span>
                   </div>
                 </div>
                 
@@ -1134,9 +1133,9 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                     Start Practice
                   </Button>
                   {!user && getSelectedTopicIds().length > 0 && selectedDifficulties.size > 0 && (
-                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50">
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50" style={{ backgroundColor: 'var(--popover)', color: 'var(--popover-foreground)', border: '1px solid var(--border)' }}>
                       Please sign in
-                      <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4" style={{ borderTopColor: 'var(--border)' }} />
                     </div>
                   )}
                 </div>

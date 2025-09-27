@@ -164,7 +164,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
   return (
     <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--background)' }}>
       <div className="max-w-6xl mx-auto px-4 py-4">
-        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">History</h1>
+        <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--foreground)' }}>History</h1>
 
         {/* Tabs */}
         <div className="flex gap-4 mb-6">
@@ -174,9 +174,9 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
               "pb-3 px-1 text-lg font-medium transition-colors cursor-pointer",
               activeTab === 'all'
                 ? "border-b-2"
-                : "text-gray-500 hover:text-gray-700"
+                : ""
             )}
-            style={activeTab === 'all' ? { color: '#a16207', borderColor: '#a16207' } : {}}
+            style={activeTab === 'all' ? { color: 'var(--primary)', borderColor: 'var(--primary)' } : { color: 'var(--muted-foreground)' }}
           >
             All
           </button>
@@ -186,9 +186,9 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
               "pb-3 px-1 text-lg font-medium transition-colors cursor-pointer",
               activeTab === 'bookmarks'
                 ? "border-b-2"
-                : "text-gray-500 hover:text-gray-700"
+                : ""
             )}
-            style={activeTab === 'bookmarks' ? { color: '#a16207', borderColor: '#a16207' } : {}}
+            style={activeTab === 'bookmarks' ? { color: 'var(--primary)', borderColor: 'var(--primary)' } : { color: 'var(--muted-foreground)' }}
           >
             Bookmarks
           </button>
@@ -197,11 +197,11 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
         {/* Sessions List */}
         {loading ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">Loading...</p>
+            <p style={{ color: 'var(--muted-foreground)' }}>Loading...</p>
           </div>
         ) : sessions.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">
+            <p style={{ color: 'var(--muted-foreground)' }}>
               {activeTab === 'bookmarks'
                 ? "No bookmarked sessions yet"
                 : "No tutoring sessions yet"}
@@ -214,7 +214,10 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
                 {/* Group Header */}
                 <button
                   onClick={() => toggleGroup(groupKey)}
-                  className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 mb-3 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200"
+                  className="flex items-center gap-2 text-sm font-medium mb-3 cursor-pointer"
+                  style={{ color: 'var(--muted-foreground)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--foreground)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted-foreground)'}
                 >
                   {expandedGroups.has(groupKey) ? (
                     <ChevronDown className="h-4 w-4" />
@@ -234,7 +237,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
                         onClick={() => openSession(session.id)}
                       >
                         {/* Thumbnail */}
-                        <div className="relative aspect-[5/3] overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                        <div className="relative aspect-[5/3] overflow-hidden rounded-xl border" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card)' }}>
                           {session.image_url ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img
@@ -246,12 +249,12 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
                             // Text-only session preview
                             <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-white transition-transform group-hover:scale-105">
                               {session.initial_text && (
-                                <p className="text-xs text-center text-gray-700 line-clamp-5 leading-relaxed">
+                                <p className="text-xs text-center line-clamp-5 leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
                                   {session.initial_text}
                                 </p>
                               )}
                               {!session.initial_text && (
-                                <p className="text-xs text-center text-gray-700 italic">
+                                <p className="text-xs text-center italic" style={{ color: 'var(--muted-foreground)' }}>
                                   Text conversation
                                 </p>
                               )}
@@ -265,19 +268,28 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
                               toggleBookmark(session.id, session.is_bookmarked);
                             }}
                             className={cn(
-                              "absolute top-2 right-2 p-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-md transition-all cursor-pointer",
+                              "absolute top-2 right-2 p-1.5 backdrop-blur-sm rounded-md transition-all cursor-pointer",
                               session.is_bookmarked
-                                ? "opacity-100 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
-                                : "opacity-0 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                ? "opacity-100"
+                                : "opacity-0 group-hover:opacity-100"
                             )}
+                            style={{
+                              backgroundColor: 'var(--background)',
+                              border: '1px solid var(--border)'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'var(--background)';
+                            }}
                           >
                             <Bookmark
-                              className={cn(
-                                "h-4 w-4",
-                                session.is_bookmarked
-                                  ? "fill-yellow-500 text-yellow-500"
-                                  : "text-gray-600 dark:text-gray-400"
-                              )}
+                              className="h-4 w-4"
+                              style={{
+                                color: session.is_bookmarked ? 'var(--primary)' : 'var(--muted-foreground)',
+                                fill: session.is_bookmarked ? 'var(--primary)' : 'none'
+                              }}
                             />
                           </button>
 
@@ -287,9 +299,19 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
                               e.stopPropagation();
                               deleteSession(session.id);
                             }}
-                            className="absolute bottom-2 right-2 p-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                            className="absolute bottom-2 right-2 p-1.5 backdrop-blur-sm rounded-md transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                            style={{
+                              backgroundColor: 'var(--background)',
+                              border: '1px solid var(--border)'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'var(--background)';
+                            }}
                           >
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                            <Trash2 className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
                           </button>
                         </div>
                       </div>
