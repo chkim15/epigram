@@ -64,7 +64,7 @@ export function getCSSVariable(variableName: string): string {
 }
 
 // Helper to apply theme-aware inline styles
-export function getThemeStyles(theme?: Theme) {
+export function getThemeStyles(_theme?: Theme) {
   // This will be used for components that still need inline styles
   // Returns an object with common style patterns
   return {

@@ -976,9 +976,6 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     style={{
                       backgroundColor: (!input && !pastedImage) || isLoading ? 'var(--muted)' : 'var(--primary)'
                     }}
-                    style={{
-                      backgroundColor: 'var(--primary)'
-                    }}
                     onMouseEnter={(e) => {
                       if (!e.currentTarget.disabled) {
                         e.currentTarget.style.opacity = '0.9';

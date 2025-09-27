@@ -176,18 +176,15 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <div className="flex gap-1">
                     <div
                       className="w-8 h-8 rounded border"
-                      style={{ borderColor: 'var(--border)' }}
-                      style={{ backgroundColor: config.preview.background }}
+                      style={{ borderColor: 'var(--border)', backgroundColor: config.preview.background }}
                     />
                     <div
                       className="w-8 h-8 rounded border"
-                      style={{ borderColor: 'var(--border)' }}
-                      style={{ backgroundColor: config.preview.foreground }}
+                      style={{ borderColor: 'var(--border)', backgroundColor: config.preview.foreground }}
                     />
                     <div
                       className="w-8 h-8 rounded border"
-                      style={{ borderColor: 'var(--border)' }}
-                      style={{ backgroundColor: config.preview.accent }}
+                      style={{ borderColor: 'var(--border)', backgroundColor: config.preview.accent }}
                     />
                   </div>
                 </button>

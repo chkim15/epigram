@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -10,6 +10,78 @@ import { useState } from "react";
 import { Inter } from 'next/font/google';
 
 const inter = Inter({ subsets: ['latin'] });
+
+function DemoSlider() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      image: '/demo_image/demo_tutor_dark.png',
+      alt: 'AI tutor providing guidance',
+      title: 'Tutor Mode'
+    },
+    {
+      image: '/demo_image/demo_practice.png',
+      alt: 'Practice mode with problem solving',
+      title: 'Practice Mode'
+    }
+  ];
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  };
+
+  return (
+    <div className="relative">
+      {/* Slide Title */}
+      <div className="text-center mb-6">
+        <h3 className="text-2xl font-semibold text-[#141310]">
+          {slides[currentSlide].title}
+        </h3>
+      </div>
+
+      {/* Image Container */}
+      <div className="relative overflow-hidden rounded-2xl border-2 border-[#a16207]/30">
+        <div
+          className="flex transition-transform duration-500 ease-in-out"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {slides.map((slide, index) => (
+            <div key={index} className="w-full flex-shrink-0">
+              <Image
+                src={slide.image}
+                alt={slide.alt}
+                width={1600}
+                height={1000}
+                className="w-full h-auto"
+                priority={index === 0}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-[#141310] hover:text-[#141310]/70 p-3 transition-colors cursor-pointer"
+        >
+          <ChevronLeft size={24} />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-[#141310] hover:text-[#141310]/70 p-3 transition-colors cursor-pointer"
+        >
+          <ChevronRight size={24} />
+        </button>
+      </div>
+
+    </div>
+  );
+}
 
 export default function LandingPage() {
   const [pricingPeriod, setPricingPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
@@ -94,11 +166,7 @@ export default function LandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-32"
           >
-            <img
-              src="/demo.png"
-              alt="Example calculus problem with AI-powered solution"
-              className="w-full h-auto rounded-xl transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]"
-            />
+            <DemoSlider />
           </motion.div>
         </div>
       </section>

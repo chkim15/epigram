@@ -221,7 +221,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             // Remove duplicates that might occur when a problem has multiple topics
             const uniqueProblems = new Map<string, Problem>();
             problemsData.forEach((problem: Problem & { problem_topics?: unknown }) => {
-              const { problem_topics, ...cleanProblem } = problem;
+              const { problem_topics: _, ...cleanProblem } = problem;
               if (!uniqueProblems.has(cleanProblem.id)) {
                 uniqueProblems.set(cleanProblem.id, cleanProblem);
               }
@@ -258,7 +258,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
         if (problemsData) {
           // Remove the problem_topics array from each problem
           const cleanedProblems = problemsData.map((problem: Problem & { problem_topics?: unknown }) => {
-            const { problem_topics, ...cleanProblem } = problem;
+            const { problem_topics: _, ...cleanProblem } = problem;
             return cleanProblem;
           });
 

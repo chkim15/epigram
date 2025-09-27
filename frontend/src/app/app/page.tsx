@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Menu, Book, FileText } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
 
 // Import Inter font
 import { Inter } from 'next/font/google';

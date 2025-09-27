@@ -390,6 +390,37 @@ math-field:focus {
   border: none !important;
 }
 
+/* Global scrollbar styling for landing page and all pages */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--background);
+  border: none;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.4);
+  border-radius: 4px;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.6);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--background);
+}
+
 /* PDF search highlight styles */
 mark.pdf-search-highlight {
   background-color: rgba(250, 204, 21, 0.5);
