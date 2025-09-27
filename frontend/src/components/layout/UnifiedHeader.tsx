@@ -43,7 +43,7 @@ export default function UnifiedHeader({
         <>
           <button
             onClick={onToggleSidebar}
-            className="mr-3 mt-1 h-8 w-8 flex items-center justify-center rounded-md transition-colors cursor-pointer"
+            className="mr-3 mt-1 h-8 w-8 flex items-center justify-center rounded-xl transition-colors cursor-pointer"
             style={{ '--hover-bg': 'var(--muted)' } as React.CSSProperties}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e9e6dc'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -109,7 +109,7 @@ export default function UnifiedHeader({
         <div className="flex items-center rounded-xl p-1" style={{ backgroundColor: 'var(--muted)' }}>
           <button
             onClick={() => onContentModeChange('handouts')}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-xl transition-all cursor-pointer"
             style={{
               backgroundColor: contentMode === 'handouts' ? 'var(--background)' : 'transparent',
               color: contentMode === 'handouts' ? 'var(--foreground)' : 'var(--muted-foreground)',
@@ -121,7 +121,7 @@ export default function UnifiedHeader({
           </button>
           <button
             onClick={() => onContentModeChange('problems')}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-xl transition-all cursor-pointer"
             style={{
               backgroundColor: contentMode === 'problems' ? 'var(--background)' : 'transparent',
               color: contentMode === 'problems' ? 'var(--foreground)' : 'var(--muted-foreground)',
@@ -166,7 +166,7 @@ export default function UnifiedHeader({
        */}
       {false && (
         <div className="flex items-center ml-2">
-          <Button size="sm" className="h-8 px-3 rounded-lg bg-black text-white hover:bg-black/90">
+          <Button size="sm" className="h-8 px-3 rounded-xl bg-black text-white hover:bg-black/90">
             Sign in
           </Button>
         </div>

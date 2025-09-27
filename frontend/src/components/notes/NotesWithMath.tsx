@@ -616,7 +616,7 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
               <Palette className="h-4 w-4" />
             </Button>
             {showColorPicker && (
-              <div className="absolute top-10 left-0 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-3 shadow-lg min-w-[140px]">
+              <div className="absolute top-10 left-0 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-lg min-w-[140px]">
                 <div className="grid grid-cols-4 gap-4">
                   {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#808080'].map(color => (
                     <button
@@ -643,7 +643,7 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
               <Highlighter className="h-4 w-4" />
             </Button>
             {showHighlightPicker && (
-              <div className="absolute top-10 left-0 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-3 shadow-lg min-w-[140px]">
+              <div className="absolute top-10 left-0 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-lg min-w-[140px]">
                 <div className="grid grid-cols-4 gap-4">
                   {['#FFFF00', '#00FF00', '#00FFFF', '#FF69B4', '#FFA500', '#FF0000', '#9370DB', '#87CEEB'].map(color => (
                     <button

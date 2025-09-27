@@ -839,7 +839,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
               {/* Input wrapper with constrained height */}
               <div className={cn(
-                     "relative rounded-3xl border overflow-hidden",
+                     "relative rounded-2xl border overflow-hidden",
                      isDragging && "border-blue-500"
                    )} style={{
                      backgroundColor: 'var(--input)',
@@ -848,7 +848,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
 
                 {/* Drag overlay indicator */}
                 {isDragging && (
-                  <div className="absolute inset-0 border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 z-10 flex items-center justify-center pointer-events-none rounded-3xl">
+                  <div className="absolute inset-0 border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 z-10 flex items-center justify-center pointer-events-none rounded-2xl">
                     <p className="text-lg font-medium text-blue-600 dark:text-blue-400">Drop image here</p>
                   </div>
                 )}
@@ -889,7 +889,8 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     display: 'block',
                     overflow: 'auto',
                     fontSize: '20px',
-                    paddingBottom: '24px'
+                    paddingBottom: '24px',
+                    borderRadius: '1rem'
                   }}
                   data-placeholder="Type text, or add an image by uploading, pasting, or dragging it here"
                 />
@@ -902,7 +903,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                       <img
                         src={pastedImage.url}
                         alt="Attached image"
-                        className="max-w-[400px] max-h-[150px] rounded-lg object-contain border"
+                        className="max-w-[400px] max-h-[150px] rounded-xl object-contain border"
                         style={{ borderColor: 'var(--border)' }}
                       />
                       <button
@@ -939,7 +940,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   >
                     <ImagePlus className="h-5 w-5" strokeWidth={2} style={{ color: 'var(--foreground)' }} />
                     {/* Tooltip */}
-                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm border" style={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', color: 'var(--popover-foreground)' }}>
+                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm border" style={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', color: 'var(--popover-foreground)' }}>
                       Image
                     </div>
                   </button>
@@ -962,7 +963,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   >
                     <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: 'var(--foreground)' }} />
                     {/* Tooltip */}
-                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm border" style={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', color: 'var(--popover-foreground)' }}>
+                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm border" style={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', color: 'var(--popover-foreground)' }}>
                       Math Input
                     </div>
                   </button>
@@ -1050,13 +1051,13 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   message.role === 'user' ? (
                     // User message - keep as bubble on right
                     <div key={message.id} className="flex justify-end">
-                      <div className="max-w-fit rounded-3xl px-4 py-3" style={{ backgroundColor: 'var(--sidebar-accent)', color: 'var(--sidebar-accent-foreground)' }}>
+                      <div className="max-w-fit rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--sidebar-accent)', color: 'var(--sidebar-accent-foreground)' }}>
                         {message.image && (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             src={message.image}
                             alt="Attached"
-                            className="h-32 max-w-full rounded-lg mb-2 object-contain border"
+                            className="h-32 max-w-full rounded-xl mb-2 object-contain border"
                             style={{ borderColor: 'var(--border)' }}
                           />
                         )}
@@ -1068,7 +1069,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   ) : (
                     // AI response - full width with white background
                     <div key={message.id} className="w-full">
-                      <div className="w-full rounded-lg p-6" style={{ backgroundColor: 'var(--background)' }}>
+                      <div className="w-full rounded-xl p-6" style={{ backgroundColor: 'var(--background)' }}>
                         <div className="prose prose-base dark:prose-invert max-w-none">
                           <MathContent content={message.content} />
                         </div>
@@ -1078,7 +1079,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 ))}
                 {isLoading && !isStreaming && (
                   <div className="w-full">
-                    <div className="w-full rounded-lg p-6" style={{ backgroundColor: 'var(--background)' }}>
+                    <div className="w-full rounded-xl p-6" style={{ backgroundColor: 'var(--background)' }}>
                       <div className="flex space-x-1">
                         <div className="h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]" style={{ backgroundColor: 'var(--muted-foreground)' }}></div>
                         <div className="h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]" style={{ backgroundColor: 'var(--muted-foreground)' }}></div>
@@ -1093,7 +1094,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
           {/* Fixed Input Area */}
           <div className="flex-shrink-0" style={{ backgroundColor: 'var(--background)' }}>
             <div className="max-w-4xl mx-auto px-4 py-3">
-              <div className="flex items-center gap-2 rounded-3xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center gap-2 rounded-2xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
                 {/* Math input button */}
                 <button
                   onClick={insertMathFieldInChat}
@@ -1113,7 +1114,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   <Sigma className="h-5 w-5" strokeWidth={2} style={{ color: 'var(--foreground)' }} />
                   {/* Tooltip */}
                   <div
-                    className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm"
+                    className="absolute bottom-10 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-sm"
                     style={{
                       backgroundColor: 'var(--popover)',
                       borderColor: 'var(--border)',

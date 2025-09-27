@@ -255,7 +255,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   if (error) {
     return (
       <div className="p-4">
-        <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--destructive)', color: 'var(--destructive-foreground)' }}>
+        <div className="rounded-xl p-3" style={{ backgroundColor: 'var(--destructive)', color: 'var(--destructive-foreground)' }}>
           {error}
         </div>
         <Button 

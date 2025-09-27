@@ -490,7 +490,7 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
                 }
               }}
               placeholder="Find in document"
-              className="w-48 h-8 px-2 text-sm rounded-md border focus:outline-none"
+              className="w-48 h-8 px-2 text-sm rounded-xl border focus:outline-none"
               style={{
                 backgroundColor: 'var(--input)',
                 borderColor: 'var(--border)',

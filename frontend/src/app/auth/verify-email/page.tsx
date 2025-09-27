@@ -48,7 +48,7 @@ function VerifyEmailContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
           {/* Title */}
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             Verify your account
@@ -88,14 +88,14 @@ function VerifyEmailContent() {
           <button
             onClick={handleResendEmail}
             disabled={isResending}
-            className="w-full py-3 bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isResending ? 'Sending...' : 'Resend email'}
           </button>
 
           {/* Resend message */}
           {resendMessage && (
-            <div className={`mt-4 p-3 rounded-lg text-sm ${
+            <div className={`mt-4 p-3 rounded-xl text-sm ${
               resendMessage.includes('Error') 
                 ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' 
                 : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'

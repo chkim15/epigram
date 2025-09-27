@@ -778,7 +778,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
   return (
     <div className="flex h-full" style={{ backgroundColor: 'var(--background)' }}>
       {/* Left sidebar - Practice Sessions List */}
-      <div className="w-64 border-r p-4 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
+      <div className="w-64 border-r p-4 overflow-y-auto custom-scrollbar" style={{ borderColor: 'var(--border)' }}>
         <div>
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Saved Sessions</h3>
           <div>
@@ -864,7 +864,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
       </div>
 
       {/* Right side - Main content */}
-      <div className="flex-1 overflow-y-auto py-6 pl-6 pr-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar py-6 pl-6 pr-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--foreground)' }}>
@@ -1002,7 +1002,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       <div
                         key={difficulty}
                         onClick={() => toggleDifficulty(difficulty)}
-                        className="flex items-center gap-1 px-1.5 py-1 rounded-lg border cursor-pointer transition-all text-xs"
+                        className="flex items-center gap-1 px-1.5 py-1 rounded-xl border cursor-pointer transition-all text-xs"
                         style={{
                           borderColor: 'var(--border)',
                           backgroundColor: selectedDifficulties.has(difficulty) ? 'var(--secondary)' : 'transparent'
@@ -1038,7 +1038,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                     <div
                       onClick={() => setExcludeBookmarked(!excludeBookmarked)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-36",
+                        "flex items-center gap-2 px-3 py-1.5 rounded-xl border cursor-pointer transition-all w-36",
                         !user && "opacity-50 cursor-not-allowed"
                       )}
                       style={{
@@ -1067,7 +1067,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                     <div
                       onClick={() => setExcludeCompleted(!excludeCompleted)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all w-36",
+                        "flex items-center gap-2 px-3 py-1.5 rounded-xl border cursor-pointer transition-all w-36",
                         !user && "opacity-50 cursor-not-allowed"
                       )}
                       style={{
@@ -1106,7 +1106,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       max={Math.min(20, availableQuestions || 20)}
                       value={Math.min(problemCount, Math.min(20, availableQuestions || 20))}
                       onChange={(e) => setProblemCount(parseInt(e.target.value) || 5)}
-                      className="w-20 px-3 py-1.5 text-sm border rounded-lg focus:outline-none"
+                      className="w-20 px-3 py-1.5 text-sm border rounded-xl focus:outline-none"
                       style={{
                         borderColor: 'var(--border)',
                         backgroundColor: 'var(--background)',

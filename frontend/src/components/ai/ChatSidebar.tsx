@@ -273,7 +273,7 @@ function SolutionsTab({
                     setActiveSubTab('solutions');
                     setSelectedProblemSolution(index);
                   }}
-                  className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
+                  className="px-3 py-1 text-sm rounded-xl transition-colors cursor-pointer"
                   style={{
                     backgroundColor: activeSubTab === 'solutions' && selectedProblemSolution === index ? 'var(--primary)' : 'var(--secondary)',
                     color: activeSubTab === 'solutions' && selectedProblemSolution === index ? 'var(--primary-foreground)' : 'var(--foreground)'
@@ -286,7 +286,7 @@ function SolutionsTab({
           ) : hasSolutions ? (
             <button
               onClick={() => setActiveSubTab('solutions')}
-              className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
+              className="px-3 py-1 text-sm rounded-xl transition-colors cursor-pointer"
               style={{
                 backgroundColor: activeSubTab === 'solutions' ? 'var(--primary)' : 'var(--secondary)',
                 color: activeSubTab === 'solutions' ? 'var(--primary-foreground)' : 'var(--foreground)'
@@ -298,7 +298,7 @@ function SolutionsTab({
           {hasComments && (
             <button
               onClick={() => setActiveSubTab('comments')}
-              className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
+              className="px-3 py-1 text-sm rounded-xl transition-colors cursor-pointer"
               style={{
                 backgroundColor: activeSubTab === 'comments' ? 'var(--primary)' : 'var(--secondary)',
                 color: activeSubTab === 'comments' ? 'var(--primary-foreground)' : 'var(--foreground)'
@@ -356,7 +356,7 @@ function SolutionsTab({
                             <button
                               key={index}
                               onClick={() => setSelectedSubproblemSolutions(prev => ({ ...prev, [key]: index }))}
-                              className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
+                              className="px-3 py-1 text-sm rounded-xl transition-colors cursor-pointer"
                               style={{
                                 backgroundColor: selectedIndex === index ? 'var(--foreground)' : 'var(--secondary)',
                                 color: selectedIndex === index ? 'var(--background)' : 'var(--foreground)'
@@ -838,7 +838,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
             key={tab.id}
             variant="ghost"
             size="sm"
-            className="flex-1 text-sm h-8 rounded-lg transition-all cursor-pointer"
+            className="flex-1 text-sm h-8 rounded-xl transition-all cursor-pointer"
             style={{
               backgroundColor: activeTab === tab.id ? 'var(--sidebar-accent)' : 'transparent',
               color: activeTab === tab.id ? 'var(--foreground)' : 'var(--muted-foreground)'
@@ -860,7 +860,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-2 left-2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 z-10 cursor-pointer"
+                className="absolute top-2 left-2 h-8 w-8 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 z-10 cursor-pointer"
                 onClick={() => {
                   setMessages([]);
                   setInput('');
@@ -918,7 +918,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                       )}
                     >
                       {message.role === 'user' ? (
-                        <div className="max-w-[80%] rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>
+                        <div className="max-w-[80%] rounded-xl px-3 py-2 text-sm" style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>
                           <p className="leading-relaxed">{message.content}</p>
                         </div>
                       ) : (
@@ -948,7 +948,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
             </div>
 
             {/* Fixed Input Area - Always Visible */}
-            <div className="flex-shrink-0 px-2 py-2 border-t relative" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
+            <div className="flex-shrink-0 px-2 py-2 relative" style={{ backgroundColor: 'var(--background)' }}>
               <div className="relative">
                 <Textarea
                   ref={textareaRef}
@@ -983,7 +983,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                       <img
                         src={pastedImage.url}
                         alt="Pasted image" 
-                        className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 object-cover"
+                        className="w-10 h-10 rounded-xl border border-gray-200 dark:border-gray-700 object-cover"
                       />
                       <button
                         onClick={removeImage}
@@ -1001,7 +1001,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                   onClick={handleSendMessage}
                   disabled={(!input.trim() && !pastedImage) || isLoading}
                   size="icon"
-                  className="absolute right-2 bottom-2 h-8 w-8 rounded-lg disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed"
+                  className="absolute right-2 bottom-2 h-8 w-8 rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-600 cursor-pointer disabled:cursor-not-allowed"
                   style={{
                     backgroundColor: 'var(--primary)'
                   }}

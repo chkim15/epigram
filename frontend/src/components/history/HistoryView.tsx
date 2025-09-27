@@ -268,7 +268,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
                               toggleBookmark(session.id, session.is_bookmarked);
                             }}
                             className={cn(
-                              "absolute top-2 right-2 p-1.5 backdrop-blur-sm rounded-md transition-all cursor-pointer",
+                              "absolute top-2 right-2 p-1.5 backdrop-blur-sm rounded-xl transition-all cursor-pointer",
                               session.is_bookmarked
                                 ? "opacity-100"
                                 : "opacity-0 group-hover:opacity-100"
@@ -299,7 +299,7 @@ export default function HistoryView({ onOpenSession }: HistoryViewProps) {
                               e.stopPropagation();
                               deleteSession(session.id);
                             }}
-                            className="absolute bottom-2 right-2 p-1.5 backdrop-blur-sm rounded-md transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                            className="absolute bottom-2 right-2 p-1.5 backdrop-blur-sm rounded-xl transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
                             style={{
                               backgroundColor: 'var(--background)',
                               border: '1px solid var(--border)'

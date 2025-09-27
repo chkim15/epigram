@@ -16,13 +16,13 @@ export default function CoursesPage() {
 
         {/* Course Cards */}
         <div className="space-y-8">
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-12 hover:shadow-lg transition-shadow cursor-pointer hover:border-gray-300 dark:hover:border-gray-600">
+          <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-12 hover:shadow-lg transition-shadow cursor-pointer hover:border-gray-300 dark:hover:border-gray-600">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white whitespace-nowrap">
               Single Variable Calculus I / AP Calculus AB
             </h2>
           </div>
 
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-12 hover:shadow-lg transition-shadow cursor-pointer hover:border-gray-300 dark:hover:border-gray-600">
+          <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-12 hover:shadow-lg transition-shadow cursor-pointer hover:border-gray-300 dark:hover:border-gray-600">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white whitespace-nowrap">
               Single Variable Calculus II / AP Calculus BC
             </h2>

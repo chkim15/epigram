@@ -764,7 +764,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   if (problemList.length === 0 && !isLoading) {
     return (
       <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: 'var(--background)' }}>
-        <div className="rounded-2xl overflow-hidden flex h-full flex-col">
+        <div className="rounded-xl overflow-hidden flex h-full flex-col">
           <div className="flex-1 overflow-y-auto min-h-0 p-3 custom-scrollbar" style={{ backgroundColor: 'var(--background)' }}>
             {viewMode === 'bookmarks' ? (
               <div className="flex h-full items-center justify-center">
@@ -798,7 +798,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                       </h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                      <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Brain className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Work First, Check Later
@@ -808,7 +808,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         </p>
                       </div>
 
-                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                      <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <FileText className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Use Handouts Strategically
@@ -818,7 +818,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         </p>
                       </div>
 
-                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                      <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <AlertCircle className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Learn From Mistakes
@@ -828,7 +828,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         </p>
                       </div>
 
-                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                      <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Shuffle className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Value Multiple Approaches
@@ -838,7 +838,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         </p>
                       </div>
 
-                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                      <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Target className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Practice With Focus
@@ -858,7 +858,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                       </h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                      <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <GraduationCap className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           AP Calculus and University Exams
@@ -870,7 +870,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           Focus mainly on <span className="font-semibold">easy</span> and <span className="font-semibold">medium</span> problems, as these form the bulk of test questions. To strengthen problem-solving skills and build resilience, include a small number of <span className="font-semibold">hard</span> or <span className="font-semibold">very hard</span> problems.
                         </p>
                       </div>
-                      <div className="backdrop-blur-md rounded-2xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                      <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Trophy className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Math Competitions
@@ -904,7 +904,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
   return (
     <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: 'var(--background)' }}>
-      <div className="rounded-2xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'var(--border)' }}>
+      <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'var(--border)' }}>
       {/* Problem Content */}
       <div className="flex-1 overflow-y-auto min-h-0 p-3 custom-scrollbar" style={{ backgroundColor: 'var(--background)' }}>
         <div className="w-full space-y-6 min-w-0">
@@ -923,7 +923,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           onClick={toggleCompleted}
                           disabled={!user || completedLoading}
                           className={cn(
-                            "!p-1 rounded-lg transition-colors disabled:opacity-100",
+                            "!p-1 rounded-xl transition-colors disabled:opacity-100",
                             user ? "cursor-pointer" : "cursor-default"
                           )}
                           style={{
@@ -966,7 +966,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           onClick={toggleBookmark}
                           disabled={!user || bookmarkLoading}
                           className={cn(
-                            "!p-1 rounded-lg transition-colors disabled:opacity-100",
+                            "!p-1 rounded-xl transition-colors disabled:opacity-100",
                             user ? "cursor-pointer" : "cursor-default"
                           )}
                           style={{
@@ -1003,7 +1003,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         variant="outline"
                         size="default"
                         onClick={() => setScientificCalculatorOpen(true)}
-                        className="!p-1 cursor-pointer rounded-lg"
+                        className="!p-1 cursor-pointer rounded-xl"
                         style={{
                           backgroundColor: 'var(--background)',
                           borderColor: 'var(--border)',
@@ -1023,7 +1023,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         variant="outline"
                         size="default"
                         onClick={() => setGeogebraOpen(true)}
-                        className="!p-1 cursor-pointer rounded-lg"
+                        className="!p-1 cursor-pointer rounded-xl"
                         style={{
                           backgroundColor: 'var(--background)',
                           borderColor: 'var(--border)',
@@ -1174,7 +1174,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                       </div>
                       {gradingFeedback['main'] && (
                         <div className={cn(
-                          "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium animate-in fade-in duration-300 font-sans"
+                          "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium animate-in fade-in duration-300 font-sans"
                         )}
                         style={{
                           backgroundColor: gradingFeedback['main'].isCorrect ? '#4a7c59' : '#a0442c',
@@ -1330,7 +1330,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                               </div>
                               {gradingFeedback[`sub_${subproblem.key}`] && (
                                 <div className={cn(
-                                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium animate-in fade-in duration-300 font-sans"
+                                  "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium animate-in fade-in duration-300 font-sans"
                                 )}
                                 style={{
                                   backgroundColor: gradingFeedback[`sub_${subproblem.key}`].isCorrect ? '#4a7c59' : '#a0442c',

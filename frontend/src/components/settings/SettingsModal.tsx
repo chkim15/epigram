@@ -144,7 +144,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <button
                   key={themeName}
                   onClick={() => setTheme(themeName)}
-                  className="flex items-center gap-4 p-4 rounded-lg border-2 transition-all cursor-pointer"
+                  className="flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer"
                   style={{
                     borderColor: isSelected ? '#3b82f6' : 'var(--border)',
                     backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
@@ -202,7 +202,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const renderAccountManagementTab = () => (
     <div className="space-y-6">
       {/* Delete Account Section */}
-      <div className="rounded-lg p-4">
+      <div className="rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
             <h4 className="text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
@@ -214,7 +214,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </div>
           <button 
             onClick={() => setShowDeleteConfirm(true)}
-            className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50/50 transition-colors cursor-pointer text-sm font-medium"
+            className="px-4 py-2 border border-red-300 text-red-600 rounded-xl hover:bg-red-50/50 transition-colors cursor-pointer text-sm font-medium"
           >
             Delete
           </button>
@@ -224,7 +224,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       {/* Confirmation Dialog */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 backdrop-blur-lg flex items-center justify-center z-[60]" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-          <div className="bg-card rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+          <div className="bg-card rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
               Delete Account
             </h3>
@@ -234,7 +234,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 border rounded-lg transition-colors cursor-pointer text-sm"
+                className="px-4 py-2 border rounded-xl transition-colors cursor-pointer text-sm"
                 style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--muted)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -244,7 +244,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <button
                 onClick={handleDeleteAccount}
                 disabled={isDeleting}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors cursor-pointer text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isDeleting ? 'Deleting...' : 'Delete Account'}
               </button>
@@ -257,14 +257,14 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 backdrop-blur-lg flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-      <div className="bg-card rounded-2xl shadow-xl w-full max-w-3xl h-[600px] flex overflow-hidden">
+      <div className="bg-card rounded-xl shadow-xl w-full max-w-3xl h-[600px] flex overflow-hidden">
         {/* Left Sidebar */}
         <div className="w-64 bg-secondary p-6 border-r" style={{ borderColor: 'var(--border)' }}>
           {/* Close button */}
           <div className="flex justify-start items-center mb-8">
             <button
               onClick={onClose}
-              className="p-1 hover:bg-accent rounded-lg transition-colors cursor-pointer"
+              className="p-1 hover:bg-accent rounded-xl transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" style={{ color: 'var(--muted-foreground)' }} />
             </button>
@@ -274,7 +274,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <nav className="space-y-2">
             <button
               onClick={() => setActiveTab('account')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm"
               style={{
                 backgroundColor: activeTab === 'account' ? 'var(--accent)' : 'transparent',
                 color: activeTab === 'account' ? 'var(--foreground)' : 'var(--muted-foreground)'
@@ -298,7 +298,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
             <button
               onClick={() => setActiveTab('personalization')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm"
               style={{
                 backgroundColor: activeTab === 'personalization' ? 'var(--accent)' : 'transparent',
                 color: activeTab === 'personalization' ? 'var(--foreground)' : 'var(--muted-foreground)'
@@ -322,7 +322,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
             <button
               onClick={() => setActiveTab('account-management')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm"
               style={{
                 backgroundColor: activeTab === 'account-management' ? 'var(--accent)' : 'transparent',
                 color: activeTab === 'account-management' ? 'var(--foreground)' : 'var(--muted-foreground)'

@@ -188,7 +188,7 @@ export default function GeoGebraDialog({
           ref={dialogRef}
           className={cn(
             "fixed left-[50%] top-[50%] z-50 w-[720px]",
-            "rounded-lg border bg-background shadow-2xl duration-200",
+            "rounded-xl border bg-background shadow-2xl duration-200",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -205,7 +205,7 @@ export default function GeoGebraDialog({
 
           {/* Drag handle */}
           <div 
-            className="absolute left-0 right-0 top-0 h-10 flex items-center justify-center cursor-move rounded-t-lg"
+            className="absolute left-0 right-0 top-0 h-10 flex items-center justify-center cursor-move rounded-t-xl"
             onMouseDown={handleMouseDown}
           >
             <GripHorizontal className="h-5 w-5 text-gray-400" />
@@ -213,7 +213,7 @@ export default function GeoGebraDialog({
 
           {/* Close button */}
           <DialogPrimitive.Close 
-            className="absolute right-3 top-3 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none cursor-pointer"
+            className="absolute right-3 top-3 z-10 rounded-xl opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none cursor-pointer"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>

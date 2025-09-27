@@ -97,7 +97,7 @@ export default function LandingPage() {
             <img
               src="/demo.png"
               alt="Example calculus problem with AI-powered solution"
-              className="w-full h-auto rounded-3xl transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]"
+              className="w-full h-auto rounded-xl transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]"
             />
           </motion.div>
         </div>
@@ -119,7 +119,7 @@ export default function LandingPage() {
           {/* Top Row - Two Wide Feature Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Card 1 - Comprehensive Resources */}
-            <div className="bg-white rounded-3xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
+            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
               {/* Content Placeholder */}
               <div className="bg-gray-100 rounded-xl h-48 mb-6 flex items-center justify-center">
                 <span className="text-gray-400">Dashboard Preview 1</span>
@@ -133,7 +133,7 @@ export default function LandingPage() {
             </div>
 
             {/* Card 2 - Collaborative Learning */}
-            <div className="bg-white rounded-3xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
+            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
               {/* Content Placeholder */}
               <div className="bg-gray-100 rounded-xl h-48 mb-6 flex items-center justify-center">
                 <span className="text-gray-400">Dashboard Preview 2</span>
@@ -150,7 +150,7 @@ export default function LandingPage() {
           {/* Bottom Row - Three Feature Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Card 3 - Advanced Problem Solving */}
-            <div className="bg-white rounded-3xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
+            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
               {/* Dashboard Mockup Placeholder */}
               <div className="bg-gray-100 rounded-xl h-64 mb-6 flex items-center justify-center">
                 <span className="text-gray-400">Dashboard Preview 3</span>
@@ -164,7 +164,7 @@ export default function LandingPage() {
             </div>
 
             {/* Card 4 - Progress Tracking */}
-            <div className="bg-white rounded-3xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
+            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
               {/* Dashboard Mockup Placeholder */}
               <div className="bg-gray-100 rounded-xl h-64 mb-6 flex items-center justify-center">
                 <span className="text-gray-400">Dashboard Preview 4</span>
@@ -178,7 +178,7 @@ export default function LandingPage() {
             </div>
 
             {/* Card 5 - Personalized Learning */}
-            <div className="bg-white rounded-3xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
+            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
               {/* Dashboard Mockup Placeholder */}
               <div className="bg-gray-100 rounded-xl h-64 mb-6 flex items-center justify-center">
                 <span className="text-gray-400">Dashboard Preview 5</span>
@@ -242,7 +242,7 @@ export default function LandingPage() {
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Free Plan */}
-            <div className="bg-white rounded-3xl p-8 border border-[rgb(240,238,230)] flex flex-col">
+            <div className="bg-white rounded-xl p-8 border border-[rgb(240,238,230)] flex flex-col">
               <h3 className="text-3xl font-bold text-black mb-3">Free</h3>
               <p className="text-gray-600 mb-6">
                 Perfect for students getting started with guided learning
@@ -281,7 +281,7 @@ export default function LandingPage() {
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-white rounded-3xl p-8 border-2 flex flex-col" style={{ borderColor: '#a16207' }}>
+            <div className="bg-white rounded-xl p-8 border-2 flex flex-col" style={{ borderColor: '#a16207' }}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-3xl font-bold text-black">Pro</h3>
                 <span className="text-white px-4 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#a16207' }}>
@@ -475,7 +475,7 @@ export default function LandingPage() {
       {/* Final CTA Section */}
       <section className="px-8 py-20">
         <div className="mx-auto max-w-6xl">
-          <div className="bg-white rounded-3xl p-16 text-center border border-[rgb(240,238,230)]">
+          <div className="bg-white rounded-xl p-16 text-center border border-[rgb(240,238,230)]">
             <h2 className="text-4xl font-bold text-black mb-6">
               Start Your Journey to Math Excellence Today
             </h2>

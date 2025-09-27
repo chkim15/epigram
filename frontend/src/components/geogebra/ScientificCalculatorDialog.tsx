@@ -195,7 +195,7 @@ export default function ScientificCalculatorDialog({
           </VisuallyHidden.Root>
 
           {/* Main container */}
-          <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
             {/* Header section */}
             <div 
               className="h-10 bg-white flex items-center justify-center relative cursor-move"
@@ -205,7 +205,7 @@ export default function ScientificCalculatorDialog({
               
               {/* Close button in header */}
               <DialogPrimitive.Close 
-                className="absolute right-2 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none cursor-pointer p-1"
+                className="absolute right-2 rounded-xl opacity-70 transition-opacity hover:opacity-100 focus:outline-none cursor-pointer p-1"
               >
                 <X className="h-4 w-4 text-gray-600" />
                 <span className="sr-only">Close</span>

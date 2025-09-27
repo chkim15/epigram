@@ -227,7 +227,7 @@ function AppPageContent() {
         <div className="flex items-center justify-between h-14 px-4">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <button className="cursor-pointer h-10 w-10 flex items-center justify-center rounded-md transition-colors" style={{ '--hover-bg': '#e9e6dc' } as React.CSSProperties} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e9e6dc'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+              <button className="cursor-pointer h-10 w-10 flex items-center justify-center rounded-xl transition-colors" style={{ '--hover-bg': '#e9e6dc' } as React.CSSProperties} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e9e6dc'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
@@ -304,10 +304,10 @@ function AppPageContent() {
         {/* Mobile Mode Toggle */}
         {selectedTopicId && viewMode !== 'bookmarks' && viewMode !== 'create-practice' && (
           <div className="flex items-center justify-center px-4 py-2">
-            <div className="flex items-center rounded-lg p-1" style={{ backgroundColor: 'var(--sidebar-accent)' }}>
+            <div className="flex items-center rounded-xl p-1" style={{ backgroundColor: 'var(--sidebar-accent)' }}>
               <button
                 onClick={() => setContentMode('problems')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-all cursor-pointer"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
                 style={{
                   backgroundColor: contentMode === 'problems' ? 'var(--sidebar)' : 'transparent',
                   color: contentMode === 'problems' ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)',
@@ -319,7 +319,7 @@ function AppPageContent() {
               </button>
               <button
                 onClick={() => setContentMode('handouts')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-all cursor-pointer"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
                 style={{
                   backgroundColor: contentMode === 'handouts' ? 'var(--sidebar)' : 'transparent',
                   color: contentMode === 'handouts' ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)',
@@ -385,7 +385,7 @@ function AppPageContent() {
               <div className="flex items-center justify-center rounded-xl p-1" style={{ backgroundColor: 'var(--sidebar-accent)' }}>
                 <button
                   onClick={() => handleSidebarModeChange('tutor')}
-                  className="flex-1 py-1.5 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer"
+                  className="flex-1 py-1.5 px-3 rounded-xl text-sm font-medium transition-all cursor-pointer"
                   style={{
                     backgroundColor: sidebarMode === 'tutor' ? 'var(--sidebar-foreground)' : 'transparent',
                     color: sidebarMode === 'tutor' ? 'var(--sidebar)' : 'var(--muted-foreground)',
@@ -406,7 +406,7 @@ function AppPageContent() {
                 </button>
                 <button
                   onClick={() => handleSidebarModeChange('practice')}
-                  className="flex-1 py-1.5 px-3 rounded-lg text-sm font-medium transition-all cursor-pointer"
+                  className="flex-1 py-1.5 px-3 rounded-xl text-sm font-medium transition-all cursor-pointer"
                   style={{
                     backgroundColor: sidebarMode === 'practice' ? 'var(--sidebar-foreground)' : 'transparent',
                     color: sidebarMode === 'practice' ? 'var(--sidebar)' : 'var(--muted-foreground)',
