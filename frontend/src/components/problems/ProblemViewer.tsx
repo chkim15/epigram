@@ -793,7 +793,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           filter: 'var(--logo-filter, none)'
                         }}
                       />
-                      <h2 className="text-3xl font-extrabold" style={{ color: 'var(--epigram-text-color)' }}>
+                      <h2 className="text-2xl font-extrabold" style={{ color: 'var(--epigram-text-color)' }}>
                         Epigram&apos;s Study Tips
                       </h2>
                     </div>
@@ -803,7 +803,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           <Brain className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Work First, Check Later
                         </h3>
-                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
+                        <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Always attempt each problem <span className="font-semibold">on your own</span> before looking at hints or solutions. Push your thinking as far as possible so you truly engage your brain.
                         </p>
                       </div>
@@ -813,7 +813,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           <FileText className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Use Handouts Strategically
                         </h3>
-                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
+                        <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           If you&apos;re unsure about the concepts, <span className="font-semibold">consult the handouts</span> while solving problems. They&apos;re placed side-by-side for quick reference.
                         </p>
                       </div>
@@ -823,7 +823,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           <AlertCircle className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Learn From Mistakes
                         </h3>
-                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
+                        <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           When you get a problem wrong, <span className="font-semibold">bookmark</span> it and explicitly write down what step or idea you missed. Then use handouts, textbooks, or AI support to figure out <span className="font-semibold">why you made the mistake</span> and <span className="font-semibold">how to avoid</span> it next time.
                         </p>
                       </div>
@@ -833,7 +833,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           <Shuffle className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Value Multiple Approaches
                         </h3>
-                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
+                        <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Pay close attention to problems that have <span className="font-semibold">more than one solution</span>. These problems reveal important connections between different ideas and techniques.
                         </p>
                       </div>
@@ -843,7 +843,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           <Target className="h-5 w-5" style={{ color: 'var(--primary)' }} />
                           Practice With Focus
                         </h3>
-                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
+                        <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Set aside dedicated time for <span className="font-semibold">concentrated practice</span>. Avoid distractions so you can work deeply and retain more.
                         </p>
                       </div>
@@ -853,7 +853,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   {/* Right Column - Problem Difficulty Strategy */}
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <h2 className="text-3xl font-extrabold" style={{ color: 'var(--foreground)' }}>
+                      <h2 className="text-2xl font-extrabold pt-2" style={{ color: 'var(--foreground)' }}>
                         Problem Difficulty Strategy
                       </h2>
                     </div>
@@ -866,7 +866,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             (Quiz, Midterm, Final)
                           </span>
                         </h3>
-                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
+                        <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Focus mainly on <span className="font-semibold">easy</span> and <span className="font-semibold">medium</span> problems, as these form the bulk of test questions. To strengthen problem-solving skills and build resilience, include a small number of <span className="font-semibold">hard</span> or <span className="font-semibold">very hard</span> problems.
                         </p>
                       </div>
@@ -878,7 +878,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             (High School or College)
                           </span>
                         </h3>
-                        <p className="leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
+                        <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
                           Prioritize <span className="font-semibold">hard</span> and <span className="font-semibold">very hard</span> problems, since competitions are designed to test deeper understanding, creativity, and advanced problem-solving skills.
                         </p>
                       </div>

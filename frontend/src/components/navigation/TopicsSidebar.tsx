@@ -386,7 +386,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                               className="w-full justify-start py-2 px-3 font-medium cursor-pointer rounded-xl"
                               style={{
                                 backgroundColor: selectedCourse?.id === course.id ? 'var(--muted)' : 'transparent',
-                                color: selectedCourse?.id === course.id ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)'
+                                color: selectedCourse?.id === course.id ? 'var(--sidebar-foreground)' : 'var(--foreground)'
                               }}
                               onClick={() => selectCourse(course)}
                             >
