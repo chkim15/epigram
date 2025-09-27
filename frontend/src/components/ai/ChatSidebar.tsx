@@ -236,7 +236,7 @@ function SolutionsTab({
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center p-4">
-        <div className="text-center text-gray-500 dark:text-gray-400">
+        <div className="text-center" style={{ color: 'var(--muted-foreground)' }}>
           <p>Loading solutions...</p>
         </div>
       </div>
@@ -251,7 +251,7 @@ function SolutionsTab({
   if (!hasSolutions && !hasComments) {
     return (
       <div className="h-full flex items-center justify-center p-4">
-        <div className="text-center text-gray-500 dark:text-gray-400">
+        <div className="text-center" style={{ color: 'var(--muted-foreground)' }}>
           <BookOpen className="h-12 w-12 mx-auto mb-2" />
           <p>No solution or comments available for this problem</p>
         </div>
@@ -356,12 +356,21 @@ function SolutionsTab({
                             <button
                               key={index}
                               onClick={() => setSelectedSubproblemSolutions(prev => ({ ...prev, [key]: index }))}
-                              className={cn(
-                                "px-3 py-1 text-sm rounded-md transition-colors cursor-pointer",
-                                selectedIndex === index
-                                  ? "bg-foreground text-background"
-                                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                              )}
+                              className="px-3 py-1 text-sm rounded-md transition-colors cursor-pointer"
+                              style={{
+                                backgroundColor: selectedIndex === index ? 'var(--foreground)' : 'var(--secondary)',
+                                color: selectedIndex === index ? 'var(--background)' : 'var(--foreground)'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (selectedIndex !== index) {
+                                  e.currentTarget.style.backgroundColor = 'var(--muted)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (selectedIndex !== index) {
+                                  e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                                }
+                              }}
                             >
                               Solution {index + 1}
                             </button>
@@ -384,7 +393,7 @@ function SolutionsTab({
           <div className="p-4 space-y-6">
             {currentProblem?.comment && (
               <div>
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Main Problem</h3>
+                <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--foreground)' }}>Main Problem</h3>
                 <div className="prose max-w-none dark:prose-invert">
                   <MathContent content={currentProblem.comment} documentId={currentDocument?.document_id} />
                 </div>
@@ -860,7 +869,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                 }}
                 title="Start new chat"
               >
-                <SquarePen className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <SquarePen className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
               </Button>
             )}
             {/* Messages Area - Scrollable */}
@@ -869,10 +878,10 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                 /* AI Tutor Header - Different content based on mode */
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center max-w-lg px-4">
-                    <MessagesSquare className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-                    <h3 className="text-lg font-medium text-gray-300 mb-6">AI Tutor</h3>
+                    <MessagesSquare className="h-12 w-12 mx-auto mb-2" style={{ color: 'var(--muted-foreground)' }} />
+                    <h3 className="text-lg font-medium mb-6" style={{ color: 'var(--muted-foreground)' }}>AI Tutor</h3>
                     {mode === 'handouts' ? (
-                      <div className="text-sm text-gray-400">
+                      <div className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
                         <p className="mb-4">
                           Ask questions about the handout content or concepts.
                         </p>
@@ -909,12 +918,12 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                       )}
                     >
                       {message.role === 'user' ? (
-                        <div className="max-w-[80%] rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        <div className="max-w-[80%] rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>
                           <p className="leading-relaxed">{message.content}</p>
                         </div>
                       ) : (
                         <div className="max-w-[94%] w-full">
-                          <div className="prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100">
+                          <div className="prose prose-sm max-w-none dark:prose-invert" style={{ color: 'var(--foreground)' }}>
                             <MathContent 
                               content={message.content} 
                               documentId={currentDocument?.document_id}

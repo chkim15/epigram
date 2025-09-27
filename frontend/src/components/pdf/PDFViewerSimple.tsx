@@ -328,7 +328,7 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
 
   if (!pdfUrl) {
     return (
-      <div className={`flex items-center justify-center h-full text-gray-500 dark:text-gray-400 ${className}`}>
+      <div className={`flex items-center justify-center h-full ${className}`} style={{ color: 'var(--muted-foreground)' }}>
         <div className="text-center">
           <p className="text-sm">No PDF selected</p>
         </div>
@@ -350,9 +350,9 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
   }
 
   return (
-    <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'flex flex-col h-full'} ${className}`} style={isFullscreen ? { backgroundColor: '#faf9f5' } : undefined}>
+    <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'flex flex-col h-full'} ${className}`} style={isFullscreen ? { backgroundColor: 'var(--background)' } : undefined}>
       {/* PDF Toolbar */}
-      <div className="flex items-center px-4 py-0 flex-shrink-0" style={{ backgroundColor: '#faf9f5' }}>
+      <div className="flex items-center px-4 pt-2 pb-0 flex-shrink-0" style={{ backgroundColor: 'var(--background)' }}>
         {/* Left section - Search button */}
         <div className="flex items-center flex-1">
           <Button
@@ -382,7 +382,7 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
 
         {/* Center section - Page counter and width selector */}
         <div className="flex items-center justify-center space-x-3">
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
             {loading ? '...' : `${currentPage} / ${numPages}`}
           </span>
           
@@ -390,9 +390,9 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
             <SelectTrigger
               className="w-24 h-7 text-xs px-1 cursor-pointer"
               style={{
-                backgroundColor: '#faf9f5',
-                borderColor: 'rgb(240,238,230)',
-                color: '#3d3929'
+                backgroundColor: 'var(--background)',
+                borderColor: 'var(--border)',
+                color: 'var(--foreground)'
               }}
             >
               <SelectValue placeholder="Page fit" />
@@ -400,12 +400,12 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
             <SelectContent
               className="w-40 cursor-pointer"
               style={{
-                backgroundColor: '#faf9f5',
-                borderColor: 'rgb(240,238,230)'
+                backgroundColor: 'var(--background)',
+                borderColor: 'var(--border)'
               }}
             >
               {/* Current scale display */}
-              <div className="px-3 py-2 border-b" style={{ borderColor: 'rgb(240,238,230)' }}>
+              <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium">
                     {Math.round(getDisplayScale() * 100)}%
@@ -474,7 +474,7 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
       </div>
 
       {showSearch && (
-        <div className="px-3 pb-2 flex-shrink-0" style={{ backgroundColor: '#faf9f5' }}>
+        <div className="px-3 pb-2 flex-shrink-0" style={{ backgroundColor: 'var(--background)' }}>
           <div className="flex items-center space-x-2">
             <input
               ref={searchInputRef}
@@ -492,12 +492,12 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
               placeholder="Find in document"
               className="w-48 h-8 px-2 text-sm rounded-md border focus:outline-none"
               style={{
-                backgroundColor: '#faf9f5',
-                borderColor: 'rgb(240,238,230)',
-                color: '#3d3929'
+                backgroundColor: 'var(--input)',
+                borderColor: 'var(--border)',
+                color: 'var(--foreground)'
               }}
             />
-            <span className="text-xs text-gray-600 dark:text-gray-400 w-10 text-right">
+            <span className="text-xs w-10 text-right" style={{ color: 'var(--muted-foreground)' }}>
               {matchCount > 0 ? `${currentMatchIndex + 1}/${matchCount}` : '0/0'}
             </span>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 cursor-pointer" onClick={() => jumpToMatch(false)}>
@@ -516,8 +516,8 @@ export default function PDFViewerSimple({ pdfUrl, className = '' }: PDFViewerPro
       {/* PDF Content */}
       <div ref={containerRef} className={`flex-1 overflow-auto relative pdf-content-container ${isFullscreen ? 'h-screen' : ''}`}>
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center z-10" style={{ backgroundColor: '#faf9f5' }}>
-            <div className="flex items-center space-x-2 text-gray-500">
+          <div className="absolute inset-0 flex items-center justify-center z-10" style={{ backgroundColor: 'var(--background)' }}>
+            <div className="flex items-center space-x-2" style={{ color: 'var(--muted-foreground)' }}>
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm">Loading PDF...</span>
             </div>

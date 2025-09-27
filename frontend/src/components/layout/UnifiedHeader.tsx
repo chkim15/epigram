@@ -111,8 +111,8 @@ export default function UnifiedHeader({
             onClick={() => onContentModeChange('handouts')}
             className="flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all cursor-pointer"
             style={{
-              backgroundColor: contentMode === 'handouts' ? '#faf9f5' : 'transparent',
-              color: contentMode === 'handouts' ? '#141310' : 'var(--muted-foreground)',
+              backgroundColor: contentMode === 'handouts' ? 'var(--background)' : 'transparent',
+              color: contentMode === 'handouts' ? 'var(--foreground)' : 'var(--muted-foreground)',
               boxShadow: contentMode === 'handouts' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
             }}
           >
@@ -123,8 +123,8 @@ export default function UnifiedHeader({
             onClick={() => onContentModeChange('problems')}
             className="flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all cursor-pointer"
             style={{
-              backgroundColor: contentMode === 'problems' ? '#faf9f5' : 'transparent',
-              color: contentMode === 'problems' ? '#141310' : 'var(--muted-foreground)',
+              backgroundColor: contentMode === 'problems' ? 'var(--background)' : 'transparent',
+              color: contentMode === 'problems' ? 'var(--foreground)' : 'var(--muted-foreground)',
               boxShadow: contentMode === 'problems' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
             }}
           >

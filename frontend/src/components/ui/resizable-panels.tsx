@@ -119,10 +119,13 @@ export default function ResizablePanels({
       {/* Right Panel */}
       <div
         className={cn(
-          "min-w-0 h-full flex flex-col bg-white dark:bg-gray-900",
+          "min-w-0 h-full flex flex-col",
           !isDragging && "transition-all duration-75 ease-out"
         )}
-        style={{ width: `${rightWidth}%` }}
+        style={{
+          width: `${rightWidth}%`,
+          backgroundColor: 'var(--background)'
+        }}
       >
         {rightPanel}
       </div>

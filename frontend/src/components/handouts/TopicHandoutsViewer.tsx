@@ -149,7 +149,7 @@ export function TopicHandoutsViewer({ problemId }: TopicHandoutsViewerProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">Loading handouts...</div>
+        <div style={{ color: 'var(--muted-foreground)' }}>Loading handouts...</div>
       </div>
     );
   }
@@ -159,7 +159,7 @@ export function TopicHandoutsViewer({ problemId }: TopicHandoutsViewerProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-2">
         <AlertCircle className="h-8 w-8 text-red-500" />
-        <div className="text-gray-700">{error}</div>
+        <div style={{ color: 'var(--foreground)' }}>{error}</div>
       </div>
     );
   }
@@ -168,8 +168,8 @@ export function TopicHandoutsViewer({ problemId }: TopicHandoutsViewerProps) {
   if (!problemId) {
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-3">
-        <FileText className="h-12 w-12 text-gray-400" />
-        <div className="text-gray-500">Select a problem to view handouts</div>
+        <FileText className="h-12 w-12" style={{ color: 'var(--muted-foreground)' }} />
+        <div style={{ color: 'var(--muted-foreground)' }}>Select a problem to view handouts</div>
       </div>
     );
   }
@@ -178,8 +178,8 @@ export function TopicHandoutsViewer({ problemId }: TopicHandoutsViewerProps) {
   if (currentTopicHandouts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-3">
-        <FileText className="h-12 w-12 text-gray-400" />
-        <div className="text-gray-500">No topic handouts available for this problem</div>
+        <FileText className="h-12 w-12" style={{ color: 'var(--muted-foreground)' }} />
+        <div style={{ color: 'var(--muted-foreground)' }}>No topic handouts available for this problem</div>
       </div>
     );
   }
@@ -191,21 +191,21 @@ export function TopicHandoutsViewer({ problemId }: TopicHandoutsViewerProps) {
     if (!note.file_url) {
       return (
         <div className="flex flex-col items-center justify-center h-full space-y-3">
-          <FileText className="h-12 w-12 text-gray-400" />
-          <div className="text-gray-500">Notes not yet uploaded for {note.topic_name}</div>
+          <FileText className="h-12 w-12" style={{ color: 'var(--muted-foreground)' }} />
+          <div style={{ color: 'var(--muted-foreground)' }}>Notes not yet uploaded for {note.topic_name}</div>
         </div>
       );
     }
     
     return (
       <div className="flex flex-col h-full">
-        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <div className="px-4 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
+          <h3 className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
             {note.topic_name}
           </h3>
         </div>
         <div className="flex-1 min-h-0">
-          <PDFViewerSimple 
+          <PDFViewerSimple
             pdfUrl={note.file_url}
             className="h-full"
           />
@@ -220,20 +220,27 @@ export function TopicHandoutsViewer({ problemId }: TopicHandoutsViewerProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Sub-tabs for multiple topics */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="flex overflow-x-auto custom-scrollbar">
           {currentTopicHandouts.map((note, index) => (
             <button
               key={note.topic_id}
               onClick={() => setActiveTopicIndex(index)}
-              className={`
-                px-4 py-2 text-sm font-medium whitespace-nowrap
-                border-b-2 transition-colors cursor-pointer
-                ${index === activeTopicIndex
-                  ? 'border-black dark:border-white text-black dark:text-white'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              className="px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer"
+              style={{
+                borderBottomColor: index === activeTopicIndex ? 'var(--foreground)' : 'transparent',
+                color: index === activeTopicIndex ? 'var(--foreground)' : 'var(--muted-foreground)'
+              }}
+              onMouseEnter={(e) => {
+                if (index !== activeTopicIndex) {
+                  e.currentTarget.style.color = 'var(--foreground)';
                 }
-              `}
+              }}
+              onMouseLeave={(e) => {
+                if (index !== activeTopicIndex) {
+                  e.currentTarget.style.color = 'var(--muted-foreground)';
+                }
+              }}
             >
               {note.topic_name.length > 30 
                 ? note.topic_name.substring(0, 30) + '...' 

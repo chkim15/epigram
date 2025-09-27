@@ -32,16 +32,16 @@ export default function ResizeHandle({ onMouseDown, className }: ResizeHandlePro
         className
       )}
       style={{
-        backgroundColor: isDragging ? 'rgb(240,238,230)' : '#f5f4ee'
+        backgroundColor: isDragging ? 'var(--border)' : 'var(--sidebar)'
       }}
       onMouseEnter={(e) => {
         if (!isDragging) {
-          e.currentTarget.style.backgroundColor = 'rgb(240,238,230)';
+          e.currentTarget.style.backgroundColor = 'var(--border)';
         }
       }}
       onMouseLeave={(e) => {
         if (!isDragging) {
-          e.currentTarget.style.backgroundColor = '#f5f4ee';
+          e.currentTarget.style.backgroundColor = 'var(--sidebar)';
         }
       }}
       onMouseDown={handleMouseDown}

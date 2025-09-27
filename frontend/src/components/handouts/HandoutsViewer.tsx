@@ -125,10 +125,10 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
-        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
-          <div className="flex items-center justify-center h-full" style={{ backgroundColor: '#faf9f5' }}>
-            <div className="text-gray-500">Loading handout...</div>
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: 'var(--background)' }}>
+        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex items-center justify-center h-full" style={{ backgroundColor: 'var(--background)' }}>
+            <div style={{ color: 'var(--muted-foreground)' }}>Loading handout...</div>
           </div>
         </div>
       </div>
@@ -138,11 +138,11 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
   // Error state
   if (error) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
-        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
-          <div className="flex flex-col items-center justify-center h-full space-y-2" style={{ backgroundColor: '#faf9f5' }}>
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: 'var(--background)' }}>
+        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex flex-col items-center justify-center h-full space-y-2" style={{ backgroundColor: 'var(--background)' }}>
             <AlertCircle className="h-8 w-8 text-red-500" />
-            <div className="text-gray-700 dark:text-gray-300">{error}</div>
+            <div style={{ color: 'var(--foreground)' }}>{error}</div>
           </div>
         </div>
       </div>
@@ -152,11 +152,11 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
   // No topic selected
   if (!selectedTopicId || !handout) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
-        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
-          <div className="flex flex-col items-center justify-center h-full space-y-3" style={{ backgroundColor: '#faf9f5' }}>
-            <FileText className="h-12 w-12 text-gray-400" />
-            <div className="text-gray-500 dark:text-gray-400">Select a topic to view handouts</div>
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: 'var(--background)' }}>
+        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex flex-col items-center justify-center h-full space-y-3" style={{ backgroundColor: 'var(--background)' }}>
+            <FileText className="h-12 w-12" style={{ color: 'var(--muted-foreground)' }} />
+            <div style={{ color: 'var(--muted-foreground)' }}>Select a topic to view handouts</div>
           </div>
         </div>
       </div>
@@ -166,11 +166,11 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
   // No handout available for this topic
   if (!handout.file_url) {
     return (
-      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
-        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
-          <div className="flex flex-col items-center justify-center h-full space-y-3" style={{ backgroundColor: '#faf9f5' }}>
-            <FileText className="h-12 w-12 text-gray-400" />
-            <div className="text-gray-500 dark:text-gray-400">
+      <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: 'var(--background)' }}>
+        <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex flex-col items-center justify-center h-full space-y-3" style={{ backgroundColor: 'var(--background)' }}>
+            <FileText className="h-12 w-12" style={{ color: 'var(--muted-foreground)' }} />
+            <div style={{ color: 'var(--muted-foreground)' }}>
               Handout not yet available for {handout.topic_name}
             </div>
           </div>
@@ -181,8 +181,8 @@ export default function HandoutsViewer({ selectedTopicId }: HandoutsViewerProps)
 
   // Display PDF
   return (
-    <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: '#faf9f5' }}>
-      <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'rgb(240,238,230)' }}>
+    <div className="flex h-full flex-col min-h-0 px-2 py-2" style={{ backgroundColor: 'var(--background)' }}>
+      <div className="rounded-xl border overflow-hidden flex h-full flex-col" style={{ borderColor: 'var(--border)' }}>
         <div className="flex-1 min-h-0">
           <PDFViewerSimple 
             pdfUrl={handout.file_url}

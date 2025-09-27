@@ -81,14 +81,14 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-2 rounded-xl border transition-colors cursor-pointer"
         style={{
-          backgroundColor: '#faf9f5',
-          borderColor: 'rgb(240,238,230)'
+          backgroundColor: 'var(--background)',
+          borderColor: 'var(--border)'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#f5f4ee';
+          e.currentTarget.style.backgroundColor = 'var(--secondary)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#faf9f5';
+          e.currentTarget.style.backgroundColor = 'var(--background)';
         }}
       >
         <div className="flex items-center gap-2">
@@ -108,20 +108,23 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
             )}
           </div>
           {/* Name */}
-          <span className="text-sm font-medium text-gray-900 dark:text-white">
+          <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
             {getDisplayName()}
           </span>
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: 'var(--muted-foreground)' }} />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
+        <div className="absolute bottom-full left-0 right-0 mb-1 rounded-lg shadow-lg border py-1" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
           {/* Settings */}
           <button
             onClick={handleSettingsClick}
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
+            className="w-full flex items-center gap-2 px-3 py-1.5 transition-colors cursor-pointer text-sm"
+            style={{ color: 'var(--foreground)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <Settings className="w-3.5 h-3.5" />
             <span>Settings</span>
@@ -130,7 +133,8 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
           {/* Pricing - Disabled */}
           <button
             disabled
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-gray-400 dark:text-gray-500 cursor-not-allowed text-sm"
+            className="w-full flex items-center gap-2 px-3 py-1.5 cursor-not-allowed text-sm"
+            style={{ color: 'var(--muted-foreground)' }}
           >
             <CreditCard className="w-3.5 h-3.5" />
             <span>Pricing</span>
@@ -139,18 +143,19 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
+            className="w-full flex items-center justify-between px-3 py-1.5 transition-colors cursor-pointer text-sm"
+            style={{ color: 'var(--foreground)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <div className="flex items-center gap-2">
               <Moon className="w-3.5 h-3.5" />
               <span>Dark mode</span>
             </div>
             <div className="relative">
-              <div className={`w-8 h-4 rounded-full transition-colors ${
-                darkMode 
-                  ? 'bg-green-500' 
-                  : 'bg-gray-300 dark:bg-gray-600'
-              }`}></div>
+              <div className="w-8 h-4 rounded-full transition-colors" style={{
+                backgroundColor: darkMode ? '#10b981' : 'var(--muted)'
+              }}></div>
               <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${darkMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}></div>
             </div>
           </button>
@@ -158,29 +163,33 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
           {/* Active Learning Toggle */}
           <button
             onClick={toggleActiveLearningMode}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
+            className="w-full flex items-center justify-between px-3 py-1.5 transition-colors cursor-pointer text-sm"
+            style={{ color: 'var(--foreground)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <div className="flex items-center gap-2">
               <BookOpen className="w-3.5 h-3.5" />
               <span>Active Learning</span>
             </div>
             <div className="relative">
-              <div className={`w-8 h-4 rounded-full transition-colors ${
-                isActiveLearningMode 
-                  ? 'bg-green-500' 
-                  : 'bg-gray-300 dark:bg-gray-600'
-              }`}></div>
+              <div className="w-8 h-4 rounded-full transition-colors" style={{
+                backgroundColor: isActiveLearningMode ? '#10b981' : 'var(--muted)'
+              }}></div>
               <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${isActiveLearningMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}></div>
             </div>
           </button>
 
           {/* Divider */}
-          <div className="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+          <div className="my-1 border-t" style={{ borderColor: 'var(--border)' }}></div>
 
           {/* Log out */}
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer text-sm"
+            className="w-full flex items-center gap-2 px-3 py-1.5 transition-colors cursor-pointer text-sm"
+            style={{ color: 'var(--foreground)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Log out</span>

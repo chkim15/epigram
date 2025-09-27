@@ -924,13 +924,23 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           disabled={!user || completedLoading}
                           className={cn(
                             "!p-1 rounded-lg transition-colors disabled:opacity-100",
-                            user ? "cursor-pointer" : "cursor-default",
-                            user && isCompleted
-                              ? "bg-[#4a7c59] border-[#4a7c59] text-white hover:bg-[#3d6847]"
-                              : "bg-[#faf9f5] dark:bg-gray-700 border-[rgb(240,238,230)] dark:border-gray-600 text-[#3d3929] dark:text-gray-200 hover:bg-[#f5f4ee] dark:hover:bg-gray-600"
+                            user ? "cursor-pointer" : "cursor-default"
                           )}
                           style={{
+                            backgroundColor: user && isCompleted ? '#4a7c59' : 'var(--background)',
+                            borderColor: user && isCompleted ? '#4a7c59' : 'var(--border)',
+                            color: user && isCompleted ? 'white' : 'var(--foreground)',
                             pointerEvents: user && !completedLoading ? 'auto' : 'none'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (user && !completedLoading) {
+                              e.currentTarget.style.backgroundColor = user && isCompleted ? '#3d6847' : 'var(--secondary)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (user && !completedLoading) {
+                              e.currentTarget.style.backgroundColor = user && isCompleted ? '#4a7c59' : 'var(--background)';
+                            }
                           }}
                         >
                           <Check className="!h-6 !w-6" />
@@ -963,7 +973,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             pointerEvents: user && !bookmarkLoading ? 'auto' : 'none',
                             backgroundColor: 'var(--background)',
                             borderColor: 'var(--border)',
-                            color: user && isBookmarked ? '#eab308' : '#3d3929'
+                            color: user && isBookmarked ? '#eab308' : 'var(--foreground)'
                           }}
                           onMouseEnter={(e) => {
                             if (user && !bookmarkLoading) {
@@ -972,7 +982,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           }}
                           onMouseLeave={(e) => {
                             if (user && !bookmarkLoading) {
-                              e.currentTarget.style.backgroundColor = '#faf9f5';
+                              e.currentTarget.style.backgroundColor = 'var(--background)';
                             }
                           }}
                         >
@@ -997,13 +1007,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         style={{
                           backgroundColor: 'var(--background)',
                           borderColor: 'var(--border)',
-                          color: '#3d3929'
+                          color: 'var(--foreground)'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = 'var(--secondary)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#faf9f5';
+                          e.currentTarget.style.backgroundColor = 'var(--background)';
                         }}
                         title="Open Scientific Calculator"
                       >
@@ -1017,13 +1027,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         style={{
                           backgroundColor: 'var(--background)',
                           borderColor: 'var(--border)',
-                          color: '#3d3929'
+                          color: 'var(--foreground)'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = 'var(--secondary)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#faf9f5';
+                          e.currentTarget.style.backgroundColor = 'var(--background)';
                         }}
                         title="Open Graphing Calculator"
                       >
@@ -1053,14 +1063,24 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             {!isRevealed ? (
                               <button
                                 onClick={() => setRevealedHints(prev => ({ ...prev, main: (prev.main || 0) + 1 }))}
-                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer border"
-                                style={{ borderColor: 'var(--primary)' }}
+                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors cursor-pointer border rounded-xl"
+                                style={{
+                                  borderColor: 'var(--primary)',
+                                  color: 'var(--primary)',
+                                  backgroundColor: 'var(--background)',
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'var(--background)';
+                                }}
                               >
                                 <Lightbulb className="h-4 w-4" />
                                 <span>Show Hint {index + 1}</span>
                               </button>
                             ) : (
-                              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border" style={{ borderColor: 'var(--primary)' }}>
+                              <div className="p-4 rounded-xl border" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--card)' }}>
                                 <div className="prose max-w-none dark:prose-invert text-sm">
                                   <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                 </div>
@@ -1077,7 +1097,18 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                     <div className="mb-4">
                       <button
                         onClick={() => setExpandedHints(prev => ({ ...prev, main: !prev.main }))}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors cursor-pointer rounded-xl border"
+                        style={{
+                          borderColor: 'var(--primary)',
+                          color: 'var(--primary)',
+                          backgroundColor: 'var(--background)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'var(--background)';
+                        }}
                       >
                         <Lightbulb className="h-4 w-4" />
                         <span>Hint</span>
@@ -1087,7 +1118,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         )} />
                       </button>
                       {expandedHints['main'] && (
-                        <div className="mt-2 p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
+                        <div className="mt-2 p-4 rounded-xl border" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--card)' }}>
                           <div className="prose max-w-none dark:prose-invert text-sm">
                             <MathContent content={currentProblem.hint} documentId={currentDocument?.document_id} />
                           </div>
@@ -1189,14 +1220,24 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                       {!isRevealed ? (
                                         <button
                                           onClick={() => setRevealedHints(prev => ({ ...prev, [hintKey]: (prev[hintKey] || 0) + 1 }))}
-                                          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer border"
-                                          style={{ borderColor: 'var(--primary)' }}
+                                          className="flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors cursor-pointer border rounded-xl"
+                                          style={{
+                                            borderColor: 'var(--primary)',
+                                            color: 'var(--primary)',
+                                            backgroundColor: 'var(--background)',
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--background)';
+                                          }}
                                         >
                                           <Lightbulb className="h-4 w-4" />
                                           <span>Show Hint {index + 1}</span>
                                         </button>
                                       ) : (
-                                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border" style={{ borderColor: 'var(--primary)' }}>
+                                        <div className="p-4 rounded-xl border" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--card)' }}>
                                           <div className="prose max-w-none dark:prose-invert text-sm">
                                             <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
                                           </div>
@@ -1213,7 +1254,18 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                               <div className="mt-4">
                                 <button
                                   onClick={() => setExpandedHints(prev => ({ ...prev, [`sub_${subproblem.key}`]: !prev[`sub_${subproblem.key}`] }))}
-                                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors cursor-pointer rounded-xl border"
+                                  style={{
+                                    borderColor: 'var(--primary)',
+                                    color: 'var(--primary)',
+                                    backgroundColor: 'var(--background)',
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'var(--background)';
+                                  }}
                                 >
                                   <Lightbulb className="h-4 w-4" />
                                   <span>Hint</span>
@@ -1223,7 +1275,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                   )} />
                                 </button>
                                 {expandedHints[`sub_${subproblem.key}`] && (
-                                  <div className="mt-2 p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
+                                  <div className="mt-2 p-4 rounded-xl border" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--card)' }}>
                                     <div className="prose max-w-none dark:prose-invert text-sm">
                                       <MathContent content={subproblem.hint} documentId={currentDocument?.document_id} />
                                     </div>
@@ -1320,13 +1372,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               style={{
                 backgroundColor: 'var(--background)',
                 borderColor: 'var(--border)',
-                color: '#3d3929'
+                color: 'var(--foreground)'
               }}
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
-            <span className="text-sm text-gray-600 dark:text-gray-300">
+            <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
               Problem {currentProblemIndex + 1} of {problemList.length}
             </span>
             <Button
@@ -1338,7 +1390,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               style={{
                 backgroundColor: 'var(--background)',
                 borderColor: 'var(--border)',
-                color: '#3d3929'
+                color: 'var(--foreground)'
               }}
             >
               Next

@@ -92,35 +92,35 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const renderAccountTab = () => (
     <div className="space-y-5">
       {/* Name */}
-      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-        <span className="text-sm text-gray-700 font-medium">Name</span>
-        <span className="text-sm text-gray-900">{getUserName(user)}</span>
+      <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+        <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>Name</span>
+        <span className="text-sm" style={{ color: 'var(--foreground)' }}>{getUserName(user)}</span>
       </div>
 
       {/* Email */}
-      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-        <span className="text-sm text-gray-700 font-medium">Email</span>
-        <span className="text-sm text-gray-900">{user?.email || 'N/A'}</span>
+      <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+        <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>Email</span>
+        <span className="text-sm" style={{ color: 'var(--foreground)' }}>{user?.email || 'N/A'}</span>
       </div>
 
       {/* Date Created */}
-      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-        <span className="text-sm text-gray-700 font-medium">Date Created</span>
-        <span className="text-sm text-gray-900">{formatDate(user?.created_at)}</span>
+      <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+        <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>Date Created</span>
+        <span className="text-sm" style={{ color: 'var(--foreground)' }}>{formatDate(user?.created_at)}</span>
       </div>
 
       {/* School */}
-      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-        <span className="text-sm text-gray-700 font-medium">School</span>
-        <span className="text-sm text-gray-900">
+      <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+        <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>School</span>
+        <span className="text-sm" style={{ color: 'var(--foreground)' }}>
           {userProfile?.school || 'Not specified'}
         </span>
       </div>
 
       {/* Course */}
       <div className="flex items-center justify-between py-3">
-        <span className="text-sm text-gray-700 font-medium">Course</span>
-        <span className="text-sm text-gray-900">
+        <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>Course</span>
+        <span className="text-sm" style={{ color: 'var(--foreground)' }}>
           {userProfile?.course || 'Not specified'}
         </span>
       </div>
@@ -132,7 +132,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       <div className="space-y-6">
         {/* Theme Selection */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-4">
+          <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--foreground)' }}>
             Appearance
           </h3>
           <div className="grid grid-cols-1 gap-3">
@@ -144,39 +144,49 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <button
                   key={themeName}
                   onClick={() => setTheme(themeName)}
-                  className={`
-                    flex items-center gap-4 p-4 rounded-lg border-2 transition-all cursor-pointer
-                    ${
-                      isSelected
-                        ? 'border-blue-500 bg-blue-50/50'
-                        : 'border-gray-200 hover:border-gray-300'
+                  className="flex items-center gap-4 p-4 rounded-lg border-2 transition-all cursor-pointer"
+                  style={{
+                    borderColor: isSelected ? '#3b82f6' : 'var(--border)',
+                    backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'var(--muted-foreground)';
                     }
-                  `}
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                    }
+                  }}
                 >
                   <div className="flex-1 text-left">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
                         {config.label}
                       </span>
                       {isSelected && (
                         <Check className="w-4 h-4 text-blue-500" />
                       )}
                     </div>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
                       {config.description}
                     </p>
                   </div>
                   <div className="flex gap-1">
                     <div
-                      className="w-8 h-8 rounded border border-gray-300"
+                      className="w-8 h-8 rounded border"
+                      style={{ borderColor: 'var(--border)' }}
                       style={{ backgroundColor: config.preview.background }}
                     />
                     <div
-                      className="w-8 h-8 rounded border border-gray-300"
+                      className="w-8 h-8 rounded border"
+                      style={{ borderColor: 'var(--border)' }}
                       style={{ backgroundColor: config.preview.foreground }}
                     />
                     <div
-                      className="w-8 h-8 rounded border border-gray-300"
+                      className="w-8 h-8 rounded border"
+                      style={{ borderColor: 'var(--border)' }}
                       style={{ backgroundColor: config.preview.accent }}
                     />
                   </div>
@@ -195,10 +205,10 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       <div className="rounded-lg p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-1">
+            <h4 className="text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
               Delete Account
             </h4>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
               Permanently delete your account and all associated data.
             </p>
           </div>
@@ -213,18 +223,21 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
       {/* Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-lg flex items-center justify-center z-[60]">
+        <div className="fixed inset-0 backdrop-blur-lg flex items-center justify-center z-[60]" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
           <div className="bg-card rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
               Delete Account
             </h3>
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-sm mb-6" style={{ color: 'var(--muted-foreground)' }}>
               Are you sure you want to delete your account? This action cannot be undone and will permanently remove all your data.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-muted transition-colors cursor-pointer text-sm"
+                className="px-4 py-2 border rounded-lg transition-colors cursor-pointer text-sm"
+                style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--muted)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 Cancel
               </button>
@@ -243,17 +256,17 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   );
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-lg flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
       <div className="bg-card rounded-2xl shadow-xl w-full max-w-3xl h-[600px] flex overflow-hidden">
         {/* Left Sidebar */}
-        <div className="w-64 bg-secondary p-6 border-r border-gray-200">
+        <div className="w-64 bg-secondary p-6 border-r" style={{ borderColor: 'var(--border)' }}>
           {/* Close button */}
           <div className="flex justify-start items-center mb-8">
             <button
               onClick={onClose}
               className="p-1 hover:bg-accent rounded-lg transition-colors cursor-pointer"
             >
-              <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <X className="w-4 h-4" style={{ color: 'var(--muted-foreground)' }} />
             </button>
           </div>
 
@@ -261,11 +274,23 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <nav className="space-y-2">
             <button
               onClick={() => setActiveTab('account')}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm ${
-                activeTab === 'account'
-                  ? 'bg-accent text-gray-900'
-                  : 'text-gray-600 hover:bg-accent/50 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm"
+              style={{
+                backgroundColor: activeTab === 'account' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'account' ? 'var(--foreground)' : 'var(--muted-foreground)'
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'account') {
+                  e.currentTarget.style.backgroundColor = 'var(--accent)';
+                  e.currentTarget.style.color = 'var(--foreground)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'account') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--muted-foreground)';
+                }
+              }}
             >
               <User className="w-4 h-4" />
               Account
@@ -273,11 +298,23 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
             <button
               onClick={() => setActiveTab('personalization')}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm ${
-                activeTab === 'personalization'
-                  ? 'bg-accent text-gray-900'
-                  : 'text-gray-600 hover:bg-accent/50 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm"
+              style={{
+                backgroundColor: activeTab === 'personalization' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'personalization' ? 'var(--foreground)' : 'var(--muted-foreground)'
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'personalization') {
+                  e.currentTarget.style.backgroundColor = 'var(--accent)';
+                  e.currentTarget.style.color = 'var(--foreground)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'personalization') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--muted-foreground)';
+                }
+              }}
             >
               <Palette className="w-4 h-4" />
               Personalization
@@ -285,11 +322,23 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
             <button
               onClick={() => setActiveTab('account-management')}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm ${
-                activeTab === 'account-management'
-                  ? 'bg-accent text-gray-900'
-                  : 'text-gray-600 hover:bg-accent/50 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors cursor-pointer text-sm"
+              style={{
+                backgroundColor: activeTab === 'account-management' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'account-management' ? 'var(--foreground)' : 'var(--muted-foreground)'
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'account-management') {
+                  e.currentTarget.style.backgroundColor = 'var(--accent)';
+                  e.currentTarget.style.color = 'var(--foreground)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'account-management') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--muted-foreground)';
+                }
+              }}
             >
               <Trash2 className="w-4 h-4" />
               Account Management
@@ -300,7 +349,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         {/* Right Content */}
         <div className="flex-1 p-6">
           {/* Tab Title */}
-          <h3 className="text-lg font-semibold text-gray-900 mb-5 capitalize">
+          <h3 className="text-lg font-semibold mb-5 capitalize" style={{ color: 'var(--foreground)' }}>
             {activeTab === 'account-management' ? 'Account Management' : activeTab}
           </h3>
 
