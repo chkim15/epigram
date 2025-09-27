@@ -54,7 +54,7 @@ export default function LandingPage() {
                 </button>
               </Link>
               <Link href="/app">
-                <button className="px-4 py-2.5 text-base font-medium text-white bg-black rounded-xl hover:bg-gray-800 cursor-pointer">
+                <button className="px-4 py-2.5 text-base font-medium text-white rounded-xl cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                   Get Started
                 </button>
               </Link>
@@ -80,7 +80,7 @@ export default function LandingPage() {
             </p>
             <div className="flex justify-center">
               <Link href="/app">
-                <button className="px-4 py-2.5 text-base font-medium text-white bg-black rounded-xl hover:bg-gray-800 cursor-pointer">
+                <button className="px-4 py-2.5 text-base font-medium text-white rounded-xl cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                   Get Started
                 </button>
               </Link>
@@ -281,10 +281,10 @@ export default function LandingPage() {
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-white rounded-3xl p-8 border-2 border-black flex flex-col">
+            <div className="bg-white rounded-3xl p-8 border-2 flex flex-col" style={{ borderColor: '#a16207' }}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-3xl font-bold text-black">Pro</h3>
-                <span className="bg-black text-white px-4 py-1 rounded-full text-sm font-medium">
+                <span className="text-white px-4 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#a16207' }}>
                   Most Popular
                 </span>
               </div>
@@ -322,7 +322,7 @@ export default function LandingPage() {
               </ul>
 
               <Link href="/app">
-                <button className="w-full py-3 px-6 bg-black text-white rounded-xl font-medium hover:bg-gray-800 transition-colors cursor-pointer">
+                <button className="w-full py-3 px-6 text-white rounded-xl font-medium transition-colors cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                   Select Plan
                 </button>
               </Link>
@@ -483,7 +483,7 @@ export default function LandingPage() {
               Join students who practice with purpose and see results.
             </p>
             <Link href="/app">
-              <button className="px-8 py-4 text-base font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors cursor-pointer">
+              <button className="px-8 py-4 text-base font-medium text-white rounded-xl transition-colors cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                 Get Started
               </button>
             </Link>
