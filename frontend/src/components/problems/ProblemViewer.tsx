@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Problem, Subproblem, Document, UserAnswer } from "@/types/database";
 import { useProblemStore } from "@/stores/problemStore";
@@ -25,7 +25,8 @@ import {
   Shuffle,
   Target,
   GraduationCap,
-  Trophy
+  Trophy,
+  Sigma
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GeoGebraDialog from "@/components/geogebra/GeoGebraDialog";
@@ -39,6 +40,11 @@ interface ProblemViewerProps {
   viewMode?: 'problems' | 'bookmarks';
   problemCount?: number;
   savedProblemIds?: string[];
+}
+
+interface MathFieldElement extends HTMLElement {
+  value?: string;
+  getValue?: () => string;
 }
 
 export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, savedProblemIds = [] }: ProblemViewerProps) {
@@ -81,6 +87,24 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
   const [isCompleted, setIsCompleted] = useState(false);
   const [completedLoading, setCompletedLoading] = useState(false);
   const { user } = useAuthStore();
+  const answerContentEditableRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Import MathLive when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('mathlive').then(({ MathfieldElement }) => {
+        if (!customElements.get('math-field')) {
+          try {
+            customElements.define('math-field', MathfieldElement);
+          } catch (err) {
+            console.warn('MathLive already registered:', err);
+          }
+        }
+      }).catch(err => {
+        console.error('Failed to load MathLive:', err);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (viewMode === 'bookmarks') {
@@ -114,6 +138,14 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       setSubmitted({});
       setPreviousAnswers({});
       setGradingFeedback({});
+
+      // Clear contenteditable divs
+      Object.keys(answerContentEditableRefs.current).forEach(key => {
+        const element = answerContentEditableRefs.current[key];
+        if (element) {
+          element.innerHTML = '';
+        }
+      });
       
       // Update current document based on the current problem's document_id
       if (allDocuments.length > 0) {
@@ -570,11 +602,114 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     });
   };
 
-  const handleTextareaResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const textarea = e.target;
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
+  const insertMathField = (key: string) => {
+    const contentEditable = answerContentEditableRefs.current[key];
+    if (!contentEditable) return;
+
+    // Clean up any empty math fields first
+    const existingMathFields = contentEditable.querySelectorAll('math-field');
+    existingMathFields.forEach(field => {
+      if (!field.getAttribute('value')) {
+        field.remove();
+      }
+    });
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      // If no selection, focus the contentEditable and place cursor at end
+      contentEditable.focus();
+      const range = document.createRange();
+      range.selectNodeContents(contentEditable);
+      range.collapse(false);
+      const newSelection = window.getSelection();
+      if (newSelection) {
+        newSelection.removeAllRanges();
+        newSelection.addRange(range);
+      }
+      return insertMathField(key); // Retry with the new selection
+    }
+
+    const range = selection.getRangeAt(0);
+
+    // Check if the selection is within our contentEditable
+    if (!contentEditable.contains(range.commonAncestorContainer)) {
+      contentEditable.focus();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(contentEditable);
+      newRange.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(newRange);
+      return insertMathField(key); // Retry with the new selection
+    }
+
+    // Create a new math-field element
+    const mathField = document.createElement('math-field');
+    const uniqueId = Date.now();
+    mathField.setAttribute('data-index', uniqueId.toString());
+    mathField.style.display = 'inline-block';
+    mathField.style.fontSize = 'inherit';
+    mathField.setAttribute('value', '');
+
+    // Insert the math field at cursor position
+    range.deleteContents();
+    range.insertNode(mathField);
+
+    // Move cursor after the math field
+    range.setStartAfter(mathField);
+    range.setEndAfter(mathField);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // Focus the math field
+    setTimeout(() => {
+      mathField.focus();
+    }, 0);
+
+    // Trigger input event to update the value
+    handleContentEditableChange(key, contentEditable);
   };
+
+  const getContentEditableText = (element: HTMLDivElement): string => {
+    let result = '';
+
+    const processNode = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        result += node.textContent || '';
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as HTMLElement;
+        const tagName = element.tagName.toLowerCase();
+
+        if (tagName === 'math-field') {
+          const mathFieldElement = element as MathFieldElement;
+          const latex = mathFieldElement.value || mathFieldElement.getValue?.() || element.getAttribute('value') || element.textContent || '';
+          result += `$$${latex}$$`;
+        } else if (tagName === 'br') {
+          result += '\n';
+        } else if (tagName === 'div' || tagName === 'p') {
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+          result += '\n';
+        } else {
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+        }
+      }
+    };
+
+    for (const child of Array.from(element.childNodes)) {
+      processNode(child);
+    }
+
+    return result.trim();
+  };
+
+  const handleContentEditableChange = (key: string, element: HTMLDivElement) => {
+    const text = getContentEditableText(element);
+    handleAnswerChange(key, text);
+  };
+
 
   const fetchPreviousAnswers = async (problemId: string) => {
     if (!user) return;
@@ -593,6 +728,11 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
         setPreviousAnswers(prev => ({ ...prev, main: mainAnswers }));
         // Set the latest answer as current
         setAnswers(prev => ({ ...prev, main: mainAnswers[0].answer_text }));
+        // Set contenteditable content
+        const mainElement = answerContentEditableRefs.current['main'];
+        if (mainElement) {
+          mainElement.innerText = mainAnswers[0].answer_text;
+        }
       }
 
       // Fetch previous answers for subproblems
@@ -610,6 +750,11 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             setPreviousAnswers(prev => ({ ...prev, [`sub_${subproblem.key}`]: subAnswers }));
             // Set the latest answer as current
             setAnswers(prev => ({ ...prev, [`sub_${subproblem.key}`]: subAnswers[0].answer_text }));
+            // Set contenteditable content
+            const subElement = answerContentEditableRefs.current[`sub_${subproblem.key}`];
+            if (subElement) {
+              subElement.innerText = subAnswers[0].answer_text;
+            }
           }
         }
       }
@@ -1130,24 +1275,35 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                   {/* Answer input for main problem (only if no subproblems) */}
                   {subproblems.length === 0 && (
                     <div className="mt-4 space-y-2" data-answer-section="main">
-                      <div className="flex gap-2">
-                        <textarea
-                          className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl border resize-none overflow-hidden focus:outline-none"
-                          style={{
-                            backgroundColor: 'var(--input)',
-                            borderColor: 'var(--border)',
-                            color: 'var(--foreground)'
-                          }}
-                          placeholder="Type your answer here..."
-                          value={answers['main'] || ''}
-                          onChange={(e) => {
-                            handleAnswerChange('main', e.target.value);
-                            handleTextareaResize(e);
-                          }}
-                          onFocus={() => handleAnswerFocus('main')}
-                          onInput={handleTextareaResize}
-                          disabled={submitting['main']}
-                        />
+                      <div className="flex gap-2 items-start">
+                        <div className="flex-1 flex items-center gap-2 rounded-2xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
+                          <button
+                            className="h-8 w-10 rounded-xl border cursor-pointer flex items-center justify-center flex-shrink-0"
+                            aria-label="Insert math equation"
+                            onClick={() => insertMathField('main')}
+                            style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}
+                          >
+                            <Sigma className="h-5 w-5" aria-hidden="true" style={{ color: 'var(--foreground)' }} />
+                          </button>
+                          <div
+                            ref={(el) => { answerContentEditableRefs.current['main'] = el; }}
+                            contentEditable={!submitting['main']}
+                            className="flex-1 min-h-[50px] max-h-[150px] overflow-y-auto py-3 px-2 outline-none bg-transparent custom-scrollbar"
+                            style={{
+                              color: 'var(--foreground)',
+                              minHeight: '50px',
+                              maxHeight: '150px',
+                              outline: 'none',
+                              boxShadow: 'none',
+                              fontSize: '16px',
+                              lineHeight: '24px'
+                            }}
+                            data-placeholder="Type your answer here..."
+                            onInput={(e) => handleContentEditableChange('main', e.currentTarget)}
+                            onFocus={() => handleAnswerFocus('main')}
+                            suppressContentEditableWarning={true}
+                          />
+                        </div>
                         <div className="relative inline-block group">
                           <Button
                             onClick={() => handleSubmitAnswer('main', null)}
@@ -1286,24 +1442,35 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             
                             {/* Answer input for subproblem */}
                             <div className="mt-4 space-y-2" data-answer-section={`sub_${subproblem.key}`}>
-                              <div className="flex gap-2">
-                                <textarea
-                                  className="flex-1 h-[50px] min-h-[50px] py-2 px-3 rounded-xl border resize-none overflow-hidden focus:outline-none"
-                                  style={{
-                                    backgroundColor: 'var(--input)',
-                                    borderColor: 'var(--border)',
-                                    color: 'var(--foreground)'
-                                  }}
-                                  placeholder="Type your answer here..."
-                                  value={answers[`sub_${subproblem.key}`] || ''}
-                                  onChange={(e) => {
-                                    handleAnswerChange(`sub_${subproblem.key}`, e.target.value);
-                                    handleTextareaResize(e);
-                                  }}
-                                  onFocus={() => handleAnswerFocus(`sub_${subproblem.key}`)}
-                                  onInput={handleTextareaResize}
-                                  disabled={submitting[`sub_${subproblem.key}`]}
-                                />
+                              <div className="flex gap-2 items-start">
+                                <div className="flex-1 flex items-center gap-2 rounded-2xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
+                                  <button
+                                    className="h-8 w-10 rounded-xl border cursor-pointer flex items-center justify-center flex-shrink-0"
+                                    aria-label="Insert math equation"
+                                    onClick={() => insertMathField(`sub_${subproblem.key}`)}
+                                    style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}
+                                  >
+                                    <Sigma className="h-5 w-5" aria-hidden="true" style={{ color: 'var(--foreground)' }} />
+                                  </button>
+                                  <div
+                                    ref={(el) => { answerContentEditableRefs.current[`sub_${subproblem.key}`] = el; }}
+                                    contentEditable={!submitting[`sub_${subproblem.key}`]}
+                                    className="flex-1 min-h-[50px] max-h-[150px] overflow-y-auto py-3 px-2 outline-none bg-transparent custom-scrollbar"
+                                    style={{
+                                      color: 'var(--foreground)',
+                                      minHeight: '50px',
+                                      maxHeight: '150px',
+                                      outline: 'none',
+                                      boxShadow: 'none',
+                                      fontSize: '16px',
+                                      lineHeight: '24px'
+                                    }}
+                                    data-placeholder="Type your answer here..."
+                                    onInput={(e) => handleContentEditableChange(`sub_${subproblem.key}`, e.currentTarget)}
+                                    onFocus={() => handleAnswerFocus(`sub_${subproblem.key}`)}
+                                    suppressContentEditableWarning={true}
+                                  />
+                                </div>
                                 <div className="relative inline-block group">
                                   <Button
                                     onClick={() => handleSubmitAnswer(`sub_${subproblem.key}`, subproblem.id)}
