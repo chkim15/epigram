@@ -1322,6 +1322,14 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                             data-placeholder="Type your answer here..."
                             onInput={(e) => handleContentEditableChange('main', e.currentTarget)}
                             onFocus={() => handleAnswerFocus('main')}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                if (answers['main']?.trim() && !submitting['main'] && user) {
+                                  handleSubmitAnswer('main', null);
+                                }
+                              }
+                            }}
                             suppressContentEditableWarning={true}
                           />
                         </div>
@@ -1489,6 +1497,14 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                                     data-placeholder="Type your answer here..."
                                     onInput={(e) => handleContentEditableChange(`sub_${subproblem.key}`, e.currentTarget)}
                                     onFocus={() => handleAnswerFocus(`sub_${subproblem.key}`)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        if (answers[`sub_${subproblem.key}`]?.trim() && !submitting[`sub_${subproblem.key}`] && user) {
+                                          handleSubmitAnswer(`sub_${subproblem.key}`, subproblem.id);
+                                        }
+                                      }
+                                    }}
                                     suppressContentEditableWarning={true}
                                   />
                                 </div>
