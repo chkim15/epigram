@@ -161,9 +161,16 @@ function SolutionsTab({
 
   // Fetch solutions when problem changes (only if not provided by parent)
   useEffect(() => {
-    // Reset solution selection when problem changes
+    // Reset solution selection and sub-tab when problem changes
     setSelectedProblemSolution(0);
     setSelectedSubproblemSolutions({});
+    setActiveSubTab('solutions');
+
+    // Scroll to top when problem changes
+    const scrollContainer = document.querySelector('.solutions-tab-content');
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
+    }
 
     async function fetchSolutions() {
       // Skip fetching if parent already provides solutions
@@ -281,6 +288,11 @@ function SolutionsTab({
                   onClick={() => {
                     setActiveSubTab('solutions');
                     setSelectedProblemSolution(index);
+                    // Scroll to top when switching solutions
+                    const scrollContainer = document.querySelector('.solutions-tab-content');
+                    if (scrollContainer) {
+                      scrollContainer.scrollTop = 0;
+                    }
                   }}
                   className="px-3 py-1 text-sm rounded-xl transition-colors cursor-pointer"
                   style={{
@@ -294,7 +306,14 @@ function SolutionsTab({
             </>
           ) : hasSolutions ? (
             <button
-              onClick={() => setActiveSubTab('solutions')}
+              onClick={() => {
+                setActiveSubTab('solutions');
+                // Scroll to top when switching to solutions tab
+                const scrollContainer = document.querySelector('.solutions-tab-content');
+                if (scrollContainer) {
+                  scrollContainer.scrollTop = 0;
+                }
+              }}
               className="px-3 py-1 text-sm rounded-xl transition-colors cursor-pointer"
               style={{
                 backgroundColor: activeSubTab === 'solutions' ? 'var(--primary)' : 'var(--secondary)',
@@ -306,7 +325,14 @@ function SolutionsTab({
           ) : null}
           {hasComments && (
             <button
-              onClick={() => setActiveSubTab('comments')}
+              onClick={() => {
+                setActiveSubTab('comments');
+                // Scroll to top when switching to comments tab
+                const scrollContainer = document.querySelector('.solutions-tab-content');
+                if (scrollContainer) {
+                  scrollContainer.scrollTop = 0;
+                }
+              }}
               className="px-3 py-1 text-sm rounded-xl transition-colors cursor-pointer"
               style={{
                 backgroundColor: activeSubTab === 'comments' ? 'var(--primary)' : 'var(--secondary)',
@@ -320,7 +346,7 @@ function SolutionsTab({
       )}
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 overflow-y-auto custom-scrollbar solutions-tab-content">
         {activeSubTab === 'solutions' && hasSolutions ? (
           (() => {
             // Check if any solutions are locked due to active learning mode
@@ -364,7 +390,14 @@ function SolutionsTab({
                           {solutions.map((_, index) => (
                             <button
                               key={index}
-                              onClick={() => setSelectedSubproblemSolutions(prev => ({ ...prev, [key]: index }))}
+                              onClick={() => {
+                                setSelectedSubproblemSolutions(prev => ({ ...prev, [key]: index }));
+                                // Scroll to top when switching subproblem solutions
+                                const scrollContainer = document.querySelector('.solutions-tab-content');
+                                if (scrollContainer) {
+                                  scrollContainer.scrollTop = 0;
+                                }
+                              }}
                               className="px-3 py-1 text-sm rounded-xl transition-colors cursor-pointer"
                               style={{
                                 backgroundColor: selectedIndex === index ? 'var(--foreground)' : 'var(--secondary)',
@@ -401,11 +434,8 @@ function SolutionsTab({
         ) : activeSubTab === 'comments' && hasComments ? (
           <div className="p-4 space-y-6">
             {currentProblem?.comment && (
-              <div>
-                <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--foreground)' }}>Main Problem</h3>
-                <div className="prose max-w-none dark:prose-invert">
-                  <MathContent content={currentProblem.comment} documentId={currentDocument?.document_id} />
-                </div>
+              <div className="prose max-w-none dark:prose-invert">
+                <MathContent content={currentProblem.comment} documentId={currentDocument?.document_id} />
               </div>
             )}
             {currentSubproblems.length > 0 && currentSubproblems.some(sp => sp.comment) && (
@@ -528,11 +558,14 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
       }
 
       // Fetch main problem solutions
+      console.log('Fetching solutions for problem:', currentProblem.id, currentProblem.problem_id);
       const { data: mainSolutions, error: mainError } = await supabase
         .from('solutions')
         .select('*')
         .eq('problem_id', currentProblem.id)
         .order('solution_order', { ascending: true });
+
+      console.log('Main solutions fetched:', mainSolutions);
 
       if (!mainError && mainSolutions) {
         // If no solutions in new table, use legacy solution_text
@@ -554,6 +587,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
       }
 
       // Fetch subproblem solutions
+      console.log('Fetching subproblem solutions for:', currentSubproblems);
       const subSolutions: { [key: string]: Solution[] } = {};
       for (const subproblem of currentSubproblems) {
         const { data: sols, error: subError } = await supabase
@@ -561,6 +595,8 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
           .select('*')
           .eq('subproblem_id', subproblem.id)
           .order('solution_order', { ascending: true });
+
+        console.log(`Subproblem ${subproblem.key} solutions:`, sols);
 
         if (!subError && sols) {
           // If no solutions in new table, use legacy solution_text
@@ -580,6 +616,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
         }
       }
       setSubproblemSolutions(subSolutions);
+      console.log('Final subproblem solutions set:', subSolutions);
     };
 
     fetchSolutions();

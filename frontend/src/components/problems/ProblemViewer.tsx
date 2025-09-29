@@ -1064,7 +1064,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <span>Problem {currentProblemIndex + 1}</span>
-                    <span className="text-sm text-gray-500 font-normal">({currentProblem.problem_id})</span>
+                    <span className="text-xs text-gray-500 font-normal">({currentProblem.problem_id})</span>
                     <div className="ml-auto flex items-center gap-2">
                       <div className="relative inline-block group">
                         <Button

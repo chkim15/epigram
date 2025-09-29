@@ -129,6 +129,60 @@ export function renderMath(text: string, documentId?: string): string {
       .map(item => `<li>${item.trim()}</li>`).join('');
     return `<ol>${items}</ol>`;
   });
+
+  // Handle align environment (aligned equations)
+  processed = processed.replace(/\\begin\{align\}([\s\S]*?)\\end\{align\}/g, (match, content) => {
+    // Split the content into individual lines by \\
+    const lines = content.split(/\\\\/g).map(line => line.trim()).filter(line => line.length > 0);
+
+    const renderedLines = lines.map(line => {
+      // Remove alignment ampersands from each line
+      const cleanedLine = line.replace(/&\s*/g, '').trim();
+
+      if (!cleanedLine) return '';
+
+      try {
+        return katex.renderToString(cleanedLine, {
+          throwOnError: false,
+          displayMode: true,
+          trust: true,
+        });
+      } catch (e) {
+        console.error('KaTeX error (align line):', e);
+        return `<div style="text-align: center; margin: 10px 0;">${cleanedLine}</div>`;
+      }
+    }).filter(line => line.length > 0);
+
+    // Wrap in a container with proper spacing
+    return `<div style="margin: 15px 0;">${renderedLines.join('')}</div>`;
+  });
+
+  // Handle align* environment (aligned equations without numbering)
+  processed = processed.replace(/\\begin\{align\*\}([\s\S]*?)\\end\{align\*\}/g, (match, content) => {
+    // Split the content into individual lines by \\
+    const lines = content.split(/\\\\/g).map(line => line.trim()).filter(line => line.length > 0);
+
+    const renderedLines = lines.map(line => {
+      // Remove alignment ampersands from each line
+      const cleanedLine = line.replace(/&\s*/g, '').trim();
+
+      if (!cleanedLine) return '';
+
+      try {
+        return katex.renderToString(cleanedLine, {
+          throwOnError: false,
+          displayMode: true,
+          trust: true,
+        });
+      } catch (e) {
+        console.error('KaTeX error (align* line):', e);
+        return `<div style="text-align: center; margin: 10px 0;">${cleanedLine}</div>`;
+      }
+    }).filter(line => line.length > 0);
+
+    // Wrap in a container with proper spacing
+    return `<div style="margin: 15px 0;">${renderedLines.join('')}</div>`;
+  });
   
   // Handle LaTeX spacing and paragraph commands
   processed = processed.replace(/\\par\s*/g, '<br><br>'); // \par creates a new paragraph
