@@ -375,8 +375,8 @@ function SolutionsTab({
                   </div>
                 )}
 
-                {/* Subproblem Solutions */}
-                {Object.entries(subproblemSolutions).map(([key, solutions]) => {
+                {/* Subproblem Solutions - Only show if current problem has subproblems */}
+                {currentSubproblems.length > 0 && Object.entries(subproblemSolutions).map(([key, solutions]) => {
                   if (solutions.length === 0) return null;
                   const selectedIndex = selectedSubproblemSolutions[key] || 0;
                   
