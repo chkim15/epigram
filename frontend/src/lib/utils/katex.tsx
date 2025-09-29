@@ -112,6 +112,23 @@ export function renderMath(text: string, documentId?: string): string {
   processed = processed.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
   processed = processed.replace(/\\underline\{([^}]+)\}/g, '<u>$1</u>');
   processed = processed.replace(/\\text\{([^}]+)\}/g, '$1'); // Plain \text{...}
+
+  // Process LaTeX list environments
+  // Handle itemize environment (bulleted list)
+  processed = processed.replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g, (match, content) => {
+    // Split by \item and filter out empty items
+    const items = content.split(/\\item\s*/).filter(item => item.trim())
+      .map(item => `<li>${item.trim()}</li>`).join('');
+    return `<ul>${items}</ul>`;
+  });
+
+  // Handle enumerate environment (numbered list)
+  processed = processed.replace(/\\begin\{enumerate\}([\s\S]*?)\\end\{enumerate\}/g, (match, content) => {
+    // Split by \item and filter out empty items
+    const items = content.split(/\\item\s*/).filter(item => item.trim())
+      .map(item => `<li>${item.trim()}</li>`).join('');
+    return `<ol>${items}</ol>`;
+  });
   
   // Handle LaTeX spacing and paragraph commands
   processed = processed.replace(/\\par\s*/g, '<br><br>'); // \par creates a new paragraph

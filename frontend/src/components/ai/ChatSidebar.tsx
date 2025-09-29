@@ -161,6 +161,10 @@ function SolutionsTab({
 
   // Fetch solutions when problem changes (only if not provided by parent)
   useEffect(() => {
+    // Reset solution selection when problem changes
+    setSelectedProblemSolution(0);
+    setSelectedSubproblemSolutions({});
+
     async function fetchSolutions() {
       // Skip fetching if parent already provides solutions
       if (parentProblemSolutions !== undefined && parentSubproblemSolutions !== undefined) {
