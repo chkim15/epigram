@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, FileText, BookOpen, X, SquarePen, MessagesSquare, Sigma } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
@@ -480,7 +479,6 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
   const [subproblemSolutions, setSubproblemSolutions] = useState<{ [key: string]: Solution[] }>({});
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messageOrder, setMessageOrder] = useState(0);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const contentEditableRef = useRef<HTMLDivElement>(null);
 
   // Import MathLive when component mounts

@@ -115,27 +115,27 @@ export function renderMath(text: string, documentId?: string): string {
 
   // Process LaTeX list environments
   // Handle itemize environment (bulleted list)
-  processed = processed.replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g, (match, content) => {
+  processed = processed.replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g, (_match, content) => {
     // Split by \item and filter out empty items
-    const items = content.split(/\\item\s*/).filter(item => item.trim())
-      .map(item => `<li>${item.trim()}</li>`).join('');
+    const items = content.split(/\\item\s*/).filter((item: string) => item.trim())
+      .map((item: string) => `<li>${item.trim()}</li>`).join('');
     return `<ul>${items}</ul>`;
   });
 
   // Handle enumerate environment (numbered list)
-  processed = processed.replace(/\\begin\{enumerate\}([\s\S]*?)\\end\{enumerate\}/g, (match, content) => {
+  processed = processed.replace(/\\begin\{enumerate\}([\s\S]*?)\\end\{enumerate\}/g, (_match, content) => {
     // Split by \item and filter out empty items
-    const items = content.split(/\\item\s*/).filter(item => item.trim())
-      .map(item => `<li>${item.trim()}</li>`).join('');
+    const items = content.split(/\\item\s*/).filter((item: string) => item.trim())
+      .map((item: string) => `<li>${item.trim()}</li>`).join('');
     return `<ol>${items}</ol>`;
   });
 
   // Handle align environment (aligned equations)
-  processed = processed.replace(/\\begin\{align\}([\s\S]*?)\\end\{align\}/g, (match, content) => {
+  processed = processed.replace(/\\begin\{align\}([\s\S]*?)\\end\{align\}/g, (_match, content) => {
     // Split the content into individual lines by \\
-    const lines = content.split(/\\\\/g).map(line => line.trim()).filter(line => line.length > 0);
+    const lines = content.split(/\\\\/g).map((line: string) => line.trim()).filter((line: string) => line.length > 0);
 
-    const renderedLines = lines.map(line => {
+    const renderedLines = lines.map((line: string) => {
       // Remove alignment ampersands from each line
       const cleanedLine = line.replace(/&\s*/g, '').trim();
 
@@ -151,18 +151,18 @@ export function renderMath(text: string, documentId?: string): string {
         console.error('KaTeX error (align line):', e);
         return `<div style="text-align: center; margin: 10px 0;">${cleanedLine}</div>`;
       }
-    }).filter(line => line.length > 0);
+    }).filter((line: string) => line.length > 0);
 
     // Wrap in a container with proper spacing
     return `<div style="margin: 15px 0;">${renderedLines.join('')}</div>`;
   });
 
   // Handle align* environment (aligned equations without numbering)
-  processed = processed.replace(/\\begin\{align\*\}([\s\S]*?)\\end\{align\*\}/g, (match, content) => {
+  processed = processed.replace(/\\begin\{align\*\}([\s\S]*?)\\end\{align\*\}/g, (_match, content) => {
     // Split the content into individual lines by \\
-    const lines = content.split(/\\\\/g).map(line => line.trim()).filter(line => line.length > 0);
+    const lines = content.split(/\\\\/g).map((line: string) => line.trim()).filter((line: string) => line.length > 0);
 
-    const renderedLines = lines.map(line => {
+    const renderedLines = lines.map((line: string) => {
       // Remove alignment ampersands from each line
       const cleanedLine = line.replace(/&\s*/g, '').trim();
 
@@ -178,7 +178,7 @@ export function renderMath(text: string, documentId?: string): string {
         console.error('KaTeX error (align* line):', e);
         return `<div style="text-align: center; margin: 10px 0;">${cleanedLine}</div>`;
       }
-    }).filter(line => line.length > 0);
+    }).filter((line: string) => line.length > 0);
 
     // Wrap in a container with proper spacing
     return `<div style="margin: 15px 0;">${renderedLines.join('')}</div>`;
