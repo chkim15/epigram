@@ -892,6 +892,10 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
     mathField.style.fontSize = 'inherit';
     mathField.setAttribute('value', '');
 
+    // Disable virtual keyboard and menu
+    mathField.setAttribute('virtual-keyboard-mode', 'off');
+    mathField.setAttribute('menu', 'false');
+
     // Insert the math field at cursor position
     range.deleteContents();
     range.insertNode(mathField);
@@ -905,6 +909,18 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
     range.setEndAfter(spaceAfter);
     selection.removeAllRanges();
     selection.addRange(range);
+
+    // Add event listeners to manage inactive class
+    mathField.addEventListener('focus', () => {
+      mathField.classList.remove('inactive');
+    });
+
+    mathField.addEventListener('blur', () => {
+      // Add inactive class when field loses focus to hide the menu
+      setTimeout(() => {
+        mathField.classList.add('inactive');
+      }, 100);
+    });
 
     // Focus the math field
     setTimeout(() => {

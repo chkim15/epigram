@@ -433,7 +433,11 @@ export function NotesWithMath({ currentProblem }: NotesWithMathProps) {
     mathField.style.display = 'inline-block';
     mathField.style.fontSize = 'inherit';
     mathField.setAttribute('value', '');
-    
+
+    // Disable virtual keyboard and menu
+    mathField.setAttribute('virtual-keyboard-mode', 'off');
+    mathField.setAttribute('menu', 'false');
+
     // Insert at cursor position
     range.deleteContents();
     range.insertNode(mathField);

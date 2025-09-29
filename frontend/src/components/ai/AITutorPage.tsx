@@ -272,6 +272,10 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
     mathField.style.fontSize = 'inherit';
     mathField.setAttribute('value', '');
 
+    // Disable virtual keyboard and menu
+    mathField.setAttribute('virtual-keyboard-mode', 'off');
+    mathField.setAttribute('menu', 'false');
+
     // Insert the math field at cursor position
     range.deleteContents();
     range.insertNode(mathField);
@@ -365,11 +369,17 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
       // Only remove if truly empty
       if (!value || value.trim() === '') {
         mathField.remove();
+      } else {
+        // Add inactive class to hide the menu when not empty
+        setTimeout(() => {
+          mathField.classList.add('inactive');
+        }, 100);
       }
     });
 
     mathField.addEventListener('focusin', () => {
       setIsEditingMath(true);
+      mathField.classList.remove('inactive');
     });
 
     // Listen for input changes to update the value attribute
