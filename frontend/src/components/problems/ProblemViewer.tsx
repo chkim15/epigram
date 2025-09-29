@@ -654,9 +654,13 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     range.deleteContents();
     range.insertNode(mathField);
 
-    // Move cursor after the math field
-    range.setStartAfter(mathField);
-    range.setEndAfter(mathField);
+    // Add a space after the math field for better cursor placement
+    const spaceAfter = document.createTextNode('\u00A0'); // Non-breaking space
+    mathField.parentNode?.insertBefore(spaceAfter, mathField.nextSibling);
+
+    // Move cursor after the space
+    range.setStartAfter(spaceAfter);
+    range.setEndAfter(spaceAfter);
     selection.removeAllRanges();
     selection.addRange(range);
 

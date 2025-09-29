@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, FileText, BookOpen, X, SquarePen, MessagesSquare } from "lucide-react";
+import { ArrowUp, FileText, BookOpen, X, SquarePen, MessagesSquare, Sigma } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
@@ -14,6 +14,11 @@ import { TopicHandoutsViewer } from '@/components/handouts/TopicHandoutsViewer';
 import { useActiveLearning } from "@/hooks/useActiveLearning";
 import ActiveLearningPrompt from "@/components/problems/ActiveLearningPrompt";
 import { NotesTab } from '@/components/notes/NotesTab';
+
+interface MathFieldElement extends HTMLElement {
+  value?: string;
+  getValue?: () => string;
+}
 
 interface Message {
   id: string;
@@ -442,7 +447,25 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messageOrder, setMessageOrder] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+  const contentEditableRef = useRef<HTMLDivElement>(null);
+
+  // Import MathLive when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('mathlive').then(({ MathfieldElement }) => {
+        if (!customElements.get('math-field')) {
+          try {
+            customElements.define('math-field', MathfieldElement);
+          } catch (err) {
+            console.warn('MathLive already registered:', err);
+          }
+        }
+      }).catch(err => {
+        console.error('Failed to load MathLive:', err);
+      });
+    }
+  }, []);
+
   // Auto-activate chat tab when in handouts mode
   useEffect(() => {
     if (mode === 'handouts') {
@@ -488,6 +511,10 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
     setMessageOrder(0);
     setInput('');
     setPastedImage(null);
+    // Clear contenteditable
+    if (contentEditableRef.current) {
+      contentEditableRef.current.innerHTML = '';
+    }
 
     const fetchSolutions = async () => {
       if (!currentProblem) {
@@ -641,6 +668,11 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setPastedImage(null);
+
+    // Clear contenteditable
+    if (contentEditableRef.current) {
+      contentEditableRef.current.innerHTML = '';
+    }
     setIsLoading(true);
 
     // Save user message to database
@@ -771,6 +803,118 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
     }
   };
 
+  const insertMathField = () => {
+    const contentEditable = contentEditableRef.current;
+    if (!contentEditable) return;
+
+    // Clean up any empty math fields first
+    const existingMathFields = contentEditable.querySelectorAll('math-field');
+    existingMathFields.forEach(field => {
+      if (!field.getAttribute('value')) {
+        field.remove();
+      }
+    });
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      // If no selection, focus the contentEditable and place cursor at end
+      contentEditable.focus();
+      const range = document.createRange();
+      range.selectNodeContents(contentEditable);
+      range.collapse(false);
+      const newSelection = window.getSelection();
+      if (newSelection) {
+        newSelection.removeAllRanges();
+        newSelection.addRange(range);
+      }
+      return insertMathField(); // Retry with the new selection
+    }
+
+    const range = selection.getRangeAt(0);
+
+    // Check if the selection is within our contentEditable
+    if (!contentEditable.contains(range.commonAncestorContainer)) {
+      contentEditable.focus();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(contentEditable);
+      newRange.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(newRange);
+      return insertMathField(); // Retry with the new selection
+    }
+
+    // Create a new math-field element
+    const mathField = document.createElement('math-field');
+    const uniqueId = Date.now();
+    mathField.setAttribute('data-index', uniqueId.toString());
+    mathField.style.display = 'inline-block';
+    mathField.style.fontSize = 'inherit';
+    mathField.setAttribute('value', '');
+
+    // Insert the math field at cursor position
+    range.deleteContents();
+    range.insertNode(mathField);
+
+    // Add a space after the math field for better cursor placement
+    const spaceAfter = document.createTextNode('\u00A0'); // Non-breaking space
+    mathField.parentNode?.insertBefore(spaceAfter, mathField.nextSibling);
+
+    // Move cursor after the space
+    range.setStartAfter(spaceAfter);
+    range.setEndAfter(spaceAfter);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // Focus the math field
+    setTimeout(() => {
+      mathField.focus();
+    }, 0);
+
+    // Trigger input event to update the value
+    handleContentEditableChange(contentEditable);
+  };
+
+  const getContentEditableText = (element: HTMLDivElement): string => {
+    let result = '';
+
+    const processNode = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        result += node.textContent || '';
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as HTMLElement;
+        const tagName = element.tagName.toLowerCase();
+
+        if (tagName === 'math-field') {
+          const mathFieldElement = element as MathFieldElement;
+          const latex = mathFieldElement.value || mathFieldElement.getValue?.() || element.getAttribute('value') || element.textContent || '';
+          result += `$$${latex}$$`;
+        } else if (tagName === 'br') {
+          result += '\n';
+        } else if (tagName === 'div' || tagName === 'p') {
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+          result += '\n';
+        } else {
+          for (const child of Array.from(element.childNodes)) {
+            processNode(child);
+          }
+        }
+      }
+    };
+
+    for (const child of Array.from(element.childNodes)) {
+      processNode(child);
+    }
+
+    return result.trim();
+  };
+
+  const handleContentEditableChange = (element: HTMLDivElement) => {
+    const text = getContentEditableText(element);
+    setInput(text);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -780,6 +924,10 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
 
   const handleExampleClick = (question: string) => {
     setInput(question);
+    // Set contenteditable content
+    if (contentEditableRef.current) {
+      contentEditableRef.current.innerText = question;
+    }
     // Trigger send message after setting input
     setTimeout(() => {
       handleSendMessage();
@@ -866,6 +1014,10 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                   setInput('');
                   setSessionId(null);  // Reset session when starting new chat
                   setMessageOrder(0);
+                  // Clear contenteditable
+                  if (contentEditableRef.current) {
+                    contentEditableRef.current.innerHTML = '';
+                  }
                 }}
                 title="Start new chat"
               >
@@ -950,30 +1102,43 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
             {/* Fixed Input Area - Always Visible */}
             <div className="flex-shrink-0 px-2 py-2 relative" style={{ backgroundColor: 'var(--background)' }}>
               <div className="relative">
-                <Textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onPaste={handlePaste}
-                  placeholder="Ask questions about math"
-                  className={cn(
-                    "chat-input-textarea resize-none w-full pr-12 pb-8 rounded-2xl border",
-                    pastedImage ? "min-h-[140px] pt-16" : "min-h-[90px] pt-3"
-                  )}
-                  style={{
-                    backgroundColor: 'var(--input)',
-                    color: 'var(--foreground)',
-                    borderColor: 'var(--border)',
-                    outline: 'none',
-                    boxShadow: 'none'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.outline = 'none';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                  rows={1}
-                />
+                <div className={cn(
+                  "rounded-2xl border",
+                  pastedImage ? "min-h-[140px]" : "min-h-[90px]"
+                )} style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
+                  <div
+                    ref={contentEditableRef}
+                    contentEditable
+                    className={cn(
+                      "w-full overflow-y-auto px-3 pb-12 outline-none bg-transparent custom-scrollbar",
+                      pastedImage ? "pt-16 min-h-[140px]" : "pt-3 min-h-[90px]"
+                    )}
+                    style={{
+                      color: 'var(--foreground)',
+                      maxHeight: '200px',
+                      outline: 'none',
+                      boxShadow: 'none',
+                      fontSize: '16px',
+                      lineHeight: '24px',
+                      cursor: 'text'
+                    }}
+                    data-placeholder="Ask questions about math"
+                    onInput={(e) => handleContentEditableChange(e.currentTarget)}
+                    onKeyDown={handleKeyDown}
+                    onPaste={handlePaste}
+                    suppressContentEditableWarning={true}
+                  />
+
+                  {/* Math Button at Bottom Left */}
+                  <button
+                    className="absolute left-2 bottom-2 h-8 w-10 rounded-xl border cursor-pointer flex items-center justify-center"
+                    aria-label="Insert math equation"
+                    onClick={insertMathField}
+                    style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}
+                  >
+                    <Sigma className="h-5 w-5" aria-hidden="true" style={{ color: 'var(--foreground)' }} />
+                  </button>
+                </div>
                 
                 {/* Image Preview Inside Input */}
                 {pastedImage && (
@@ -995,8 +1160,8 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                     </div>
                   </div>
                 )}
-                
-                
+
+                {/* Send Button */}
                 <Button
                   onClick={handleSendMessage}
                   disabled={(!input.trim() && !pastedImage) || isLoading}
