@@ -53,7 +53,7 @@ export default function SignUpPage() {
           router.push('/auth/onboarding');
         } else {
           // Only redirect to app if onboarding is complete
-          router.push('/app');
+          router.push('/home');
         }
       }
     }

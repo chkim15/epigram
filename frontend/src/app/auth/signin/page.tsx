@@ -52,7 +52,7 @@ function SignInForm() {
           router.push('/auth/onboarding');
         } else {
           // Only redirect to app if onboarding is complete
-          router.push('/app');
+          router.push('/home');
         }
       }
     }
@@ -82,7 +82,7 @@ function SignInForm() {
     if (error) {
       setError(error.message);
     } else {
-      router.push('/app');
+      router.push('/home');
     }
   };
 

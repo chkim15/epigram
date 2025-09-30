@@ -42,7 +42,7 @@ export default function MissionPage() {
                   Sign In
                 </button>
               </Link>
-              <Link href="/app">
+              <Link href="/home">
                 <button className="px-4 py-2.5 text-base font-medium text-white rounded-xl cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                   Get Started
                 </button>

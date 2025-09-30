@@ -39,7 +39,7 @@ export async function GET(request: Request) {
       }
       
       // Only redirect to app if onboarding is complete
-      return NextResponse.redirect(new URL('/app', requestUrl.origin));
+      return NextResponse.redirect(new URL('/home', requestUrl.origin));
     }
     
     // If there was an error with the session, redirect to signin

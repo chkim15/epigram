@@ -1177,7 +1177,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                       lineHeight: '24px',
                       cursor: 'text'
                     }}
-                    data-placeholder="Ask questions about math"
+                    data-placeholder={mode === 'handouts' ? "Ask questions about this topic" : "Ask questions about this problem"}
                     onInput={(e) => handleContentEditableChange(e.currentTarget)}
                     onKeyDown={handleKeyDown}
                     onPaste={handlePaste}
