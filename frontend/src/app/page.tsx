@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -12,73 +12,19 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 function DemoSlider() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const slides = [
-    {
-      image: '/demo_image/demo_tutor_dark.png',
-      alt: 'AI tutor providing guidance',
-      title: 'Tutor Mode'
-    },
-    {
-      image: '/demo_image/demo_practice.png',
-      alt: 'Practice mode with problem solving',
-      title: 'Practice Mode'
-    }
-  ];
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
   return (
     <div className="relative">
-      {/* Slide Title */}
-      <div className="text-center mb-6">
-        <h3 className="text-2xl font-semibold text-[#141310]">
-          {slides[currentSlide].title}
-        </h3>
-      </div>
-
       {/* Image Container */}
-      <div className="relative overflow-hidden rounded-2xl border-2 border-[#a16207]/30">
-        <div
-          className="flex transition-transform duration-500 ease-in-out"
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-        >
-          {slides.map((slide, index) => (
-            <div key={index} className="w-full flex-shrink-0">
-              <Image
-                src={slide.image}
-                alt={slide.alt}
-                width={1600}
-                height={1000}
-                className="w-full h-auto"
-                priority={index === 0}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Navigation Arrows */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-[#141310] hover:text-[#141310]/70 p-3 transition-colors cursor-pointer"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-[#141310] hover:text-[#141310]/70 p-3 transition-colors cursor-pointer"
-        >
-          <ChevronRight size={24} />
-        </button>
+      <div className="relative overflow-hidden rounded-2xl border-2" style={{ borderColor: '#a16207' }}>
+        <Image
+          src="/demo_image/demo_practice.png"
+          alt="Practice mode with problem solving"
+          width={1600}
+          height={1000}
+          className="w-full h-auto"
+          priority
+        />
       </div>
-
     </div>
   );
 }
@@ -145,7 +91,7 @@ export default function LandingPage() {
             className="text-center max-w-4xl mx-auto"
           >
             <h1 className="text-5xl font-bold leading-tight text-black mb-6">
-              Active Learning. Smarter Practice<br />Higher Grades
+              Active Learning, Smarter Practice,<br />Higher Grades
             </h1>
             <p className="text-lg text-gray-700 mb-8 leading-relaxed max-w-2xl mx-auto">
               We don&apos;t just give answers. We guide you with personalized practice, active learning, and tutoring support that make math studying efficient and impactful.
@@ -176,87 +122,61 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl">
           {/* Main Heading */}
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-black mb-4">
+            <h2 className="text-5xl font-bold text-black mb-4">
               Learn Math by Doing, Not Watching AI do it
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Epigram guides you through human-verified problems step-by-step with hints and key questions — building the problem-solving skills that top students use.
-            </p>
           </div>
 
-          {/* Top Row - Two Wide Feature Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Card 1 - Comprehensive Resources */}
-            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
-              {/* Content Placeholder */}
-              <div className="bg-gray-100 rounded-xl h-48 mb-6 flex items-center justify-center">
-                <span className="text-gray-400">Dashboard Preview 1</span>
-              </div>
-              <h3 className="text-xl font-semibold text-black mb-3">
-                Comprehensive Resources
-              </h3>
-              <p className="text-gray-600">
-                Access a vast library of practice problems, solutions, and study materials all in one place.
-              </p>
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
+            {/* Left: Demo Image - Takes up 3 columns */}
+            <div className="lg:col-span-3 relative overflow-hidden rounded-2xl border-2" style={{ borderColor: '#a16207' }}>
+              <Image
+                src="/demo_image/demo_tutor.png"
+                alt="AI tutor providing step-by-step guidance"
+                width={1200}
+                height={900}
+                className="w-full h-auto"
+              />
             </div>
 
-            {/* Card 2 - Collaborative Learning */}
-            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
-              {/* Content Placeholder */}
-              <div className="bg-gray-100 rounded-xl h-48 mb-6 flex items-center justify-center">
-                <span className="text-gray-400">Dashboard Preview 2</span>
+            {/* Right: Feature List - Takes up 2 columns */}
+            <div className="lg:col-span-2 space-y-8">
+              <div>
+                <h3 className="text-2xl font-bold text-black mb-3">
+                  AI Tutor That Guides, Not Solves
+                </h3>
+                <p className="text-gray-600">
+                  Get strategic hints and guiding questions that help you work through problems yourself.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-black mb-3">
-                Collaborative Learning
-              </h3>
-              <p className="text-gray-600">
-                Connect with peers, share insights, and learn together in a supportive community environment.
-              </p>
-            </div>
-          </div>
 
-          {/* Bottom Row - Three Feature Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Card 3 - Advanced Problem Solving */}
-            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
-              {/* Dashboard Mockup Placeholder */}
-              <div className="bg-gray-100 rounded-xl h-64 mb-6 flex items-center justify-center">
-                <span className="text-gray-400">Dashboard Preview 3</span>
+              <div>
+                <h3 className="text-2xl font-bold text-black mb-3">
+                  Hundreds of Expert-Verified Problems
+                </h3>
+                <p className="text-gray-600">
+                  Practice with high-quality problems from real university exams, carefully curated and verified by math experts.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-black mb-3">
-                Advanced Problem Solving
-              </h3>
-              <p className="text-gray-600">
-                Tackle challenging problems with step-by-step guidance and instant feedback to build deep understanding.
-              </p>
-            </div>
 
-            {/* Card 4 - Progress Tracking */}
-            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
-              {/* Dashboard Mockup Placeholder */}
-              <div className="bg-gray-100 rounded-xl h-64 mb-6 flex items-center justify-center">
-                <span className="text-gray-400">Dashboard Preview 4</span>
+              <div>
+                <h3 className="text-2xl font-bold text-black mb-3">
+                  Multiple Solution Paths
+                </h3>
+                <p className="text-gray-600">
+                  Explore different approaches to solving problems, learning how concepts connect and developing flexible problem-solving skills.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-black mb-3">
-                Progress Tracking
-              </h3>
-              <p className="text-gray-600">
-                Monitor your learning journey with detailed analytics and performance insights across all topics.
-              </p>
-            </div>
 
-            {/* Card 5 - Personalized Learning */}
-            <div className="bg-white rounded-xl p-8 transition-transform duration-300 hover:scale-102 border border-[rgb(240,238,230)]">
-              {/* Dashboard Mockup Placeholder */}
-              <div className="bg-gray-100 rounded-xl h-64 mb-6 flex items-center justify-center">
-                <span className="text-gray-400">Dashboard Preview 5</span>
+              <div>
+                <h3 className="text-2xl font-bold text-black mb-3">
+                  Built to Make You Stronger
+                </h3>
+                <p className="text-gray-600">
+                  Our active learning approach ensures you develop independence and confidence, not reliance on AI.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-black mb-3">
-                Personalized Learning
-              </h3>
-              <p className="text-gray-600">
-                Experience adaptive content that adjusts to your pace and learning style for optimal results.
-              </p>
             </div>
           </div>
         </div>
@@ -545,13 +465,13 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl">
           <div className="bg-white rounded-xl p-16 text-center border border-[rgb(240,238,230)]">
             <h2 className="text-4xl font-bold text-black mb-6">
-              Start Your Journey to Math Excellence Today
+              Start Your Journey to Higher Grades Today
             </h2>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
               Join students who practice with purpose and see results.
             </p>
             <Link href="/app">
-              <button className="px-8 py-4 text-base font-medium text-white rounded-xl transition-colors cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
+              <button className="px-4 py-2.5 text-base font-medium text-white rounded-xl cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                 Get Started
               </button>
             </Link>
