@@ -43,29 +43,29 @@ export async function middleware(request: NextRequest) {
       .eq('user_id', session.user.id)
       .single()
 
-    // If on onboarding page and already completed, redirect to app
+    // If on onboarding page and already completed, redirect to home
     if (request.nextUrl.pathname === '/auth/onboarding' && profile?.onboarding_completed) {
-      return NextResponse.redirect(new URL('/app', request.url))
+      return NextResponse.redirect(new URL('/home', request.url))
     }
 
-    // If authenticated user hasn't completed onboarding and trying to access app or protected features
+    // If authenticated user hasn't completed onboarding and trying to access home or protected features
     if (!profile || !profile.onboarding_completed) {
       // Allow onboarding page itself
       if (request.nextUrl.pathname === '/auth/onboarding') {
         return response
       }
-      
-      // Redirect to onboarding for app and other protected routes
-      if (request.nextUrl.pathname === '/app' || 
+
+      // Redirect to onboarding for home and other protected routes
+      if (request.nextUrl.pathname === '/home' ||
           request.nextUrl.pathname.startsWith('/api/chat') ||
-          request.nextUrl.pathname.startsWith('/app/settings') ||
-          request.nextUrl.pathname.startsWith('/app/practice')) {
+          request.nextUrl.pathname.startsWith('/home/settings') ||
+          request.nextUrl.pathname.startsWith('/home/practice')) {
         return NextResponse.redirect(new URL('/auth/onboarding', request.url))
       }
     }
   }
-  
-  // Allow unauthenticated users to access /app
+
+  // Allow unauthenticated users to access /home
   // They will have limited functionality but can browse
 
   return response
@@ -73,10 +73,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/app',
+    '/home',
     '/auth/onboarding',
     '/api/chat',
-    '/app/settings',
-    '/app/practice'
+    '/home/settings',
+    '/home/practice'
   ]
 }
