@@ -37,8 +37,8 @@ export default function MissionPage() {
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
-              <Link href="/signin">
-                <button className="px-4 py-2 text-sm text-black hover:opacity-70">
+              <Link href="/auth/signin">
+                <button className="px-4 py-2 text-sm text-black hover:opacity-70 cursor-pointer">
                   Sign In
                 </button>
               </Link>

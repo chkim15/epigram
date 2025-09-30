@@ -15,7 +15,7 @@ function DemoSlider() {
   return (
     <div className="relative">
       {/* Image Container */}
-      <div className="relative overflow-hidden rounded-2xl border-2" style={{ borderColor: '#a16207' }}>
+      <div className="relative overflow-hidden rounded-3xl border-2 transition-transform duration-300 hover:scale-105" style={{ borderColor: '#a16207' }}>
         <Image
           src="/demo_image/demo_practice.png"
           alt="Practice mode with problem solving"
@@ -66,7 +66,7 @@ export default function LandingPage() {
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
-              <Link href="/signin">
+              <Link href="/auth/signin">
                 <button className="px-4 py-2 hover:opacity-70 cursor-pointer" style={{ fontSize: '14px', color: '#141310' }}>
                   Sign In
                 </button>
@@ -130,7 +130,7 @@ export default function LandingPage() {
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
             {/* Left: Demo Image - Takes up 3 columns */}
-            <div className="lg:col-span-3 relative overflow-hidden rounded-2xl border-2" style={{ borderColor: '#a16207' }}>
+            <div className="lg:col-span-3 relative overflow-hidden rounded-3xl border-2 transition-transform duration-300 hover:scale-105" style={{ borderColor: '#a16207' }}>
               <Image
                 src="/demo_image/demo_tutor.png"
                 alt="AI tutor providing step-by-step guidance"
