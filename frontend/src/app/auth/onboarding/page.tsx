@@ -10,10 +10,16 @@ import { ArrowRight } from 'lucide-react'
 const SCHOOLS = [
   { value: 'upenn', label: 'University of Pennsylvania' },
   { value: 'columbia', label: 'Columbia University' },
+  { value: 'high_school', label: 'High school' },
   { value: 'other', label: 'Other' },
 ];
 
 const COURSES = {
+  high_school: [
+    { value: 'AP Calculus AB', label: 'AP Calculus AB' },
+    { value: 'AP Calculus BC', label: 'AP Calculus BC' },
+    { value: 'other', label: 'Other' },
+  ],
   upenn: [
     { value: 'Math 1300', label: 'Math 1300' },
     { value: 'Math 1400', label: 'Math 1400' },

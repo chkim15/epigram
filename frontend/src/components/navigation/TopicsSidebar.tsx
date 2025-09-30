@@ -129,15 +129,18 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
       if (courseName === 'Calculus II') return 'Calculus II / AP Calc BC';
       return courseName;
     }
-    
-    if (userSchool === 'University of Pennsylvania') {
+
+    if (userSchool === 'High school') {
+      if (courseName === 'Calculus I') return 'AP Calculus AB';
+      if (courseName === 'Calculus II') return 'AP Calculus BC';
+    } else if (userSchool === 'University of Pennsylvania') {
       if (courseName === 'Calculus I') return 'Math 1300';
       if (courseName === 'Calculus II') return 'Math 1400';
     } else if (userSchool === 'Columbia University') {
       if (courseName === 'Calculus I') return 'Math 1101';
       if (courseName === 'Calculus II') return 'Math 1102';
     }
-    
+
     return courseName;
   };
 
@@ -224,17 +227,17 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
     // Sort courses in specific order (use display names for sorting)
     return courses.sort((a, b) => {
-      // Define order with both original and school-specific names
+      // Define order with school-specific names
       const order = [
-        'Calculus I / AP Calc AB', 'Calculus I', 'Math 1300', 'Math 1101',  // All Calc I variations
-        'Calculus II / AP Calc BC', 'Calculus II', 'Math 1400', 'Math 1102',  // All Calc II variations
+        'Calculus I / AP Calc AB', 'AP Calculus AB', 'Math 1300', 'Math 1101',  // All Calc I variations
+        'Calculus II / AP Calc BC', 'AP Calculus BC', 'Math 1400', 'Math 1102',  // All Calc II variations
         'Special Topics',  // Special Topics after Calc II
         'Calculus Essentials'  // Calculus Essentials after Special Topics
       ];
-      
+
       const indexA = order.indexOf(a.name);
       const indexB = order.indexOf(b.name);
-      
+
       if (indexA !== -1 && indexB !== -1) {
         return indexA - indexB;
       }

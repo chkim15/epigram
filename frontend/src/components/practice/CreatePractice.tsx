@@ -237,15 +237,18 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
       if (courseName === 'Calculus II') return 'Calculus II / AP Calc BC';
       return courseName;
     }
-    
-    if (userSchool === 'University of Pennsylvania') {
+
+    if (userSchool === 'High school') {
+      if (courseName === 'Calculus I') return 'AP Calculus AB';
+      if (courseName === 'Calculus II') return 'AP Calculus BC';
+    } else if (userSchool === 'University of Pennsylvania') {
       if (courseName === 'Calculus I') return 'Math 1300';
       if (courseName === 'Calculus II') return 'Math 1400';
     } else if (userSchool === 'Columbia University') {
       if (courseName === 'Calculus I') return 'Math 1101';
       if (courseName === 'Calculus II') return 'Math 1102';
     }
-    
+
     return courseName;
   };
 
@@ -314,19 +317,19 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     
     // Sort courses in specific order (use display names for sorting)
     coursesArray.sort((a, b) => {
-      // Define order with both original and school-specific names
+      // Define order with school-specific names
       const order = [
-        'Calculus I / AP Calc AB', 'Calculus I', 'Math 1300', 'Math 1101',  // All Calc I variations
-        'Calculus II / AP Calc BC', 'Calculus II', 'Math 1400', 'Math 1102'  // All Calc II variations
+        'Calculus I / AP Calc AB', 'AP Calculus AB', 'Math 1300', 'Math 1101',  // All Calc I variations
+        'Calculus II / AP Calc BC', 'AP Calculus BC', 'Math 1400', 'Math 1102'  // All Calc II variations
       ];
-      
+
       const indexA = order.indexOf(a.name);
       const indexB = order.indexOf(b.name);
-      
+
       // Group Calc I variations together (indices 0-3) and Calc II variations together (indices 4-7)
       const groupA = indexA !== -1 ? Math.floor(indexA / 4) : -1;
       const groupB = indexB !== -1 ? Math.floor(indexB / 4) : -1;
-      
+
       if (groupA !== -1 && groupB !== -1) {
         return groupA - groupB;
       }
