@@ -46,7 +46,7 @@ export const PDFWorkerProvider: React.FC<PDFWorkerProviderProps> = ({ children }
     try {
       // Dynamic import to ensure client-side only
       const { pdfjs } = await import('react-pdf');
-      
+
       // Set up worker with local .mjs file
       if (!pdfjs.GlobalWorkerOptions.workerSrc) {
         pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';

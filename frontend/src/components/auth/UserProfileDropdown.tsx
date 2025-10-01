@@ -95,7 +95,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-pink-500 text-white font-medium text-xs">
+              <div className="w-full h-full flex items-center justify-center font-medium text-xs" style={{ backgroundColor: '#8b7355', color: 'white' }}>
                 {getInitials()}
               </div>
             )}

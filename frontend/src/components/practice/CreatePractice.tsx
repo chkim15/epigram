@@ -245,8 +245,9 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
       if (courseName === 'Calculus I') return 'Math 1300';
       if (courseName === 'Calculus II') return 'Math 1400';
     } else if (userSchool === 'Columbia University') {
-      if (courseName === 'Calculus I') return 'Math 1101';
-      if (courseName === 'Calculus II') return 'Math 1102';
+      // Use default format for Columbia
+      if (courseName === 'Calculus I') return 'Calculus I / AP Calc AB';
+      if (courseName === 'Calculus II') return 'Calculus II / AP Calc BC';
     }
 
     return courseName;

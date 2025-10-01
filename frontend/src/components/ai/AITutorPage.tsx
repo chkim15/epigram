@@ -446,7 +446,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
         if (tagName === 'math-field') {
           const mathFieldElement = element as MathFieldElement;
           const latex = mathFieldElement.value || mathFieldElement.getValue?.() || element.getAttribute('value') || element.textContent || '';
-          result += `$$${latex}$$`;
+          result += `$${latex}$`;
         } else if (tagName === 'br') {
           result += '\n';
         } else if (tagName === 'div' || tagName === 'p') {

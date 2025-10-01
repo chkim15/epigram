@@ -17,8 +17,8 @@ function DemoSlider() {
       {/* Image Container */}
       <div className="relative overflow-hidden rounded-3xl border-2 transition-transform duration-300 hover:scale-105" style={{ borderColor: '#a16207' }}>
         <Image
-          src="/demo_image/demo_practice.png"
-          alt="Practice mode with problem solving"
+          src="/demo_image/demo_tutor.png"
+          alt="AI tutor providing step-by-step guidance"
           width={1600}
           height={1000}
           className="w-full h-auto"
@@ -112,6 +112,15 @@ export default function LandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-32"
           >
+            {/* Header above the demo */}
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-black mb-3">
+                AI Tutor That Guides, Not Solves
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Get strategic hints and guiding questions that help you work through problems, without being handed easy answers.
+              </p>
+            </div>
             <DemoSlider />
           </motion.div>
         </div>
