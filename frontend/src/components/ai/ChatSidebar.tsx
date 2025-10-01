@@ -913,12 +913,57 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
       mathField.classList.remove('inactive');
     });
 
-    mathField.addEventListener('blur', () => {
-      // Add inactive class when field loses focus to hide the menu
+    mathField.addEventListener('blur', (e: FocusEvent) => {
+      // Check if focus is moving to a related element (like dropdown menu)
+      const relatedTarget = e.relatedTarget as HTMLElement;
+
+      // If the related target is part of the math field or its UI, don't mark as inactive
+      if (relatedTarget && (
+        mathField.contains(relatedTarget) ||
+        relatedTarget.closest('.ML__popover') ||
+        relatedTarget.closest('[role="menu"]')
+      )) {
+        return;
+      }
+
+      // Add a delay to allow menu interactions
       setTimeout(() => {
-        mathField.classList.add('inactive');
-      }, 100);
+        // Check if the math field or any popover has focus
+        const activeElement = document.activeElement;
+        const hasMenuOpen = document.querySelector('.ML__popover:not([style*="display: none"])');
+        const hasDropdown = document.querySelector('[role="menu"]:not([style*="display: none"])');
+
+        if (!mathField.contains(activeElement as Node) && !hasMenuOpen && !hasDropdown) {
+          mathField.classList.add('inactive');
+
+          // Clean up empty fields
+          if (!mathField.getAttribute('value')) {
+            mathField.remove();
+          }
+        }
+      }, 150); // Slightly longer delay to ensure menu interactions complete
     });
+
+    // Watch for menu interactions using MutationObserver
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          // Check if a menu was added to the DOM
+          const hasMenu = document.querySelector('.ML__popover') || document.querySelector('[role="menu"]');
+          if (hasMenu) {
+            // Keep field active while menu is open
+            mathField.classList.remove('inactive');
+          }
+        }
+      });
+    });
+
+    // Observe changes to the body for menu additions
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Store observer reference for cleanup
+    const mathFieldWithObserver = mathField as HTMLElement & { __observer?: MutationObserver };
+    mathFieldWithObserver.__observer = observer;
 
     // Focus the math field
     setTimeout(() => {
