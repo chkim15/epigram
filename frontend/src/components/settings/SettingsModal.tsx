@@ -146,8 +146,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   onClick={() => setTheme(themeName)}
                   className="flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer"
                   style={{
-                    borderColor: isSelected ? '#3b82f6' : 'var(--border)',
-                    backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
+                    borderColor: isSelected ? 'var(--foreground)' : 'var(--border)',
+                    backgroundColor: isSelected ? 'var(--accent)' : 'transparent'
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
@@ -166,26 +166,12 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         {config.label}
                       </span>
                       {isSelected && (
-                        <Check className="w-4 h-4 text-blue-500" />
+                        <Check className="w-4 h-4" style={{ color: 'var(--foreground)' }} />
                       )}
                     </div>
                     <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
                       {config.description}
                     </p>
-                  </div>
-                  <div className="flex gap-1">
-                    <div
-                      className="w-8 h-8 rounded border"
-                      style={{ borderColor: 'var(--border)', backgroundColor: config.preview.background }}
-                    />
-                    <div
-                      className="w-8 h-8 rounded border"
-                      style={{ borderColor: 'var(--border)', backgroundColor: config.preview.foreground }}
-                    />
-                    <div
-                      className="w-8 h-8 rounded border"
-                      style={{ borderColor: 'var(--border)', backgroundColor: config.preview.accent }}
-                    />
                   </div>
                 </button>
               );
@@ -271,9 +257,10 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <nav className="space-y-2">
             <button
               onClick={() => setActiveTab('account')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm border-2"
               style={{
                 backgroundColor: activeTab === 'account' ? 'var(--accent)' : 'transparent',
+                borderColor: activeTab === 'account' ? 'var(--foreground)' : 'transparent',
                 color: activeTab === 'account' ? 'var(--foreground)' : 'var(--muted-foreground)'
               }}
               onMouseEnter={(e) => {
@@ -295,9 +282,10 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
             <button
               onClick={() => setActiveTab('personalization')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm border-2"
               style={{
                 backgroundColor: activeTab === 'personalization' ? 'var(--accent)' : 'transparent',
+                borderColor: activeTab === 'personalization' ? 'var(--foreground)' : 'transparent',
                 color: activeTab === 'personalization' ? 'var(--foreground)' : 'var(--muted-foreground)'
               }}
               onMouseEnter={(e) => {
@@ -319,9 +307,10 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
             <button
               onClick={() => setActiveTab('account-management')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm border-2"
               style={{
                 backgroundColor: activeTab === 'account-management' ? 'var(--accent)' : 'transparent',
+                borderColor: activeTab === 'account-management' ? 'var(--foreground)' : 'transparent',
                 color: activeTab === 'account-management' ? 'var(--foreground)' : 'var(--muted-foreground)'
               }}
               onMouseEnter={(e) => {
