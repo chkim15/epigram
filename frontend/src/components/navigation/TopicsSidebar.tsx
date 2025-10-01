@@ -136,10 +136,11 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     } else if (userSchool === 'University of Pennsylvania') {
       if (courseName === 'Calculus I') return 'Math 1300';
       if (courseName === 'Calculus II') return 'Math 1400';
-    } else if (userSchool === 'Columbia University') {
-      if (courseName === 'Calculus I') return 'Math 1101';
-      if (courseName === 'Calculus II') return 'Math 1102';
     }
+
+    // For all other schools (including Columbia), use default names
+    if (courseName === 'Calculus I') return 'Calculus I / AP Calc AB';
+    if (courseName === 'Calculus II') return 'Calculus II / AP Calc BC';
 
     return courseName;
   };

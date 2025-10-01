@@ -1,10 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import React from "react";
 
 // Import Inter font
 import { Inter } from 'next/font/google';
@@ -24,6 +25,106 @@ function DemoSlider() {
           className="w-full h-auto"
           priority
         />
+      </div>
+    </div>
+  );
+}
+
+function FeaturesSlider() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const features = [
+    {
+      image: "/demo_image/demo_activelearn.png",
+      alt: "Active Learning Mode",
+      title: "Active Learning Mode For Smarter Practice",
+      description: "Practice with hundreds of expert-verified problems from our proprietary database. You'll be challenged to think critically before seeing the solutions."
+    },
+    {
+      image: "/demo_image/demo_handout.png",
+      alt: "Handouts beside problems",
+      title: "Handouts Right Beside Your Problem",
+      description: "Quickly review key concepts and problem-solving techniques while working through problems. No more switching back and forth."
+    },
+    {
+      image: "/demo_image/demo_solution2.png",
+      alt: "Multiple solution paths",
+      title: "Multiple Solution Paths",
+      description: "See different approaches to the same problem, discover how different concepts connect, and build flexible problem-solving skills, beyond memorization."
+    },
+    {
+      image: "/demo_image/demo_createpractice.png",
+      alt: "Personalized practice sessions",
+      title: "Personalized Practice Sessions",
+      description: "Build and review custom problem sets with full flexibility. Choose the topics and difficulty levels that match your learning goals."
+    }
+  ];
+
+  // Auto-rotate every 5 seconds (pause when hovering)
+  React.useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % features.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [features.length, isPaused]);
+
+  return (
+    <div className="relative">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-black mb-3 transition-opacity duration-500">
+          {features[currentIndex].title}
+        </h2>
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto transition-opacity duration-500">
+          {features[currentIndex].description}
+        </p>
+      </div>
+
+      {/* Image Container */}
+      <div
+        className="relative overflow-hidden rounded-3xl border-2"
+        style={{ borderColor: '#a16207' }}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <div className="relative w-full">
+          {features.map((feature, index) => (
+            <Image
+              key={index}
+              src={feature.image}
+              alt={feature.alt}
+              width={1600}
+              height={1000}
+              className="w-full h-auto transition-opacity duration-700 ease-in-out"
+              style={{
+                opacity: index === currentIndex ? 1 : 0,
+                position: index === currentIndex ? 'relative' : 'absolute',
+                top: 0,
+                left: 0,
+                pointerEvents: index === currentIndex ? 'auto' : 'none'
+              }}
+              priority={index === 0}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Navigation Dots */}
+      <div className="flex justify-center gap-2 mt-6">
+        {features.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className="w-3 h-3 rounded-full transition-all cursor-pointer"
+            style={{
+              backgroundColor: index === currentIndex ? '#a16207' : '#e5e7eb'
+            }}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
       </div>
     </div>
   );
@@ -127,67 +228,16 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="px-12 py-20">
+      <section className="relative px-6 pt-12 pb-20">
         <div className="mx-auto max-w-6xl">
-          {/* Main Heading */}
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-black mb-4">
-              Learn Math by Doing, Not Watching AI do it
-            </h2>
-          </div>
-
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
-            {/* Left: Demo Image - Takes up 3 columns */}
-            <div className="lg:col-span-3 relative overflow-hidden rounded-3xl border-2 transition-transform duration-300 hover:scale-105" style={{ borderColor: '#a16207' }}>
-              <Image
-                src="/demo_image/demo_tutor.png"
-                alt="AI tutor providing step-by-step guidance"
-                width={1200}
-                height={900}
-                className="w-full h-auto"
-              />
-            </div>
-
-            {/* Right: Feature List - Takes up 2 columns */}
-            <div className="lg:col-span-2 space-y-8">
-              <div>
-                <h3 className="text-2xl font-bold text-black mb-3">
-                  AI Tutor That Guides, Not Solves
-                </h3>
-                <p className="text-gray-600">
-                  Get strategic hints and guiding questions that help you work through problems yourself.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-bold text-black mb-3">
-                  Hundreds of Expert-Verified Problems
-                </h3>
-                <p className="text-gray-600">
-                  Practice with high-quality problems from real university exams, carefully curated and verified by math experts.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-bold text-black mb-3">
-                  Multiple Solution Paths
-                </h3>
-                <p className="text-gray-600">
-                  Explore different approaches to solving problems, learning how concepts connect and developing flexible problem-solving skills.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-bold text-black mb-3">
-                  Built to Make You Stronger
-                </h3>
-                <p className="text-gray-600">
-                  Our active learning approach ensures you develop independence and confidence, not reliance on AI.
-                </p>
-              </div>
-            </div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-12"
+          >
+            <FeaturesSlider />
+          </motion.div>
         </div>
       </section>
 
