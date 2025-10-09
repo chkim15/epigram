@@ -59,7 +59,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/home');
+    router.push('/');
   };
 
   const handleSettingsClick = () => {

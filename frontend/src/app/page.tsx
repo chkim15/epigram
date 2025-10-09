@@ -172,7 +172,7 @@ export default function LandingPage() {
                   Sign In
                 </button>
               </Link>
-              <Link href="/home">
+              <Link href="/auth/signin">
                 <button className="px-4 py-2.5 text-base font-medium text-white rounded-xl cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                   Get Started
                 </button>
@@ -198,7 +198,7 @@ export default function LandingPage() {
               We don&apos;t just give answers. We guide you with personalized practice, active learning, and tutoring support that make math studying efficient and impactful.
             </p>
             <div className="flex justify-center">
-              <Link href="/home">
+              <Link href="/auth/signin">
                 <button className="px-4 py-2.5 text-base font-medium text-white rounded-xl cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                   Get Started
                 </button>
@@ -320,7 +320,7 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <Link href="/home">
+              <Link href="/auth/signin">
                 <button className="w-full py-3 px-6 border border-black text-black rounded-xl font-medium hover:bg-gray-50 transition-colors cursor-pointer">
                   Get Started
                 </button>
@@ -368,7 +368,7 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <Link href="/home">
+              <Link href="/auth/signin">
                 <button className="w-full py-3 px-6 text-white rounded-xl font-medium transition-colors cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                   Select Plan
                 </button>
@@ -529,7 +529,7 @@ export default function LandingPage() {
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
               Join students who practice with purpose and see results.
             </p>
-            <Link href="/home">
+            <Link href="/auth/signin">
               <button className="px-4 py-2.5 text-base font-medium text-white rounded-xl cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
                 Get Started
               </button>

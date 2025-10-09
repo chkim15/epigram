@@ -27,7 +27,7 @@ const inter = Inter({ subsets: ['latin'] });
 function AppPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isAuthenticated, checkAuth } = useAuthStore();
+  const { user, isAuthenticated, isLoading: authLoading, checkAuth } = useAuthStore();
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([]);
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
@@ -45,6 +45,13 @@ function AppPageContent() {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Redirect to signin if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && user === null) {
+      router.push('/auth/signin');
+    }
+  }, [isAuthenticated, user, router]);
 
   // Check AI tutor message status periodically
   useEffect(() => {
@@ -218,6 +225,23 @@ function AppPageContent() {
       // so the user returns to where they left off
     }
   };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className={`w-full h-screen flex items-center justify-center ${inter.className}`} style={{ backgroundColor: '#faf9f5' }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: '#a16207' }}></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the app if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className={`w-full h-screen flex flex-col ${inter.className}`} style={{ backgroundColor: 'var(--background)' }}>
