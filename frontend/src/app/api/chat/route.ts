@@ -405,8 +405,8 @@ async function handleOpenAIRequest(
       { role: 'system', content: systemPrompt }
     ];
 
-    // Minimal history for speed
-    const recentHistory = conversationHistory.slice(-2);
+    // Include more history for better context (30 messages)
+    const recentHistory = conversationHistory.slice(-30);
     for (const msg of recentHistory) {
       messages.push({
         role: msg.role as 'user' | 'assistant',
