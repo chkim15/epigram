@@ -37,9 +37,10 @@ interface ProblemViewerProps {
   selectedTopicId: number | null;
   selectedTopicIds?: number[];
   selectedDifficulties?: string[];
-  viewMode?: 'problems' | 'bookmarks';
+  viewMode?: 'problems' | 'bookmarks' | 'recommended-problems';
   problemCount?: number;
   savedProblemIds?: string[];
+  recommendedProblemIds?: string[];
 }
 
 interface MathFieldElement extends HTMLElement {
@@ -47,7 +48,7 @@ interface MathFieldElement extends HTMLElement {
   getValue?: () => string;
 }
 
-export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, savedProblemIds = [] }: ProblemViewerProps) {
+export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, savedProblemIds = [], recommendedProblemIds = [] }: ProblemViewerProps) {
   const {
     currentProblem,
     currentProblemIndex,
@@ -63,12 +64,6 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     setLoading,
   } = useProblemStore();
 
-  console.log('ProblemViewer state:', {
-    currentProblem,
-    currentProblemIndex,
-    problemListLength: problemList.length,
-    isLoading
-  });
 
   const [subproblems, setSubproblems] = useState<Subproblem[]>([]);
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
@@ -106,24 +101,40 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     }
   }, []);
 
+  // Simple effect for recommended problems
   useEffect(() => {
-    if (viewMode === 'bookmarks') {
-      fetchBookmarkedProblems();
-    } else if (selectedTopicId !== null || selectedTopicIds.length > 0) {
-      fetchAllProblems();
-    } else {
-      // Clear problems when no topic is selected
-      setProblemList([]);
+    if (viewMode === 'recommended-problems' && recommendedProblemIds.length > 0) {
+      fetchRecommendedProblems();
     }
+  }, [viewMode, recommendedProblemIds]);
+
+  // Effect for other modes
+  useEffect(() => {
+    if (viewMode === 'recommended-problems') {
+      // Handled by the effect above
+      return;
+    }
+
+    const loadProblems = async () => {
+      if (viewMode === 'bookmarks') {
+        await fetchBookmarkedProblems();
+      } else if (savedProblemIds.length > 0) {
+        // For practice mode with saved problems
+        await fetchAllProblems();
+      } else if (selectedTopicId !== null || selectedTopicIds.length > 0) {
+        // Topic-based browsing
+        await fetchAllProblems();
+      } else {
+        // Clear problems when no topic is selected
+        setProblemList([]);
+      }
+    };
+
+    loadProblems();
   }, [selectedTopicId, selectedTopicIds, selectedDifficulties, viewMode, problemCount, savedProblemIds]);
 
   useEffect(() => {
     if (currentProblem) {
-      console.log('Current problem changed:', {
-        problemId: currentProblem.id,
-        problemDocumentId: currentProblem.document_id,
-        allDocumentsCount: allDocuments.length
-      });
       
       fetchSubproblems(currentProblem.id);
       fetchHints(currentProblem.id);
@@ -242,6 +253,16 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             query = query.in('difficulty', selectedDifficulties);
           }
 
+          // If we have no filters at all in practice mode, don't fetch anything
+          if (selectedTopicIds.length === 0 && selectedDifficulties.length === 0) {
+            console.log('No topics or difficulties selected in practice mode, skipping fetch');
+            problemsData = [];
+            problemsError = null;
+            setProblemList([]);
+            setLoading(false);
+            return;
+          }
+
           // For practice mode, we want to randomize and limit results
           const result = await query;
 
@@ -326,14 +347,10 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
         problemsError = result.error;
       }
 
-      console.log('Database response:', { problemsData, problemsError });
-
       if (problemsError) throw problemsError;
 
-      console.log(`Found ${problemsData?.length || 0} problems${isPracticeMode ? ' for practice session' : selectedTopicId ? ` for topic ${selectedTopicId}` : ' total'}`);
-
       setProblemList(problemsData || []);
-      
+
       // Set initial document based on first problem
       if (problemsData && problemsData.length > 0 && documentsData && documentsData.length > 0) {
         const firstProblemDoc = documentsData.find(doc => doc.id === problemsData[0].document_id);
@@ -343,6 +360,60 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
       }
     } catch (err) {
       console.error('Error fetching problems:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRecommendedProblems = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch the specific recommended problems
+      const { data: problemsData, error: problemsError } = await supabase
+        .from('problems')
+        .select(`
+          id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
+          math_approach, reasoning_type, difficulty, importance,
+          comment, version, created_at, updated_at, included
+        `)
+        .eq('included', true)
+        .in('id', recommendedProblemIds);
+
+      if (problemsError) {
+        console.error('Error fetching problems:', problemsError);
+        throw problemsError;
+      }
+
+      // Sort problems to match the recommended order
+      let sortedProblems = problemsData || [];
+      if (sortedProblems.length > 0) {
+        const problemMap = new Map(sortedProblems.map(p => [p.id, p]));
+        sortedProblems = recommendedProblemIds
+          .map(id => problemMap.get(id))
+          .filter(p => p !== undefined) as Problem[];
+      }
+
+      // Fetch documents for these problems
+      const { data: documentsData } = await supabase
+        .from('documents')
+        .select('*');
+
+      if (documentsData) {
+        setAllDocuments(documentsData);
+      }
+
+      setProblemList(sortedProblems);
+
+      // Set initial document if available
+      if (sortedProblems.length > 0 && documentsData && documentsData.length > 0) {
+        const firstProblemDoc = documentsData.find(doc => doc.id === sortedProblems[0].document_id);
+        if (firstProblemDoc) {
+          setCurrentDocument(firstProblemDoc);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching recommended problems:', error);
     } finally {
       setLoading(false);
     }

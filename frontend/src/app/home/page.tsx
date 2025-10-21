@@ -7,6 +7,7 @@ import TopicsSidebar from "@/components/navigation/TopicsSidebar";
 import ProblemViewer from "@/components/problems/ProblemViewer";
 import ChatSidebar from "@/components/ai/ChatSidebar";
 import CreatePractice from "@/components/practice/CreatePractice";
+import RecommendedPractice from "@/components/practice/RecommendedPractice";
 import HandoutsViewer from "@/components/handouts/HandoutsViewer";
 import ResizablePanels from "@/components/ui/resizable-panels";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
@@ -33,11 +34,11 @@ function AppPageContent() {
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'bookmarks' | 'ai-tutor' | 'history'>('ai-tutor');
+  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'recommended-practice' | 'bookmarks' | 'ai-tutor' | 'history' | 'recommended-problems'>('ai-tutor');
   const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
   const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
   const [sidebarMode, setSidebarMode] = useState<'tutor' | 'practice'>('tutor');
-  const [practiceViewMode, setPracticeViewMode] = useState<'problems' | 'create-practice' | 'bookmarks'>('problems');
+  const [practiceViewMode, setPracticeViewMode] = useState<'problems' | 'create-practice' | 'recommended-practice' | 'bookmarks'>('problems');
   const aiTutorRef = useRef<AITutorPageRef>(null);
   const [hasAITutorMessages, setHasAITutorMessages] = useState(false);
   const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
@@ -167,10 +168,20 @@ function AppPageContent() {
     setSidebarMode('practice');
   };
 
+  const handleRecommendedPractice = () => {
+    setPracticeViewMode('recommended-practice');
+    setViewMode('recommended-practice');
+    setSidebarMode('practice');
+  };
+
   const [problemCount, setProblemCount] = useState<number>(10);
   const [savedProblemIds, setSavedProblemIds] = useState<string[]>([]);
+  // Separate state for recommended problems to avoid interference
+  const [recommendedProblemIds, setRecommendedProblemIds] = useState<string[]>([]);
 
   const handleStartPractice = (topicIds: number[], difficulties: string[], _source?: string, count?: number, problemIds?: string[]) => {
+    // Normal topic-based practice
+    setSavedProblemIds(problemIds || []);
     setSelectedTopicIds(topicIds);
     setSelectedDifficulties(difficulties);
     setSelectedTopicId(null);
@@ -179,13 +190,21 @@ function AppPageContent() {
     if (count) {
       setProblemCount(count);
     }
-    if (problemIds) {
-      setSavedProblemIds(problemIds);
-    } else {
-      setSavedProblemIds([]);
-    }
   };
 
+  // Wrapper for RecommendedPractice component
+  const handleRecommendedStartPractice = (problemIds: string[]) => {
+    // Store recommended problem IDs in dedicated state
+    setRecommendedProblemIds(problemIds);
+    // Clear other filters to avoid confusion
+    setSelectedTopicIds([]);
+    setSelectedDifficulties([]);
+    setSelectedTopicId(null);
+    setSavedProblemIds([]);
+    // Switch to dedicated recommended problems view
+    setViewMode('recommended-problems');
+    setSidebarMode('practice');
+  };
 
   const handleLogoClick = () => {
     if (sidebarMode === 'tutor') {
@@ -293,6 +312,10 @@ function AppPageContent() {
                   handleCreatePractice();
                   setIsMobileMenuOpen(false);
                 }}
+                onRecommendedPractice={() => {
+                  handleRecommendedPractice();
+                  setIsMobileMenuOpen(false);
+                }}
                 onBookmarks={() => {
                   handleBookmarks();
                   setIsMobileMenuOpen(false);
@@ -393,6 +416,7 @@ function AppPageContent() {
               }}
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
               onCreatePractice={handleCreatePractice}
+              onRecommendedPractice={handleRecommendedPractice}
               onBookmarks={handleBookmarks}
               onLogoClick={handleLogoClick}
               onAITutor={handleAITutor}
@@ -507,6 +531,34 @@ function AppPageContent() {
             <CreatePractice
               onStartPractice={handleStartPractice}
             />
+          ) : viewMode === 'recommended-practice' ? (
+            <RecommendedPractice
+              onStartPractice={handleRecommendedStartPractice}
+              userId={user?.id}
+            />
+          ) : viewMode === 'recommended-problems' ? (
+            // Dedicated view for recommended problems with chat sidebar
+            <div className="flex-1 flex flex-col min-h-0">
+              <ResizablePanels
+                leftPanel={
+                  <ProblemViewer
+                    selectedTopicId={null}
+                    selectedTopicIds={[]}
+                    selectedDifficulties={[]}
+                    viewMode="recommended-problems"
+                    problemCount={10}
+                    savedProblemIds={[]}
+                    recommendedProblemIds={recommendedProblemIds}
+                  />
+                }
+                rightPanel={<ChatSidebar mode="problems" currentTopicId={null} />}
+                defaultLeftWidth={50}
+                minLeftWidth={25}
+                maxLeftWidth={75}
+                className="flex-1"
+                storageKey="recommended-panels-width"
+              />
+            </div>
           ) : (
             <div className="flex-1 flex flex-col min-h-0">
               {/* Content Panel */}

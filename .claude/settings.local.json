@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "mcp__supabase__apply_migration",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npm run build:*)"
     ],
     "defaultMode": "acceptEdits"
   },

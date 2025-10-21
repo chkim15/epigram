@@ -29,6 +29,7 @@ interface TopicsSidebarProps {
   onSelectTopic: (topicId: number) => void;
   onToggleSidebar?: () => void;
   onCreatePractice?: () => void;
+  onRecommendedPractice?: () => void;
   onBookmarks?: () => void;
   onLogoClick?: () => void;
   onAITutor?: () => void;
@@ -39,7 +40,7 @@ interface TopicsSidebarProps {
 }
 
 
-export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onBookmarks, onLogoClick, onAITutor, onHistory, mode = 'tutor', activeMenu }: TopicsSidebarProps) {
+export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onRecommendedPractice, onBookmarks, onLogoClick, onAITutor, onHistory, mode = 'tutor', activeMenu }: TopicsSidebarProps) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -417,7 +418,22 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       <span className="flex-1 text-left">Create Practice</span>
                     </Button>
                   </div>
-                  
+
+                  {/* Recommended Practice */}
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
+                      style={{
+                        backgroundColor: activeMenu === 'recommended-practice' ? 'var(--muted)' : 'transparent',
+                        color: 'var(--sidebar-foreground)'
+                      }}
+                      onClick={onRecommendedPractice}
+                    >
+                      <span className="flex-1 text-left">Recommended Practice</span>
+                    </Button>
+                  </div>
+
                   {/* Bookmarks */}
                   <div className="mb-4 relative group">
                     <Button
