@@ -11,132 +11,97 @@ const supabase = createClient(
 const AZURE_OPENAI_API_KEY = process.env.AZURE_OPENAI_API_KEY!;
 const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT!;
 const AZURE_OPENAI_EMBEDDING_DEPLOYMENT = process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT || 'text-embedding-3-large';
+// Using GPT-5-chat for better accuracy with mathematical content
 const AZURE_OPENAI_CHAT_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5 || 'gpt-5-chat';
 
 /**
- * Extract text from PDF or image using Mathpix API
+ * Extract text from PDF or image using GPT-5-chat vision capabilities
+ * GPT-5-chat is multimodal and can directly process images and PDFs with mathematical content
+ * Using temperature=0 for deterministic and consistent results
  */
-async function extractTextWithMathpix(file: File): Promise<string> {
-  const mathpixAppId = process.env.MATHPIX_APP_ID;
-  const mathpixAppKey = process.env.MATHPIX_APP_KEY;
-
-  if (!mathpixAppId || !mathpixAppKey || mathpixAppId === 'your_mathpix_app_id_here') {
-    console.error('Mathpix credentials not properly configured');
-    throw new Error('Mathpix API credentials are not configured. Please add MATHPIX_APP_ID and MATHPIX_APP_KEY to your .env.local file');
-  }
-
-  // Convert file to base64
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  const base64 = buffer.toString('base64');
-
-  // Determine content type
-  const contentType = file.type.startsWith('image/') ? 'image' : 'pdf';
-
-  console.log('Calling Mathpix API for file type:', file.type);
-
-  const requestBody = {
-    src: `data:${file.type};base64,${base64}`,
-    formats: ['text', 'latex_simplified'],
-    data_options: {
-      include_latex: true
-    },
-    // For PDFs, process all pages
-    ...(contentType === 'pdf' && {
-      conversion_formats: { 'pdf': ['text'] },
-      include_pdf: true
-    })
-  };
-
-  console.log('Mathpix request formats:', requestBody.formats);
-
+async function extractTextWithGPT5Vision(file: File): Promise<string> {
   try {
-    const response = await fetch('https://api.mathpix.com/v3/text', {
+    // Convert file to base64
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString('base64');
+
+    // Determine MIME type
+    const mimeType = file.type || 'image/png';
+
+    console.log('Using GPT-5 vision to extract text from:', file.type);
+
+    // Use GPT-5 vision to extract mathematical content
+    // GPT-5 should handle PDFs directly according to OpenAI's capabilities
+    const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
+
+    // Adjust the prompt based on file type
+    const extractionPrompt = file.type === 'application/pdf'
+      ? 'Extract all mathematical content from this PDF document. Include all text, equations, problem statements, and mathematical expressions. Use LaTeX notation for math. If there are multiple problems or pages, clearly separate them.'
+      : 'Extract all mathematical content from this image. Include all text, equations, problem statements, and mathematical expressions. Use LaTeX notation for math. If there are multiple problems, clearly separate them.';
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'app_id': mathpixAppId,
-        'app_key': mathpixAppKey,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'api-key': AZURE_OPENAI_API_KEY
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert at extracting mathematical content from documents. Extract ALL text, equations, and mathematical expressions. Preserve LaTeX formatting for equations. Focus on the mathematical content and problem statements.'
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: extractionPrompt
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mimeType};base64,${base64}`,
+                  detail: 'high' // Use high detail for better mathematical content extraction
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 4000,
+        temperature: 0
+      })
     });
 
-    console.log('Mathpix API response status:', response.status);
-    console.log('Mathpix API response headers:', response.headers);
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Mathpix API error:', response.status, errorText);
+      const error = await response.text();
+      console.error('GPT-5 Vision API error:', error);
 
-      if (response.status === 401) {
-        throw new Error('Invalid Mathpix API credentials. Please check your MATHPIX_APP_ID and MATHPIX_APP_KEY.');
-      } else if (response.status === 400) {
-        throw new Error(`Mathpix API bad request: ${errorText}`);
-      } else if (response.status === 429) {
-        throw new Error('Mathpix API rate limit exceeded. Please try again later.');
+      // Check if the error is specifically about PDF support
+      if (file.type === 'application/pdf' && error.includes('format')) {
+        throw new Error('PDF files are not yet supported. Please convert to an image format (PNG, JPEG) and try again.');
       }
 
-      throw new Error(`Mathpix API error (${response.status}): ${errorText}`);
+      throw new Error(`Failed to extract text: ${error}`);
     }
 
-    const result = await response.json();
-    console.log('Mathpix API response received');
-    console.log('Result keys:', Object.keys(result));
-    console.log('Full result structure:', JSON.stringify(result, null, 2).substring(0, 500));
+    const data = await response.json();
+    const extractedText = data.choices[0].message.content;
 
-    // Extract text from result - handle all possible response formats
-    let extractedText = '';
-
-    // Check various possible fields in order of preference
-    if (result.text) {
-      extractedText = result.text;
-      console.log('Extracted from result.text, length:', extractedText.length);
-    } else if (result.latex_simplified) {
-      extractedText = result.latex_simplified;
-      console.log('Extracted from result.latex_simplified, length:', extractedText.length);
-    } else if (result.latex) {
-      extractedText = result.latex;
-      console.log('Extracted from result.latex, length:', extractedText.length);
-    } else if (result.data) {
-      if (Array.isArray(result.data)) {
-        // For PDFs with multiple pages
-        interface PageData {
-          text?: string;
-          latex?: string;
-          latex_simplified?: string;
-        }
-        extractedText = result.data
-          .map((page: PageData) => page.text || page.latex || page.latex_simplified || '')
-          .filter((text: string) => text.length > 0)
-          .join('\n');
-        console.log('Extracted from result.data array, length:', extractedText.length);
-      } else if (typeof result.data === 'object' && result.data.text) {
-        extractedText = result.data.text;
-        console.log('Extracted from result.data.text, length:', extractedText.length);
-      }
-    } else if (result.result) {
-      // Some Mathpix responses wrap the content in a result field
-      if (typeof result.result === 'string') {
-        extractedText = result.result;
-        console.log('Extracted from result.result string, length:', extractedText.length);
-      } else if (result.result.text) {
-        extractedText = result.result.text;
-        console.log('Extracted from result.result.text, length:', extractedText.length);
-      }
+    if (!extractedText || extractedText.trim().length < 10) {
+      throw new Error('Could not extract enough text from the file');
     }
 
-    // If still no text, log the entire response structure for debugging
-    if (!extractedText || extractedText.length < 10) {
-      console.log('Unable to extract sufficient text from Mathpix response');
-      console.log('Full response (first 1000 chars):', JSON.stringify(result).substring(0, 1000));
-    }
+    console.log('Successfully extracted text using GPT-5 vision, length:', extractedText.length);
+    return extractedText;
 
-    return extractedText || '';
   } catch (error) {
-    console.error('Error calling Mathpix API:', error);
+    console.error('Error extracting text with GPT-5 vision:', error);
     throw error;
   }
 }
+
 
 /**
  * Identify relevant calculus topics from extracted text using Azure OpenAI
@@ -187,8 +152,8 @@ ${topicsList}
 Return only a JSON array of topic IDs, like [1, 4, 11]. Include only topics that are directly relevant to the content.`
           }
         ],
-        temperature: 0.3,
-        max_tokens: 150
+        max_tokens: 150,
+        temperature: 0
       })
     });
 
@@ -220,6 +185,105 @@ Return only a JSON array of topic IDs, like [1, 4, 11]. Include only topics that
   } catch (error) {
     console.error('Error identifying topics:', error);
     return [];
+  }
+}
+
+/**
+ * Select similar problems using LLM to analyze content and problem similarity
+ */
+async function selectSimilarProblemsWithLLM(
+  uploadedContent: string,
+  candidateProblems: Array<{
+    id: string;
+    problem_text: string;
+    solution_text: string | null;
+    difficulty: string;
+    document_id: string;
+  }>
+): Promise<string[]> {
+  try {
+    // Limit uploaded content to 2000 chars for optimal token usage
+    const contentExcerpt = uploadedContent.substring(0, 2000);
+
+    // Format problems with solution context for LLM analysis
+    const formattedProblems = candidateProblems.map(p => {
+      const solutionContext = p.solution_text
+        ? p.solution_text.substring(0, 250) + '...'
+        : 'No solution available';
+
+      return `ID: ${p.id}
+Problem: ${p.problem_text}
+Context: ${solutionContext}`;
+    }).join('\n\n');
+
+    // Call Azure OpenAI GPT-5 to select best matching problems
+    const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': AZURE_OPENAI_API_KEY
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a calculus tutor finding practice problems similar to study materials. Analyze problems and their solution context to find the best matches.'
+          },
+          {
+            role: 'user',
+            content: `A student uploaded this study material:
+"${contentExcerpt}"
+
+Find problems that are most similar and would be good practice for this material.
+
+Available problems:
+${formattedProblems}
+
+Select exactly 5 problems that best match the uploaded material.
+Consider:
+1. Conceptual similarity to the uploaded content
+2. Problems covering the same mathematical topics
+3. Appropriate difficulty progression (start with easier ones)
+
+Return ONLY a JSON object with the format: {"selected": ["problem_id_1", "problem_id_2", "problem_id_3", "problem_id_4", "problem_id_5"]}`
+          }
+        ],
+        max_tokens: 200,
+        temperature: 0
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Azure OpenAI API error:', error);
+      throw new Error(`LLM API error: ${error}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+
+    // Parse the JSON response
+    try {
+      const result = JSON.parse(content);
+      if (result.selected && Array.isArray(result.selected)) {
+        // Validate that selected IDs exist in candidate problems
+        const validIds = new Set(candidateProblems.map(p => p.id));
+        const selectedIds = result.selected.filter((id: string) => validIds.has(id));
+
+        // Ensure we have exactly 5 problems (or less if not enough candidates)
+        return selectedIds.slice(0, 5);
+      }
+    } catch (parseError) {
+      console.error('Error parsing LLM response:', parseError);
+      throw new Error('Failed to parse LLM response');
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error in LLM problem selection:', error);
+    throw error;
   }
 }
 
@@ -278,20 +342,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 1: Extract text from the uploaded file
-    console.log('Extracting text from file...');
+    // Step 1: Extract text from the uploaded file using GPT-5 vision
+    console.log('Extracting text from file using GPT-5 vision...');
     let extractedText = '';
 
     try {
-      extractedText = await extractTextWithMathpix(file);
+      // Use GPT-5 vision for text extraction (it's multimodal!)
+      extractedText = await extractTextWithGPT5Vision(file);
     } catch (error) {
-      console.error('Mathpix extraction failed:', error);
+      console.error('Text extraction failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to extract text from file';
 
       // Check if it's a credentials issue
       if (errorMessage.includes('credentials')) {
         return NextResponse.json(
-          { error: 'Mathpix API is not configured. Please contact the administrator to set up text extraction.' },
+          { error: 'API credentials are not configured. Please contact the administrator.' },
           { status: 503 }
         );
       }
@@ -334,56 +399,163 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Step 3: Generate embedding for the extracted text
-    console.log('Generating embedding...');
-    const embedding = await generateEmbedding(extractedText);
+    // Step 3: Fetch all problems from identified topics with their solutions
+    console.log('Fetching problems from identified topics...');
 
-    // Step 4: Find similar problems using the RPC function (new function with new column)
-    console.log('Finding similar problems...');
-    const { data: recommendations, error } = await supabase.rpc(
-      'find_similar_problems_new',
-      {
-        query_embedding: embedding,  // Pass as array directly, Supabase will handle conversion
-        difficulty_filter: ['easy', 'medium'],
-        exclude_user_id: userId || null,
-        match_limit: 3
-      }
-    );
-
-    if (error) {
-      console.error('Database error:', error);
-      return NextResponse.json(
-        { error: 'Failed to find similar problems' },
-        { status: 500 }
-      );
-    }
-
-    // Step 4: If problems have subproblems, fetch them
-    interface ProblemResult {
-      id: string;  // UUID from database, but Supabase client converts to string
+    interface CandidateProblem {
+      id: string;
       problem_text: string;
       difficulty: string;
-      similarity: number;
-      has_subproblems: boolean;
+      document_id: string;
+      solution_text: string | null;
     }
 
-    const problemsWithSubproblems = await Promise.all(
-      (recommendations || []).map(async (problem: ProblemResult) => {
-        if (problem.has_subproblems) {
-          const { data: subproblems } = await supabase
-            .from('subproblems')
-            .select('id, key, problem_text, solution_text')
-            .eq('problem_id', problem.id)
-            .order('key');
+    let candidateProblems: CandidateProblem[] = [];
 
-          return {
-            ...problem,
-            subproblems: subproblems || []
-          };
+    if (identifiedTopicIds.length > 0) {
+      // Fetch problems from identified topics with their solutions
+      const { data: problemsData, error: fetchError } = await supabase
+        .from('problem_topics')
+        .select(`
+          problem_id,
+          problems!inner (
+            id,
+            problem_text,
+            difficulty,
+            document_id,
+            solution_text
+          )
+        `)
+        .in('topic_id', identifiedTopicIds)
+        .in('problems.difficulty', ['easy', 'medium'])
+        .eq('problems.included', true);
+
+      if (fetchError) {
+        console.error('Error fetching problems:', fetchError);
+        // Fall back to all easy/medium problems if topic fetch fails
+        const { data: fallbackData } = await supabase
+          .from('problems')
+          .select('id, problem_text, difficulty, document_id, solution_text')
+          .in('difficulty', ['easy', 'medium'])
+          .eq('included', true)
+          .limit(50);
+
+        candidateProblems = fallbackData || [];
+      } else {
+        // Extract the problems from the join result and deduplicate
+        // A problem can appear multiple times if it has multiple matching topics
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const problemsFromJoin = (problemsData as any[])?.map(item => item.problems) || [];
+
+        // Deduplicate problems by ID
+        const uniqueProblemsMap = new Map();
+        problemsFromJoin.forEach(problem => {
+          if (!uniqueProblemsMap.has(problem.id)) {
+            uniqueProblemsMap.set(problem.id, problem);
+          }
+        });
+        candidateProblems = Array.from(uniqueProblemsMap.values());
+      }
+
+      // Also fetch solutions from the solutions table for problems that don't have inline solutions
+      const problemIds = candidateProblems.map(p => p.id);
+      const { data: solutionsData } = await supabase
+        .from('solutions')
+        .select('problem_id, solution_text')
+        .in('problem_id', problemIds);
+
+      // Merge solutions from solutions table with problems
+      if (solutionsData) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const solutionMap = new Map((solutionsData as any[]).map(s => [s.problem_id, s.solution_text]));
+        candidateProblems = candidateProblems.map(p => ({
+          ...p,
+          solution_text: p.solution_text || solutionMap.get(p.id) || null
+        }));
+      }
+    } else {
+      // If no topics identified, fall back to random easy/medium problems
+      const { data: fallbackData } = await supabase
+        .from('problems')
+        .select('id, problem_text, difficulty, document_id, solution_text')
+        .in('difficulty', ['easy', 'medium'])
+        .eq('included', true)
+        .limit(30);
+
+      candidateProblems = fallbackData || [];
+    }
+
+    console.log(`Found ${candidateProblems.length} candidate problems from topics`);
+
+    // Step 4: Use LLM to select the most similar problems
+    console.log('Using LLM to select similar problems...');
+
+    let selectedProblemIds: string[] = [];
+
+    try {
+      selectedProblemIds = await selectSimilarProblemsWithLLM(extractedText, candidateProblems);
+      console.log(`LLM selected ${selectedProblemIds.length} problems`);
+    } catch (llmError) {
+      console.error('LLM selection failed, falling back to embedding search:', llmError);
+
+      // Fallback to embedding-based search if LLM fails
+      const embedding = await generateEmbedding(extractedText);
+      const { data: recommendations, error } = await supabase.rpc(
+        'find_similar_problems_new',
+        {
+          query_embedding: embedding,
+          difficulty_filter: ['easy', 'medium'],
+          exclude_user_id: userId || null,
+          match_limit: 5
         }
-        return problem;
-      })
-    );
+      );
+
+      if (error || !recommendations) {
+        return NextResponse.json(
+          { error: 'Failed to find similar problems' },
+          { status: 500 }
+        );
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      selectedProblemIds = (recommendations as any[]).map(r => r.id);
+    }
+
+    // Get the selected problems with full details, maintaining order and avoiding duplicates
+    const uniqueSelectedIds = [...new Set(selectedProblemIds)]; // Remove duplicate IDs
+    const recommendations = uniqueSelectedIds
+      .map(id => candidateProblems.find(p => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => p !== undefined); // Type-safe filter
+
+    // Step 5: Fetch all subproblems for all recommendations in a single query
+    const problemIds = recommendations.map(p => p.id);
+    const { data: allSubproblems } = await supabase
+      .from('subproblems')
+      .select('problem_id, id, key, problem_text, solution_text')
+      .in('problem_id', problemIds)
+      .order('problem_id, key');
+
+    // Group subproblems by problem_id
+    const subproblemsByProblemId = new Map();
+    if (allSubproblems) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (allSubproblems as any[]).forEach(sub => {
+        if (!subproblemsByProblemId.has(sub.problem_id)) {
+          subproblemsByProblemId.set(sub.problem_id, []);
+        }
+        subproblemsByProblemId.get(sub.problem_id).push(sub);
+      });
+    }
+
+    // Map problems with their subproblems
+    const problemsWithSubproblems = recommendations.map(problem => {
+      const subproblems = subproblemsByProblemId.get(problem.id) || [];
+      return {
+        ...problem,
+        has_subproblems: subproblems.length > 0,
+        subproblems: subproblems
+      };
+    });
 
     // Return recommendations with metadata
     return NextResponse.json({

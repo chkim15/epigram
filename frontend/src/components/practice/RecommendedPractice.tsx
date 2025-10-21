@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, X, Loader2, ChevronRight, BookOpen, AlertCircle } from 'lucide-react';
+import { MathContent } from '@/lib/utils/katex';
 
 interface Problem {
   id: string;
@@ -160,11 +161,6 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
     }
   };
 
-  const getSimilarityColor = (similarity: number) => {
-    if (similarity >= 0.8) return 'text-green-600';
-    if (similarity >= 0.6) return 'text-yellow-600';
-    return 'text-orange-600';
-  };
 
   return (
     <div className="recommended-practice h-full flex flex-col overflow-hidden">
@@ -312,12 +308,9 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
       {/* Recommendations Section */}
       {recommendations.length > 0 && (
         <div className="recommendations-section">
-          <h3 className="text-xl font-semibold mb-2" style={{ color: '#141310' }}>
+          <h3 className="text-xl font-semibold mb-6" style={{ color: '#141310' }}>
             Recommended Problems
           </h3>
-          <p className="text-sm text-gray-600 mb-6">
-            Top 3 matches from easy and medium difficulty levels
-          </p>
 
           <div className="space-y-4">
             {recommendations.map((problem, index) => (
@@ -332,11 +325,6 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
                       #{index + 1}
                     </span>
                     <span
-                      className={`text-sm font-medium ${getSimilarityColor(problem.similarity)}`}
-                    >
-                      {(problem.similarity * 100).toFixed(0)}% match
-                    </span>
-                    <span
                       className={`px-2 py-1 text-xs font-medium rounded-full border ${getDifficultyColor(
                         problem.difficulty
                       )}`}
@@ -349,22 +337,19 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-gray-400">
-                    {problem.document_id}
-                  </span>
                 </div>
 
                 <div className="problem-preview mb-4">
-                  <p className="text-gray-700 line-clamp-3">
-                    {problem.problem_text}
-                  </p>
+                  <div className="text-gray-700 line-clamp-3">
+                    <MathContent content={problem.problem_text} />
+                  </div>
                   {problem.has_subproblems && problem.subproblems && (
                     <div className="mt-2 pl-4 border-l-2 border-gray-200">
                       {problem.subproblems.slice(0, 2).map(sp => (
-                        <p key={sp.id} className="text-sm text-gray-600 mt-1">
-                          <span className="font-medium">({sp.key})</span>{' '}
-                          {sp.problem_text.substring(0, 80)}...
-                        </p>
+                        <div key={sp.id} className="text-sm text-gray-600 mt-1 flex">
+                          <span className="font-medium mr-2">({sp.key})</span>
+                          <MathContent content={sp.problem_text.substring(0, 80) + '...'} />
+                        </div>
                       ))}
                       {problem.subproblems.length > 2 && (
                         <p className="text-xs text-gray-500 mt-1">
