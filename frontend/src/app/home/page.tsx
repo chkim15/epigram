@@ -34,10 +34,9 @@ function AppPageContent() {
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'recommended-practice' | 'bookmarks' | 'ai-tutor' | 'history' | 'recommended-problems'>('ai-tutor');
+  const [viewMode, setViewMode] = useState<'problems' | 'create-practice' | 'recommended-practice' | 'bookmarks' | 'ai-tutor' | 'history' | 'recommended-problems'>('problems');
   const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
   const [selectedTopicInfo, setSelectedTopicInfo] = useState<{main_topic: string; subtopic: string} | null>(null);
-  const [sidebarMode, setSidebarMode] = useState<'tutor' | 'practice'>('tutor');
   const [practiceViewMode, setPracticeViewMode] = useState<'problems' | 'create-practice' | 'recommended-practice' | 'bookmarks'>('problems');
   const aiTutorRef = useRef<AITutorPageRef>(null);
   const [hasAITutorMessages, setHasAITutorMessages] = useState(false);
@@ -97,7 +96,6 @@ function AppPageContent() {
 
     if (sessionId && mode === 'ai-tutor') {
       setViewMode('ai-tutor');
-      setSidebarMode('tutor');
       // Delay to ensure component is mounted
       setTimeout(() => {
         aiTutorRef.current?.restoreSession(sessionId);
@@ -156,7 +154,6 @@ function AppPageContent() {
   const handleCreatePractice = () => {
     setPracticeViewMode('create-practice');
     setViewMode('create-practice');
-    setSidebarMode('practice');
   };
 
   const handleBookmarks = () => {
@@ -165,13 +162,11 @@ function AppPageContent() {
     setSelectedTopicId(null);
     setSelectedTopicIds([]);
     setSelectedDifficulties([]);
-    setSidebarMode('practice');
   };
 
   const handleRecommendedPractice = () => {
     setPracticeViewMode('recommended-practice');
     setViewMode('recommended-practice');
-    setSidebarMode('practice');
   };
 
   const [problemCount, setProblemCount] = useState<number>(10);
@@ -186,7 +181,6 @@ function AppPageContent() {
     setSelectedDifficulties(difficulties);
     setSelectedTopicId(null);
     setViewMode('problems');
-    setSidebarMode('practice');
     if (count) {
       setProblemCount(count);
     }
@@ -203,25 +197,19 @@ function AppPageContent() {
     setSavedProblemIds([]);
     // Switch to dedicated recommended problems view
     setViewMode('recommended-problems');
-    setSidebarMode('practice');
   };
 
   const handleLogoClick = () => {
-    if (sidebarMode === 'tutor') {
-      setViewMode('ai-tutor');
-    } else {
-      // Practice mode - show the welcome screen
-      setViewMode('problems');
-      setSelectedTopicId(null);
-      setSelectedTopicIds([]);
-      setSelectedDifficulties([]);
-      setSavedProblemIds([]);
-    }
+    // Show the welcome screen
+    setViewMode('problems');
+    setSelectedTopicId(null);
+    setSelectedTopicIds([]);
+    setSelectedDifficulties([]);
+    setSavedProblemIds([]);
   };
 
   const handleAITutor = () => {
     setViewMode('ai-tutor');
-    setSidebarMode('tutor');
     setSelectedTopicId(null);
     setSelectedTopicIds([]);
     setSelectedDifficulties([]);
@@ -229,20 +217,12 @@ function AppPageContent() {
     aiTutorRef.current?.resetToInitialView();
   };
 
-  const handleStudyMaterials = () => {
-    // Do nothing - just show dropdown without changing view
+  const handleHistory = () => {
+    setViewMode('history');
   };
 
-  const handleSidebarModeChange = (mode: 'tutor' | 'practice') => {
-    setSidebarMode(mode);
-    if (mode === 'tutor') {
-      setViewMode('ai-tutor');
-    } else {
-      // Practice mode - restore the saved practice view mode
-      setViewMode(practiceViewMode);
-      // Keep the existing selectedTopicId, selectedTopicIds, selectedDifficulties, and savedProblemIds
-      // so the user returns to where they left off
-    }
+  const handleStudyMaterials = () => {
+    // Do nothing - just show dropdown without changing view
   };
 
   // Show loading state while checking authentication
@@ -333,7 +313,6 @@ function AppPageContent() {
                   handleStudyMaterials();
                   setIsMobileMenuOpen(false);
                 }}
-                mode={sidebarMode}
                 activeMenu={viewMode}
               />
             </SheetContent>
@@ -422,58 +401,8 @@ function AppPageContent() {
               onAITutor={handleAITutor}
               onHistory={() => setViewMode('history')}
               onStudyCalculus={handleStudyMaterials}
-              mode={sidebarMode}
               activeMenu={viewMode}
             />
-          )}
-          {/* Mode Toggle */}
-          {isSidebarOpen && (
-            <div className="absolute bottom-16 left-0 right-0 p-4" style={{ backgroundColor: 'var(--sidebar)' }}>
-              <div className="flex items-center justify-center rounded-xl p-1" style={{ backgroundColor: 'var(--sidebar-accent)' }}>
-                <button
-                  onClick={() => handleSidebarModeChange('tutor')}
-                  className="flex-1 py-1.5 px-3 rounded-xl text-sm font-medium transition-all cursor-pointer"
-                  style={{
-                    backgroundColor: sidebarMode === 'tutor' ? 'var(--sidebar-foreground)' : 'transparent',
-                    color: sidebarMode === 'tutor' ? 'var(--sidebar)' : 'var(--muted-foreground)',
-                    boxShadow: sidebarMode === 'tutor' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (sidebarMode !== 'tutor') {
-                      e.currentTarget.style.color = 'var(--sidebar-foreground)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (sidebarMode !== 'tutor') {
-                      e.currentTarget.style.color = 'var(--muted-foreground)';
-                    }
-                  }}
-                >
-                  Tutor
-                </button>
-                <button
-                  onClick={() => handleSidebarModeChange('practice')}
-                  className="flex-1 py-1.5 px-3 rounded-xl text-sm font-medium transition-all cursor-pointer"
-                  style={{
-                    backgroundColor: sidebarMode === 'practice' ? 'var(--sidebar-foreground)' : 'transparent',
-                    color: sidebarMode === 'practice' ? 'var(--sidebar)' : 'var(--muted-foreground)',
-                    boxShadow: sidebarMode === 'practice' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (sidebarMode !== 'practice') {
-                      e.currentTarget.style.color = 'var(--sidebar-foreground)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (sidebarMode !== 'practice') {
-                      e.currentTarget.style.color = 'var(--muted-foreground)';
-                    }
-                  }}
-                >
-                  Practice
-                </button>
-              </div>
-            </div>
           )}
           {/* Bottom Auth Section */}
           {isSidebarOpen && (
@@ -520,7 +449,6 @@ function AppPageContent() {
               onOpenSession={(sessionId) => {
                 setPendingSessionId(sessionId);
                 setViewMode('ai-tutor');
-                setSidebarMode('tutor');
                 // Clear pending session after a short delay
                 setTimeout(() => {
                   setPendingSessionId(null);

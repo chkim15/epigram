@@ -35,12 +35,11 @@ interface TopicsSidebarProps {
   onAITutor?: () => void;
   onHistory?: () => void;
   onStudyCalculus?: () => void;
-  mode?: 'tutor' | 'practice';
   activeMenu?: string;
 }
 
 
-export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onRecommendedPractice, onBookmarks, onLogoClick, onAITutor, onHistory, mode = 'tutor', activeMenu }: TopicsSidebarProps) {
+export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggleSidebar, onCreatePractice, onRecommendedPractice, onBookmarks, onLogoClick, onAITutor, onHistory, activeMenu }: TopicsSidebarProps) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,11 +93,6 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     }
   }, [user, fetchUserProfile]);
 
-  // Reset view to main when mode changes
-  useEffect(() => {
-    setCurrentView('main');
-    setSelectedCourse(null);
-  }, [mode]);
 
   const selectCourse = (course: Course) => {
     setSelectedCourse(course);
@@ -334,41 +328,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                 className="absolute inset-0 overflow-y-auto custom-scrollbar"
               >
                 <div className="p-2 pb-32">
-              {mode === 'tutor' ? (
-                <>
-                  {/* AI Tutor Section */}
-                  <div className="mb-2">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
-                      style={{
-                        backgroundColor: activeMenu === 'ai-tutor' ? 'var(--muted)' : 'transparent',
-                        color: 'var(--sidebar-foreground)'
-                      }}
-                      onClick={onAITutor}
-                    >
-                      <span className="flex-1 text-left">AI Tutor</span>
-                    </Button>
-                  </div>
-
-                  {/* History */}
-                  <div className="mb-2">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
-                      style={{
-                        backgroundColor: activeMenu === 'history' ? 'var(--muted)' : 'transparent',
-                        color: 'var(--sidebar-foreground)'
-                      }}
-                      onClick={onHistory}
-                    >
-                      <span className="flex-1 text-left">History</span>
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* Direct menu items without Study Materials wrapper */}
+                  {/* Practice Menu Items */}
                   {/* Handouts/Problems */}
                   <div className="mb-2">
                     <Collapsible defaultOpen={false}>
@@ -456,8 +416,40 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       </div>
                     )}
                   </div>
-                </>
-              )}
+
+                  {/* Separator */}
+                  <div className="mx-3 mb-4 border-t" style={{ borderColor: 'var(--border)' }} />
+
+                  {/* Tutor Menu Items */}
+                  {/* AI Tutor */}
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
+                      style={{
+                        backgroundColor: activeMenu === 'ai-tutor' ? 'var(--muted)' : 'transparent',
+                        color: 'var(--sidebar-foreground)'
+                      }}
+                      onClick={onAITutor}
+                    >
+                      <span className="flex-1 text-left">AI Tutor</span>
+                    </Button>
+                  </div>
+
+                  {/* History */}
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
+                      style={{
+                        backgroundColor: activeMenu === 'history' ? 'var(--muted)' : 'transparent',
+                        color: 'var(--sidebar-foreground)'
+                      }}
+                      onClick={onHistory}
+                    >
+                      <span className="flex-1 text-left">History</span>
+                    </Button>
+                  </div>
             </div>
               </motion.div>
             ) : (
