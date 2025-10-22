@@ -1158,12 +1158,14 @@
 
         .modal-content {
             background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
+            margin: 2% auto;
+            padding: 15px;
             border: none;
             border-radius: 8px;
             width: 80%;
             max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             animation: slideIn 0.3s;
         }
@@ -1200,14 +1202,14 @@
         }
 
         .document-list {
-            max-height: 400px;
+            max-height: 380px;
             overflow-y: auto;
             border: 1px solid #e9ecef;
             border-radius: 4px;
         }
 
         .document-item {
-            padding: 15px 20px;
+            padding: 10px 15px;
             border-bottom: 1px solid #e9ecef;
             cursor: pointer;
             transition: background-color 0.2s;
@@ -1297,8 +1299,9 @@
         }
 
         .modal-footer {
-            margin-top: 20px;
+            margin-top: 12px;
             text-align: right;
+            padding-top: 10px;
         }
 
         .modal-footer .btn {
@@ -1494,13 +1497,13 @@
             </div>
             
             <!-- Filter Options -->
-            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                <label style="font-weight: 600; margin-bottom: 10px; display: block;">Filter by:</label>
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <button id="filterDocumentBtn" class="btn btn-primary" onclick="setFilterMode('document')" style="font-size: 14px;">
+            <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="font-weight: 600; margin: 0;">Filter by:</label>
+                    <button id="filterDocumentBtn" class="btn btn-primary" onclick="setFilterMode('document')" style="font-size: 12px; padding: 4px 10px;">
                         📄 By Document
                     </button>
-                    <button id="filterTopicBtn" class="btn btn-secondary" onclick="setFilterMode('topic')" style="font-size: 14px;">
+                    <button id="filterTopicBtn" class="btn btn-secondary" onclick="setFilterMode('topic')" style="font-size: 12px; padding: 4px 10px;">
                         🏷️ By Topic
                     </button>
                 </div>
@@ -1522,10 +1525,10 @@
             </div>
             
             <!-- Document Search Box (visible when in document mode, hidden in topic mode) -->
-            <div id="documentSearchContainer" style="margin-bottom: 15px; padding: 0 20px; display: block;">
+            <div id="documentSearchContainer" style="margin-bottom: 10px; padding: 0 10px; display: block;">
                 <div style="position: relative;">
-                    <input type="text" id="documentSearchInput" class="form-control" placeholder="Search documents by ID (e.g., upenn_math104)..." 
-                           style="padding: 10px 40px 10px 12px; border: 2px solid #e9ecef; border-radius: 8px; width: 100%; font-size: 14px;"
+                    <input type="text" id="documentSearchInput" class="form-control" placeholder="Search documents by ID (e.g., upenn_math104)..."
+                           style="padding: 8px 35px 8px 10px; border: 2px solid #e9ecef; border-radius: 8px; width: 100%; font-size: 13px;"
                            oninput="filterDocumentList()">
                     <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999; pointer-events: none;">
                         🔍
