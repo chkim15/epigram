@@ -1694,6 +1694,7 @@
                 reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                 difficulty: problem.difficulty || null,
                 importance: problem.importance || null,
+                keyword: problem.keyword || null,
                 comment: problem.comment || null,
                 version: problem.version || 'v1',
                 included: problem.included !== false  // Default to true if not specified
@@ -2007,6 +2008,7 @@
                                 reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                                 difficulty: problem.difficulty,
                                 importance: problem.importance,
+                                keyword: problem.keyword,
                                 comment: problem.comment,
                                 version: newVersion,
                                 updated_at: new Date().toISOString(),
@@ -2350,6 +2352,7 @@
                     }
                     if (!problem.images) problem.images = [];
                     if (problem.included === undefined) problem.included = true;  // Default to included
+                    if (!problem.keyword) problem.keyword = '';  // Initialize keyword field
                     
                     
                     // Convert topic names to IDs if needed
@@ -2459,6 +2462,7 @@
                 reasoning_type: [],
                 comment: '',
                 importance: null,
+                keyword: '',
                 subproblems: {}
             };
 
@@ -2691,6 +2695,15 @@
                         <option value="2" ${problem.importance === 2 ? 'selected' : ''}>2</option>
                         <option value="3" ${problem.importance === 3 ? 'selected' : ''}>3</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Keyword</label>
+                    <input type="text" class="form-control" id="keywordInput"
+                           placeholder="Enter optional keyword..."
+                           value="${problem.keyword || ''}"
+                           onchange="updateProblem('keyword', this.value)"
+                           onblur="updateProblem('keyword', this.value)">
                 </div>
 
                 <div class="save-section">
@@ -7159,6 +7172,7 @@
                         reasoning_type,
                         difficulty,
                         importance,
+                        keyword,
                         comment,
                         version,
                         created_at,
@@ -7378,6 +7392,7 @@
                         reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                         comment: problem.comment,
                         importance: problem.importance,
+                        keyword: problem.keyword,
                         updated_at: problem.updated_at,
                         version: problem.version,
                         included: problem.included !== false  // Default to true if not specified
@@ -7538,6 +7553,7 @@
                         reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                         comment: problem.comment,
                         importance: problem.importance,
+                        keyword: problem.keyword,
                         updated_at: problem.updated_at,
                         version: problem.version,
                         included: problem.included !== false  // Default to true if not specified
@@ -7650,8 +7666,8 @@
         function isProblemChanged(current, original) {
             // Compare main problem fields
             const fieldsToCompare = [
-                'problem_text', 'correct_answer', 'hint', 
-                'difficulty', 'comment', 'importance'
+                'problem_text', 'correct_answer', 'hint',
+                'difficulty', 'comment', 'importance', 'keyword'
             ];
             
             for (const field of fieldsToCompare) {
@@ -8053,6 +8069,7 @@
                     }
                     if (!problem.images) problem.images = [];
                     if (problem.included === undefined) problem.included = true;  // Default to included
+                    if (!problem.keyword) problem.keyword = '';  // Initialize keyword field
                     
                     // Convert topic names to IDs if needed
                     if (problem.topics && Array.isArray(problem.topics)) {

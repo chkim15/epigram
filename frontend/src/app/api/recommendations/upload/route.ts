@@ -16,11 +16,19 @@ const AZURE_OPENAI_CHAT_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GP
 
 /**
  * Extract text from PDF or image using GPT-5-chat vision capabilities
- * GPT-5-chat is multimodal and can directly process images and PDFs with mathematical content
+ * For PDFs: Currently not supported directly by GPT-5 vision API
+ * For images: Direct processing with GPT-5 vision
  * Using temperature=0 for deterministic and consistent results
  */
 async function extractTextWithGPT5Vision(file: File): Promise<string> {
   try {
+    // Check if file is PDF - GPT-5 vision API doesn't support PDFs directly
+    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      // For now, inform users to convert PDFs to images
+      // A full solution would use PDF.js to render pages as images, but that requires client-side processing
+      throw new Error('PDF files are not directly supported by the vision API. Please convert your PDF to image format (PNG or JPEG) and try again. You can use online tools or take screenshots of the PDF pages.');
+    }
+
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -29,16 +37,14 @@ async function extractTextWithGPT5Vision(file: File): Promise<string> {
     // Determine MIME type
     const mimeType = file.type || 'image/png';
 
-    console.log('Using GPT-5 vision to extract text from:', file.type);
+    console.log('Using GPT-5 vision to extract text from:', mimeType);
 
-    // Use GPT-5 vision to extract mathematical content
-    // GPT-5 should handle PDFs directly according to OpenAI's capabilities
     const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
 
-    // Adjust the prompt based on file type
-    const extractionPrompt = file.type === 'application/pdf'
-      ? 'Extract all mathematical content from this PDF document. Include all text, equations, problem statements, and mathematical expressions. Use LaTeX notation for math. If there are multiple problems or pages, clearly separate them.'
-      : 'Extract all mathematical content from this image. Include all text, equations, problem statements, and mathematical expressions. Use LaTeX notation for math. If there are multiple problems, clearly separate them.';
+    // Create the proper data URL with base64 encoding
+    const dataUrl = `data:${mimeType};base64,${base64}`;
+
+    const extractionPrompt = 'Extract all mathematical content from this image. Include all text, equations, problem statements, and mathematical expressions. Use LaTeX notation for math. If there are multiple problems, clearly separate them.';
 
     const response = await fetch(url, {
       method: 'POST',
@@ -62,7 +68,7 @@ async function extractTextWithGPT5Vision(file: File): Promise<string> {
               {
                 type: 'image_url',
                 image_url: {
-                  url: `data:${mimeType};base64,${base64}`,
+                  url: dataUrl,
                   detail: 'high' // Use high detail for better mathematical content extraction
                 }
               }
@@ -78,9 +84,18 @@ async function extractTextWithGPT5Vision(file: File): Promise<string> {
       const error = await response.text();
       console.error('GPT-5 Vision API error:', error);
 
-      // Check if the error is specifically about PDF support
-      if (file.type === 'application/pdf' && error.includes('format')) {
-        throw new Error('PDF files are not yet supported. Please convert to an image format (PNG, JPEG) and try again.');
+      // Parse error to provide better feedback
+      try {
+        const errorObj = JSON.parse(error);
+        if (errorObj.error?.message) {
+          // Check if it's a PDF-specific issue
+          if (mimeType === 'application/pdf' && (errorObj.error.message.includes('image') || errorObj.error.message.includes('URL'))) {
+            throw new Error('PDF processing failed. The GPT-5 vision API may not support this PDF format. Please try converting to an image (PNG/JPEG) or using a different PDF.');
+          }
+          throw new Error(`Failed to extract text: ${errorObj.error.message}`);
+        }
+      } catch (e) {
+        // If not JSON, use raw error
       }
 
       throw new Error(`Failed to extract text: ${error}`);
@@ -334,10 +349,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type
-    const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    if (!validTypes.some(type => file.type.startsWith(type.split('/')[0]))) {
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    const isPDF = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+
+    if (!isPDF && !validTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Please upload a PDF or image file.' },
+        { error: 'Invalid file type. Please upload an image file (PNG, JPEG, or WebP).' },
         { status: 400 }
       );
     }
