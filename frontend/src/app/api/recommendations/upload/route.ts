@@ -14,21 +14,16 @@ const AZURE_OPENAI_EMBEDDING_DEPLOYMENT = process.env.AZURE_OPENAI_EMBEDDING_DEP
 // Using GPT-5-chat for better accuracy with mathematical content
 const AZURE_OPENAI_CHAT_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5 || 'gpt-5-chat';
 
+// Note: PDF to image conversion is handled client-side in the RecommendedPractice component
+// This approach works perfectly in serverless environments and provides better user experience
+
 /**
- * Extract text from PDF or image using GPT-5-chat vision capabilities
- * For PDFs: Currently not supported directly by GPT-5 vision API
+ * Extract text from image using GPT-5-chat vision capabilities
  * For images: Direct processing with GPT-5 vision
  * Using temperature=0 for deterministic and consistent results
  */
 async function extractTextWithGPT5Vision(file: File): Promise<string> {
   try {
-    // Check if file is PDF - GPT-5 vision API doesn't support PDFs directly
-    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      // For now, inform users to convert PDFs to images
-      // A full solution would use PDF.js to render pages as images, but that requires client-side processing
-      throw new Error('PDF files are not directly supported by the vision API. Please convert your PDF to image format (PNG or JPEG) and try again. You can use online tools or take screenshots of the PDF pages.');
-    }
-
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -94,7 +89,7 @@ async function extractTextWithGPT5Vision(file: File): Promise<string> {
           }
           throw new Error(`Failed to extract text: ${errorObj.error.message}`);
         }
-      } catch (e) {
+      } catch {
         // If not JSON, use raw error
       }
 
@@ -338,52 +333,72 @@ async function generateEmbedding(text: string): Promise<number[]> {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
     const userId = formData.get('userId') as string;
+    const isPDF = formData.get('isPDF') === 'true';
 
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No file uploaded' },
-        { status: 400 }
-      );
-    }
-
-    // Validate file type
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    const isPDF = file.type === 'application/pdf' || file.name.endsWith('.pdf');
-
-    if (!isPDF && !validTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Invalid file type. Please upload an image file (PNG, JPEG, or WebP).' },
-        { status: 400 }
-      );
-    }
-
-    // Step 1: Extract text from the uploaded file using GPT-5 vision
-    console.log('Extracting text from file using GPT-5 vision...');
     let extractedText = '';
+    let pageCount = 0;
 
-    try {
-      // Use GPT-5 vision for text extraction (it's multimodal!)
-      extractedText = await extractTextWithGPT5Vision(file);
-    } catch (error) {
-      console.error('Text extraction failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to extract text from file';
+    // Handle PDF text extraction (client-side extracted)
+    if (isPDF) {
+      extractedText = formData.get('extractedText') as string;
 
-      // Check if it's a credentials issue
-      if (errorMessage.includes('credentials')) {
+      if (!extractedText || extractedText.trim().length < 10) {
+        return NextResponse.json({
+          success: false,
+          error: 'Could not extract enough text from PDF',
+          recommendations: []
+        }, { status: 400 });
+      }
+
+      // Count pages from text markers
+      pageCount = (extractedText.match(/--- Page \d+ ---/g) || []).length;
+      console.log(`Received extracted text from PDF, length: ${extractedText.length}, pages: ${pageCount}`);
+    } else {
+      // Handle image file - use GPT-5 vision
+      const file = formData.get('file') as File;
+      if (!file) {
         return NextResponse.json(
-          { error: 'API credentials are not configured. Please contact the administrator.' },
-          { status: 503 }
+          { error: 'No file uploaded' },
+          { status: 400 }
         );
       }
 
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: 500 }
-      );
+      // Validate file type
+      const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+      if (!validImageTypes.includes(file.type)) {
+        return NextResponse.json(
+          { error: `Invalid file type: ${file.name}. Please upload an image file (PNG, JPEG, or WebP).` },
+          { status: 400 }
+        );
+      }
+
+      pageCount = 1;
+      console.log(`Processing single image file: ${file.name}...`);
+
+      try {
+        extractedText = await extractTextWithGPT5Vision(file);
+        console.log(`Successfully extracted text from image, length: ${extractedText.length}`);
+      } catch (error) {
+        console.error('Text extraction failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to extract text from file';
+
+        // Check if it's a credentials issue
+        if (errorMessage.includes('credentials')) {
+          return NextResponse.json(
+            { error: 'API credentials are not configured. Please contact the administrator.' },
+            { status: 503 }
+          );
+        }
+
+        return NextResponse.json(
+          { error: errorMessage },
+          { status: 500 }
+        );
+      }
     }
 
+    // Validate extracted text
     if (!extractedText || extractedText.trim().length < 10) {
       return NextResponse.json(
         { error: 'Could not extract enough text from the file. Please upload a clearer image or PDF.' },
@@ -575,15 +590,18 @@ export async function POST(request: NextRequest) {
     });
 
     // Return recommendations with metadata
+    const responseMessage = problemsWithSubproblems.length > 0
+      ? `Found ${problemsWithSubproblems.length} similar problems${pageCount > 1 ? ` from ${pageCount} pages` : ''}`
+      : 'No similar problems found. Try uploading more specific content.';
+
     return NextResponse.json({
       success: true,
       recommendations: problemsWithSubproblems,
       identifiedTopics: identifiedTopics,
       uploadSummary: extractedText.substring(0, 200) + '...',
       extractedLength: extractedText.length,
-      message: problemsWithSubproblems.length > 0
-        ? `Found ${problemsWithSubproblems.length} similar problems`
-        : 'No similar problems found. Try uploading more specific content.'
+      pageCount: pageCount > 1 ? pageCount : undefined,
+      message: responseMessage
     });
 
   } catch (error) {

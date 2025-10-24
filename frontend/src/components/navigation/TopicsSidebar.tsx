@@ -364,21 +364,6 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                     </Collapsible>
                   </div>
                   
-                  {/* Create Practice */}
-                  <div className="mb-2">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
-                      style={{
-                        backgroundColor: activeMenu === 'create-practice' ? 'var(--muted)' : 'transparent',
-                        color: 'var(--sidebar-foreground)'
-                      }}
-                      onClick={onCreatePractice}
-                    >
-                      <span className="flex-1 text-left">Create Practice</span>
-                    </Button>
-                  </div>
-
                   {/* Recommended Practice */}
                   <div className="mb-2">
                     <Button
@@ -391,6 +376,21 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       onClick={onRecommendedPractice}
                     >
                       <span className="flex-1 text-left">Recommended Practice</span>
+                    </Button>
+                  </div>
+
+                  {/* Mock Exam/Quiz */}
+                  <div className="mb-2">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
+                      style={{
+                        backgroundColor: activeMenu === 'create-practice' ? 'var(--muted)' : 'transparent',
+                        color: 'var(--sidebar-foreground)'
+                      }}
+                      onClick={onCreatePractice}
+                    >
+                      <span className="flex-1 text-left">Mock Exam/Quiz</span>
                     </Button>
                   </div>
 

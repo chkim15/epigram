@@ -3,6 +3,11 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, X, Loader2, ChevronRight, BookOpen, AlertCircle } from 'lucide-react';
 import { MathContent } from '@/lib/utils/katex';
+import {
+  extractTextFromPDF,
+  formatFileSize,
+  type ExtractionProgress
+} from '@/lib/utils/pdfToImagesSimple';
 
 interface Problem {
   id: string;
@@ -31,15 +36,31 @@ interface RecommendedPracticeProps {
   userId?: string;
 }
 
+interface UploadResponse {
+  success: boolean;
+  recommendations: Problem[];
+  identifiedTopics?: Topic[];
+  uploadSummary?: string;
+  extractedLength?: number;
+  pageCount?: number;
+  message?: string;
+  error?: string;
+  suggestions?: string[];
+}
+
 export default function RecommendedPractice({ onStartPractice, userId }: RecommendedPracticeProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [recommendations, setRecommendations] = useState<Problem[]>([]);
   const [identifiedTopics, setIdentifiedTopics] = useState<Topic[]>([]);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'complete' | 'error'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'extracting' | 'complete' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [extractionInfo, setExtractionInfo] = useState<{ pageCount?: number; extractedLength?: number; message?: string } | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // PDF extraction states
+  const [extractionProgress, setExtractionProgress] = useState<ExtractionProgress | null>(null);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -93,26 +114,67 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
     if (!file) return;
 
     setIsProcessing(true);
-    setUploadStatus('uploading');
     setErrorMessage('');
 
-    const formData = new FormData();
-    formData.append('file', file);
-    if (userId) {
-      formData.append('userId', userId);
-    }
-
     try {
+      let extractedText = '';
+
+      // Check if file is PDF - extract text directly
+      if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        setUploadStatus('extracting');
+
+        // Extract text from PDF
+        console.log('Extracting text from PDF...');
+        extractedText = await extractTextFromPDF(file, {
+          onProgress: setExtractionProgress
+        });
+
+        console.log(`Extracted ${extractedText.length} characters from PDF`);
+      }
+
+      setUploadStatus('uploading');
+
+      // Prepare form data
+      const formData = new FormData();
+
+      // For PDFs, send extracted text; for images, send the image file
+      if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        formData.append('extractedText', extractedText);
+        formData.append('isPDF', 'true');
+      } else {
+        formData.append('file', file);
+        formData.append('isPDF', 'false');
+      }
+
+      if (userId) {
+        formData.append('userId', userId);
+      }
+
       setUploadStatus('processing');
       const response = await fetch('/api/recommendations/upload', {
         method: 'POST',
         body: formData,
       });
 
-      const data = await response.json();
+      const data: UploadResponse = await response.json();
 
       if (!response.ok) {
+        // Check if there are suggestions for PDF files
+        if (data.suggestions && data.suggestions.length > 0) {
+          const errorMsg = data.error || 'Failed to process file';
+          const suggestionsMsg = '\n\nSuggestions:\n• ' + data.suggestions.join('\n• ');
+          throw new Error(errorMsg + suggestionsMsg);
+        }
         throw new Error(data.error || 'Failed to process file');
+      }
+
+      // Save extraction information
+      if (data.pageCount || data.extractedLength || data.message) {
+        setExtractionInfo({
+          pageCount: data.pageCount,
+          extractedLength: data.extractedLength,
+          message: data.message
+        });
       }
 
       if (data.recommendations && data.recommendations.length > 0) {
@@ -126,7 +188,7 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
           setIdentifiedTopics(data.identifiedTopics);
         }
         setUploadStatus('complete');
-        setErrorMessage('No similar problems found. Try uploading more specific content.');
+        setErrorMessage(data.message || 'No similar problems found. Try uploading more specific content.');
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -143,6 +205,10 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
     setIdentifiedTopics([]);
     setUploadStatus('idle');
     setErrorMessage('');
+    setExtractionInfo(null);
+    setConvertedImages([]);
+    setConversionProgress(null);
+    setShowImagePreviews(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -234,11 +300,35 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
           )}
         </div>
 
+        {/* Extraction Progress */}
+        {extractionProgress && uploadStatus === 'extracting' && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">
+                  {extractionProgress.message}
+                </span>
+              </div>
+              <span className="text-sm text-blue-700">
+                {extractionProgress.percentage}%
+              </span>
+            </div>
+            <div className="w-full bg-blue-100 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${extractionProgress.percentage}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+
         {/* Error Message */}
         {errorMessage && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2">
             <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
-            <p className="text-sm text-red-700">{errorMessage}</p>
+            <p className="text-sm text-red-700 whitespace-pre-line">{errorMessage}</p>
           </div>
         )}
 
@@ -267,7 +357,8 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
               <span className="flex items-center space-x-2">
                 <Loader2 className="w-5 h-5 animate-spin" />
                 <span>
-                  {uploadStatus === 'uploading' ? 'Uploading...' : 'Processing...'}
+                  {uploadStatus === 'converting' ? 'Converting PDF...' :
+                   uploadStatus === 'uploading' ? 'Uploading...' : 'Processing...'}
                 </span>
               </span>
             ) : (
@@ -276,6 +367,37 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
           </button>
         )}
       </div>
+
+      {/* Extraction Info Section */}
+      {extractionInfo && uploadStatus === 'complete' && (
+        <div className="extraction-info-section mb-6 p-4 rounded-xl border"
+             style={{ backgroundColor: '#f5f4ee', borderColor: 'rgb(240,238,230)' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4 text-sm">
+              {extractionInfo.pageCount && (
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-gray-600" />
+                  <span style={{ color: '#141310' }}>
+                    <strong>{extractionInfo.pageCount}</strong> page{extractionInfo.pageCount > 1 ? 's' : ''} processed
+                  </span>
+                </div>
+              )}
+              {extractionInfo.extractedLength && (
+                <div className="flex items-center gap-2">
+                  <span style={{ color: '#141310' }}>
+                    <strong>{extractionInfo.extractedLength.toLocaleString()}</strong> characters extracted
+                  </span>
+                </div>
+              )}
+            </div>
+            {extractionInfo.message && recommendations.length > 0 && (
+              <div className="text-sm text-green-700 font-medium">
+                ✓ {extractionInfo.message}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Identified Topics Section */}
       {identifiedTopics.length > 0 && uploadStatus === 'complete' && (
