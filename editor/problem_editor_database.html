@@ -1457,6 +1457,7 @@
                         <option value="CMC">College math competition (CMC)</option>
                         <option value="HSMC">High School math competition (HSMC)</option>
                         <option value="PHDPE">PhD Preliminary Exam (PHDPE)</option>
+                        <option value="QDSI">Quant/DS Interview (QDSI)</option>
                     </select>
                 </div>
                 
@@ -6441,7 +6442,7 @@
                 id: documentId,
                 school: school || null,
                 course: course || null,
-                problem_type: problemType,
+                problem_type: problemType.toLowerCase(),  // Store as lowercase in database
                 term: term || null,
                 year: year ? parseInt(year) : null,
                 total_problems: 0,
