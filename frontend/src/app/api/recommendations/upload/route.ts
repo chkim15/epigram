@@ -212,8 +212,8 @@ async function selectSimilarProblemsWithLLM(
   }>
 ): Promise<string[]> {
   try {
-    // Limit uploaded content to 2000 chars for optimal token usage
-    const contentExcerpt = uploadedContent.substring(0, 2000);
+    // Limit uploaded content to 10000 chars for optimal token usage
+    const contentExcerpt = uploadedContent.substring(0, 10000);
 
     // Format problems with solution context for LLM analysis
     const formattedProblems = candidateProblems.map(p => {

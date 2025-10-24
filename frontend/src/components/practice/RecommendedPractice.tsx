@@ -3,11 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, X, Loader2, ChevronRight, BookOpen, AlertCircle } from 'lucide-react';
 import { MathContent } from '@/lib/utils/katex';
-import {
-  extractTextFromPDF,
-  formatFileSize,
-  type ExtractionProgress
-} from '@/lib/utils/pdfToImagesSimple';
+import { extractTextFromPDF } from '@/lib/utils/pdfToImagesSimple';
 
 interface Problem {
   id: string;
@@ -55,12 +51,8 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
   const [identifiedTopics, setIdentifiedTopics] = useState<Topic[]>([]);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'extracting' | 'complete' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [extractionInfo, setExtractionInfo] = useState<{ pageCount?: number; extractedLength?: number; message?: string } | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // PDF extraction states
-  const [extractionProgress, setExtractionProgress] = useState<ExtractionProgress | null>(null);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -125,9 +117,7 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
 
         // Extract text from PDF
         console.log('Extracting text from PDF...');
-        extractedText = await extractTextFromPDF(file, {
-          onProgress: setExtractionProgress
-        });
+        extractedText = await extractTextFromPDF(file);
 
         console.log(`Extracted ${extractedText.length} characters from PDF`);
       }
@@ -168,15 +158,6 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
         throw new Error(data.error || 'Failed to process file');
       }
 
-      // Save extraction information
-      if (data.pageCount || data.extractedLength || data.message) {
-        setExtractionInfo({
-          pageCount: data.pageCount,
-          extractedLength: data.extractedLength,
-          message: data.message
-        });
-      }
-
       if (data.recommendations && data.recommendations.length > 0) {
         setRecommendations(data.recommendations);
         if (data.identifiedTopics) {
@@ -205,10 +186,6 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
     setIdentifiedTopics([]);
     setUploadStatus('idle');
     setErrorMessage('');
-    setExtractionInfo(null);
-    setConvertedImages([]);
-    setConversionProgress(null);
-    setShowImagePreviews(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -300,28 +277,6 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
           )}
         </div>
 
-        {/* Extraction Progress */}
-        {extractionProgress && uploadStatus === 'extracting' && (
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">
-                  {extractionProgress.message}
-                </span>
-              </div>
-              <span className="text-sm text-blue-700">
-                {extractionProgress.percentage}%
-              </span>
-            </div>
-            <div className="w-full bg-blue-100 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${extractionProgress.percentage}%` }}
-              />
-            </div>
-          </div>
-        )}
 
 
         {/* Error Message */}
@@ -368,36 +323,6 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
         )}
       </div>
 
-      {/* Extraction Info Section */}
-      {extractionInfo && uploadStatus === 'complete' && (
-        <div className="extraction-info-section mb-6 p-4 rounded-xl border"
-             style={{ backgroundColor: '#f5f4ee', borderColor: 'rgb(240,238,230)' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 text-sm">
-              {extractionInfo.pageCount && (
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-gray-600" />
-                  <span style={{ color: '#141310' }}>
-                    <strong>{extractionInfo.pageCount}</strong> page{extractionInfo.pageCount > 1 ? 's' : ''} processed
-                  </span>
-                </div>
-              )}
-              {extractionInfo.extractedLength && (
-                <div className="flex items-center gap-2">
-                  <span style={{ color: '#141310' }}>
-                    <strong>{extractionInfo.extractedLength.toLocaleString()}</strong> characters extracted
-                  </span>
-                </div>
-              )}
-            </div>
-            {extractionInfo.message && recommendations.length > 0 && (
-              <div className="text-sm text-green-700 font-medium">
-                ✓ {extractionInfo.message}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Identified Topics Section */}
       {identifiedTopics.length > 0 && uploadStatus === 'complete' && (
