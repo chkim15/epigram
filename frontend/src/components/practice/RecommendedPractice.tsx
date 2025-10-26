@@ -312,7 +312,7 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
               <span className="flex items-center space-x-2">
                 <Loader2 className="w-5 h-5 animate-spin" />
                 <span>
-                  {uploadStatus === 'converting' ? 'Converting PDF...' :
+                  {uploadStatus === 'extracting' ? 'Extracting text...' :
                    uploadStatus === 'uploading' ? 'Uploading...' : 'Processing...'}
                 </span>
               </span>
