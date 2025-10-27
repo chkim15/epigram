@@ -1,9 +1,34 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, X, Loader2, ChevronRight, BookOpen, AlertCircle } from 'lucide-react';
+import { Upload, FileText, X, Loader2, ChevronRight, BookOpen, AlertCircle, FileImage, Maximize2, RefreshCw } from 'lucide-react';
 import { MathContent } from '@/lib/utils/katex';
 import { extractTextFromPDF } from '@/lib/utils/pdfToImagesSimple';
+import dynamic from 'next/dynamic';
+
+// Dynamically import react-pdf components to avoid SSR issues
+const Document = dynamic(
+  () => import('react-pdf').then((mod) => mod.Document),
+  {
+    ssr: false,
+    loading: () => null
+  }
+);
+
+const Page = dynamic(
+  () => import('react-pdf').then((mod) => mod.Page),
+  {
+    ssr: false,
+    loading: () => null
+  }
+);
+
+// Only set up worker on client side
+if (typeof window !== 'undefined') {
+  import('react-pdf').then(({ pdfjs }) => {
+    pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
+  });
+}
 
 interface Problem {
   id: string;
@@ -74,6 +99,12 @@ export default function RecommendedPractice({
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Preview-related state
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [pdfPageCount, setPdfPageCount] = useState<number | null>(null);
+  const [showFullPreview, setShowFullPreview] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
   // Notify parent when recommendations change
   useEffect(() => {
     if (onRecommendationsChange && uploadStatus === 'complete') {
@@ -85,6 +116,32 @@ export default function RecommendedPractice({
       });
     }
   }, [recommendations, identifiedTopics, file, uploadStatus, onRecommendationsChange]);
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showFullPreview) {
+        setShowFullPreview(false);
+      }
+    };
+
+    if (showFullPreview) {
+      document.addEventListener('keydown', handleEsc);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [showFullPreview]);
+
+  // Clean up preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl && !previewUrl.startsWith('data:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, []);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -107,7 +164,7 @@ export default function RecommendedPractice({
     }
   };
 
-  const validateAndSetFile = (selectedFile: File) => {
+  const validateAndSetFile = async (selectedFile: File) => {
     const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
@@ -126,6 +183,46 @@ export default function RecommendedPractice({
     setRecommendations([]);
     setIdentifiedTopics([]);
     setUploadStatus('idle');
+
+    // Generate preview based on file type
+    await generatePreview(selectedFile);
+  };
+
+  const generatePreview = async (file: File) => {
+    setPreviewLoading(true);
+
+    // Clean up previous preview URL to prevent memory leaks
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+
+    try {
+      if (file.type.startsWith('image/')) {
+        // For images, create a data URL
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setPreviewUrl(e.target?.result as string);
+          setPreviewLoading(false);
+        };
+        reader.onerror = () => {
+          setPreviewLoading(false);
+        };
+        reader.readAsDataURL(file);
+      } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        // For PDFs, create object URL and get page count
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+
+        // Try to get PDF page count (we'll need to load it with react-pdf)
+        // This will be handled in the preview component itself
+        setPdfPageCount(null); // Will be set when PDF loads
+        setPreviewLoading(false);
+      }
+    } catch (error) {
+      console.error('Error generating preview:', error);
+      setPreviewLoading(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,10 +313,53 @@ export default function RecommendedPractice({
     setFile(null);
     setRecommendations([]);
     setIdentifiedTopics([]);
+
+    // Clean up preview URL
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    setPdfPageCount(null);
+    setShowFullPreview(false);
     setUploadStatus('idle');
     setErrorMessage('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const resetSession = () => {
+    // Reset all state to initial values
+    setFile(null);
+    setRecommendations([]);
+    setIdentifiedTopics([]);
+    setUploadStatus('idle');
+    setErrorMessage('');
+    setIsProcessing(false);
+    setDragActive(false);
+
+    // Clean up preview-related state
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    setPdfPageCount(null);
+    setShowFullPreview(false);
+    setPreviewLoading(false);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    // Notify parent if needed
+    if (onRecommendationsChange) {
+      onRecommendationsChange({
+        recommendations: [],
+        identifiedTopics: [],
+        file: null,
+        uploadStatus: 'idle'
+      });
     }
   };
 
@@ -243,18 +383,44 @@ export default function RecommendedPractice({
         <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-3" style={{ color: '#141310' }}>
-          Recommended Practice
-        </h2>
-        <p className="text-gray-600">
-          Upload your lecture notes or handouts (PDF/Image) to get personalized practice problems
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold mb-3" style={{ color: '#141310' }}>
+              Recommended Practice
+            </h2>
+            <p className="text-gray-600">
+              Upload your lecture notes or problems (PDF/Image) to get personalized practice problems
+            </p>
+          </div>
+          {/* New Practice Button - Show when we have results */}
+          {(uploadStatus === 'complete' || recommendations.length > 0) && (
+            <button
+              onClick={resetSession}
+              className="flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all cursor-pointer border"
+              style={{
+                backgroundColor: '#faf9f5',
+                borderColor: 'rgb(240,238,230)',
+                color: '#141310'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f5f4ee';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#faf9f5';
+              }}
+              title="Start a new practice session"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>New Practice</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Upload Section */}
       <div className="upload-section mb-8">
         <div
-          className={`file-upload-area relative border-2 border-dashed rounded-xl p-8 transition-all ${
+          className={`file-upload-area relative border-2 border-dashed rounded-xl transition-all ${
             dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-white'
           }`}
           onDragEnter={handleDrag}
@@ -274,7 +440,7 @@ export default function RecommendedPractice({
           {!file ? (
             <label
               htmlFor="file-upload"
-              className="flex flex-col items-center cursor-pointer"
+              className="flex flex-col items-center cursor-pointer p-8"
             >
               <Upload className="w-12 h-12 text-gray-400 mb-4" />
               <p className="text-lg font-medium mb-2" style={{ color: '#141310' }}>
@@ -286,24 +452,72 @@ export default function RecommendedPractice({
             </label>
           ) : (
             <div className="file-preview">
-              <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <FileText className="w-8 h-8 text-blue-500" />
-                  <div>
-                    <p className="font-medium" style={{ color: '#141310' }}>
-                      {file.name}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {(file.size / 1024).toFixed(1)} KB
-                    </p>
-                  </div>
+              {/* Preview Content with Action Buttons */}
+              <div className="preview-content relative rounded-lg overflow-hidden">
+                {/* Action Buttons Overlay */}
+                <div className="absolute top-2 right-2 z-10 flex space-x-1">
+                  <button
+                    onClick={() => setShowFullPreview(true)}
+                    className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-sm transition-all cursor-pointer"
+                    title="View full preview"
+                  >
+                    <Maximize2 className="w-4 h-4 text-gray-700" />
+                  </button>
+                  <button
+                    onClick={removeFile}
+                    className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-sm transition-all cursor-pointer"
+                    title="Remove file"
+                  >
+                    <X className="w-4 h-4 text-gray-700" />
+                  </button>
                 </div>
-                <button
-                  onClick={removeFile}
-                  className="p-1 hover:bg-gray-200 rounded transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
+
+                {previewLoading ? (
+                  <div className="flex items-center justify-center h-80 bg-white">
+                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                  </div>
+                ) : (
+                  <>
+                    {file.type.startsWith('image/') && previewUrl && (
+                      <div className="bg-white flex items-center justify-center min-h-[20rem]">
+                        <img
+                          src={previewUrl}
+                          alt="Preview"
+                          className="max-h-72 max-w-full object-contain border border-black rounded-lg"
+                        />
+                      </div>
+                    )}
+
+                    {(file.type === 'application/pdf' || file.name.endsWith('.pdf')) && previewUrl && (
+                      <div className="bg-white flex items-center justify-center p-2">
+                        <Document
+                          file={previewUrl}
+                          onLoadSuccess={({ numPages }) => setPdfPageCount(numPages)}
+                          loading={
+                            <div className="flex items-center justify-center h-80">
+                              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                            </div>
+                          }
+                          error={
+                            <div className="flex flex-col items-center justify-center h-80 text-gray-500">
+                              <FileText className="w-12 h-12 mb-2" />
+                              <p className="text-sm">PDF preview unavailable</p>
+                            </div>
+                          }
+                          className="border border-black rounded-lg overflow-hidden"
+                        >
+                          <Page
+                            pageNumber={1}
+                            width={Math.min(window.innerWidth * 0.6, 500)}
+                            className="mx-auto"
+                            renderTextLayer={false}
+                            renderAnnotationLayer={false}
+                          />
+                        </Document>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -497,6 +711,93 @@ export default function RecommendedPractice({
       )}
         </div>
       </div>
+
+      {/* Full Preview Modal */}
+      {showFullPreview && file && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)' }}
+          onClick={() => setShowFullPreview(false)}
+        >
+          <div
+            className="relative bg-white rounded-xl max-w-6xl max-h-[90vh] w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'rgb(240,238,230)' }}>
+              <div className="flex items-center space-x-3">
+                {file.type.startsWith('image/') ? (
+                  <FileImage className="w-5 h-5 text-gray-600" />
+                ) : (
+                  <FileText className="w-5 h-5 text-gray-600" />
+                )}
+                <div>
+                  <p className="font-medium" style={{ color: '#141310' }}>
+                    {file.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {(file.size / 1024).toFixed(1)} KB
+                    {pdfPageCount && ` • ${pdfPageCount} pages`}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowFullPreview(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="overflow-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
+              {file.type.startsWith('image/') && previewUrl && (
+                <div className="p-4 flex items-center justify-center min-h-[400px] bg-gray-50">
+                  <img
+                    src={previewUrl}
+                    alt="Full preview"
+                    className="max-w-full h-auto rounded"
+                  />
+                </div>
+              )}
+
+              {(file.type === 'application/pdf' || file.name.endsWith('.pdf')) && previewUrl && (
+                <div className="p-4 bg-gray-50">
+                  <Document
+                    file={previewUrl}
+                    loading={
+                      <div className="flex items-center justify-center py-20">
+                        <Loader2 className="w-10 h-10 animate-spin text-gray-400" />
+                      </div>
+                    }
+                    error={
+                      <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+                        <FileText className="w-16 h-16 mb-3" />
+                        <p>Failed to load PDF</p>
+                      </div>
+                    }
+                  >
+                    {pdfPageCount && Array.from(new Array(pdfPageCount), (_, index) => (
+                      <div key={`page_${index + 1}`} className="mb-4">
+                        <div className="text-center text-sm text-gray-500 mb-2">
+                          Page {index + 1} of {pdfPageCount}
+                        </div>
+                        <Page
+                          pageNumber={index + 1}
+                          width={Math.min(window.innerWidth * 0.8, 800)}
+                          className="mx-auto shadow-lg"
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
+                        />
+                      </div>
+                    ))}
+                  </Document>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
