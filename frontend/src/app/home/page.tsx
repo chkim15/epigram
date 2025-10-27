@@ -173,6 +173,18 @@ function AppPageContent() {
   const [savedProblemIds, setSavedProblemIds] = useState<string[]>([]);
   // Separate state for recommended problems to avoid interference
   const [recommendedProblemIds, setRecommendedProblemIds] = useState<string[]>([]);
+  // Store the full recommendation data to persist when navigating back
+  const [recommendationData, setRecommendationData] = useState<{
+    recommendations: any[];
+    identifiedTopics: any[];
+    file: File | null;
+    uploadStatus: 'idle' | 'complete';
+  }>({
+    recommendations: [],
+    identifiedTopics: [],
+    file: null,
+    uploadStatus: 'idle'
+  });
 
   const handleStartPractice = (topicIds: number[], difficulties: string[], _source?: string, count?: number, problemIds?: string[]) => {
     // Normal topic-based practice
@@ -197,6 +209,13 @@ function AppPageContent() {
     setSavedProblemIds([]);
     // Switch to dedicated recommended problems view
     setViewMode('recommended-problems');
+  };
+
+  // Handler to go back from problem viewer to recommended practice
+  const handleBackToRecommended = () => {
+    // Switch back to recommended practice view
+    setViewMode('recommended-practice');
+    // Keep the recommendedProblemIds so users can navigate back and forth
   };
 
   const handleLogoClick = () => {
@@ -439,6 +458,8 @@ function AppPageContent() {
             }
             showNewQuestionButton={viewMode === 'ai-tutor' && hasAITutorMessages}
             onNewQuestion={() => aiTutorRef.current?.resetToInitialView()}
+            showBackButton={viewMode === 'recommended-problems'}
+            onBackClick={handleBackToRecommended}
           />
 
           {/* Content area below header */}
@@ -463,6 +484,11 @@ function AppPageContent() {
             <RecommendedPractice
               onStartPractice={handleRecommendedStartPractice}
               userId={user?.id}
+              initialRecommendations={recommendationData.recommendations}
+              initialTopics={recommendationData.identifiedTopics}
+              initialFile={recommendationData.file}
+              initialStatus={recommendationData.uploadStatus}
+              onRecommendationsChange={setRecommendationData}
             />
           ) : viewMode === 'recommended-problems' ? (
             // Dedicated view for recommended problems with chat sidebar

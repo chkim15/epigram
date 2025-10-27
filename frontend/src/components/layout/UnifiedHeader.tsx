@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Menu, FileText, Book, Plus } from "lucide-react";
+import { Menu, FileText, Book, Plus, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { ThemeSelector } from "@/components/ui/theme-selector";
@@ -18,6 +18,8 @@ interface UnifiedHeaderProps {
   showNewQuestionButton?: boolean;
   onNewQuestion?: () => void;
   centerTitle?: string;
+  showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
 export default function UnifiedHeader({
@@ -31,13 +33,38 @@ export default function UnifiedHeader({
   topicDisplay,
   showNewQuestionButton = false,
   onNewQuestion,
-  centerTitle
+  centerTitle,
+  showBackButton = false,
+  onBackClick
 }: UnifiedHeaderProps) {
   return (
     <div className={cn(
       "h-[46px] flex flex-shrink-0 px-4 items-center w-full",
       className
     )} style={{ backgroundColor: 'var(--background)' }}>
+      {/* Back button - only show when sidebar is open and at the beginning */}
+      {showBackButton && onBackClick && isSidebarOpen && (
+        <Button
+          onClick={onBackClick}
+          size="sm"
+          className="mr-2 h-8 px-2 rounded-xl cursor-pointer flex items-center gap-1 border shadow-none"
+          style={{
+            backgroundColor: 'var(--background)',
+            color: 'var(--foreground)',
+            borderColor: 'var(--border)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--secondary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--background)';
+          }}
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span>Back</span>
+        </Button>
+      )}
+
       {/* Hamburger button and logo when sidebar is collapsed */}
       {!isSidebarOpen && onToggleSidebar && (
         <>
@@ -50,7 +77,7 @@ export default function UnifiedHeader({
           >
             <Menu className="h-5 w-5" style={{ color: '#3d3929' }} />
           </button>
-          <div 
+          <div
             className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             onClick={onLogoClick}
           >
@@ -65,6 +92,29 @@ export default function UnifiedHeader({
             />
             <h1 className="font-bold text-xl" style={{ color: 'var(--epigram-text-color)' }}>Epigram</h1>
           </div>
+
+          {/* Back button - when sidebar is collapsed, position after logo */}
+          {showBackButton && onBackClick && (
+            <Button
+              onClick={onBackClick}
+              size="sm"
+              className="ml-4 h-8 px-2 rounded-xl cursor-pointer flex items-center gap-1 border shadow-none"
+              style={{
+                backgroundColor: 'var(--background)',
+                color: 'var(--foreground)',
+                borderColor: 'var(--border)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--secondary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--background)';
+              }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Back</span>
+            </Button>
+          )}
         </>
       )}
       

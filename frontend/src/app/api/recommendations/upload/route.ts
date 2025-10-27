@@ -200,6 +200,7 @@ Return only a JSON array of topic IDs, like [1, 4, 11]. Include only topics that
 
 /**
  * Select similar problems using LLM to analyze content and problem similarity
+ * Now returns 3 problems per identified topic
  */
 async function selectSimilarProblemsWithLLM(
   uploadedContent: string,
@@ -209,22 +210,57 @@ async function selectSimilarProblemsWithLLM(
     solution_text: string | null;
     difficulty: string;
     document_id: string;
-  }>
+    topic_ids?: number[]; // Track which topics this problem belongs to
+  }>,
+  identifiedTopics: number[]
 ): Promise<string[]> {
   try {
     // Limit uploaded content to 10000 chars for optimal token usage
     const contentExcerpt = uploadedContent.substring(0, 10000);
 
-    // Format problems with solution context for LLM analysis
-    const formattedProblems = candidateProblems.map(p => {
-      const solutionContext = p.solution_text
-        ? p.solution_text.substring(0, 250) + '...'
-        : 'No solution available';
+    // Group problems by topic for better organization
+    const problemsByTopic: { [topicId: number]: typeof candidateProblems } = {};
+    identifiedTopics.forEach(topicId => {
+      problemsByTopic[topicId] = candidateProblems.filter(p =>
+        p.topic_ids && p.topic_ids.includes(topicId)
+      );
+    });
 
-      return `ID: ${p.id}
-Problem: ${p.problem_text}
-Context: ${solutionContext}`;
+    // Format problems grouped by topic for LLM analysis
+    const formattedProblems = identifiedTopics.map(topicId => {
+      const topicProblems = problemsByTopic[topicId] || [];
+      const problemsText = topicProblems.map(p => {
+        const solutionContext = p.solution_text
+          ? p.solution_text.substring(0, 250) + '...'
+          : 'No solution available';
+
+        return `  ID: ${p.id}
+  Problem: ${p.problem_text}
+  Context: ${solutionContext}`;
+      }).join('\n\n');
+
+      return `Topic ${topicId} Problems:
+${problemsText}`;
     }).join('\n\n');
+
+    // Also include problems that don't belong to specific topics as a fallback
+    const generalProblems = candidateProblems.filter(p =>
+      !p.topic_ids || p.topic_ids.length === 0
+    );
+
+    const generalProblemsText = generalProblems.length > 0 ?
+      '\n\nGeneral Problems (not topic-specific):\n' +
+      generalProblems.map(p => {
+        const solutionContext = p.solution_text
+          ? p.solution_text.substring(0, 250) + '...'
+          : 'No solution available';
+        return `  ID: ${p.id}
+  Problem: ${p.problem_text}
+  Context: ${solutionContext}`;
+      }).join('\n\n') : '';
+
+    // Calculate total problems to select (3 per topic)
+    const totalProblemsToSelect = identifiedTopics.length * 3;
 
     // Call Azure OpenAI GPT-5 to select best matching problems
     const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
@@ -239,28 +275,32 @@ Context: ${solutionContext}`;
         messages: [
           {
             role: 'system',
-            content: 'You are a calculus tutor finding practice problems similar to study materials. Analyze problems and their solution context to find the best matches.'
+            content: 'You are a calculus tutor finding practice problems similar to study materials. Analyze problems and their solution context to find the best matches for each identified topic.'
           },
           {
             role: 'user',
             content: `A student uploaded this study material:
 "${contentExcerpt}"
 
+The following topics were identified from the material: ${identifiedTopics.join(', ')}
+
 Find problems that are most similar and would be good practice for this material.
+Select EXACTLY 3 problems per identified topic (total ${totalProblemsToSelect} problems).
 
-Available problems:
-${formattedProblems}
+Available problems grouped by topic:
+${formattedProblems}${generalProblemsText}
 
-Select exactly 5 problems that best match the uploaded material.
-Consider:
-1. Conceptual similarity to the uploaded content
-2. Problems covering the same mathematical topics
-3. Appropriate difficulty progression (start with easier ones)
+Instructions:
+1. For each identified topic, select the 3 most relevant problems
+2. Prioritize problems that closely match the uploaded content
+3. Ensure appropriate difficulty progression within each topic (easier to harder)
+4. If a topic has fewer than 3 problems, you may select from general problems or problems from related topics
+5. A problem can be selected for multiple topics if it's highly relevant
 
-Return ONLY a JSON object with the format: {"selected": ["problem_id_1", "problem_id_2", "problem_id_3", "problem_id_4", "problem_id_5"]}`
+Return ONLY a JSON object with the format: {"selected": ["problem_id_1", "problem_id_2", ..., "problem_id_${totalProblemsToSelect}"]}`
           }
         ],
-        max_tokens: 200,
+        max_tokens: 400,
         temperature: 0
       })
     });
@@ -282,8 +322,11 @@ Return ONLY a JSON object with the format: {"selected": ["problem_id_1", "proble
         const validIds = new Set(candidateProblems.map(p => p.id));
         const selectedIds = result.selected.filter((id: string) => validIds.has(id));
 
-        // Ensure we have exactly 5 problems (or less if not enough candidates)
-        return selectedIds.slice(0, 5);
+        // Remove duplicates while preserving order
+        const uniqueSelectedIds = [...new Set(selectedIds)] as string[];
+
+        // Ensure we don't exceed the requested number of problems
+        return uniqueSelectedIds.slice(0, totalProblemsToSelect);
       }
     } catch (parseError) {
       console.error('Error parsing LLM response:', parseError);
@@ -440,6 +483,7 @@ export async function POST(request: NextRequest) {
       difficulty: string;
       document_id: string;
       solution_text: string | null;
+      topic_ids?: number[];
     }
 
     let candidateProblems: CandidateProblem[] = [];
@@ -450,6 +494,7 @@ export async function POST(request: NextRequest) {
         .from('problem_topics')
         .select(`
           problem_id,
+          topic_id,
           problems!inner (
             id,
             problem_text,
@@ -474,16 +519,28 @@ export async function POST(request: NextRequest) {
 
         candidateProblems = fallbackData || [];
       } else {
-        // Extract the problems from the join result and deduplicate
+        // Extract the problems from the join result and track which topics they belong to
         // A problem can appear multiple times if it has multiple matching topics
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const problemsFromJoin = (problemsData as any[])?.map(item => item.problems) || [];
+        const problemsWithTopics = (problemsData as any[]) || [];
 
-        // Deduplicate problems by ID
-        const uniqueProblemsMap = new Map();
-        problemsFromJoin.forEach(problem => {
+        // Build a map of problems with their associated topics
+        const uniqueProblemsMap = new Map<string, CandidateProblem>();
+        problemsWithTopics.forEach(item => {
+          const problem = item.problems;
+          const topicId = item.topic_id;
+
           if (!uniqueProblemsMap.has(problem.id)) {
-            uniqueProblemsMap.set(problem.id, problem);
+            uniqueProblemsMap.set(problem.id, {
+              ...problem,
+              topic_ids: [topicId]
+            });
+          } else {
+            // Add topic to existing problem
+            const existing = uniqueProblemsMap.get(problem.id)!;
+            if (existing.topic_ids && !existing.topic_ids.includes(topicId)) {
+              existing.topic_ids.push(topicId);
+            }
           }
         });
         candidateProblems = Array.from(uniqueProblemsMap.values());
@@ -519,18 +576,20 @@ export async function POST(request: NextRequest) {
 
     console.log(`Found ${candidateProblems.length} candidate problems from topics`);
 
-    // Step 4: Use LLM to select the most similar problems
+    // Step 4: Use LLM to select the most similar problems (3 per topic)
     console.log('Using LLM to select similar problems...');
 
     let selectedProblemIds: string[] = [];
 
     try {
-      selectedProblemIds = await selectSimilarProblemsWithLLM(extractedText, candidateProblems);
-      console.log(`LLM selected ${selectedProblemIds.length} problems`);
+      selectedProblemIds = await selectSimilarProblemsWithLLM(extractedText, candidateProblems, identifiedTopicIds);
+      console.log(`LLM selected ${selectedProblemIds.length} problems (${identifiedTopicIds.length} topics x 3 problems)`);
     } catch (llmError) {
       console.error('LLM selection failed, falling back to embedding search:', llmError);
 
       // Fallback to embedding-based search if LLM fails
+      // For fallback, we'll still try to get 3 problems per topic, up to 15 total
+      const targetProblemCount = Math.min(identifiedTopicIds.length * 3, 15);
       const embedding = await generateEmbedding(extractedText);
       const { data: recommendations, error } = await supabase.rpc(
         'find_similar_problems_new',
@@ -538,7 +597,7 @@ export async function POST(request: NextRequest) {
           query_embedding: embedding,
           difficulty_filter: ['easy', 'medium'],
           exclude_user_id: userId || null,
-          match_limit: 5
+          match_limit: targetProblemCount
         }
       );
 

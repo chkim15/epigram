@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, FileText, X, Loader2, ChevronRight, BookOpen, AlertCircle } from 'lucide-react';
 import { MathContent } from '@/lib/utils/katex';
 import { extractTextFromPDF } from '@/lib/utils/pdfToImagesSimple';
@@ -30,6 +30,16 @@ interface Topic {
 interface RecommendedPracticeProps {
   onStartPractice: (problemIds: string[]) => void;
   userId?: string;
+  initialRecommendations?: Problem[];
+  initialTopics?: Topic[];
+  initialFile?: File | null;
+  initialStatus?: 'idle' | 'complete';
+  onRecommendationsChange?: (data: {
+    recommendations: Problem[];
+    identifiedTopics: Topic[];
+    file: File | null;
+    uploadStatus: 'idle' | 'complete';
+  }) => void;
 }
 
 interface UploadResponse {
@@ -44,15 +54,37 @@ interface UploadResponse {
   suggestions?: string[];
 }
 
-export default function RecommendedPractice({ onStartPractice, userId }: RecommendedPracticeProps) {
-  const [file, setFile] = useState<File | null>(null);
+export default function RecommendedPractice({
+  onStartPractice,
+  userId,
+  initialRecommendations = [],
+  initialTopics = [],
+  initialFile = null,
+  initialStatus = 'idle',
+  onRecommendationsChange
+}: RecommendedPracticeProps) {
+  const [file, setFile] = useState<File | null>(initialFile);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [recommendations, setRecommendations] = useState<Problem[]>([]);
-  const [identifiedTopics, setIdentifiedTopics] = useState<Topic[]>([]);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'extracting' | 'complete' | 'error'>('idle');
+  const [recommendations, setRecommendations] = useState<Problem[]>(initialRecommendations);
+  const [identifiedTopics, setIdentifiedTopics] = useState<Topic[]>(initialTopics);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'extracting' | 'complete' | 'error'>(
+    initialStatus === 'complete' ? 'complete' : 'idle'
+  );
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Notify parent when recommendations change
+  useEffect(() => {
+    if (onRecommendationsChange && uploadStatus === 'complete') {
+      onRecommendationsChange({
+        recommendations,
+        identifiedTopics,
+        file,
+        uploadStatus: 'complete'
+      });
+    }
+  }, [recommendations, identifiedTopics, file, uploadStatus, onRecommendationsChange]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -426,19 +458,24 @@ export default function RecommendedPractice({ onStartPractice, userId }: Recomme
             ))}
           </div>
 
-          {/* Start All Button */}
+          {/* Start All Button - Primary color for visibility */}
           <button
-            className="mt-6 w-full py-3 rounded-xl font-medium transition-all cursor-pointer border"
+            className="mt-6 w-full py-3.5 rounded-xl font-semibold transition-all cursor-pointer border shadow-md"
             style={{
-              backgroundColor: '#faf9f5',
-              color: '#141310',
-              borderColor: 'rgb(240,238,230)',
+              backgroundColor: '#a16207',
+              color: 'white',
+              borderColor: '#a16207',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f5f4ee';
+              e.currentTarget.style.backgroundColor = '#8a5206';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#faf9f5';
+              e.currentTarget.style.backgroundColor = '#a16207';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
             }}
             onClick={() => onStartPractice(recommendations.map(r => r.id))}
           >
