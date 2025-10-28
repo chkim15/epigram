@@ -12,19 +12,35 @@ import { Inter } from 'next/font/google';
 
 const inter = Inter({ subsets: ['latin'] });
 
-function DemoSlider() {
+function RecommendedPracticeDemo() {
   return (
     <div className="relative">
-      {/* Image Container */}
-      <div className="relative overflow-hidden rounded-3xl border-2 transition-transform duration-300 hover:scale-105" style={{ borderColor: '#a16207' }}>
-        <Image
-          src="/demo_image/demo_tutor.png"
-          alt="AI tutor providing step-by-step guidance"
-          width={1600}
-          height={1000}
-          className="w-full h-auto"
-          priority
-        />
+      {/* Split Layout: Text on left, Image on right */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
+        {/* Left Column - Text Content (40%) */}
+        <div className="lg:col-span-2 text-center lg:text-left">
+          <h2 className="text-3xl font-bold text-black mb-4">
+            Recommended Practice from Your Materials
+          </h2>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Upload your lecture notes or exam/quiz and get tailored practice problems from our database
+          </p>
+        </div>
+
+        {/* Right Column - Image (60%) */}
+        <div className="lg:col-span-3">
+          <div className="relative overflow-hidden rounded-3xl border-2" style={{ borderColor: '#a16207' }}>
+            <Image
+              src="/demo_image/demo_recommendedpractice.png"
+              alt="Recommended practice from your materials"
+              width={1200}
+              height={1600}
+              className="w-full h-auto"
+              style={{ maxHeight: '660px', objectFit: 'contain' }}
+              priority
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -48,6 +64,12 @@ function FeaturesSlider() {
       description: "Quickly review key concepts and problem-solving techniques while working through problems. No more switching back and forth."
     },
     {
+      image: "/demo_image/demo_tutor.png",
+      alt: "AI tutor providing step-by-step guidance",
+      title: "AI Tutor That Guides, Not Solves",
+      description: "Get strategic hints and guiding questions that help you work through problems, without being handed easy answers."
+    },
+    {
       image: "/demo_image/demo_solution2.png",
       alt: "Multiple solution paths",
       title: "Multiple Solution Paths",
@@ -55,8 +77,8 @@ function FeaturesSlider() {
     },
     {
       image: "/demo_image/demo_createpractice.png",
-      alt: "Personalized practice sessions",
-      title: "Personalized Practice Sessions",
+      alt: "Mock Exam/Quiz",
+      title: "Mock Exam/Quiz",
       description: "Build and review custom problem sets with full flexibility. Choose the topics and difficulty levels that match your learning goals."
     }
   ];
@@ -206,23 +228,14 @@ export default function LandingPage() {
             </div>
           </motion.div>
 
-          {/* Demo Problem Preview */}
+          {/* Recommended Practice Preview */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-32"
           >
-            {/* Header above the demo */}
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-black mb-3">
-                AI Tutor That Guides, Not Solves
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Get strategic hints and guiding questions that help you work through problems, without being handed easy answers.
-              </p>
-            </div>
-            <DemoSlider />
+            <RecommendedPracticeDemo />
           </motion.div>
         </div>
       </section>

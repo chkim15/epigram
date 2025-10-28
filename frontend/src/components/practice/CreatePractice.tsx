@@ -872,7 +872,7 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--foreground)' }}>
-            Create Practice Session
+            Create Mock Exam/Quiz
           </h1>
           <p style={{ color: 'var(--muted-foreground)' }}>
             Select topics and difficulty levels to create a custom practice session

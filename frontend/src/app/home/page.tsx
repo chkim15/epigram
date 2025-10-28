@@ -175,8 +175,26 @@ function AppPageContent() {
   const [recommendedProblemIds, setRecommendedProblemIds] = useState<string[]>([]);
   // Store the full recommendation data to persist when navigating back
   const [recommendationData, setRecommendationData] = useState<{
-    recommendations: any[];
-    identifiedTopics: any[];
+    recommendations: Array<{
+      id: string;
+      problem_text: string;
+      difficulty: string;
+      similarity: number;
+      document_id: string;
+      has_subproblems: boolean;
+      subproblems?: Array<{
+        id: string;
+        key: string;
+        problem_text: string;
+        solution_text: string | null;
+      }>;
+    }>;
+    identifiedTopics: Array<{
+      id: number;
+      main_topics: string;
+      subtopics: string;
+      course: string;
+    }>;
     file: File | null;
     uploadStatus: 'idle' | 'complete';
   }>({
