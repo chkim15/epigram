@@ -386,7 +386,7 @@ export default function RecommendedPractice({
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-semibold mb-3" style={{ color: '#141310' }}>
-              Recommended Practice
+              Personalized Practice
             </h2>
             <p className="text-gray-600">
               Upload your lecture notes or problems (PDF/Image) to get personalized practice problems
@@ -398,15 +398,15 @@ export default function RecommendedPractice({
               onClick={resetSession}
               className="flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all cursor-pointer border"
               style={{
-                backgroundColor: '#faf9f5',
-                borderColor: 'rgb(240,238,230)',
-                color: '#141310'
+                backgroundColor: 'var(--background)',
+                borderColor: 'var(--border)',
+                color: 'var(--foreground)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f5f4ee';
+                e.currentTarget.style.backgroundColor = 'var(--secondary)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#faf9f5';
+                e.currentTarget.style.backgroundColor = 'var(--background)';
               }}
               title="Start a new practice session"
             >

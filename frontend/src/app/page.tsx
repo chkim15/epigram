@@ -20,10 +20,10 @@ function RecommendedPracticeDemo() {
         {/* Left Column - Text Content (40%) */}
         <div className="lg:col-span-2 text-center lg:text-left">
           <h2 className="text-3xl font-bold text-black mb-4">
-            Recommended Practice from Your Materials
+            Personalized Practice from Your Study Materials
           </h2>
           <p className="text-lg text-gray-600 leading-relaxed">
-            Upload your lecture notes or exam/quiz and get tailored practice problems from our database
+            Upload your lecture notes, quizzes, or exams — and get smart, tailored practice recommendations drawn from our proprietary database.
           </p>
         </div>
 
@@ -31,8 +31,8 @@ function RecommendedPracticeDemo() {
         <div className="lg:col-span-3">
           <div className="relative overflow-hidden rounded-3xl border-2" style={{ borderColor: '#a16207' }}>
             <Image
-              src="/demo_image/demo_recommendedpractice.png"
-              alt="Recommended practice from your materials"
+              src="/demo_image/demo_personalizedpractice.png"
+              alt="Personalized practice from your studying materials"
               width={1200}
               height={1600}
               className="w-full h-auto"

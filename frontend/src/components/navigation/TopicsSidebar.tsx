@@ -364,7 +364,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                     </Collapsible>
                   </div>
                   
-                  {/* Recommended Practice */}
+                  {/* Personalized Practice */}
                   <div className="mb-2">
                     <Button
                       variant="ghost"
@@ -375,7 +375,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       }}
                       onClick={onRecommendedPractice}
                     >
-                      <span className="flex-1 text-left">Recommended Practice</span>
+                      <span className="flex-1 text-left">Personalized Practice</span>
                     </Button>
                   </div>
 
