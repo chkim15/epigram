@@ -245,6 +245,54 @@
       "name": "Order of Growth and Asymptotic Analysis",
       "main_topic": "Special Topic",
       "course": "Calculus"
+    },
+    {
+      "id": 75,
+      "name": "Mental Math",
+      "main_topic": "Miscellaneous Topics",
+      "course": "Quant DS Interview"
+    },
+    {
+      "id": 76,
+      "name": "Dice Problems",
+      "main_topic": "Miscellaneous Topics",
+      "course": "Quant DS Interview"
+    },
+    {
+      "id": 77,
+      "name": "Brain Teasers",
+      "main_topic": "Miscellaneous Topics",
+      "course": "Quant DS Interview"
+    },
+    {
+      "id": 78,
+      "name": "Rejection Sampling",
+      "main_topic": "Miscellaneous Topics",
+      "course": "Quant DS Interview"
+    },
+    {
+      "id": 79,
+      "name": "Coin-Toss Problems",
+      "main_topic": "Miscellaneous Topics",
+      "course": "Quant DS Interview"
+    },
+    {
+      "id": 80,
+      "name": "Frequently-Tested Problems",
+      "main_topic": "Miscellaneous Topics",
+      "course": "Quant DS Interview"
+    },
+    {
+      "id": 81,
+      "name": "Must-Do Problems",
+      "main_topic": "Miscellaneous Topics",
+      "course": "Quant DS Interview"
+    },
+    {
+      "id": 82,
+      "name": "Randomized Algorithms",
+      "main_topic": "Miscellaneous Topics",
+      "course": "Quant DS Interview"
     }
   ]
 }
