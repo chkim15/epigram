@@ -117,8 +117,17 @@ export default function SubscriptionTab() {
   };
 
   const handleAcceptDiscount = async () => {
+    // Apply discount and then redirect to Stripe portal
     await acceptRetentionDiscount();
     setShowRetentionModal(false);
+
+    // Redirect to Stripe portal after a short delay to ensure discount is applied
+    setTimeout(async () => {
+      const result = await openCustomerPortal();
+      if (result.url) {
+        window.open(result.url, '_blank');
+      }
+    }, 500);
   };
 
   const handleDeclineAndCancel = async () => {
@@ -296,30 +305,6 @@ export default function SubscriptionTab() {
         </div>
       </div>
 
-      {/* Billing Details */}
-      <div>
-        <h3 className="text-base font-semibold mb-4" style={{ color: '#141310' }}>
-          Billing Details
-        </h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'rgb(240,238,230)' }}>
-            <span className="text-sm" style={{ color: '#141310', opacity: 0.7 }}>
-              {isTrial ? 'Trial ends' : 'Next billing date'}
-            </span>
-            <span className="text-sm font-medium" style={{ color: '#141310' }}>
-              {isTrial
-                ? (subscription.trial_end ? formatDate(subscription.trial_end) : 'In 7 days')
-                : (subscription.current_period_end ? formatDate(subscription.current_period_end) : 'After trial ends')}
-            </span>
-          </div>
-          <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'rgb(240,238,230)' }}>
-            <span className="text-sm" style={{ color: '#141310', opacity: 0.7 }}>Amount</span>
-            <span className="text-sm font-medium" style={{ color: '#141310' }}>
-              {plan?.price_cents ? formatPrice(plan.price_cents) : '$4.99'}
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Actions */}
       <div className="space-y-3">
