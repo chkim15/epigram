@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     // Apply coupon to subscription
     await stripe.subscriptions.update(subscription.stripe_subscription_id, {
-      coupon: coupon.id,
+      discounts: [{ coupon: coupon.id }],
     });
 
     // Mark retention discount as used

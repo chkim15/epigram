@@ -50,35 +50,43 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    console.log(`[Webhook] Received event: ${event.type} (ID: ${event.id})`);
+
     switch (event.type) {
       case 'checkout.session.completed':
+        console.log('[Webhook] Processing checkout.session.completed');
         await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
         break;
 
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
+        console.log(`[Webhook] Processing ${event.type}`);
         await handleSubscriptionUpdate(event.data.object as Stripe.Subscription);
         break;
 
       case 'customer.subscription.deleted':
+        console.log('[Webhook] Processing customer.subscription.deleted');
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
 
       case 'invoice.payment_succeeded':
+        console.log('[Webhook] Processing invoice.payment_succeeded');
         await handlePaymentSucceeded(event.data.object as Stripe.Invoice);
         break;
 
       case 'invoice.payment_failed':
+        console.log('[Webhook] Processing invoice.payment_failed');
         await handlePaymentFailed(event.data.object as Stripe.Invoice);
         break;
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.log(`[Webhook] Unhandled event type: ${event.type}`);
     }
 
+    console.log(`[Webhook] Successfully processed event: ${event.type}`);
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Webhook handler error:', error);
+    console.error('[Webhook] Handler error:', error);
     return NextResponse.json(
       { error: 'Webhook handler failed' },
       { status: 500 }
@@ -87,20 +95,25 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  console.log(`[Checkout] Session ID: ${session.id}, Customer: ${session.customer}`);
+
   const userId = session.metadata?.supabase_user_id;
   if (!userId) {
-    console.error('No user ID in checkout session metadata');
+    console.error('[Checkout] ERROR: No user ID in checkout session metadata');
     return;
   }
+  console.log(`[Checkout] User ID from metadata: ${userId}`);
 
   const subscriptionId = session.subscription as string;
   if (!subscriptionId) {
-    console.error('No subscription ID in checkout session');
+    console.error('[Checkout] ERROR: No subscription ID in checkout session');
     return;
   }
+  console.log(`[Checkout] Subscription ID: ${subscriptionId}`);
 
   // Fetch subscription details from Stripe
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  console.log(`[Checkout] Subscription status: ${subscription.status}, trial_end: ${subscription.trial_end}`);
 
   // Determine plan ID based on price
   const priceId = subscription.items.data[0]?.price.id;
@@ -113,8 +126,29 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   } else if (priceId === process.env.STRIPE_PRICE_YEARLY) {
     planId = 'pro_yearly';
   }
+  console.log(`[Checkout] Mapped price ${priceId} to plan: ${planId}`);
 
   // Create or update subscription record
+  const subData = subscription as unknown as {
+    status: string;
+    trial_start: number | null;
+    trial_end: number | null;
+    current_period_start: number;
+    current_period_end: number;
+    cancel_at_period_end: boolean;
+  };
+
+  // Safely convert timestamps
+  const safeTimestamp = (timestamp: number | null | undefined) => {
+    if (!timestamp || timestamp === 0) return null;
+    try {
+      return new Date(timestamp * 1000).toISOString();
+    } catch (e) {
+      console.error(`[Checkout] Invalid timestamp: ${timestamp}`, e);
+      return null;
+    }
+  };
+
   const { error } = await supabaseAdmin
     .from('user_subscriptions')
     .upsert({
@@ -122,29 +156,36 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       plan_id: planId,
       stripe_customer_id: session.customer as string,
       stripe_subscription_id: subscriptionId,
-      status: subscription.status as any,
-      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
-      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      has_used_trial: subscription.trial_end ? true : false,
-      cancel_at_period_end: subscription.cancel_at_period_end,
+      status: subData.status,
+      trial_start: safeTimestamp(subData.trial_start),
+      trial_end: safeTimestamp(subData.trial_end),
+      current_period_start: safeTimestamp(subData.current_period_start),
+      current_period_end: safeTimestamp(subData.current_period_end),
+      has_used_trial: subData.trial_end ? true : false,
+      cancel_at_period_end: subData.cancel_at_period_end || false,
     }, {
       onConflict: 'user_id',
     });
 
   if (error) {
-    console.error('Error upserting subscription:', error);
+    console.error('[Checkout] ERROR upserting subscription:', error);
     return;
   }
+  console.log(`[Checkout] Successfully upserted subscription for user ${userId}`);
 
   // Update user profile subscription tier
-  await supabaseAdmin
+  const { error: profileError } = await supabaseAdmin
     .from('user_profiles')
     .update({ subscription_tier: planId })
     .eq('user_id', userId);
 
-  console.log(`Subscription created for user ${userId}: ${subscriptionId}`);
+  if (profileError) {
+    console.error('[Checkout] ERROR updating user profile:', profileError);
+  } else {
+    console.log(`[Checkout] Successfully updated user profile for user ${userId}`);
+  }
+
+  console.log(`[Checkout] ✅ Subscription created for user ${userId}: ${subscriptionId} (${planId})`);
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
@@ -176,17 +217,38 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   }
 
   // Update subscription record
+  const subData = subscription as unknown as {
+    status: string;
+    trial_start: number | null;
+    trial_end: number | null;
+    current_period_start: number;
+    current_period_end: number;
+    cancel_at_period_end: boolean;
+    canceled_at: number | null;
+  };
+
+  // Safely convert timestamps
+  const safeTimestamp = (timestamp: number | null | undefined) => {
+    if (!timestamp || timestamp === 0) return null;
+    try {
+      return new Date(timestamp * 1000).toISOString();
+    } catch (e) {
+      console.error(`[Subscription] Invalid timestamp: ${timestamp}`, e);
+      return null;
+    }
+  };
+
   const { error } = await supabaseAdmin
     .from('user_subscriptions')
     .update({
       plan_id: planId,
-      status: subscription.status as any,
-      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
-      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      cancel_at_period_end: subscription.cancel_at_period_end,
-      canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+      status: subData.status,
+      trial_start: safeTimestamp(subData.trial_start),
+      trial_end: safeTimestamp(subData.trial_end),
+      current_period_start: safeTimestamp(subData.current_period_start),
+      current_period_end: safeTimestamp(subData.current_period_end),
+      cancel_at_period_end: subData.cancel_at_period_end || false,
+      canceled_at: safeTimestamp(subData.canceled_at),
     })
     .eq('stripe_subscription_id', subscription.id);
 
@@ -236,7 +298,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  const subscriptionId = invoice.subscription as string;
+  const invoiceData = invoice as unknown as { subscription: string | null };
+  const subscriptionId = invoiceData.subscription;
   if (!subscriptionId) {
     return;
   }
@@ -254,6 +317,15 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   }
 
   // Log payment in history
+  const invoicePayment = invoice as unknown as {
+    payment_intent: string | null;
+    id: string;
+    amount_paid: number;
+    currency: string;
+    charge: string | null;
+    hosted_invoice_url: string | null;
+  };
+
   await supabaseAdmin.from('payment_history').insert({
     user_id: subscription.user_id,
     subscription_id: (await supabaseAdmin
@@ -261,20 +333,21 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
       .select('id')
       .eq('stripe_subscription_id', subscriptionId)
       .single()).data?.id,
-    stripe_payment_intent_id: invoice.payment_intent as string,
-    stripe_invoice_id: invoice.id,
-    amount_cents: invoice.amount_paid,
-    currency: invoice.currency,
+    stripe_payment_intent_id: invoicePayment.payment_intent,
+    stripe_invoice_id: invoicePayment.id,
+    amount_cents: invoicePayment.amount_paid,
+    currency: invoicePayment.currency,
     status: 'succeeded',
-    payment_method: invoice.charge ? 'card' : null,
-    receipt_url: invoice.hosted_invoice_url,
+    payment_method: invoicePayment.charge ? 'card' : null,
+    receipt_url: invoicePayment.hosted_invoice_url,
   });
 
   console.log(`Payment succeeded for invoice: ${invoice.id}`);
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  const subscriptionId = invoice.subscription as string;
+  const invoiceData = invoice as unknown as { subscription: string | null };
+  const subscriptionId = invoiceData.subscription;
   if (!subscriptionId) {
     return;
   }
@@ -294,16 +367,25 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 
   if (subscription) {
     // Log failed payment in history
+    const invoicePayment = invoice as unknown as {
+      payment_intent: string | null;
+      id: string;
+      amount_due: number;
+      currency: string;
+      charge: string | null;
+      hosted_invoice_url: string | null;
+    };
+
     await supabaseAdmin.from('payment_history').insert({
       user_id: subscription.user_id,
       subscription_id: subscription.id,
-      stripe_payment_intent_id: invoice.payment_intent as string,
-      stripe_invoice_id: invoice.id,
-      amount_cents: invoice.amount_due,
-      currency: invoice.currency,
+      stripe_payment_intent_id: invoicePayment.payment_intent,
+      stripe_invoice_id: invoicePayment.id,
+      amount_cents: invoicePayment.amount_due,
+      currency: invoicePayment.currency,
       status: 'failed',
-      payment_method: invoice.charge ? 'card' : null,
-      receipt_url: invoice.hosted_invoice_url,
+      payment_method: invoicePayment.charge ? 'card' : null,
+      receipt_url: invoicePayment.hosted_invoice_url,
     });
   }
 

@@ -6,7 +6,9 @@
       "Bash(npm run build:*)",
       "Bash(npm install:*)",
       "Bash(npm uninstall:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(node -e:*)",
+      "Bash(curl:*)"
     ],
     "defaultMode": "acceptEdits"
   },
