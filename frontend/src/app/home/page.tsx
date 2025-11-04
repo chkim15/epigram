@@ -73,12 +73,24 @@ function AppPageContent() {
     }
   }, [searchParams]);
 
-  // Redirect to signin if not authenticated
+  // Redirect to signin if not authenticated (but wait for auth to load first)
   useEffect(() => {
-    if (!isAuthenticated && user === null) {
-      router.push('/auth/signin');
+    // Don't redirect if:
+    // 1. Auth is still loading
+    // 2. We just came back from Stripe checkout (give time for session to restore)
+    const isFromCheckout = searchParams.get('checkout') === 'success';
+
+    if (!authLoading && !isAuthenticated && user === null && !isFromCheckout) {
+      // Add a small delay to ensure session is fully restored
+      const timeoutId = setTimeout(() => {
+        if (!isAuthenticated && user === null) {
+          router.push('/auth/signin');
+        }
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [isAuthenticated, user, router]);
+  }, [authLoading, isAuthenticated, user, router, searchParams]);
 
   // Check AI tutor message status periodically
   useEffect(() => {
@@ -289,13 +301,14 @@ function AppPageContent() {
     // Do nothing - just show dropdown without changing view
   };
 
-  // Show loading state while checking authentication
-  if (authLoading) {
+  // Show loading state while checking authentication or processing checkout
+  const isFromCheckout = searchParams.get('checkout') === 'success';
+  if (authLoading || (isFromCheckout && !user)) {
     return (
       <div className={`w-full h-screen flex items-center justify-center ${inter.className}`} style={{ backgroundColor: '#faf9f5' }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: '#a16207' }}></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{isFromCheckout ? 'Completing checkout...' : 'Loading...'}</p>
         </div>
       </div>
     );

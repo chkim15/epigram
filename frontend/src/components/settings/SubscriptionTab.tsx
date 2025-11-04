@@ -9,7 +9,6 @@ export default function SubscriptionTab() {
     subscription,
     plan,
     usage,
-    isPro,
     isTrial,
     canStartTrial,
     fetchSubscription,
@@ -18,12 +17,14 @@ export default function SubscriptionTab() {
     cancelSubscription,
     acceptRetentionDiscount,
     declineRetentionAndCancel,
+    restoreSubscription,
     openCustomerPortal,
     isLoading,
   } = useSubscriptionStore();
 
   const [showRetentionModal, setShowRetentionModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
+  const [isRestoring, setIsRestoring] = useState(false);
 
   useEffect(() => {
     fetchSubscription();
@@ -139,6 +140,45 @@ export default function SubscriptionTab() {
     const result = await openCustomerPortal();
     if (result.url) {
       window.open(result.url, '_blank');
+    }
+  };
+
+  const handleRestoreSubscription = async () => {
+    // Prevent double-clicks
+    if (isRestoring) {
+      console.log('Already restoring, please wait...');
+      return;
+    }
+
+    console.log('Attempting to restore subscription...');
+    setIsRestoring(true);
+
+    try {
+      const result = await restoreSubscription();
+      console.log('Restore result:', result);
+
+      if (result.success) {
+        // Successfully restored via API
+        console.log('Subscription restored successfully, fetching updated data...');
+        await fetchSubscription();
+      } else {
+        // If API restore fails for any reason, open Stripe portal
+        // where user can reactivate or manage their subscription
+        console.log('Restore failed, opening Stripe portal...', result.error);
+        const portalResult = await openCustomerPortal();
+        if (portalResult.url) {
+          window.open(portalResult.url, '_blank');
+        }
+      }
+    } catch (error) {
+      console.error('Error in handleRestoreSubscription:', error);
+      // As a fallback, try to open the portal
+      const portalResult = await openCustomerPortal();
+      if (portalResult.url) {
+        window.open(portalResult.url, '_blank');
+      }
+    } finally {
+      setIsRestoring(false);
     }
   };
 
@@ -295,10 +335,9 @@ export default function SubscriptionTab() {
             </div>
           )}
           {subscription.cancel_at_period_end && (
-            <div className="flex items-center gap-2 mb-3 p-2 rounded" style={{ backgroundColor: '#fee2e2' }}>
-              <AlertCircle size={14} style={{ color: '#dc2626' }} />
+            <div className="mb-3 p-2 rounded" style={{ backgroundColor: '#fee2e2' }}>
               <span className="text-xs" style={{ color: '#141310' }}>
-                Subscription will cancel on {formatDate(subscription.current_period_end)}
+                {subscription.current_period_end ? `Subscription will cancel on ${formatDate(subscription.current_period_end)}` : 'Subscription is canceled'}
               </span>
             </div>
           )}
@@ -323,7 +362,21 @@ export default function SubscriptionTab() {
           Manage Payment Method
         </button>
 
-        {!subscription.cancel_at_period_end && (
+        {subscription.cancel_at_period_end ? (
+          <button
+            onClick={handleRestoreSubscription}
+            disabled={isRestoring || isLoading}
+            className="w-full py-3 rounded-xl font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: '#141310',
+              color: '#ffffff',
+            }}
+            onMouseEnter={(e) => !isRestoring && !isLoading && (e.currentTarget.style.opacity = '0.9')}
+            onMouseLeave={(e) => !isRestoring && !isLoading && (e.currentTarget.style.opacity = '1')}
+          >
+            {isRestoring ? 'Restoring...' : 'Restore Subscription'}
+          </button>
+        ) : (
           <button
             onClick={handleCancelSubscription}
             disabled={isLoading}

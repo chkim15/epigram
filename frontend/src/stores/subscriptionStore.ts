@@ -31,6 +31,7 @@ interface SubscriptionState {
   cancelSubscription: () => Promise<{ showRetentionOffer: boolean; error?: string }>;
   acceptRetentionDiscount: () => Promise<{ success: boolean; error?: string }>;
   declineRetentionAndCancel: () => Promise<{ success: boolean; error?: string }>;
+  restoreSubscription: () => Promise<{ success: boolean; error?: string }>;
   openCustomerPortal: () => Promise<{ url?: string; error?: string }>;
   reset: () => void;
 }
@@ -304,6 +305,34 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel subscription';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  restoreSubscription: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch('/api/subscription/restore', {
+        method: 'POST',
+        headers,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Return the actual error message from the API
+        const errorMessage = data.error || 'Failed to restore subscription';
+        set({ error: errorMessage, isLoading: false });
+        return { success: false, error: errorMessage };
+      }
+
+      await get().fetchSubscription();
+      set({ isLoading: false });
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to restore subscription';
       set({ error: errorMessage, isLoading: false });
       return { success: false, error: errorMessage };
     }
