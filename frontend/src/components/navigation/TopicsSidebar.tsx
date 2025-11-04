@@ -5,11 +5,13 @@ import { supabase } from "@/lib/supabase/client";
 import { Topic } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Loader2, ChevronDown, ChevronRight, ChevronLeft, ChevronsLeft } from "lucide-react";
+import { Loader2, ChevronDown, ChevronRight, ChevronLeft, ChevronsLeft, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import UpgradeModal from "@/components/subscription/UpgradeModal";
 
 interface Course {
   id: string;
@@ -47,7 +49,9 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [userSchool, setUserSchool] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { user } = useAuthStore();
+  const { isPro, fetchSubscription } = useSubscriptionStore();
 
   const fetchTopics = async () => {
     try {
@@ -90,8 +94,24 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     fetchTopics();
     if (user) {
       fetchUserProfile();
+      fetchSubscription();
     }
-  }, [user, fetchUserProfile]);
+  }, [user, fetchUserProfile, fetchSubscription]);
+
+  // Check if a topic is locked (free users can only access topics 1, 2, 3)
+  const isTopicLocked = (topicId: number): boolean => {
+    if (isPro) return false;
+    return topicId > 3;
+  };
+
+  // Handle topic click - show upgrade modal if locked
+  const handleTopicClick = (topicId: number) => {
+    if (isTopicLocked(topicId)) {
+      setShowUpgradeModal(true);
+    } else {
+      onSelectTopic(topicId);
+    }
+  };
 
 
   const selectCourse = (course: Course) => {
@@ -469,22 +489,27 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   {(selectedCourse.name === 'Special Topics' || selectedCourse.name === 'Calculus Essentials') ? (
                     // For Special Topics and Calculus Essentials, show topics directly without section dropdown
                     <div className="space-y-1">
-                      {selectedCourse.sections[0].topics.map((topic) => (
-                        <Button
-                          key={topic.id}
-                          variant={selectedTopicId === topic.id ? "default" : "ghost"}
-                          className="w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl"
-                          style={{
-                            backgroundColor: selectedTopicId === topic.id ? 'var(--muted)' : 'transparent',
-                            color: selectedTopicId === topic.id ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)'
-                          }}
-                          onClick={() => onSelectTopic(topic.id)}
-                        >
-                          <span className="flex-1 leading-relaxed whitespace-normal break-words">
-                            {topic.subtopics || `Topic ${topic.id}`}
-                          </span>
-                        </Button>
-                      ))}
+                      {selectedCourse.sections[0].topics.map((topic) => {
+                        const locked = isTopicLocked(topic.id);
+                        return (
+                          <Button
+                            key={topic.id}
+                            variant={selectedTopicId === topic.id ? "default" : "ghost"}
+                            className="w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl"
+                            style={{
+                              backgroundColor: selectedTopicId === topic.id ? 'var(--muted)' : 'transparent',
+                              color: locked ? 'var(--muted-foreground)' : (selectedTopicId === topic.id ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)'),
+                              opacity: locked ? 0.6 : 1
+                            }}
+                            onClick={() => handleTopicClick(topic.id)}
+                          >
+                            <span className="flex-1 leading-relaxed whitespace-normal break-words">
+                              {topic.subtopics || `Topic ${topic.id}`}
+                            </span>
+                            {locked && <Lock className="h-3 w-3 ml-2 flex-shrink-0" />}
+                          </Button>
+                        );
+                      })}
                     </div>
                   ) : (
                     // For other courses, show sections with collapsible topics
@@ -513,22 +538,27 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <div className="ml-4 mt-1 space-y-1">
-                              {section.topics.map((topic) => (
-                                <Button
-                                  key={topic.id}
-                                  variant={selectedTopicId === topic.id ? "default" : "ghost"}
-                                  className="w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl"
-                                  style={{
-                                    backgroundColor: selectedTopicId === topic.id ? 'var(--muted)' : 'transparent',
-                                    color: selectedTopicId === topic.id ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)'
-                                  }}
-                                  onClick={() => onSelectTopic(topic.id)}
-                                >
-                                  <span className="flex-1 leading-relaxed whitespace-normal break-words">
-                                    {topic.subtopics || `Topic ${topic.id}`}
-                                  </span>
-                                </Button>
-                              ))}
+                              {section.topics.map((topic) => {
+                                const locked = isTopicLocked(topic.id);
+                                return (
+                                  <Button
+                                    key={topic.id}
+                                    variant={selectedTopicId === topic.id ? "default" : "ghost"}
+                                    className="w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl"
+                                    style={{
+                                      backgroundColor: selectedTopicId === topic.id ? 'var(--muted)' : 'transparent',
+                                      color: locked ? 'var(--muted-foreground)' : (selectedTopicId === topic.id ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)'),
+                                      opacity: locked ? 0.6 : 1
+                                    }}
+                                    onClick={() => handleTopicClick(topic.id)}
+                                  >
+                                    <span className="flex-1 leading-relaxed whitespace-normal break-words">
+                                      {topic.subtopics || `Topic ${topic.id}`}
+                                    </span>
+                                    {locked && <Lock className="h-3 w-3 ml-2 flex-shrink-0" />}
+                                  </Button>
+                                );
+                              })}
                             </div>
                           </CollapsibleContent>
                         </Collapsible>
@@ -542,6 +572,13 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
             )}
           </AnimatePresence>
         </div>
+
+        {/* Upgrade Modal */}
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          reason="unlock_topics"
+        />
     </div>
   );
 }

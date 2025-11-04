@@ -5,6 +5,7 @@ import { Upload, FileText, X, Loader2, ChevronRight, BookOpen, AlertCircle, File
 import { MathContent } from '@/lib/utils/katex';
 import { extractTextFromPDF } from '@/lib/utils/pdfToImagesSimple';
 import dynamic from 'next/dynamic';
+import ProGate from '@/components/subscription/ProGate';
 
 // Dynamically import react-pdf components to avoid SSR issues
 const Document = dynamic(
@@ -653,48 +654,52 @@ export default function RecommendedPractice({
                   )}
                 </div>
 
-                <button
-                  className="flex items-center space-x-2 text-sm font-medium cursor-pointer"
-                  style={{ color: '#a16207' }}
-                  onClick={() => onStartPractice([problem.id])}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.textDecoration = 'underline';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.textDecoration = 'none';
-                  }}
-                >
-                  <BookOpen className="w-4 h-4" />
-                  <span>Try This Problem</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                <ProGate feature="personalized_practice">
+                  <button
+                    className="flex items-center space-x-2 text-sm font-medium cursor-pointer"
+                    style={{ color: '#a16207' }}
+                    onClick={() => onStartPractice([problem.id])}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.textDecoration = 'underline';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.textDecoration = 'none';
+                    }}
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span>Try This Problem</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </ProGate>
               </div>
             ))}
           </div>
 
           {/* Start All Button - Primary color for visibility */}
-          <button
-            className="mt-6 w-full py-3.5 rounded-xl font-semibold transition-all cursor-pointer border shadow-md"
-            style={{
-              backgroundColor: '#a16207',
-              color: 'white',
-              borderColor: '#a16207',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#8a5206';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#a16207';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-            }}
-            onClick={() => onStartPractice(recommendations.map(r => r.id))}
-          >
-            Start Practice with All {recommendations.length} Problems
-          </button>
+          <ProGate feature="personalized_practice">
+            <button
+              className="mt-6 w-full py-3.5 rounded-xl font-semibold transition-all cursor-pointer border shadow-md"
+              style={{
+                backgroundColor: '#a16207',
+                color: 'white',
+                borderColor: '#a16207',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#8a5206';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#a16207';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+              }}
+              onClick={() => onStartPractice(recommendations.map(r => r.id))}
+            >
+              Start Practice with All {recommendations.length} Problems
+            </button>
+          </ProGate>
         </div>
       )}
 

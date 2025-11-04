@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
 
 interface Message {
   id: string;
@@ -54,6 +55,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
+  const { checkFeatureAccess, trackUsage } = useSubscriptionStore();
 
   // Import MathLive when component mounts
   useEffect(() => {
@@ -683,6 +685,24 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
         currentSessionId = newSessionId;
         setSessionId(newSessionId);
       }
+    }
+
+    // Track usage when submitting a problem/image to AI tutor (not for every follow-up message)
+    // Only track if this is the first message in the session (creating new session)
+    // OR if an image is being submitted (new problem with image)
+    if (!sessionId || pastedImage) {
+      // Check feature access before proceeding
+      const accessCheck = await checkFeatureAccess('ai_tutor');
+      if (!accessCheck.allowed) {
+        setIsLoading(false);
+        // Reset the added user message since we can't proceed
+        setMessages(prev => prev.slice(0, -1));
+        // Feature access denied - user will see upgrade modal
+        return;
+      }
+
+      // Track usage for submitting a problem/image
+      await trackUsage('ai_tutor');
     }
 
     const userMessage: Message = {

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
+import ProGate from "@/components/subscription/ProGate";
 
 interface Course {
   id: string;
@@ -826,19 +827,21 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       </div>
                       <div className="flex gap-1">
                         <div className="relative group">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className={cn(
-                              "h-8 w-8",
-                              user ? "cursor-pointer" : "cursor-default disabled:opacity-100"
-                            )}
-                            onClick={() => handleLoadSession(session)}
-                            disabled={!user}
-                            style={{ pointerEvents: user ? 'auto' : 'none' }}
-                          >
-                            <Play className="h-4 w-4" />
-                          </Button>
+                          <ProGate feature="mock_exam">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                "h-8 w-8",
+                                user ? "cursor-pointer" : "cursor-default disabled:opacity-100"
+                              )}
+                              onClick={() => handleLoadSession(session)}
+                              disabled={!user}
+                              style={{ pointerEvents: user ? 'auto' : 'none' }}
+                            >
+                              <Play className="h-4 w-4" />
+                            </Button>
+                          </ProGate>
                           {!user && (
                             <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50" style={{ backgroundColor: 'var(--popover)', color: 'var(--popover-foreground)', border: '1px solid var(--border)' }}>
                               Please sign in
@@ -1123,19 +1126,21 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                 
                 {/* Start Practice Button */}
                 <div className="pt-2 relative group">
-                  <Button
-                    onClick={handleStartPractice}
-                    className={cn(
-                      "w-full rounded-xl",
-                      user ? "cursor-pointer" : "cursor-default disabled:opacity-100"
-                    )}
-                    size="lg"
-                    disabled={!user || getSelectedTopicIds().length === 0 || selectedDifficulties.size === 0}
-                    style={{ pointerEvents: user && getSelectedTopicIds().length > 0 && selectedDifficulties.size > 0 ? 'auto' : 'none' }}
-                  >
-                    <Play className="h-5 w-5 mr-2" />
-                    Start Practice
-                  </Button>
+                  <ProGate feature="mock_exam">
+                    <Button
+                      onClick={handleStartPractice}
+                      className={cn(
+                        "w-full rounded-xl",
+                        user ? "cursor-pointer" : "cursor-default disabled:opacity-100"
+                      )}
+                      size="lg"
+                      disabled={!user || getSelectedTopicIds().length === 0 || selectedDifficulties.size === 0}
+                      style={{ pointerEvents: user && getSelectedTopicIds().length > 0 && selectedDifficulties.size > 0 ? 'auto' : 'none' }}
+                    >
+                      <Play className="h-5 w-5 mr-2" />
+                      Start Practice
+                    </Button>
+                  </ProGate>
                   {!user && getSelectedTopicIds().length > 0 && selectedDifficulties.size > 0 && (
                     <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50" style={{ backgroundColor: 'var(--popover)', color: 'var(--popover-foreground)', border: '1px solid var(--border)' }}>
                       Please sign in

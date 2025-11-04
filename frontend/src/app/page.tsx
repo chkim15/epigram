@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import React from "react";
+import { useAuthStore } from "@/stores/authStore";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
 
 // Import Inter font
 import { Inter } from 'next/font/google';
@@ -154,11 +156,29 @@ function FeaturesSlider() {
 
 export default function LandingPage() {
   const [pricingPeriod, setPricingPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
+  const { user } = useAuthStore();
+  const { startCheckout } = useSubscriptionStore();
 
   const pricingData = {
     weekly: { free: 0, pro: 4.99 },
     monthly: { free: 0, pro: 14.99 },
     yearly: { free: 0, pro: 99.99 }
+  };
+
+  const handleSelectProPlan = async () => {
+    // If not logged in, redirect to signup
+    if (!user) {
+      window.location.href = '/auth/signup';
+      return;
+    }
+
+    // If logged in, start checkout with current pricing period
+    const result = await startCheckout(pricingPeriod);
+    if (result.url) {
+      window.location.href = result.url;
+    } else if (result.error) {
+      alert(result.error);
+    }
   };
 
   return (
@@ -381,11 +401,15 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <Link href="/auth/signin">
-                <button className="w-full py-3 px-6 text-white rounded-xl font-medium transition-colors cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>
-                  Select Plan
-                </button>
-              </Link>
+              <button
+                onClick={handleSelectProPlan}
+                className="w-full py-3 px-6 text-white rounded-xl font-medium transition-colors cursor-pointer"
+                style={{ backgroundColor: '#a16207' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}
+              >
+                Start 7-Day Free Trial
+              </button>
             </div>
           </div>
         </div>

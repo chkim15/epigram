@@ -156,10 +156,11 @@ export interface Database {
           referral_other: string | null;
           onboarding_completed: boolean | null;
           active_learning_mode: boolean | null;
+          subscription_tier: string;
           created_at: string | null;
           updated_at: string | null;
         };
-        Insert: Omit<Database['public']['Tables']['user_profiles']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Insert: Omit<Database['public']['Tables']['user_profiles']['Row'], 'id' | 'created_at' | 'updated_at' | 'subscription_tier'> & { subscription_tier?: string };
         Update: Partial<Database['public']['Tables']['user_profiles']['Insert']>;
       };
       solutions: {
@@ -214,6 +215,77 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['tutor_messages']['Row'], 'id' | 'created_at'>;
         Update: Partial<Database['public']['Tables']['tutor_messages']['Insert']>;
       };
+      subscription_plans: {
+        Row: {
+          id: string;
+          name: string;
+          price_cents: number;
+          billing_interval: 'week' | 'month' | 'year';
+          stripe_price_id: string | null;
+          features: string[];
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['subscription_plans']['Row'], 'created_at' | 'updated_at' | 'is_active'> & { is_active?: boolean };
+        Update: Partial<Database['public']['Tables']['subscription_plans']['Insert']>;
+      };
+      user_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          plan_id: string;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          status: 'active' | 'trialing' | 'canceled' | 'past_due' | 'unpaid' | 'incomplete';
+          trial_start: string | null;
+          trial_end: string | null;
+          current_period_start: string | null;
+          current_period_end: string | null;
+          cancel_at_period_end: boolean;
+          canceled_at: string | null;
+          has_used_trial: boolean;
+          retention_discount_used: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_subscriptions']['Row'], 'id' | 'created_at' | 'updated_at' | 'cancel_at_period_end' | 'has_used_trial' | 'retention_discount_used'> & {
+          cancel_at_period_end?: boolean;
+          has_used_trial?: boolean;
+          retention_discount_used?: boolean;
+        };
+        Update: Partial<Database['public']['Tables']['user_subscriptions']['Insert']>;
+      };
+      payment_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          subscription_id: string | null;
+          stripe_payment_intent_id: string | null;
+          stripe_invoice_id: string | null;
+          amount_cents: number;
+          currency: string;
+          status: 'succeeded' | 'failed' | 'pending' | 'refunded';
+          payment_method: string | null;
+          receipt_url: string | null;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['payment_history']['Row'], 'id' | 'created_at' | 'currency'> & { currency?: string };
+        Update: Partial<Database['public']['Tables']['payment_history']['Insert']>;
+      };
+      usage_tracking: {
+        Row: {
+          id: string;
+          user_id: string;
+          feature_type: 'personalized_practice' | 'mock_exam' | 'ai_tutor';
+          usage_count: number;
+          last_used_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['usage_tracking']['Row'], 'id' | 'created_at' | 'updated_at' | 'usage_count'> & { usage_count?: number };
+        Update: Partial<Database['public']['Tables']['usage_tracking']['Insert']>;
+      };
     };
   };
 }
@@ -233,3 +305,13 @@ export type Solution = Database['public']['Tables']['solutions']['Row'];
 export type UserNote = Database['public']['Tables']['user_notes']['Row'];
 export type TutorSession = Database['public']['Tables']['tutor_sessions']['Row'];
 export type TutorMessage = Database['public']['Tables']['tutor_messages']['Row'];
+export type SubscriptionPlan = Database['public']['Tables']['subscription_plans']['Row'];
+export type UserSubscription = Database['public']['Tables']['user_subscriptions']['Row'];
+export type PaymentHistory = Database['public']['Tables']['payment_history']['Row'];
+export type UsageTracking = Database['public']['Tables']['usage_tracking']['Row'];
+
+// Subscription status enum
+export type SubscriptionStatus = UserSubscription['status'];
+
+// Feature types for usage tracking
+export type FeatureType = UsageTracking['feature_type'];
