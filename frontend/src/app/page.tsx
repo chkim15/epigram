@@ -325,7 +325,7 @@ export default function LandingPage() {
             <div className="bg-white rounded-xl p-8 border border-[rgb(240,238,230)] flex flex-col">
               <h3 className="text-3xl font-bold text-black mb-3">Free</h3>
               <p className="text-gray-600 mb-6">
-                Perfect for students getting started with guided learning
+                For students getting started
               </p>
               <div className="mb-8">
                 <span className="text-4xl font-bold text-black">
@@ -337,15 +337,15 @@ export default function LandingPage() {
               <ul className="space-y-4 mb-8 flex-grow">
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-black mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Access to core problem sets</span>
+                  <span className="text-gray-700">Limited access to personalized practice</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-black mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Basic AI tutoring assistance</span>
+                  <span className="text-gray-700">Limited access to problems/handouts</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-black mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Progress tracking dashboard</span>
+                  <span className="text-gray-700">Limited access to AI tutoring</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-black mr-3 mt-0.5 flex-shrink-0" />
@@ -365,7 +365,7 @@ export default function LandingPage() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-3xl font-bold text-black">Pro</h3>
                 <span className="text-white px-4 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#a16207' }}>
-                  Most Popular
+                  Popular
                 </span>
               </div>
               <p className="text-gray-600 mb-6">
@@ -381,19 +381,15 @@ export default function LandingPage() {
               <ul className="space-y-4 mb-8 flex-grow">
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-black mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Everything in Free, plus:</span>
+                  <span className="text-gray-700">Unlimited access to personalized practice</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-black mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Unlimited problem sets</span>
+                  <span className="text-gray-700">Unlimited access to problems/handouts</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-black mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Advanced AI tutoring with step-by-step solutions</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-black mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Practice exams and assessments</span>
+                  <span className="text-gray-700">Unlimited access to AI tutoring</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-black mr-3 mt-0.5 flex-shrink-0" />
