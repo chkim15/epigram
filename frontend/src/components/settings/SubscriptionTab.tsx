@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CreditCard, Calendar, DollarSign, ExternalLink, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 export default function SubscriptionTab() {
@@ -266,14 +266,14 @@ export default function SubscriptionTab() {
           className="p-4 rounded-xl border"
           style={{ backgroundColor: '#ffffff', borderColor: 'rgb(240,238,230)' }}
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between">
             <span className="text-lg font-semibold" style={{ color: '#141310' }}>
-              {plan?.name || 'Pro'}
+              {plan?.name || 'Pro Weekly'}
             </span>
             <span className="text-lg font-bold" style={{ color: '#141310' }}>
-              {plan?.price_cents ? formatPrice(plan.price_cents) : 'N/A'}
+              {plan?.price_cents ? formatPrice(plan.price_cents) : '$4.99'}
               <span className="text-sm font-normal" style={{ opacity: 0.6 }}>
-                /{plan?.billing_interval || 'month'}
+                /{plan?.billing_interval || 'week'}
               </span>
             </span>
           </div>
@@ -303,21 +303,19 @@ export default function SubscriptionTab() {
         </h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'rgb(240,238,230)' }}>
-            <div className="flex items-center gap-2">
-              <Calendar size={16} style={{ color: '#141310', opacity: 0.6 }} />
-              <span className="text-sm" style={{ color: '#141310', opacity: 0.7 }}>Next billing date</span>
-            </div>
+            <span className="text-sm" style={{ color: '#141310', opacity: 0.7 }}>
+              {isTrial ? 'Trial ends' : 'Next billing date'}
+            </span>
             <span className="text-sm font-medium" style={{ color: '#141310' }}>
-              {formatDate(subscription.current_period_end)}
+              {isTrial
+                ? (subscription.trial_end ? formatDate(subscription.trial_end) : 'In 7 days')
+                : (subscription.current_period_end ? formatDate(subscription.current_period_end) : 'After trial ends')}
             </span>
           </div>
           <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'rgb(240,238,230)' }}>
-            <div className="flex items-center gap-2">
-              <DollarSign size={16} style={{ color: '#141310', opacity: 0.6 }} />
-              <span className="text-sm" style={{ color: '#141310', opacity: 0.7 }}>Amount</span>
-            </div>
+            <span className="text-sm" style={{ color: '#141310', opacity: 0.7 }}>Amount</span>
             <span className="text-sm font-medium" style={{ color: '#141310' }}>
-              {plan?.price_cents ? formatPrice(plan.price_cents) : 'N/A'}
+              {plan?.price_cents ? formatPrice(plan.price_cents) : '$4.99'}
             </span>
           </div>
         </div>
@@ -328,7 +326,7 @@ export default function SubscriptionTab() {
         <button
           onClick={handleOpenPortal}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border font-medium cursor-pointer disabled:opacity-50"
+          className="w-full py-3 rounded-xl border font-medium cursor-pointer disabled:opacity-50"
           style={{
             backgroundColor: '#faf9f5',
             borderColor: 'rgb(240,238,230)',
@@ -337,9 +335,7 @@ export default function SubscriptionTab() {
           onMouseEnter={(e) => !isLoading && (e.currentTarget.style.backgroundColor = '#f5f4ee')}
           onMouseLeave={(e) => !isLoading && (e.currentTarget.style.backgroundColor = '#faf9f5')}
         >
-          <CreditCard size={16} />
           Manage Payment Method
-          <ExternalLink size={14} style={{ opacity: 0.6 }} />
         </button>
 
         {!subscription.cancel_at_period_end && (
