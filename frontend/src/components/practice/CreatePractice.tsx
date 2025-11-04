@@ -261,14 +261,19 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
     topicsData.forEach(topic => {
       const courseName = topic.course || 'Uncategorized';
       const mainTopicName = topic.main_topics || 'Other';
-      
+
       // Skip "Basics of Functions" main topic
       if (mainTopicName === 'Basics of Functions') {
         return;
       }
-      
+
       // Skip generic "Calculus" course (keep only "Calculus I" and "Calculus II")
       if (courseName === 'Calculus') {
+        return;
+      }
+
+      // Hide Quant DS Interview topics (temporarily)
+      if (courseName === 'Quant DS Interview' || courseName?.includes('Quant')) {
         return;
       }
       
@@ -827,21 +832,19 @@ export default function CreatePractice({ onStartPractice }: CreatePracticeProps)
                       </div>
                       <div className="flex gap-1">
                         <div className="relative group">
-                          <ProGate feature="mock_exam">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                "h-8 w-8",
-                                user ? "cursor-pointer" : "cursor-default disabled:opacity-100"
-                              )}
-                              onClick={() => handleLoadSession(session)}
-                              disabled={!user}
-                              style={{ pointerEvents: user ? 'auto' : 'none' }}
-                            >
-                              <Play className="h-4 w-4" />
-                            </Button>
-                          </ProGate>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                              "h-8 w-8",
+                              user ? "cursor-pointer" : "cursor-default disabled:opacity-100"
+                            )}
+                            onClick={() => handleLoadSession(session)}
+                            disabled={!user}
+                            style={{ pointerEvents: user ? 'auto' : 'none' }}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
                           {!user && (
                             <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none whitespace-nowrap z-50" style={{ backgroundColor: 'var(--popover)', color: 'var(--popover-foreground)', border: '1px solid var(--border)' }}>
                               Please sign in

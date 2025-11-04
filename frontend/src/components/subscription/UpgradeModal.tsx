@@ -14,7 +14,7 @@ interface UpgradeModalProps {
 export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalProps) {
   const { user } = useAuthStore();
   const { startCheckout, isLoading, canStartTrial } = useSubscriptionStore();
-  const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
 
   if (!isOpen) return null;
 
@@ -24,23 +24,21 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
       name: 'Weekly',
       price: '$4.99',
       period: '/week',
-      description: 'Perfect for short-term prep',
+      popular: true,
     },
     {
       id: 'monthly' as const,
       name: 'Monthly',
       price: '$14.99',
       period: '/month',
-      description: 'Most flexible option',
-      popular: true,
+      savings: 'Save 25%',
     },
     {
       id: 'yearly' as const,
       name: 'Yearly',
       price: '$99.99',
       period: '/year',
-      description: 'Best value - 2 months free',
-      savings: 'Save 44%',
+      savings: 'Save 62%',
     },
   ];
 
@@ -48,7 +46,7 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
     'Unlimited access to all problems',
     'Unlimited AI tutoring sessions',
     'Unlimited practice exams',
-    'Step-by-step solutions',
+    'Unlimited personalized practice',
     'Priority support',
     'All course materials',
   ];
@@ -75,10 +73,11 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl p-8"
+        className="relative w-full max-h-[90vh] overflow-y-auto rounded-xl p-8"
         style={{
           backgroundColor: '#faf9f5',
           borderColor: 'rgb(240,238,230)',
+          maxWidth: '50.4rem',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -103,16 +102,6 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
               {reason}
             </p>
           )}
-          {canStartTrial && (
-            <div className="mt-2">
-              <span
-                className="inline-block px-3 py-1 rounded-full text-sm font-medium"
-                style={{ backgroundColor: '#a16207', color: '#ffffff' }}
-              >
-                🎉 Start your 7-day free trial
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Plan selection */}
@@ -129,16 +118,16 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
             >
               {plan.popular && (
                 <div
-                  className="absolute -top-3 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium"
-                  style={{ backgroundColor: '#141310', color: '#ffffff' }}
+                  className="absolute -top-3 left-1/2 transform -translate-x-1/2 px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
+                  style={{ backgroundColor: '#141310', color: '#ffffff', fontSize: '10px' }}
                 >
-                  Most Popular
+                  Popular
                 </div>
               )}
               {plan.savings && (
                 <div
-                  className="absolute -top-3 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium"
-                  style={{ backgroundColor: '#a16207', color: '#ffffff' }}
+                  className="absolute -top-3 left-1/2 transform -translate-x-1/2 px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
+                  style={{ backgroundColor: '#a16207', color: '#ffffff', fontSize: '10px' }}
                 >
                   {plan.savings}
                 </div>
@@ -155,9 +144,6 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
                     {plan.period}
                   </span>
                 </div>
-                <p className="text-sm" style={{ color: '#141310', opacity: 0.7 }}>
-                  {plan.description}
-                </p>
               </div>
             </div>
           ))}

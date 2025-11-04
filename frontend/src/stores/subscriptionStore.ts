@@ -36,9 +36,9 @@ interface SubscriptionState {
 }
 
 const FREE_TIER_LIMITS = {
-  personalized_practice: 5,
-  mock_exam: 5,
-  ai_tutor: 5,
+  personalized_practice: 3,
+  mock_exam: 3,
+  ai_tutor: 3,
 };
 
 // Helper function to get authorization headers
@@ -181,7 +181,9 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to track usage');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to track usage:', response.status, errorData);
+        return { success: false, remaining: 0 };
       }
 
       const data = await response.json();

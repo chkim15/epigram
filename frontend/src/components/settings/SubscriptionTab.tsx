@@ -23,7 +23,7 @@ export default function SubscriptionTab() {
   } = useSubscriptionStore();
 
   const [showRetentionModal, setShowRetentionModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
 
   useEffect(() => {
     fetchSubscription();
@@ -159,15 +159,15 @@ export default function SubscriptionTab() {
               </div>
               <div className="flex items-center gap-2 text-sm" style={{ color: '#141310', opacity: 0.7 }}>
                 <span>•</span>
-                <span>{usage.personalized_practice}/5 personalized practice attempts used</span>
+                <span>{usage.personalized_practice}/3 personalized practice attempts used</span>
               </div>
               <div className="flex items-center gap-2 text-sm" style={{ color: '#141310', opacity: 0.7 }}>
                 <span>•</span>
-                <span>{usage.mock_exam}/5 mock exam attempts used</span>
+                <span>{usage.mock_exam}/3 mock exam attempts used</span>
               </div>
               <div className="flex items-center gap-2 text-sm" style={{ color: '#141310', opacity: 0.7 }}>
                 <span>•</span>
-                <span>{usage.ai_tutor}/5 AI tutor problems used</span>
+                <span>{usage.ai_tutor}/3 AI tutor problems used</span>
               </div>
             </div>
           </div>
@@ -181,9 +181,9 @@ export default function SubscriptionTab() {
             </h3>
             <div className="grid grid-cols-3 gap-3 mb-4">
               {[
-                { id: 'weekly' as const, name: 'Weekly', price: '$4.99/week' },
-                { id: 'monthly' as const, name: 'Monthly', price: '$14.99/month', popular: true },
-                { id: 'yearly' as const, name: 'Yearly', price: '$99.99/year', savings: 'Save 44%' },
+                { id: 'weekly' as const, name: 'Weekly', price: '$4.99/week', popular: true },
+                { id: 'monthly' as const, name: 'Monthly', price: '$14.99/month', savings: 'Save 25%' },
+                { id: 'yearly' as const, name: 'Yearly', price: '$99.99/year', savings: 'Save 62%' },
               ].map((planOption) => (
                 <div
                   key={planOption.id}
@@ -196,16 +196,16 @@ export default function SubscriptionTab() {
                 >
                   {planOption.popular && (
                     <div
-                      className="absolute -top-2 left-1/2 transform -translate-x-1/2 px-2 py-0.5 rounded-full text-xs font-medium"
-                      style={{ backgroundColor: '#141310', color: '#ffffff' }}
+                      className="absolute -top-2 left-1/2 transform -translate-x-1/2 px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
+                      style={{ backgroundColor: '#141310', color: '#ffffff', fontSize: '10px' }}
                     >
                       Popular
                     </div>
                   )}
                   {planOption.savings && (
                     <div
-                      className="absolute -top-2 left-1/2 transform -translate-x-1/2 px-2 py-0.5 rounded-full text-xs font-medium"
-                      style={{ backgroundColor: '#a16207', color: '#ffffff' }}
+                      className="absolute -top-2 left-1/2 transform -translate-x-1/2 px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
+                      style={{ backgroundColor: '#a16207', color: '#ffffff', fontSize: '10px' }}
                     >
                       {planOption.savings}
                     </div>

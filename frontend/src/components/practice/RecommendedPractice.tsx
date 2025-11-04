@@ -536,37 +536,39 @@ export default function RecommendedPractice({
 
         {/* Upload Button */}
         {file && uploadStatus !== 'complete' && (
-          <button
-            onClick={handleUpload}
-            disabled={!file || isProcessing}
-            className="mt-6 px-6 py-3 rounded-xl font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              backgroundColor: isProcessing ? '#e9e6dc' : '#141310',
-              color: 'white',
-            }}
-            onMouseEnter={(e) => {
-              if (!isProcessing) {
-                e.currentTarget.style.backgroundColor = '#3d3929';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isProcessing) {
-                e.currentTarget.style.backgroundColor = '#141310';
-              }
-            }}
-          >
-            {isProcessing ? (
-              <span className="flex items-center space-x-2">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>
-                  {uploadStatus === 'extracting' ? 'Extracting text...' :
-                   uploadStatus === 'uploading' ? 'Uploading...' : 'Processing...'}
+          <ProGate feature="personalized_practice">
+            <button
+              onClick={handleUpload}
+              disabled={!file || isProcessing}
+              className="mt-6 px-6 py-3 rounded-xl font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: isProcessing ? '#e9e6dc' : '#141310',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                if (!isProcessing) {
+                  e.currentTarget.style.backgroundColor = '#3d3929';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isProcessing) {
+                  e.currentTarget.style.backgroundColor = '#141310';
+                }
+              }}
+            >
+              {isProcessing ? (
+                <span className="flex items-center space-x-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>
+                    {uploadStatus === 'extracting' ? 'Extracting text...' :
+                     uploadStatus === 'uploading' ? 'Uploading...' : 'Processing...'}
+                  </span>
                 </span>
-              </span>
-            ) : (
-              'Get Recommendations'
-            )}
-          </button>
+              ) : (
+                'Get Recommendations'
+              )}
+            </button>
+          </ProGate>
         )}
       </div>
 
@@ -654,52 +656,48 @@ export default function RecommendedPractice({
                   )}
                 </div>
 
-                <ProGate feature="personalized_practice">
-                  <button
-                    className="flex items-center space-x-2 text-sm font-medium cursor-pointer"
-                    style={{ color: '#a16207' }}
-                    onClick={() => onStartPractice([problem.id])}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.textDecoration = 'underline';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.textDecoration = 'none';
-                    }}
-                  >
-                    <BookOpen className="w-4 h-4" />
-                    <span>Try This Problem</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </ProGate>
+                <button
+                  className="flex items-center space-x-2 text-sm font-medium cursor-pointer"
+                  style={{ color: '#a16207' }}
+                  onClick={() => onStartPractice([problem.id])}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.textDecoration = 'underline';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.textDecoration = 'none';
+                  }}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span>Try This Problem</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             ))}
           </div>
 
           {/* Start All Button - Primary color for visibility */}
-          <ProGate feature="personalized_practice">
-            <button
-              className="mt-6 w-full py-3.5 rounded-xl font-semibold transition-all cursor-pointer border shadow-md"
-              style={{
-                backgroundColor: '#a16207',
-                color: 'white',
-                borderColor: '#a16207',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#8a5206';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#a16207';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-              }}
-              onClick={() => onStartPractice(recommendations.map(r => r.id))}
-            >
-              Start Practice with All {recommendations.length} Problems
-            </button>
-          </ProGate>
+          <button
+            className="mt-6 w-full py-3.5 rounded-xl font-semibold transition-all cursor-pointer border shadow-md"
+            style={{
+              backgroundColor: '#a16207',
+              color: 'white',
+              borderColor: '#a16207',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#8a5206';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#a16207';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            }}
+            onClick={() => onStartPractice(recommendations.map(r => r.id))}
+          >
+            Start Practice with All {recommendations.length} Problems
+          </button>
         </div>
       )}
 

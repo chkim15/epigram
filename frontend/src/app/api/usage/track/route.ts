@@ -18,9 +18,9 @@ const supabaseAdmin = createClient(
 );
 
 const FREE_TIER_LIMITS = {
-  personalized_practice: 5,
-  mock_exam: 5,
-  ai_tutor: 5,
+  personalized_practice: 3,
+  mock_exam: 3,
+  ai_tutor: 3,
 };
 
 export async function POST(request: NextRequest) {

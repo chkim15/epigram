@@ -50,12 +50,27 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   // Start with loading state if we have an initial session to restore
   const [isRestoringSession, setIsRestoringSession] = useState(!!initialSessionId);
   const [isEditingMath, setIsEditingMath] = useState(false);
+  const [isAtUsageLimit, setIsAtUsageLimit] = useState(false);
   const contentEditableRef = useRef<HTMLDivElement>(null);
   const chatContentEditableRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
-  const { checkFeatureAccess, trackUsage } = useSubscriptionStore();
+  const { checkFeatureAccess, trackUsage, usage, fetchUsage } = useSubscriptionStore();
+
+  // Check if user is at usage limit (only for new sessions)
+  useEffect(() => {
+    const checkLimit = async () => {
+      if (user && !sessionId) {
+        // Only check when starting a NEW session
+        const accessCheck = await checkFeatureAccess('ai_tutor');
+        setIsAtUsageLimit(!accessCheck.allowed);
+      } else {
+        setIsAtUsageLimit(false);
+      }
+    };
+    checkLimit();
+  }, [user, sessionId, usage.ai_tutor, checkFeatureAccess]);
 
   // Import MathLive when component mounts
   useEffect(() => {
@@ -1039,26 +1054,34 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   </button>
 
                   {/* Send button */}
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={(!input && !pastedImage) || isLoading}
-                    className="ml-auto h-10 w-10 rounded-xl cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
-                    style={{
-                      backgroundColor: (!input && !pastedImage) || isLoading ? 'var(--muted)' : 'var(--primary)'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!e.currentTarget.disabled) {
-                        e.currentTarget.style.opacity = '0.9';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!e.currentTarget.disabled) {
-                        e.currentTarget.style.opacity = '1';
-                      }
-                    }}
-                  >
-                    <ArrowUp className="!w-[22px] !h-[22px] text-white" />
-                  </Button>
+                  <div className="relative group ml-auto z-[100]">
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={(!input && !pastedImage) || isLoading || isAtUsageLimit}
+                      className="h-10 w-10 rounded-xl cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                      style={{
+                        backgroundColor: (!input && !pastedImage) || isLoading || isAtUsageLimit ? 'var(--muted)' : 'var(--primary)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!e.currentTarget.disabled) {
+                          e.currentTarget.style.opacity = '0.9';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!e.currentTarget.disabled) {
+                          e.currentTarget.style.opacity = '1';
+                        }
+                      }}
+                    >
+                      <ArrowUp className="!w-[22px] !h-[22px] text-white" />
+                    </Button>
+                    {isAtUsageLimit && (
+                      <div className="absolute right-0 bottom-full mb-2 px-3 py-2 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-[101] shadow-lg" style={{ backgroundColor: '#141310', color: '#ffffff' }}>
+                        Start Free Trial for more tutoring!
+                        <div className="absolute right-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4" style={{ borderTopColor: '#141310' }} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1219,26 +1242,34 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   data-placeholder="Type your answers or ask follow-up questions"
                 />
 
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!input.trim() || isLoading}
-                  className="h-8 w-8 mr-1 rounded-xl cursor-pointer disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0"
-                  style={{
-                    backgroundColor: (!input.trim() || isLoading) ? 'var(--muted)' : 'var(--primary)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!e.currentTarget.disabled) {
-                      e.currentTarget.style.opacity = '0.9';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!e.currentTarget.disabled) {
-                      e.currentTarget.style.opacity = '1';
-                    }
-                  }}
-                >
-                <ArrowUp className="h-4 w-4 text-white" />
-              </Button>
+                <div className="relative group z-[100]">
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!input.trim() || isLoading || isAtUsageLimit}
+                    className="h-8 w-8 mr-1 rounded-xl cursor-pointer disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0"
+                    style={{
+                      backgroundColor: (!input.trim() || isLoading || isAtUsageLimit) ? 'var(--muted)' : 'var(--primary)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!e.currentTarget.disabled) {
+                        e.currentTarget.style.opacity = '0.9';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!e.currentTarget.disabled) {
+                        e.currentTarget.style.opacity = '1';
+                      }
+                    }}
+                  >
+                    <ArrowUp className="h-4 w-4 text-white" />
+                  </Button>
+                  {isAtUsageLimit && (
+                    <div className="absolute right-0 bottom-full mb-2 px-3 py-2 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-[101] shadow-lg" style={{ backgroundColor: '#141310', color: '#ffffff' }}>
+                      Start Free Trial for more tutoring!
+                      <div className="absolute right-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4" style={{ borderTopColor: '#141310' }} />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

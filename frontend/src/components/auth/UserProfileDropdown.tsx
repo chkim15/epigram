@@ -17,6 +17,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   const { signOut } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<'account' | 'personalization' | 'subscription' | 'account-management'>('account');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isActiveLearningMode, toggleActiveLearningMode } = useActiveLearning();
 
@@ -113,7 +114,10 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
         <div className="absolute bottom-full left-0 right-0 mb-1 rounded-xl shadow-lg border py-1" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
           {/* Settings */}
           <button
-            onClick={handleSettingsClick}
+            onClick={() => {
+              setSettingsTab('account');
+              handleSettingsClick();
+            }}
             className="w-full flex items-center gap-2 px-3 py-1.5 transition-colors cursor-pointer text-sm"
             style={{ color: 'var(--foreground)' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
@@ -123,11 +127,17 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
             <span>Settings</span>
           </button>
 
-          {/* Pricing - Disabled */}
+          {/* Pricing */}
           <button
-            disabled
-            className="w-full flex items-center gap-2 px-3 py-1.5 cursor-not-allowed text-sm"
-            style={{ color: 'var(--muted-foreground)' }}
+            onClick={() => {
+              setSettingsTab('subscription');
+              setIsSettingsOpen(true);
+              setIsOpen(false);
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 transition-colors cursor-pointer text-sm"
+            style={{ color: 'var(--foreground)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <CreditCard className="w-3.5 h-3.5" />
             <span>Pricing</span>
@@ -172,9 +182,10 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
       )}
 
       {/* Settings Modal */}
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        initialTab={settingsTab}
       />
     </div>
   );

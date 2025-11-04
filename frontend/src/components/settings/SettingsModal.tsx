@@ -18,12 +18,13 @@ interface UserProfile {
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: 'account' | 'personalization' | 'subscription' | 'account-management';
 }
 
-export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+export default function SettingsModal({ isOpen, onClose, initialTab = 'account' }: SettingsModalProps) {
   const { user, deleteAccount } = useAuthStore();
   const { theme, setTheme } = useAppTheme();
-  const [activeTab, setActiveTab] = useState<'account' | 'personalization' | 'subscription' | 'account-management'>('account');
+  const [activeTab, setActiveTab] = useState<'account' | 'personalization' | 'subscription' | 'account-management'>(initialTab);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -33,12 +34,12 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     setMounted(true);
   }, []);
 
-  // Reset to account tab whenever modal opens
+  // Set to initial tab whenever modal opens
   useEffect(() => {
     if (isOpen) {
-      setActiveTab('account');
+      setActiveTab(initialTab);
     }
-  }, [isOpen]);
+  }, [isOpen, initialTab]);
 
   // Fetch user profile data
   useEffect(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, ReactNode } from 'react';
+import { useEffect, useState, ReactNode, cloneElement, isValidElement } from 'react';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useAuthStore } from '@/stores/authStore';
 import { FeatureType } from '@/types/database';
@@ -48,15 +48,44 @@ export default function ProGate({ children, feature, fallback, onBlocked }: ProG
     checkAccess();
   }, [user, feature, isPro, usage, checkFeatureAccess, onBlocked]);
 
-  const handleUseFeature = async () => {
-    if (isPro) {
-      return; // Pro users don't need tracking
+  const handleInterceptedClick = async (e: React.MouseEvent, originalOnClick?: (e: React.MouseEvent) => void) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // If user not logged in, show upgrade modal
+    if (!user) {
+      setShowUpgradeModal(true);
+      return;
     }
 
-    const result = await trackUsage(feature);
-    if (!result.success) {
-      setIsAllowed(false);
+    // If Pro user, allow immediately
+    if (isPro) {
+      if (originalOnClick) {
+        originalOnClick(e);
+      }
+      return;
+    }
+
+    // For free users, check and track usage
+    const accessCheck = await checkFeatureAccess(feature);
+    if (!accessCheck.allowed) {
       setShowUpgradeModal(true);
+      return;
+    }
+
+    // Track usage BEFORE executing the action
+    const trackResult = await trackUsage(feature);
+    if (!trackResult.success) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
+    // Refresh usage to update UI
+    await fetchUsage();
+
+    // Finally, execute the original action
+    if (originalOnClick) {
+      originalOnClick(e);
     }
   };
 
@@ -115,10 +144,24 @@ export default function ProGate({ children, feature, fallback, onBlocked }: ProG
     );
   }
 
-  // Allowed - render children with usage tracking
-  return (
-    <div onClick={handleUseFeature}>
-      {children}
-    </div>
-  );
+  // Allowed - intercept click on the child element
+  if (isValidElement(children)) {
+    const originalOnClick = (children.props as { onClick?: (e: React.MouseEvent) => void }).onClick;
+
+    return (
+      <>
+        {cloneElement(children as React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>, {
+          onClick: (e: React.MouseEvent) => handleInterceptedClick(e, originalOnClick),
+        })}
+
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          reason={blockReason}
+        />
+      </>
+    );
+  }
+
+  return <>{children}</>;
 }

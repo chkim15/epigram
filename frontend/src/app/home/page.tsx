@@ -16,7 +16,7 @@ import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 import HistoryView from "@/components/history/HistoryView";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Book, FileText } from "lucide-react";
+import { Menu, Book, FileText, CheckCircle, X } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/lib/supabase/client";
 
@@ -41,10 +41,37 @@ function AppPageContent() {
   const aiTutorRef = useRef<AITutorPageRef>(null);
   const [hasAITutorMessages, setHasAITutorMessages] = useState(false);
   const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
+  const [showCheckoutSuccess, setShowCheckoutSuccess] = useState(false);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Handle successful checkout - refetch subscription status
+  useEffect(() => {
+    const checkout = searchParams.get('checkout');
+    if (checkout === 'success') {
+      // Show success message
+      setShowCheckoutSuccess(true);
+      setTimeout(() => setShowCheckoutSuccess(false), 10000); // Hide after 10 seconds
+
+      // Import subscription store dynamically to avoid circular dependencies
+      import('@/stores/subscriptionStore').then(({ useSubscriptionStore }) => {
+        // Wait a bit for webhook to process, then fetch subscription
+        const timeouts = [1000, 3000, 5000, 8000]; // Try after 1s, 3s, 5s, and 8s
+        timeouts.forEach((delay) => {
+          setTimeout(() => {
+            useSubscriptionStore.getState().fetchSubscription();
+          }, delay);
+        });
+      });
+
+      // Clear the checkout parameter from URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('checkout');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [searchParams]);
 
   // Redirect to signin if not authenticated
   useEffect(() => {
@@ -281,6 +308,32 @@ function AppPageContent() {
 
   return (
     <div className={`w-full h-screen flex flex-col ${inter.className}`} style={{ backgroundColor: 'var(--background)' }}>
+      {/* Checkout Success Banner */}
+      {showCheckoutSuccess && (
+        <div
+          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300"
+          style={{
+            backgroundColor: '#141310',
+            color: '#ffffff',
+            maxWidth: '90%',
+          }}
+        >
+          <CheckCircle size={20} style={{ color: '#10b981' }} />
+          <div>
+            <p className="font-semibold text-sm">Payment successful!</p>
+            <p className="text-xs" style={{ opacity: 0.8 }}>
+              Your subscription is being activated. This may take a few seconds...
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCheckoutSuccess(false)}
+            className="ml-4 p-1 rounded hover:bg-white/10 cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Mobile Header */}
       <div className="flex flex-col border-b lg:hidden" style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
         <div className="flex items-center justify-between h-14 px-4">
