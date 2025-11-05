@@ -122,7 +122,14 @@
             
             // Convert \dne to "Does Not Exist" (DNE)
             text = text.replace(/\\dne/g, 'DNE');
-            
+
+            // Convert LaTeX-style quotation marks to proper typographic quotes
+            // `` (two backticks) → " (opening double quote)
+            text = text.replace(/``/g, '"');
+
+            // '' (two single quotes) → " (closing double quote)
+            text = text.replace(/''/g, '"');
+
             // Convert LaTeX spacing commands to HTML spacing
             // \quad = 1em space
             text = text.replace(/\\quad\b/g, '<span style="margin-left: 1em;"></span>');
