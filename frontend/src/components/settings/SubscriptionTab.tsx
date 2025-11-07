@@ -419,7 +419,7 @@ export default function SubscriptionTab() {
             </h3>
             <p className="text-sm mb-4" style={{ color: '#141310' }}>
               We&apos;d hate to see you go. How about <strong>50% off</strong> for{' '}
-              {plan?.billing_interval === 'week' ? 'the next 2 weeks' : `the next ${plan?.billing_interval}`}?
+              {plan?.billing_interval === 'week' ? 'the next week' : `the next ${plan?.billing_interval}`}?
             </p>
             <div className="space-y-3">
               <button
