@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
@@ -159,6 +159,17 @@ export default function LandingPage() {
   const { user } = useAuthStore();
   const { startCheckout } = useSubscriptionStore();
 
+  // Get promo code from URL if present
+  const [promoCode, setPromoCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const promo = params.get('promo');
+    if (promo) {
+      setPromoCode(promo);
+    }
+  }, []);
+
   const pricingData = {
     weekly: { free: 0, pro: 4.99 },
     monthly: { free: 0, pro: 14.99 },
@@ -172,8 +183,8 @@ export default function LandingPage() {
       return;
     }
 
-    // If logged in, start checkout with current pricing period
-    const result = await startCheckout(pricingPeriod);
+    // If logged in, start checkout with current pricing period and promo code
+    const result = await startCheckout(pricingPeriod, promoCode || undefined);
     if (result.url) {
       window.location.href = result.url;
     } else if (result.error) {

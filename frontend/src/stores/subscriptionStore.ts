@@ -27,7 +27,7 @@ interface SubscriptionState {
   fetchUsage: () => Promise<void>;
   checkFeatureAccess: (feature: FeatureType) => Promise<{ allowed: boolean; reason?: string }>;
   trackUsage: (feature: FeatureType) => Promise<{ success: boolean; remaining: number }>;
-  startCheckout: (planType: 'weekly' | 'monthly' | 'yearly') => Promise<{ url?: string; error?: string }>;
+  startCheckout: (planType: 'weekly' | 'monthly' | 'yearly', promoCode?: string) => Promise<{ url?: string; error?: string }>;
   cancelSubscription: () => Promise<{ showRetentionOffer: boolean; error?: string }>;
   acceptRetentionDiscount: () => Promise<{ success: boolean; error?: string }>;
   declineRetentionAndCancel: () => Promise<{ success: boolean; error?: string }>;
@@ -207,14 +207,14 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     }
   },
 
-  startCheckout: async (planType: 'weekly' | 'monthly' | 'yearly') => {
+  startCheckout: async (planType: 'weekly' | 'monthly' | 'yearly', promoCode?: string) => {
     set({ isLoading: true, error: null });
     try {
       const headers = await getAuthHeaders();
       const response = await fetch('/api/checkout/create-session', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ planType }),
+        body: JSON.stringify({ planType, promoCode }),
       });
 
       if (!response.ok) {

@@ -1,10 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 export default function SubscriptionTab() {
+  const searchParams = useSearchParams();
+  const promoFromUrl = searchParams.get('promo');
+
   const {
     subscription,
     plan,
@@ -104,7 +108,7 @@ export default function SubscriptionTab() {
   };
 
   const handleStartTrial = async () => {
-    const result = await startCheckout(selectedPlan);
+    const result = await startCheckout(selectedPlan, promoFromUrl || undefined);
     if (result.url) {
       window.location.href = result.url;
     }

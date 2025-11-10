@@ -47,7 +47,10 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { planType } = body as { planType: 'weekly' | 'monthly' | 'yearly' };
+    const { planType, promoCode } = body as {
+      planType: 'weekly' | 'monthly' | 'yearly';
+      promoCode?: string;
+    };
 
     if (!planType || !['weekly', 'monthly', 'yearly'].includes(planType)) {
       return NextResponse.json(
@@ -88,6 +91,9 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
     }
 
+    // Build discounts array if promo code provided
+    const discounts = promoCode ? [{ promotion_code: promoCode }] : undefined;
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -98,9 +104,11 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
+      allow_promotion_codes: true, // Enable Stripe's built-in promo code field
+      ...(discounts ? { discounts } : {}), // Pre-apply promo code if provided via URL
       subscription_data: {
-        // Only add trial if user hasn't used it before
-        ...(hasUsedTrial
+        // Skip trial if user has used it OR if using a promo code
+        ...(hasUsedTrial || promoCode
           ? {}
           : {
               trial_period_days: 7,
@@ -108,6 +116,7 @@ export async function POST(request: NextRequest) {
         metadata: {
           supabase_user_id: user.id,
           plan_type: planType,
+          promo_code_used: promoCode || 'none',
         },
       },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/home?checkout=success`,
