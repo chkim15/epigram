@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, FileText, Book, Plus, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { ThemeSelector } from "@/components/ui/theme-selector";
+import { useAuthStore } from "@/stores/authStore";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
+import UpgradeModal from "@/components/subscription/UpgradeModal";
 
 interface UnifiedHeaderProps {
   className?: string;
@@ -37,7 +41,20 @@ export default function UnifiedHeader({
   showBackButton = false,
   onBackClick
 }: UnifiedHeaderProps) {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { user } = useAuthStore();
+  const { isPro } = useSubscriptionStore();
+
+  const handleStartTrial = () => {
+    if (!user) {
+      window.location.href = '/auth/signup';
+    } else {
+      setShowUpgradeModal(true);
+    }
+  };
+
   return (
+    <>
     <div className={cn(
       "h-[46px] flex flex-shrink-0 px-4 items-center w-full",
       className
@@ -187,6 +204,28 @@ export default function UnifiedHeader({
       {/* Flexible spacer to push right-side actions */}
       <div className="flex-1" />
 
+      {/* Start Free Trial Button - Only show for non-Pro users */}
+      {!isPro && (
+        <>
+          <Button
+            onClick={handleStartTrial}
+            size="sm"
+            className="h-8 px-4 rounded-xl cursor-pointer font-medium"
+            style={{
+              backgroundColor: '#141310',
+              color: '#ffffff',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+          >
+            Start Free Trial
+          </Button>
+
+          {/* Spacer after Start Free Trial button */}
+          <div className="w-2" />
+        </>
+      )}
+
       {/* Theme Selector */}
       <ThemeSelector />
 
@@ -222,5 +261,12 @@ export default function UnifiedHeader({
         </div>
       )}
     </div>
+
+    {/* Upgrade Modal */}
+    <UpgradeModal
+      isOpen={showUpgradeModal}
+      onClose={() => setShowUpgradeModal(false)}
+    />
+    </>
   );
 }
