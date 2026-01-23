@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Problems Database Editor</title>
     <!-- Supabase JavaScript client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.10/dist/umd/supabase.min.js"></script>
     <!-- MathJax for LaTeX rendering -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <!-- Polyfill.io removed - no longer needed for modern browsers and has reliability issues -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         window.MathJax = {
@@ -1575,7 +1575,13 @@
         const SUPABASE_URL = 'https://sionddqweckwednamaeb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpb25kZHF3ZWNrd2VkbmFtYWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4NzI3MTksImV4cCI6MjA3MDQ0ODcxOX0.0I2jrSoxPBqwe_3isQUVORW6kSEqT3vwlQemoQXCpUw';
         const STORAGE_BUCKET = 'math-problems';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Get supabase from the CDN - try multiple access patterns for v2 compatibility
+        const _supabaseLib = window.supabase || self.supabase;
+        if (!_supabaseLib) {
+            console.error('Supabase library not loaded! Check CDN script.');
+            alert('Error: Supabase library failed to load. Please refresh the page.');
+        }
+        const supabase = _supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentFileName = '';
         let originalFileName = '';
         let availableTopics = [];
@@ -4491,7 +4497,7 @@
                     hint_order: hint.hint_order !== undefined ? hint.hint_order : i
                 };
 
-                const { data, error } = await window.supabaseClient
+                const { data, error } = await supabase
                     .from('hints')
                     .insert([payload]);
 
