@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { X, User, Palette, Trash2, Check, CreditCard } from 'lucide-react';
+import { X, User, Palette, Trash2, Check } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import { useAppTheme, themeConfigs, Theme } from '@/lib/utils/theme';
-import SubscriptionTab from './SubscriptionTab';
+// TEMPORARY: SubscriptionTab hidden — everything is free
+// import SubscriptionTab from './SubscriptionTab';
 
 interface UserProfile {
   school: string | null;
@@ -307,30 +308,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab = 'account' 
               Personalization
             </button>
 
-            <button
-              onClick={() => setActiveTab('subscription')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm border-2"
-              style={{
-                backgroundColor: activeTab === 'subscription' ? 'var(--accent)' : 'transparent',
-                borderColor: activeTab === 'subscription' ? 'var(--foreground)' : 'transparent',
-                color: activeTab === 'subscription' ? 'var(--foreground)' : 'var(--muted-foreground)'
-              }}
-              onMouseEnter={(e) => {
-                if (activeTab !== 'subscription') {
-                  e.currentTarget.style.backgroundColor = 'var(--accent)';
-                  e.currentTarget.style.color = 'var(--foreground)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== 'subscription') {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = 'var(--muted-foreground)';
-                }
-              }}
-            >
-              <CreditCard className="w-4 h-4" />
-              Subscription
-            </button>
+            {/* TEMPORARY: Subscription tab hidden — everything is free */}
 
             <button
               onClick={() => setActiveTab('account-management')}
@@ -369,7 +347,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab = 'account' 
           {/* Tab Content */}
           {activeTab === 'account' && renderAccountTab()}
           {activeTab === 'personalization' && renderPersonalizationTab()}
-          {activeTab === 'subscription' && <SubscriptionTab />}
+          {/* TEMPORARY: Subscription tab hidden — everything is free */}
           {activeTab === 'account-management' && renderAccountManagementTab()}
         </div>
       </div>

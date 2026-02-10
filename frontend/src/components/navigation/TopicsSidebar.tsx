@@ -166,11 +166,6 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     const courseGroups = topics.reduce((acc, topic) => {
       let courseName = topic.course || 'Uncategorized';
 
-      // Hide Quant DS Interview topics (temporarily)
-      if (courseName === 'Quant DS Interview' || courseName?.includes('Quant')) {
-        return acc;
-      }
-
       // Special handling for Calculus Essentials and Special Topics
       if (topic.main_topics === 'Calculus Essentials') {
         courseName = 'Calculus Essentials';

@@ -67,8 +67,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
 
   // Computed properties
   get isPro() {
-    const { subscription } = get();
-    return subscription?.status === 'active' || subscription?.status === 'trialing';
+    // TEMPORARY: Everything is free — bypass subscription check
+    return true;
   },
 
   get isTrial() {
