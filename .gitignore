@@ -32,3 +32,4 @@ frontend/.next/
 .vscode/
 .idea/
 .mcp.json
+.vercel

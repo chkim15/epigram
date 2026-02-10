@@ -1,8 +1,6 @@
 {
   "framework": "nextjs",
-  "rootDirectory": "frontend",
   "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
   "github": {
     "enabled": false
   }
