@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Epigram",
-  description: "A comprehensive math learning platform",
+  description: "Quant and hedge fund interview preparation platform",
   icons: {
     icon: "/epigram_logo.svg",
   },

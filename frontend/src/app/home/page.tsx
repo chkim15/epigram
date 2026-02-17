@@ -158,6 +158,14 @@ function AppPageContent() {
     }
   }, [searchParams]);
 
+  // Auto-select default quant topic on load
+  const DEFAULT_QUANT_TOPIC_ID = 54; // Conditional Probability
+  useEffect(() => {
+    if (selectedTopicId === null && viewMode === 'problems') {
+      setSelectedTopicId(DEFAULT_QUANT_TOPIC_ID);
+    }
+  }, []);
+
   // Fetch topic information when selectedTopicId changes
   useEffect(() => {
     if (!selectedTopicId) {
@@ -276,9 +284,9 @@ function AppPageContent() {
   };
 
   const handleLogoClick = () => {
-    // Show the welcome screen
+    // Navigate to default quant topic
     setViewMode('problems');
-    setSelectedTopicId(null);
+    setSelectedTopicId(DEFAULT_QUANT_TOPIC_ID);
     setSelectedTopicIds([]);
     setSelectedDifficulties([]);
     setSavedProblemIds([]);

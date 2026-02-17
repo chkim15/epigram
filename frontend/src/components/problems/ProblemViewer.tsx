@@ -1062,7 +1062,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             ) : selectedTopicId === null ? (
               <div className="max-w-7xl mx-auto px-6 pt-1.5 pb-6">
                 <div className="grid grid-cols-2 gap-8">
-                  {/* Left Column - Study Tips */}
+                  {/* Left Column - Interview Prep Tips */}
                   <div>
                     <div className="flex items-center gap-3 mb-6">
                       <Image
@@ -1075,27 +1075,27 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                         }}
                       />
                       <h2 className="text-2xl font-extrabold" style={{ color: 'var(--epigram-text-color)' }}>
-                        Epigram&apos;s Study Tips
+                        Interview Prep Tips
                       </h2>
                     </div>
                     <div className="space-y-4">
                       <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Brain className="h-5 w-5" style={{ color: 'var(--primary)' }} />
-                          Work First, Check Later
+                          Master the Fundamentals
                         </h3>
                         <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
-                          Always attempt each problem <span className="font-semibold">on your own</span> before looking at hints or solutions. Push your thinking as far as possible so you truly engage your brain.
+                          Build a strong foundation in <span className="font-semibold">probability, statistics, and linear algebra</span>. Interviewers test core concepts repeatedly &mdash; make sure you can solve them quickly and accurately.
                         </p>
                       </div>
 
                       <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <FileText className="h-5 w-5" style={{ color: 'var(--primary)' }} />
-                          Use Handouts Strategically
+                          Think Out Loud
                         </h3>
                         <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
-                          If you&apos;re unsure about the concepts, <span className="font-semibold">consult the handouts</span> while solving problems. They&apos;re placed side-by-side for quick reference.
+                          In real interviews, <span className="font-semibold">explaining your reasoning</span> matters as much as the answer. Practice articulating your approach before jumping into calculations.
                         </p>
                       </div>
 
@@ -1105,7 +1105,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           Learn From Mistakes
                         </h3>
                         <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
-                          When you get a problem wrong, <span className="font-semibold">bookmark</span> it and explicitly write down what step or idea you missed. Then use handouts, textbooks, or AI support to figure out <span className="font-semibold">why you made the mistake</span> and <span className="font-semibold">how to avoid</span> it next time.
+                          When you get a problem wrong, <span className="font-semibold">bookmark</span> it and identify the concept you missed. Quant interviews revisit the same patterns &mdash; understanding <span className="font-semibold">why</span> you erred is more valuable than memorizing answers.
                         </p>
                       </div>
 
@@ -1115,52 +1115,52 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
                           Value Multiple Approaches
                         </h3>
                         <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
-                          Pay close attention to problems that have <span className="font-semibold">more than one solution</span>. These problems reveal important connections between different ideas and techniques.
+                          Many quant problems can be solved via <span className="font-semibold">different methods</span> (combinatorial, algebraic, simulation). Knowing multiple approaches shows depth and flexibility.
                         </p>
                       </div>
 
                       <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Target className="h-5 w-5" style={{ color: 'var(--primary)' }} />
-                          Practice With Focus
+                          Practice Under Pressure
                         </h3>
                         <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
-                          Set aside dedicated time for <span className="font-semibold">concentrated practice</span>. Avoid distractions so you can work deeply and retain more.
+                          Set a timer and simulate <span className="font-semibold">interview conditions</span>. Speed and accuracy under pressure are what separate strong candidates.
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Right Column - Problem Difficulty Strategy */}
+                  {/* Right Column - Interview Strategy */}
                   <div>
                     <div className="flex items-center gap-3 mb-6">
                       <h2 className="text-2xl font-extrabold pt-2" style={{ color: 'var(--foreground)' }}>
-                        Problem Difficulty Strategy
+                        Interview Strategy
                       </h2>
                     </div>
                     <div className="space-y-4">
                       <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <GraduationCap className="h-5 w-5" style={{ color: 'var(--primary)' }} />
-                          AP Calculus and University Exams
+                          Quant Trading Interviews
                           <span className="text-sm font-normal" style={{ color: 'var(--foreground)', opacity: 0.6 }}>
-                            (Quiz, Midterm, Final)
+                            (Phone, Superday, Final)
                           </span>
                         </h3>
                         <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
-                          Focus mainly on <span className="font-semibold">easy</span> and <span className="font-semibold">medium</span> problems, as these form the bulk of test questions. To strengthen problem-solving skills and build resilience, include a small number of <span className="font-semibold">hard</span> or <span className="font-semibold">very hard</span> problems.
+                          Focus on <span className="font-semibold">probability brainteasers</span>, <span className="font-semibold">expected value</span>, and <span className="font-semibold">mental math</span>. Start with easy and medium problems to build speed, then tackle hard problems for depth.
                         </p>
                       </div>
                       <div className="backdrop-blur-md rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
                           <Trophy className="h-5 w-5" style={{ color: 'var(--primary)' }} />
-                          Math Competitions
+                          Hedge Fund &amp; Prop Shop Interviews
                           <span className="text-sm font-normal" style={{ color: 'var(--foreground)', opacity: 0.6 }}>
-                            (High School or College)
+                            (Quantitative Research)
                           </span>
                         </h3>
                         <p className="text-sm leading-relaxed ml-7" style={{ color: 'var(--foreground)', opacity: 0.8 }}>
-                          Prioritize <span className="font-semibold">hard</span> and <span className="font-semibold">very hard</span> problems, since competitions are designed to test deeper understanding, creativity, and advanced problem-solving skills.
+                          Prioritize <span className="font-semibold">stochastic processes</span>, <span className="font-semibold">statistics</span>, and <span className="font-semibold">linear algebra</span> problems. These roles demand rigorous mathematical reasoning and the ability to derive results from first principles.
                         </p>
                       </div>
                     </div>

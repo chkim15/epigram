@@ -51,7 +51,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
   const [userSchool, setUserSchool] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { user } = useAuthStore();
-  const { isPro, fetchSubscription } = useSubscriptionStore();
+  const { fetchSubscription } = useSubscriptionStore();
 
   const fetchTopics = async () => {
     try {
@@ -98,10 +98,9 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     }
   }, [user, fetchUserProfile, fetchSubscription]);
 
-  // Check if a topic is locked (free users can only access topics 1, 2, 3)
-  const isTopicLocked = (topicId: number): boolean => {
-    if (isPro) return false;
-    return topicId > 3;
+  // MVP: All topics unlocked
+  const isTopicLocked = (_topicId: number): boolean => {
+    return false;
   };
 
   // Handle topic click - show upgrade modal if locked
@@ -138,8 +137,9 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
   // Get display name for courses based on user's school
   const getCourseDisplayName = (courseName: string): string => {
+    if (courseName === 'Quant DS Interview') return 'Quant Interview';
+
     if (!userSchool) {
-      // Default names with AP Calculus designations when no school is set
       if (courseName === 'Calculus I') return 'Calculus I / AP Calc AB';
       if (courseName === 'Calculus II') return 'Calculus II / AP Calc BC';
       return courseName;
@@ -153,7 +153,6 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
       if (courseName === 'Calculus II') return 'Math 1400';
     }
 
-    // For all other schools (including Columbia), use default names
     if (courseName === 'Calculus I') return 'Calculus I / AP Calc AB';
     if (courseName === 'Calculus II') return 'Calculus II / AP Calc BC';
 
@@ -162,19 +161,12 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
 
   // Build course structure dynamically from database fields
   const getCourseStructure = (): Course[] => {
-    // Group topics by course
-    const courseGroups = topics.reduce((acc, topic) => {
-      let courseName = topic.course || 'Uncategorized';
+    // Filter to only quant topics
+    const quantTopics = topics.filter(t => t.course === 'Quant DS Interview');
 
-      // Special handling for Calculus Essentials and Special Topics
-      if (topic.main_topics === 'Calculus Essentials') {
-        courseName = 'Calculus Essentials';
-      } else if (topic.main_topics === 'Special Topic') {
-        courseName = 'Special Topics';
-      } else if (courseName === 'Calculus') {
-        // For any other "Calculus" course items, rename to Special Topics
-        courseName = 'Special Topics';
-      }
+    // Group topics by course
+    const courseGroups = quantTopics.reduce((acc, topic) => {
+      const courseName = topic.course || 'Uncategorized';
 
       if (!acc[courseName]) {
         acc[courseName] = [];
@@ -188,67 +180,45 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
     
     // Process each course
     Object.entries(courseGroups).forEach(([courseName, courseTopics]) => {
-      // For Special Topics and Calculus Essentials, create a flat list without sections
-      if (courseName === 'Special Topics' || courseName === 'Calculus Essentials') {
-        // Create a single section with all topics
-        const sections: Section[] = [{
-          id: courseName.toLowerCase().replace(/\s+/g, '-') + '-all',
-          name: courseName,
-          topics: courseTopics.sort((a, b) => a.id - b.id)
-        }];
-        
-        courses.push({
-          id: courseName.toLowerCase().replace(/\s+/g, '-'),
-          name: courseName,
-          sections: sections
-        });
-      } else {
-        // Group topics by main_topics within this course
-        const sectionGroups = courseTopics.reduce((acc, topic) => {
-          const sectionName = topic.main_topics || 'Other';
-          // Filter out "Basics of Functions" section
-          if (sectionName === 'Basics of Functions') {
-            return acc;
-          }
-          if (!acc[sectionName]) {
-            acc[sectionName] = [];
-          }
-          acc[sectionName].push(topic);
-          return acc;
-        }, {} as Record<string, Topic[]>);
+      // Group topics by main_topics within this course
+      const sectionGroups = courseTopics.reduce((acc, topic) => {
+        const sectionName = topic.main_topics || 'Other';
+        if (!acc[sectionName]) {
+          acc[sectionName] = [];
+        }
+        acc[sectionName].push(topic);
+        return acc;
+      }, {} as Record<string, Topic[]>);
 
-        // Build sections for this course
-        const sections: Section[] = Object.entries(sectionGroups).map(([sectionName, sectionTopics]) => ({
-          id: sectionName.toLowerCase().replace(/\s+/g, '-'),
-          name: sectionName,
-          topics: sectionTopics.sort((a, b) => a.id - b.id)
-        }));
+      // Build sections for this course
+      const sections: Section[] = Object.entries(sectionGroups).map(([sectionName, sectionTopics]) => ({
+        id: sectionName.toLowerCase().replace(/\s+/g, '-'),
+        name: sectionName,
+        topics: sectionTopics.sort((a, b) => a.id - b.id)
+      }));
 
-        // Add course with its sections, using display name
-        courses.push({
-          id: courseName.toLowerCase().replace(/\s+/g, '-'),
-          name: getCourseDisplayName(courseName),
-          sections: sections.sort((a, b) => {
-            // Sort sections by the minimum topic ID in each section
-            // This ensures sections appear in the order they appear in the database
-            const minIdA = Math.min(...a.topics.map(t => t.id));
-            const minIdB = Math.min(...b.topics.map(t => t.id));
-            return minIdA - minIdB;
-          })
-        });
-      }
+      // Add course with its sections, using display name
+      courses.push({
+        id: courseName.toLowerCase().replace(/\s+/g, '-'),
+        name: getCourseDisplayName(courseName),
+        sections: sections.sort((a, b) => {
+          const minIdA = Math.min(...a.topics.map(t => t.id));
+          const minIdB = Math.min(...b.topics.map(t => t.id));
+          return minIdA - minIdB;
+        })
+      });
     });
 
     // No placeholder courses - only show courses with actual data
 
     // Sort courses in specific order (use display names for sorting)
     return courses.sort((a, b) => {
-      // Define order with school-specific names
       const order = [
-        'Calculus I / AP Calc AB', 'AP Calculus AB', 'Math 1300', 'Math 1101',  // All Calc I variations
-        'Calculus II / AP Calc BC', 'AP Calculus BC', 'Math 1400', 'Math 1102',  // All Calc II variations
-        'Special Topics',  // Special Topics after Calc II
-        'Calculus Essentials'  // Calculus Essentials after Special Topics
+        'Quant Interview',
+        'Calculus I / AP Calc AB', 'AP Calculus AB', 'Math 1300', 'Math 1101',
+        'Calculus II / AP Calc BC', 'AP Calculus BC', 'Math 1400', 'Math 1102',
+        'Special Topics',
+        'Calculus Essentials'
       ];
 
       const indexA = order.indexOf(a.name);
@@ -351,14 +321,14 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                   {/* Practice Menu Items */}
                   {/* Handouts/Problems */}
                   <div className="mb-2">
-                    <Collapsible defaultOpen={false}>
+                    <Collapsible defaultOpen={true}>
                       <CollapsibleTrigger asChild>
                         <Button
                           variant="ghost"
                           className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
                           style={{ color: 'var(--foreground)' }}
                         >
-                          <span className="flex-1 text-left">Handouts/Problems</span>
+                          <span className="flex-1 text-left">Topics</span>
                           <ChevronDown className="h-4 w-4" />
                         </Button>
                       </CollapsibleTrigger>
@@ -384,20 +354,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                     </Collapsible>
                   </div>
                   
-                  {/* Personalized Practice */}
-                  <div className="mb-2">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
-                      style={{
-                        backgroundColor: activeMenu === 'recommended-practice' ? 'var(--muted)' : 'transparent',
-                        color: 'var(--sidebar-foreground)'
-                      }}
-                      onClick={onRecommendedPractice}
-                    >
-                      <span className="flex-1 text-left">Personalized Practice</span>
-                    </Button>
-                  </div>
+                  {/* Personalized Practice - hidden for MVP */}
 
                   {/* Mock Exam/Quiz */}
                   <div className="mb-2">
@@ -410,7 +367,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                       }}
                       onClick={onCreatePractice}
                     >
-                      <span className="flex-1 text-left">Mock Exam/Quiz</span>
+                      <span className="flex-1 text-left">Practice</span>
                     </Button>
                   </div>
 
@@ -437,39 +394,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                     )}
                   </div>
 
-                  {/* Separator */}
-                  <div className="mx-3 mb-4 border-t" style={{ borderColor: 'var(--border)' }} />
-
-                  {/* Tutor Menu Items */}
-                  {/* AI Tutor */}
-                  <div className="mb-2">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
-                      style={{
-                        backgroundColor: activeMenu === 'ai-tutor' ? 'var(--muted)' : 'transparent',
-                        color: 'var(--sidebar-foreground)'
-                      }}
-                      onClick={onAITutor}
-                    >
-                      <span className="flex-1 text-left">AI Tutor</span>
-                    </Button>
-                  </div>
-
-                  {/* History */}
-                  <div className="mb-2">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start py-2 px-3 font-semibold cursor-pointer text-base rounded-xl"
-                      style={{
-                        backgroundColor: activeMenu === 'history' ? 'var(--muted)' : 'transparent',
-                        color: 'var(--sidebar-foreground)'
-                      }}
-                      onClick={onHistory}
-                    >
-                      <span className="flex-1 text-left">History</span>
-                    </Button>
-                  </div>
+                  {/* Separator, AI Tutor, History - hidden for MVP */}
             </div>
               </motion.div>
             ) : (
@@ -486,34 +411,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
               {selectedCourse && (
                 <>
                   <h3 className="font-semibold text-lg mb-4" style={{ color: 'var(--sidebar-foreground)' }}>{selectedCourse.name}</h3>
-                  {(selectedCourse.name === 'Special Topics' || selectedCourse.name === 'Calculus Essentials') ? (
-                    // For Special Topics and Calculus Essentials, show topics directly without section dropdown
-                    <div className="space-y-1">
-                      {selectedCourse.sections[0].topics.map((topic) => {
-                        const locked = isTopicLocked(topic.id);
-                        return (
-                          <Button
-                            key={topic.id}
-                            variant={selectedTopicId === topic.id ? "default" : "ghost"}
-                            className="w-full justify-start text-left h-auto py-2 px-3 text-xs cursor-pointer rounded-xl"
-                            style={{
-                              backgroundColor: selectedTopicId === topic.id ? 'var(--muted)' : 'transparent',
-                              color: locked ? 'var(--muted-foreground)' : (selectedTopicId === topic.id ? 'var(--sidebar-foreground)' : 'var(--muted-foreground)'),
-                              opacity: locked ? 0.6 : 1
-                            }}
-                            onClick={() => handleTopicClick(topic.id)}
-                          >
-                            <span className="flex-1 leading-relaxed whitespace-normal break-words">
-                              {topic.subtopics || `Topic ${topic.id}`}
-                            </span>
-                            {locked && <Lock className="h-3 w-3 ml-2 flex-shrink-0" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    // For other courses, show sections with collapsible topics
-                    selectedCourse.sections.map((section) => (
+                  {selectedCourse.sections.map((section) => (
                       <div key={section.id} className="mb-4">
                         <Collapsible
                           open={expandedSections.has(section.id)}
@@ -563,8 +461,7 @@ export default function TopicsSidebar({ selectedTopicId, onSelectTopic, onToggle
                           </CollapsibleContent>
                         </Collapsible>
                       </div>
-                    ))
-                  )}
+                    ))}
                 </>
               )}
             </div>
