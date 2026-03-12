@@ -27,6 +27,9 @@ frontend/dist/
 frontend/build/
 frontend/.next/
 
+# Claude Code
+.claude/worktrees/
+
 # IDE
 .cursor/mcp.json
 .vscode/
