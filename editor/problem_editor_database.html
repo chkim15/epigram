@@ -1585,6 +1585,36 @@
         let currentFileName = '';
         let originalFileName = '';
         let availableTopics = [];
+        let availableQuantTopics = [
+            {id: 1, name: 'Induction'}, {id: 2, name: 'Logical Reasoning'}, {id: 3, name: 'Symmetry'},
+            {id: 4, name: 'Series'}, {id: 5, name: 'Sequences'}, {id: 6, name: 'Combinatorics'},
+            {id: 7, name: 'Probability'}, {id: 8, name: 'Expected Value'}, {id: 9, name: 'Conditional Probability'},
+            {id: 10, name: 'Bayes Theorem'}, {id: 11, name: 'Markov Chains'}, {id: 12, name: 'Random Walk'},
+            {id: 13, name: 'Martingales'}, {id: 14, name: 'Stochastic Processes'}, {id: 15, name: 'Generating Functions'},
+            {id: 16, name: 'Recurrence Relations'}, {id: 17, name: 'Linear Algebra'}, {id: 18, name: 'Eigenvalues & Eigenvectors'},
+            {id: 19, name: 'Matrix Operations'}, {id: 20, name: 'Calculus'}, {id: 21, name: 'Optimization'},
+            {id: 22, name: 'Integration'}, {id: 23, name: 'Differential Equations'}, {id: 24, name: 'Game Theory'},
+            {id: 25, name: 'Strategy & Equilibrium'}, {id: 26, name: 'Auction Theory'}, {id: 27, name: 'Number Theory'},
+            {id: 28, name: 'Modular Arithmetic'}, {id: 29, name: 'Prime Numbers'}, {id: 30, name: 'Divisibility'},
+            {id: 31, name: 'Geometry'}, {id: 32, name: 'Trigonometry'}, {id: 33, name: 'Coordinate Geometry'},
+            {id: 34, name: 'Graph Theory'}, {id: 35, name: 'Trees & Networks'}, {id: 36, name: 'Algorithms'},
+            {id: 37, name: 'Dynamic Programming'}, {id: 38, name: 'Greedy Algorithms'}, {id: 39, name: 'Sorting & Searching'},
+            {id: 40, name: 'Data Structures'}, {id: 41, name: 'Bit Manipulation'}, {id: 42, name: 'Statistics'},
+            {id: 43, name: 'Distributions'}, {id: 44, name: 'Hypothesis Testing'}, {id: 45, name: 'Regression'},
+            {id: 46, name: 'Estimation'}, {id: 47, name: 'Variance & Covariance'}, {id: 48, name: 'Central Limit Theorem'},
+            {id: 49, name: 'Law of Large Numbers'}, {id: 50, name: 'Monte Carlo Methods'}, {id: 51, name: 'Puzzles & Brain Teasers'},
+            {id: 52, name: 'Fermi Estimation'}, {id: 53, name: 'Mental Math'}, {id: 54, name: 'Clock & Calendar'},
+            {id: 55, name: 'Coin & Dice'}, {id: 56, name: 'Card Problems'}, {id: 57, name: 'Urn Problems'},
+            {id: 58, name: 'Coding & Implementation'}
+        ];
+        let availableCompanies = [
+            {id: 1, name: 'Citadel'}, {id: 2, name: 'Citadel Securities'}, {id: 3, name: 'HRT'},
+            {id: 4, name: 'Two Sigma'}, {id: 5, name: 'Jane Street'}, {id: 6, name: 'DE Shaw'},
+            {id: 7, name: 'Jump Trading'}, {id: 8, name: 'IMC'}, {id: 9, name: 'Optiver'},
+            {id: 10, name: 'SIG'}, {id: 11, name: 'Akuna Capital'}, {id: 12, name: 'Five Rings'},
+            {id: 13, name: 'Bridgewater'}, {id: 14, name: 'Point72'}, {id: 15, name: 'Tower Research'},
+            {id: 16, name: 'Millennium'}, {id: 17, name: 'Virtu Financial'}
+        ];
         let dataSourceType = 'json'; // Track data source: 'json' or 'database'
         
         // ===== PASSWORD PROTECTION =====
@@ -1706,7 +1736,6 @@
                 problem_text: problem.problem_text || null,
                 correct_answer: problem.correct_answer || null,
                 hint: problem.hint || null,
-                // solution_text: problem.solution && problem.solution.text ? problem.solution.text : null,  // NO LONGER INSERT - use solutions table
                 math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
                 reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                 difficulty: problem.difficulty || null,
@@ -1714,14 +1743,17 @@
                 keyword: problem.keyword || null,
                 comment: problem.comment || null,
                 version: problem.version || 'v1',
-                included: problem.included !== false  // Default to true if not specified
+                included: problem.included !== false,
+                problem_name: problem.problem_name || null,
+                problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : (problem.problem_labels ? [problem.problem_labels] : []),
+                company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : [])
             };
-            
+
             const { data, error } = await supabase
                 .from('problems')
                 .upsert(payload, { onConflict: 'problem_id' })
                 .select();
-            
+
             if (error) throw new Error(`Problem insert failed: ${error.message}`);
             
             // Now handle topics through junction table
@@ -1748,7 +1780,13 @@
                     console.error('Failed to insert topic relationships:', topicError);
                 }
             }
-            
+
+            // Handle quant_topics through junction table
+            if (data && data.length > 0) {
+                const problemUuid = data[0].id;
+                await insertQuantTopics(problem.quant_topics || [], problemUuid);
+            }
+
             // Handle multiple solutions and hints if available
             if (data && data.length > 0) {
                 const problemUuid = data[0].id;
@@ -2020,7 +2058,6 @@
                                 problem_text: problem.problem_text,
                                 correct_answer: problem.correct_answer,
                                 hint: problem.hint,
-                                // solution_text: problem.solution?.text,  // NO LONGER UPDATE solution_text - use solutions table instead
                                 math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
                                 reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                                 difficulty: problem.difficulty,
@@ -2029,14 +2066,17 @@
                                 comment: problem.comment,
                                 version: newVersion,
                                 updated_at: new Date().toISOString(),
-                                included: problem.included !== false  // Default to true if not specified
+                                included: problem.included !== false,
+                                problem_name: problem.problem_name || null,
+                                problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : (problem.problem_labels ? [problem.problem_labels] : []),
+                                company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : [])
                             };
-                            
+
                             const { error: updateError } = await supabase
                                 .from('problems')
                                 .update(updateData)
                                 .eq('problem_id', problem.id);
-                            
+
                             if (updateError) {
                                 throw updateError;
                             }
@@ -2074,7 +2114,10 @@
                                         console.error('Failed to update topics:', topicsError);
                                     }
                                 }
-                                
+
+                                // 1b. Update quant_topics through junction table
+                                await insertQuantTopics(problem.quant_topics || [], problemUuid);
+
                                 // 2. Update solutions table (ONLY place where solutions are stored now)
                                 // Prepare all solutions
                                 const allSolutions = [];
@@ -2513,6 +2556,7 @@
             // Create new problem template
             const newProblem = {
                 id: newProblemId,
+                problem_name: '',
                 problem_text: '',
                 answer_options: null,
                 correct_answer: '',
@@ -2521,11 +2565,14 @@
                 images: [],
                 difficulty: '',
                 topics: [],
+                quant_topics: [],
                 math_approach: [],
                 reasoning_type: [],
+                problem_labels: [],
                 comment: '',
                 importance: null,
                 keyword: '',
+                company_labels: [],
                 subproblems: {}
             };
 
@@ -2628,6 +2675,15 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">Problem Name</label>
+                    <input type="text" class="form-control" id="problemNameInput"
+                           placeholder="Enter problem name..."
+                           value="${problem.problem_name || ''}"
+                           onchange="updateProblem('problem_name', this.value)"
+                           onblur="updateProblem('problem_name', this.value)">
+                </div>
+
+                <div class="form-group">
                     <label class="form-label">Problem Text</label>
                     <div class="problem-text-display" onclick="toggleProblemTextEdit()" id="problemTextDisplay">
                         <div id="problemTextRendered">${preprocessLatexLists(problem.problem_text || '')}</div>
@@ -2709,7 +2765,22 @@
 
 
                 <div class="form-group">
-                    <label class="form-label">Topics</label>
+                    <label class="form-label">Quant Topics</label>
+                    <div class="topics-container">
+                        <div class="topics-search-container" style="position: relative;">
+                            <input type="text" class="form-control" id="quantTopicSearchInput" placeholder="Search quant topics..." oninput="handleQuantTopicInput()" onfocus="showQuantTopicsDropdown()" onblur="hideQuantTopicsDropdown()">
+                            <button type="button" style="position: absolute; right: 5px; top: 5px; background: #007bff; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; z-index: 10;" onclick="testQuantTopicsDropdown()">▼</button>
+                            <div id="quantTopicsDropdown" class="topics-dropdown" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="topics-list" id="quantTopicsList">
+                            ${generateQuantTopicsList(problem.quant_topics || [])}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Calculus Topics</label>
                     <div class="topics-container">
                         <div class="topics-search-container" style="position: relative;">
                             <input type="text" class="form-control" id="topicSearchInput" placeholder="Search topics..." oninput="handleTopicInput()" onfocus="showTopicsDropdown()" onblur="hideTopicsDropdown()">
@@ -2741,6 +2812,13 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">Problem Labels</label>
+                    <div class="reasoning-buttons" id="problemLabelButtons">
+                        ${generateProblemLabelButtons(problem.problem_labels || [])}
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label">Comment</label>
                     <div class="problem-text-display" onclick="toggleCommentEdit()" id="commentDisplay">
                         <div id="commentRendered">${preprocessLatexLists(problem.comment || '')}</div>
@@ -2767,6 +2845,21 @@
                            value="${problem.keyword || ''}"
                            onchange="updateProblem('keyword', this.value)"
                            onblur="updateProblem('keyword', this.value)">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Company Labels</label>
+                    <div class="topics-container">
+                        <div class="topics-search-container" style="position: relative;">
+                            <input type="text" class="form-control" id="companySearchInput" placeholder="Search companies..." oninput="handleCompanyInput()" onfocus="showCompanyDropdown()" onblur="hideCompanyDropdown()">
+                            <button type="button" style="position: absolute; right: 5px; top: 5px; background: #007bff; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; z-index: 10;" onclick="testCompanyDropdown()">▼</button>
+                            <div id="companyDropdown" class="topics-dropdown" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="topics-list" id="companyList">
+                            ${generateCompanyList(problem.company_labels || [])}
+                        </div>
+                    </div>
                 </div>
 
                 <div class="save-section">
@@ -3829,6 +3922,257 @@
             reasoningButtons.innerHTML = generateReasoningButtons(reasonings);
         }
 
+        // ===== PROBLEM LABELS (toggle buttons) =====
+        function generateProblemLabelButtons(labels) {
+            const availableLabels = ['Open-Ended', 'Frequently-Tested', 'Must-Do'];
+            const selectedLabels = Array.isArray(labels) ? labels : (labels ? [labels] : []);
+            return availableLabels.map(label => {
+                const isSelected = selectedLabels.some(l => l && l.toLowerCase() === label.toLowerCase());
+                return `
+                    <button class="reasoning-btn ${isSelected ? 'selected' : ''}" onclick="toggleProblemLabel('${label}')">
+                        ${label}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleProblemLabel(label) {
+            if (currentProblemIndex >= 0) {
+                let currentLabels = problemsData.problems[currentProblemIndex].problem_labels;
+                if (!Array.isArray(currentLabels)) {
+                    currentLabels = currentLabels ? [currentLabels] : [];
+                }
+                const labelLower = label.toLowerCase();
+                const index = currentLabels.findIndex(l => l && l.toLowerCase() === labelLower);
+                if (index > -1) {
+                    currentLabels.splice(index, 1);
+                } else {
+                    currentLabels.push(labelLower);
+                }
+                problemsData.problems[currentProblemIndex].problem_labels = currentLabels;
+                updateProblemLabelButtons();
+            }
+        }
+
+        function updateProblemLabelButtons() {
+            const container = document.getElementById('problemLabelButtons');
+            if (container) {
+                const labels = problemsData.problems[currentProblemIndex].problem_labels || [];
+                container.innerHTML = generateProblemLabelButtons(labels);
+            }
+        }
+
+        // ===== QUANT TOPICS (searchable dropdown) =====
+        function generateQuantTopicsList(quantTopicNames) {
+            if (!quantTopicNames || quantTopicNames.length === 0) {
+                return '<p style="color: #6c757d; font-style: italic;">No quant topics added</p>';
+            }
+            return quantTopicNames.map(name => {
+                return `
+                    <div class="topic-tag" onclick="removeQuantTopic('${name.replace(/'/g, "\\'")}')">
+                        ${name}
+                        <span class="remove">×</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterQuantTopics() {
+            const searchInput = document.getElementById('quantTopicSearchInput');
+            const dropdown = document.getElementById('quantTopicsDropdown');
+            if (!searchInput || !dropdown) return;
+
+            const searchTerm = searchInput.value.toLowerCase();
+            const currentTopics = (currentProblemIndex >= 0 && problemsData && problemsData.problems)
+                ? (problemsData.problems[currentProblemIndex].quant_topics || [])
+                : [];
+
+            let filtered = availableQuantTopics.filter(t => !currentTopics.includes(t.name));
+            if (searchTerm) {
+                filtered = filtered.filter(t => t.name.toLowerCase().includes(searchTerm));
+            }
+
+            dropdown.innerHTML = filtered.map(t => `
+                <div class="topics-dropdown-item" onmousedown="addQuantTopicByName('${t.name.replace(/'/g, "\\'")}')">
+                    ${t.name}
+                </div>
+            `).join('');
+
+            if (filtered.length === 0 && searchTerm) {
+                dropdown.innerHTML = '<div class="topics-dropdown-item" style="color: #6c757d; font-style: italic;">No quant topics found</div>';
+            }
+        }
+
+        function showQuantTopicsDropdown() {
+            const dropdown = document.getElementById('quantTopicsDropdown');
+            if (!dropdown) return;
+            dropdown.style.display = 'block';
+            filterQuantTopics();
+        }
+
+        function hideQuantTopicsDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('quantTopicsDropdown');
+                if (dropdown) dropdown.style.display = 'none';
+                const searchInput = document.getElementById('quantTopicSearchInput');
+                if (searchInput) searchInput.value = '';
+            }, 200);
+        }
+
+        function handleQuantTopicInput() {
+            showQuantTopicsDropdown();
+            filterQuantTopics();
+        }
+
+        function testQuantTopicsDropdown() {
+            const dropdown = document.getElementById('quantTopicsDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                if (dropdown.style.display === 'block') filterQuantTopics();
+            }
+        }
+
+        function addQuantTopicByName(name) {
+            if (currentProblemIndex >= 0 && problemsData && problemsData.problems) {
+                if (!problemsData.problems[currentProblemIndex].quant_topics) {
+                    problemsData.problems[currentProblemIndex].quant_topics = [];
+                }
+                const topics = problemsData.problems[currentProblemIndex].quant_topics;
+                if (!topics.includes(name)) {
+                    topics.push(name);
+                }
+                updateQuantTopicsList();
+                const searchInput = document.getElementById('quantTopicSearchInput');
+                const dropdown = document.getElementById('quantTopicsDropdown');
+                if (searchInput) searchInput.value = '';
+                if (dropdown) dropdown.style.display = 'none';
+            }
+        }
+
+        function removeQuantTopic(name) {
+            if (currentProblemIndex >= 0) {
+                const topics = problemsData.problems[currentProblemIndex].quant_topics;
+                const index = topics.indexOf(name);
+                if (index > -1) {
+                    topics.splice(index, 1);
+                    updateQuantTopicsList();
+                }
+            }
+        }
+
+        function updateQuantTopicsList() {
+            const list = document.getElementById('quantTopicsList');
+            if (list) {
+                const topics = problemsData.problems[currentProblemIndex].quant_topics || [];
+                list.innerHTML = generateQuantTopicsList(topics);
+            }
+        }
+
+        // ===== COMPANY LABELS (searchable dropdown) =====
+        function generateCompanyList(companyNames) {
+            if (!companyNames || companyNames.length === 0) {
+                return '<p style="color: #6c757d; font-style: italic;">No companies added</p>';
+            }
+            return companyNames.map(name => {
+                return `
+                    <div class="topic-tag" onclick="removeCompany('${name.replace(/'/g, "\\'")}')">
+                        ${name}
+                        <span class="remove">×</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterCompanyLabels() {
+            const searchInput = document.getElementById('companySearchInput');
+            const dropdown = document.getElementById('companyDropdown');
+            if (!searchInput || !dropdown) return;
+
+            const searchTerm = searchInput.value.toLowerCase();
+            const currentCompanies = (currentProblemIndex >= 0 && problemsData && problemsData.problems)
+                ? (problemsData.problems[currentProblemIndex].company_labels || [])
+                : [];
+
+            let filtered = availableCompanies.filter(c => !currentCompanies.includes(c.name));
+            if (searchTerm) {
+                filtered = filtered.filter(c => c.name.toLowerCase().includes(searchTerm));
+            }
+
+            dropdown.innerHTML = filtered.map(c => `
+                <div class="topics-dropdown-item" onmousedown="addCompanyByName('${c.name.replace(/'/g, "\\'")}')">
+                    ${c.name}
+                </div>
+            `).join('');
+
+            if (filtered.length === 0 && searchTerm) {
+                dropdown.innerHTML = '<div class="topics-dropdown-item" style="color: #6c757d; font-style: italic;">No companies found</div>';
+            }
+        }
+
+        function showCompanyDropdown() {
+            const dropdown = document.getElementById('companyDropdown');
+            if (!dropdown) return;
+            dropdown.style.display = 'block';
+            filterCompanyLabels();
+        }
+
+        function hideCompanyDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('companyDropdown');
+                if (dropdown) dropdown.style.display = 'none';
+                const searchInput = document.getElementById('companySearchInput');
+                if (searchInput) searchInput.value = '';
+            }, 200);
+        }
+
+        function handleCompanyInput() {
+            showCompanyDropdown();
+            filterCompanyLabels();
+        }
+
+        function testCompanyDropdown() {
+            const dropdown = document.getElementById('companyDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                if (dropdown.style.display === 'block') filterCompanyLabels();
+            }
+        }
+
+        function addCompanyByName(name) {
+            if (currentProblemIndex >= 0 && problemsData && problemsData.problems) {
+                if (!problemsData.problems[currentProblemIndex].company_labels) {
+                    problemsData.problems[currentProblemIndex].company_labels = [];
+                }
+                const companies = problemsData.problems[currentProblemIndex].company_labels;
+                if (!companies.includes(name)) {
+                    companies.push(name);
+                }
+                updateCompanyList();
+                const searchInput = document.getElementById('companySearchInput');
+                const dropdown = document.getElementById('companyDropdown');
+                if (searchInput) searchInput.value = '';
+                if (dropdown) dropdown.style.display = 'none';
+            }
+        }
+
+        function removeCompany(name) {
+            if (currentProblemIndex >= 0) {
+                const companies = problemsData.problems[currentProblemIndex].company_labels;
+                const index = companies.indexOf(name);
+                if (index > -1) {
+                    companies.splice(index, 1);
+                    updateCompanyList();
+                }
+            }
+        }
+
+        function updateCompanyList() {
+            const list = document.getElementById('companyList');
+            if (list) {
+                const companies = problemsData.problems[currentProblemIndex].company_labels || [];
+                list.innerHTML = generateCompanyList(companies);
+            }
+        }
 
         function toggleProblemInclusion() {
             if (currentProblemIndex >= 0) {
@@ -4250,6 +4594,32 @@
             showToast(message, 'error');
         }
 
+        async function insertQuantTopics(quantTopicNames, problemUuid) {
+            if (!quantTopicNames || quantTopicNames.length === 0) return;
+
+            // Delete existing quant topic relationships
+            await supabase
+                .from('problem_quant_topics')
+                .delete()
+                .eq('problem_id', problemUuid);
+
+            for (const name of quantTopicNames) {
+                const topic = availableQuantTopics.find(t => t.name === name);
+                if (!topic) continue;
+
+                const { error } = await supabase
+                    .from('problem_quant_topics')
+                    .upsert({
+                        problem_id: problemUuid,
+                        quant_topic_id: topic.id
+                    }, { onConflict: 'problem_id,quant_topic_id' });
+
+                if (error) {
+                    console.error('Quant topic insert failed:', error);
+                }
+            }
+        }
+
         function showSuccess(message) {
             showToast(message, 'success');
         }
@@ -4389,11 +4759,13 @@
             const payload = {
                 problem_id: problem.id,
                 document_id: documentUuid,
+                problem_name: problem.problem_name || null,
                 problem_text: problem.problem_text || null,
                 correct_answer: problem.correct_answer || null,
                 difficulty: problem.difficulty || null,
                 importance: problem.importance || null,
                 comment: problem.comment || null,
+                problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : [],
                 version: problem.version || 'v1'
             };
 
@@ -6861,7 +7233,28 @@
                             });
                         }
                     }
-                    
+
+                    // Batch fetch quant_topics from junction table
+                    let quantTopicsByProblem = {};
+                    if (problemIds.length > 0) {
+                        const { data: qtData, error: qtError } = await supabase
+                            .from('problem_quant_topics')
+                            .select('problem_id, quant_topic_id')
+                            .in('problem_id', problemIds);
+
+                        if (!qtError && qtData) {
+                            qtData.forEach(pqt => {
+                                if (!quantTopicsByProblem[pqt.problem_id]) {
+                                    quantTopicsByProblem[pqt.problem_id] = [];
+                                }
+                                const topic = availableQuantTopics.find(t => t.id === pqt.quant_topic_id);
+                                if (topic) {
+                                    quantTopicsByProblem[pqt.problem_id].push(topic.name);
+                                }
+                            });
+                        }
+                    }
+
                     // Batch fetch all solutions from solutions table
                     let solutionsByProblem = {};
                     let solutionsBySubproblem = {};
@@ -7221,18 +7614,20 @@
 
                 if (docError) throw docError;
 
-                // Get problems (without topics for now)
+                // Get problems
                 const { data: problemsData, error: problemsError } = await supabase
                     .from('problems')
                     .select(`
                         id,
                         problem_id,
+                        problem_name,
                         problem_text,
                         correct_answer,
                         hint,
                         solution_text,
                         math_approach,
                         reasoning_type,
+                        problem_labels,
                         difficulty,
                         importance,
                         keyword,
@@ -7240,7 +7635,8 @@
                         version,
                         created_at,
                         updated_at,
-                        included
+                        included,
+                        company_labels
                     `)
                     .eq('document_id', docData.id)
                     .order('problem_id');
@@ -7279,7 +7675,28 @@
                         problemTopics[pt.problem_id].push(pt.topic_id);
                     });
                 }
-                
+
+                // Get quant_topics from junction table
+                let quantTopicsByProblem = {};
+                if (problemIds.length > 0) {
+                    const { data: qtData, error: qtError } = await supabase
+                        .from('problem_quant_topics')
+                        .select('problem_id, quant_topic_id')
+                        .in('problem_id', problemIds);
+
+                    if (!qtError && qtData) {
+                        qtData.forEach(pqt => {
+                            if (!quantTopicsByProblem[pqt.problem_id]) {
+                                quantTopicsByProblem[pqt.problem_id] = [];
+                            }
+                            const topic = availableQuantTopics.find(t => t.id === pqt.quant_topic_id);
+                            if (topic) {
+                                quantTopicsByProblem[pqt.problem_id].push(topic.name);
+                            }
+                        });
+                    }
+                }
+
                 // NEW: Get solutions from solutions table
                 let problemSolutions = {};
                 let subproblemSolutions = {};
@@ -7439,6 +7856,7 @@
                     return {
                         id: problem.problem_id,
                         doc_id: documentId,
+                        problem_name: problem.problem_name || '',
                         problem_text: problem.problem_text,
                         subproblems: subproblemsObj,
                         correct_answer: problem.correct_answer,
@@ -7451,11 +7869,14 @@
                         images: [], // Images are stored in Supabase storage
                         difficulty: problem.difficulty,
                         topics: topics,
+                        quant_topics: quantTopicsByProblem[problem.id] || [],
                         math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
                         reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
+                        problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : (problem.problem_labels ? [problem.problem_labels] : []),
                         comment: problem.comment,
                         importance: problem.importance,
                         keyword: problem.keyword,
+                        company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : []),
                         updated_at: problem.updated_at,
                         version: problem.version,
                         included: problem.included !== false  // Default to true if not specified
@@ -7601,6 +8022,7 @@
                     return {
                         id: problem.problem_id,
                         doc_id: problem.documents?.document_id || 'unknown',
+                        problem_name: problem.problem_name || '',
                         problem_text: problem.problem_text,
                         subproblems: subproblemsObj,
                         correct_answer: problem.correct_answer,
@@ -7612,11 +8034,14 @@
                         images: [],
                         difficulty: problem.difficulty,
                         topics: topicsByProblem[problem.id] || [selectedTopic],  // Use all topics for this problem
+                        quant_topics: [],
                         math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
                         reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
+                        problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : (problem.problem_labels ? [problem.problem_labels] : []),
                         comment: problem.comment,
                         importance: problem.importance,
                         keyword: problem.keyword,
+                        company_labels: [],
                         updated_at: problem.updated_at,
                         version: problem.version,
                         included: problem.included !== false  // Default to true if not specified
@@ -7730,7 +8155,7 @@
             // Compare main problem fields
             const fieldsToCompare = [
                 'problem_text', 'correct_answer', 'hint',
-                'difficulty', 'comment', 'importance', 'keyword'
+                'difficulty', 'comment', 'importance', 'keyword', 'problem_name'
             ];
             
             for (const field of fieldsToCompare) {
@@ -7795,6 +8220,27 @@
             const currentTopics = JSON.stringify((current.topics || []).sort());
             const originalTopics = JSON.stringify((original.topics || []).sort());
             if (currentTopics !== originalTopics) {
+                return true;
+            }
+
+            // Compare quant_topics array
+            const currentQuantTopics = JSON.stringify((current.quant_topics || []).slice().sort());
+            const originalQuantTopics = JSON.stringify((original.quant_topics || []).slice().sort());
+            if (currentQuantTopics !== originalQuantTopics) {
+                return true;
+            }
+
+            // Compare problem_labels array
+            const currentProblemLabels = JSON.stringify((Array.isArray(current.problem_labels) ? current.problem_labels : []).slice().sort());
+            const originalProblemLabels = JSON.stringify((Array.isArray(original.problem_labels) ? original.problem_labels : []).slice().sort());
+            if (currentProblemLabels !== originalProblemLabels) {
+                return true;
+            }
+
+            // Compare company_labels array
+            const currentCompanyLabels = JSON.stringify((current.company_labels || []).slice().sort());
+            const originalCompanyLabels = JSON.stringify((original.company_labels || []).slice().sort());
+            if (currentCompanyLabels !== originalCompanyLabels) {
                 return true;
             }
 
