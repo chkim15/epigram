@@ -1587,33 +1587,48 @@
         let availableTopics = [];
         let availableQuantTopics = [
             {id: 1, name: 'Induction'}, {id: 2, name: 'Logical Reasoning'}, {id: 3, name: 'Symmetry'},
-            {id: 4, name: 'Series'}, {id: 5, name: 'Sequences'}, {id: 6, name: 'Combinatorics'},
-            {id: 7, name: 'Probability'}, {id: 8, name: 'Expected Value'}, {id: 9, name: 'Conditional Probability'},
-            {id: 10, name: 'Bayes Theorem'}, {id: 11, name: 'Markov Chains'}, {id: 12, name: 'Random Walk'},
-            {id: 13, name: 'Martingales'}, {id: 14, name: 'Stochastic Processes'}, {id: 15, name: 'Generating Functions'},
-            {id: 16, name: 'Recurrence Relations'}, {id: 17, name: 'Linear Algebra'}, {id: 18, name: 'Eigenvalues & Eigenvectors'},
-            {id: 19, name: 'Matrix Operations'}, {id: 20, name: 'Calculus'}, {id: 21, name: 'Optimization'},
-            {id: 22, name: 'Integration'}, {id: 23, name: 'Differential Equations'}, {id: 24, name: 'Game Theory'},
-            {id: 25, name: 'Strategy & Equilibrium'}, {id: 26, name: 'Auction Theory'}, {id: 27, name: 'Number Theory'},
-            {id: 28, name: 'Modular Arithmetic'}, {id: 29, name: 'Prime Numbers'}, {id: 30, name: 'Divisibility'},
-            {id: 31, name: 'Geometry'}, {id: 32, name: 'Trigonometry'}, {id: 33, name: 'Coordinate Geometry'},
-            {id: 34, name: 'Graph Theory'}, {id: 35, name: 'Trees & Networks'}, {id: 36, name: 'Algorithms'},
-            {id: 37, name: 'Dynamic Programming'}, {id: 38, name: 'Greedy Algorithms'}, {id: 39, name: 'Sorting & Searching'},
-            {id: 40, name: 'Data Structures'}, {id: 41, name: 'Bit Manipulation'}, {id: 42, name: 'Statistics'},
-            {id: 43, name: 'Distributions'}, {id: 44, name: 'Hypothesis Testing'}, {id: 45, name: 'Regression'},
-            {id: 46, name: 'Estimation'}, {id: 47, name: 'Variance & Covariance'}, {id: 48, name: 'Central Limit Theorem'},
-            {id: 49, name: 'Law of Large Numbers'}, {id: 50, name: 'Monte Carlo Methods'}, {id: 51, name: 'Puzzles & Brain Teasers'},
-            {id: 52, name: 'Fermi Estimation'}, {id: 53, name: 'Mental Math'}, {id: 54, name: 'Clock & Calendar'},
-            {id: 55, name: 'Coin & Dice'}, {id: 56, name: 'Card Problems'}, {id: 57, name: 'Urn Problems'},
-            {id: 58, name: 'Coding & Implementation'}
+            {id: 4, name: 'Series'}, {id: 5, name: 'Pigeon Principle'}, {id: 6, name: 'Problem Simplification'},
+            {id: 7, name: 'Modular Arithmetic'}, {id: 8, name: 'Proof by Contradiction'}, {id: 9, name: 'Calculus Methods'},
+            {id: 10, name: 'Vector Geometry'}, {id: 11, name: 'Determinant and Rank'}, {id: 12, name: 'Eigenvalues and Eigenvectors'},
+            {id: 13, name: 'Positive Semi-Definiteness (PSD)'}, {id: 14, name: 'Quadratic Forms'}, {id: 15, name: 'QR Decompositions'},
+            {id: 16, name: 'SVD Decomposition'}, {id: 17, name: 'LU and Cholesky Decompositions'}, {id: 18, name: 'Principle Component Analysis (PCA)'},
+            {id: 19, name: 'Probability Modeling'}, {id: 20, name: 'Counting'}, {id: 21, name: 'Geometric Probability'},
+            {id: 22, name: 'Combinatorial Probability'}, {id: 23, name: 'Inclusion and Exclusion Principle'}, {id: 24, name: 'Conditional Probability and Bayesian Law'},
+            {id: 25, name: 'Expectation and Variance'}, {id: 26, name: 'Covariance and Correlation'}, {id: 27, name: 'Uniform Distribution'},
+            {id: 28, name: 'Geometric Distribution'}, {id: 29, name: 'Exponential Distribution'}, {id: 30, name: 'Poisson Distribution'},
+            {id: 31, name: '(Multivariate) Gaussian Distributions'}, {id: 32, name: 'Linearity of Expectations'}, {id: 33, name: 'Order Statistics'},
+            {id: 34, name: 'Max and Min'}, {id: 35, name: 'Applications of Symmetry'}, {id: 36, name: 'Markov Chain'},
+            {id: 37, name: 'Martingale'}, {id: 38, name: 'Random Walk'}, {id: 39, name: 'Brownian Motion'},
+            {id: 40, name: 'Stochastic Calculus'}, {id: 41, name: 'Poisson Processes'}, {id: 42, name: 'Dynamical Programming'},
+            {id: 43, name: 'Coin Flipping'}, {id: 44, name: 'Dice Rolling'}, {id: 45, name: 'Game Theory'},
+            {id: 46, name: 'Estimators'}, {id: 47, name: 'Sampling Distribution'}, {id: 48, name: 'Bias-Variance'},
+            {id: 49, name: 'Likelihood'}, {id: 50, name: 'Bayesian Inference'}, {id: 51, name: 'Law of Large Numbers (LLN)'},
+            {id: 52, name: 'Central Limit Theorem (CLT)'}, {id: 53, name: 'Rejection Sampling'}, {id: 54, name: 'Uniform Sampling'},
+            {id: 55, name: 'Hypothesis Testing'}, {id: 56, name: 'Linear Regression'}, {id: 57, name: 'Ridge and Lasso Regression'},
+            {id: 58, name: 'Logistic Regression'}, {id: 59, name: 'Quantile Regression'}, {id: 60, name: 'Maximum Likelihood Estimate (MLE)'},
+            {id: 61, name: 'Time Series Analysis'}, {id: 62, name: 'Monte Carlo'}, {id: 63, name: 'Information Theory'},
+            {id: 64, name: 'Games'}, {id: 65, name: 'Randomization Strategy'}, {id: 66, name: 'Bidding'},
+            {id: 67, name: 'Optimization'}, {id: 68, name: 'Numerical Methods'}, {id: 69, name: 'Algorithms and Data Structures'},
+            {id: 70, name: 'Arrays and Strings'}, {id: 71, name: 'Two Pointers'}, {id: 72, name: 'Sliding Window'},
+            {id: 73, name: 'Hashing'}, {id: 74, name: 'Linked Lists'}, {id: 75, name: 'Stacks and Queues'},
+            {id: 76, name: 'Trees and Graphs'}, {id: 77, name: 'Heaps'}, {id: 78, name: 'Greedy'},
+            {id: 79, name: 'Binary Search'}, {id: 80, name: 'Backtracking'}, {id: 81, name: 'Dynamical Programming (Coding)'},
+            {id: 82, name: 'Machine Learning'}, {id: 83, name: 'Classification Algorithms'}, {id: 84, name: 'Random Forest'},
+            {id: 85, name: 'Data Science'}, {id: 86, name: 'AI/LLM'}, {id: 87, name: 'Finance'},
+            {id: 88, name: 'Python'}, {id: 89, name: 'C++'}, {id: 90, name: 'Java'},
+            {id: 91, name: 'Nontraditional'}, {id: 92, name: 'Approximation'}, {id: 93, name: 'Paradox'}
         ];
         let availableCompanies = [
             {id: 1, name: 'Citadel'}, {id: 2, name: 'Citadel Securities'}, {id: 3, name: 'HRT'},
-            {id: 4, name: 'Two Sigma'}, {id: 5, name: 'Jane Street'}, {id: 6, name: 'DE Shaw'},
-            {id: 7, name: 'Jump Trading'}, {id: 8, name: 'IMC'}, {id: 9, name: 'Optiver'},
-            {id: 10, name: 'SIG'}, {id: 11, name: 'Akuna Capital'}, {id: 12, name: 'Five Rings'},
-            {id: 13, name: 'Bridgewater'}, {id: 14, name: 'Point72'}, {id: 15, name: 'Tower Research'},
-            {id: 16, name: 'Millennium'}, {id: 17, name: 'Virtu Financial'}
+            {id: 4, name: 'Two Sigma'}, {id: 5, name: 'Squarepoint'}, {id: 6, name: 'Point72'},
+            {id: 7, name: 'Cubist'}, {id: 8, name: 'SIG'}, {id: 9, name: 'Jane Street'},
+            {id: 10, name: 'Jump Trading'}, {id: 11, name: 'DE Shaw'}, {id: 12, name: 'Five Rings'},
+            {id: 13, name: 'Millennium'}, {id: 14, name: 'WorldQuant'}, {id: 15, name: 'Voleon Group'},
+            {id: 16, name: 'IMC Trading'}, {id: 17, name: 'Barclays'}
+        ];
+        let availableLocations = [
+            {id: 1, name: 'US'}, {id: 2, name: 'UK'}, {id: 3, name: 'Europe'},
+            {id: 4, name: 'Hong Kong'}, {id: 5, name: 'Singapore'}, {id: 6, name: 'China'}
         ];
         let dataSourceType = 'json'; // Track data source: 'json' or 'database'
         
@@ -1746,7 +1761,8 @@
                 included: problem.included !== false,
                 problem_name: problem.problem_name || null,
                 problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : (problem.problem_labels ? [problem.problem_labels] : []),
-                company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : [])
+                company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : []),
+                location_labels: Array.isArray(problem.location_labels) ? problem.location_labels : (problem.location_labels ? [problem.location_labels] : [])
             };
 
             const { data, error } = await supabase
@@ -2069,7 +2085,8 @@
                                 included: problem.included !== false,
                                 problem_name: problem.problem_name || null,
                                 problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : (problem.problem_labels ? [problem.problem_labels] : []),
-                                company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : [])
+                                company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : []),
+                                location_labels: Array.isArray(problem.location_labels) ? problem.location_labels : (problem.location_labels ? [problem.location_labels] : [])
                             };
 
                             const { error: updateError } = await supabase
@@ -2573,6 +2590,7 @@
                 importance: null,
                 keyword: '',
                 company_labels: [],
+                location_labels: [],
                 subproblems: {}
             };
 
@@ -2858,6 +2876,21 @@
                         </div>
                         <div class="topics-list" id="companyList">
                             ${generateCompanyList(problem.company_labels || [])}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Location Labels</label>
+                    <div class="topics-container">
+                        <div class="topics-search-container" style="position: relative;">
+                            <input type="text" class="form-control" id="locationSearchInput" placeholder="Search locations..." oninput="handleLocationInput()" onfocus="showLocationDropdown()" onblur="hideLocationDropdown()">
+                            <button type="button" style="position: absolute; right: 5px; top: 5px; background: #007bff; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; z-index: 10;" onclick="testLocationDropdown()">▼</button>
+                            <div id="locationDropdown" class="topics-dropdown" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="topics-list" id="locationList">
+                            ${generateLocationList(problem.location_labels || [])}
                         </div>
                     </div>
                 </div>
@@ -3924,7 +3957,7 @@
 
         // ===== PROBLEM LABELS (toggle buttons) =====
         function generateProblemLabelButtons(labels) {
-            const availableLabels = ['Open-Ended', 'Frequently-Tested', 'Must-Do'];
+            const availableLabels = ['Open-Ended', 'Frequently-Tested', 'Must-Do', 'Conceptual', 'Programming', 'Mental Math', '45 seconds Math', '30 seconds Math', '15 seconds Math'];
             const selectedLabels = Array.isArray(labels) ? labels : (labels ? [labels] : []);
             return availableLabels.map(label => {
                 const isSelected = selectedLabels.some(l => l && l.toLowerCase() === label.toLowerCase());
@@ -4174,6 +4207,112 @@
             }
         }
 
+        // ===== LOCATION LABELS (searchable dropdown) =====
+        function generateLocationList(locationNames) {
+            if (!locationNames || locationNames.length === 0) {
+                return '<p style="color: #6c757d; font-style: italic;">No locations added</p>';
+            }
+            return locationNames.map(name => {
+                return `
+                    <div class="topic-tag" onclick="removeLocation('${name.replace(/'/g, "\\'")}')">
+                        ${name}
+                        <span class="remove">×</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterLocationLabels() {
+            const searchInput = document.getElementById('locationSearchInput');
+            const dropdown = document.getElementById('locationDropdown');
+            if (!searchInput || !dropdown) return;
+
+            const searchTerm = searchInput.value.toLowerCase();
+            const currentLocations = (currentProblemIndex >= 0 && problemsData && problemsData.problems)
+                ? (problemsData.problems[currentProblemIndex].location_labels || [])
+                : [];
+
+            let filtered = availableLocations.filter(l => !currentLocations.includes(l.name));
+            if (searchTerm) {
+                filtered = filtered.filter(l => l.name.toLowerCase().includes(searchTerm));
+            }
+
+            dropdown.innerHTML = filtered.map(l => `
+                <div class="topics-dropdown-item" onmousedown="addLocationByName('${l.name.replace(/'/g, "\\'")}')">
+                    ${l.name}
+                </div>
+            `).join('');
+
+            if (filtered.length === 0 && searchTerm) {
+                dropdown.innerHTML = '<div class="topics-dropdown-item" style="color: #6c757d; font-style: italic;">No locations found</div>';
+            }
+        }
+
+        function showLocationDropdown() {
+            const dropdown = document.getElementById('locationDropdown');
+            if (!dropdown) return;
+            dropdown.style.display = 'block';
+            filterLocationLabels();
+        }
+
+        function hideLocationDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('locationDropdown');
+                if (dropdown) dropdown.style.display = 'none';
+                const searchInput = document.getElementById('locationSearchInput');
+                if (searchInput) searchInput.value = '';
+            }, 200);
+        }
+
+        function handleLocationInput() {
+            showLocationDropdown();
+            filterLocationLabels();
+        }
+
+        function testLocationDropdown() {
+            const dropdown = document.getElementById('locationDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                if (dropdown.style.display === 'block') filterLocationLabels();
+            }
+        }
+
+        function addLocationByName(name) {
+            if (currentProblemIndex >= 0 && problemsData && problemsData.problems) {
+                if (!problemsData.problems[currentProblemIndex].location_labels) {
+                    problemsData.problems[currentProblemIndex].location_labels = [];
+                }
+                const locations = problemsData.problems[currentProblemIndex].location_labels;
+                if (!locations.includes(name)) {
+                    locations.push(name);
+                }
+                updateLocationList();
+                const searchInput = document.getElementById('locationSearchInput');
+                const dropdown = document.getElementById('locationDropdown');
+                if (searchInput) searchInput.value = '';
+                if (dropdown) dropdown.style.display = 'none';
+            }
+        }
+
+        function removeLocation(name) {
+            if (currentProblemIndex >= 0) {
+                const locations = problemsData.problems[currentProblemIndex].location_labels;
+                const index = locations.indexOf(name);
+                if (index > -1) {
+                    locations.splice(index, 1);
+                    updateLocationList();
+                }
+            }
+        }
+
+        function updateLocationList() {
+            const list = document.getElementById('locationList');
+            if (list) {
+                const locations = problemsData.problems[currentProblemIndex].location_labels || [];
+                list.innerHTML = generateLocationList(locations);
+            }
+        }
+
         function toggleProblemInclusion() {
             if (currentProblemIndex >= 0) {
                 const problem = problemsData.problems[currentProblemIndex];
@@ -4391,9 +4530,15 @@
 
         function isProblemComplete(problem) {
             // Check if either problem_text exists OR at least one subproblem exists
-            const hasContent = problem.problem_text || 
-                              (problem.subproblems && Object.keys(problem.subproblems).length > 0 && 
+            const hasContent = problem.problem_text ||
+                              (problem.subproblems && Object.keys(problem.subproblems).length > 0 &&
                                Object.values(problem.subproblems).some(sp => sp && sp.problem_text && sp.problem_text.trim()));
+
+            // Check topics: either topics or quant_topics must have at least one entry
+            const hasTopics = problem.topics && Array.isArray(problem.topics) && problem.topics.length > 0;
+            const hasQuantTopics = problem.quant_topics && Array.isArray(problem.quant_topics) && problem.quant_topics.length > 0;
+            const hasAnyTopics = hasTopics || hasQuantTopics;
+            const hasProblemName = problem.problem_name && problem.problem_name.trim();
             
             // Check if there are subproblems
             const hasSubproblems = problem.subproblems && 
@@ -4440,10 +4585,8 @@
                 // If subproblems have solutions and answers, consider the problem complete
                 // even without main problem solution and answer
                 if (subproblemHasSolution && subproblemHasAnswer) {
-                    return hasContent &&
-                           problem.difficulty && 
-                           problem.topics && Array.isArray(problem.topics) &&
-                           problem.topics.length > 0;
+                    return hasContent && hasProblemName &&
+                           problem.difficulty && hasAnyTopics;
                 }
             }
             
@@ -4452,12 +4595,11 @@
             const hasCorrectAnswer = problem.correct_answer && 
                                     (typeof problem.correct_answer === 'string' ? problem.correct_answer.trim() : problem.correct_answer);
             
-            return hasContent &&
-                   hasCorrectAnswer && 
-                   hasSolution && 
-                   problem.difficulty && 
-                   problem.topics && Array.isArray(problem.topics) &&
-                   problem.topics.length > 0;
+            return hasContent && hasProblemName &&
+                   hasCorrectAnswer &&
+                   hasSolution &&
+                   problem.difficulty &&
+                   hasAnyTopics;
                    // Note: math_approach and reasoning_type are now optional
         }
 
@@ -4766,6 +4908,8 @@
                 importance: problem.importance || null,
                 comment: problem.comment || null,
                 problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : [],
+                company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : [],
+                location_labels: Array.isArray(problem.location_labels) ? problem.location_labels : [],
                 version: problem.version || 'v1'
             };
 
@@ -7636,7 +7780,8 @@
                         created_at,
                         updated_at,
                         included,
-                        company_labels
+                        company_labels,
+                        location_labels
                     `)
                     .eq('document_id', docData.id)
                     .order('problem_id');
@@ -7877,6 +8022,7 @@
                         importance: problem.importance,
                         keyword: problem.keyword,
                         company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : []),
+                        location_labels: Array.isArray(problem.location_labels) ? problem.location_labels : (problem.location_labels ? [problem.location_labels] : []),
                         updated_at: problem.updated_at,
                         version: problem.version,
                         included: problem.included !== false  // Default to true if not specified
@@ -8042,6 +8188,7 @@
                         importance: problem.importance,
                         keyword: problem.keyword,
                         company_labels: [],
+                        location_labels: [],
                         updated_at: problem.updated_at,
                         version: problem.version,
                         included: problem.included !== false  // Default to true if not specified
@@ -8241,6 +8388,13 @@
             const currentCompanyLabels = JSON.stringify((current.company_labels || []).slice().sort());
             const originalCompanyLabels = JSON.stringify((original.company_labels || []).slice().sort());
             if (currentCompanyLabels !== originalCompanyLabels) {
+                return true;
+            }
+
+            // Compare location_labels array
+            const currentLocationLabels = JSON.stringify((current.location_labels || []).slice().sort());
+            const originalLocationLabels = JSON.stringify((original.location_labels || []).slice().sort());
+            if (currentLocationLabels !== originalLocationLabels) {
                 return true;
             }
 
