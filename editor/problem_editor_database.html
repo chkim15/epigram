@@ -2694,11 +2694,12 @@
 
                 <div class="form-group">
                     <label class="form-label">Problem Name</label>
-                    <input type="text" class="form-control" id="problemNameInput"
-                           placeholder="Enter problem name..."
-                           value="${problem.problem_name || ''}"
-                           onchange="updateProblem('problem_name', this.value)"
-                           onblur="updateProblem('problem_name', this.value)">
+                    <div class="problem-text-display" onclick="toggleProblemNameEdit()" id="problemNameDisplay" style="min-height: 40px;">
+                        <div id="problemNameRendered">${preprocessLatexLists(problem.problem_name || '')}</div>
+                    </div>
+                    <div class="answer-option" id="problemNameEdit" style="display: none;">
+                        <textarea id="problemNameTextarea" onchange="updateProblem('problem_name', this.value)" onblur="saveProblemName()" onkeydown="handleMultilineEdit(event)" placeholder="Enter problem name...">${problem.problem_name || ''}</textarea>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -2910,7 +2911,11 @@
             // Render LaTeX for problem text, answer options, solution, text answer, and subproblems
             if (window.MathJax) {
                 const elementsToRender = [];
-                
+
+                // Add problem name element
+                const problemNameElement = document.getElementById('problemNameRendered');
+                if (problemNameElement) elementsToRender.push(problemNameElement);
+
                 // Add problem text element
                 const problemTextElement = document.getElementById('problemTextRendered');
                 if (problemTextElement) elementsToRender.push(problemTextElement);
@@ -3073,6 +3078,51 @@
 
         function saveProblemText() {
             toggleProblemTextEdit();
+        }
+
+        function toggleProblemNameEdit() {
+            const display = document.getElementById('problemNameDisplay');
+            const rendered = document.getElementById('problemNameRendered');
+            const edit = document.getElementById('problemNameEdit');
+
+            if (display.style.display === 'none') {
+                // Save and switch to display mode
+                const textarea = document.getElementById('problemNameTextarea');
+                const newText = textarea.value;
+
+                if (window.MathJax) {
+                    MathJax.typesetClear([rendered]);
+                }
+
+                let processedHtml = preprocessLatexLists(newText);
+                rendered.innerHTML = processedHtml;
+                display.style.display = 'block';
+                edit.style.display = 'none';
+                updateProblem('problem_name', newText);
+
+                if (window.MathJax) {
+                    MathJax.typesetPromise([rendered]).catch((err) => {
+                        console.log('MathJax typeset error:', err);
+                        rendered.innerHTML = processedHtml;
+                    });
+                }
+            } else {
+                // Switch to edit mode
+                display.style.display = 'none';
+                edit.style.display = 'flex';
+                const textarea = document.getElementById('problemNameTextarea');
+
+                if (currentProblemIndex >= 0) {
+                    textarea.value = problemsData.problems[currentProblemIndex].problem_name || '';
+                }
+
+                textarea.focus();
+                autoResizeTextarea(textarea);
+            }
+        }
+
+        function saveProblemName() {
+            toggleProblemNameEdit();
         }
 
         function toggleTextAnswerEdit() {
