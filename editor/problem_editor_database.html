@@ -1616,7 +1616,14 @@
             {id: 82, name: 'Machine Learning'}, {id: 83, name: 'Classification Algorithms'}, {id: 84, name: 'Random Forest'},
             {id: 85, name: 'Data Science'}, {id: 86, name: 'AI/LLM'}, {id: 87, name: 'Finance'},
             {id: 88, name: 'Python'}, {id: 89, name: 'C++'}, {id: 90, name: 'Java'},
-            {id: 91, name: 'Nontraditional'}, {id: 92, name: 'Approximation'}, {id: 93, name: 'Paradox'}
+            {id: 91, name: 'Nontraditional'}, {id: 92, name: 'Approximation'}, {id: 93, name: 'Paradox'},
+            {id: 94, name: 'Factorials'}, {id: 95, name: 'Number Theory'}, {id: 96, name: 'Prime Number'},
+            {id: 97, name: 'Permutations'}, {id: 98, name: 'Combinations'}, {id: 99, name: 'Harmonic Number'},
+            {id: 100, name: 'Cards'}, {id: 101, name: 'Binomial Distribution'}, {id: 102, name: 'Bernoulli Distribution'},
+            {id: 103, name: 'Sharpe Ratio'}, {id: 104, name: 'Brain Teasers'}, {id: 105, name: 'Recursion'},
+            {id: 106, name: 'Matrix Algebra'}, {id: 107, name: 'Binary Matrices'}, {id: 108, name: 'Portfolio Optimization'},
+            {id: 109, name: 'Factor Models'}, {id: 110, name: 'Inequalities (Estimate)'}, {id: 111, name: 'Nash Equilibrium'},
+            {id: 112, name: 'Optimal Strategy'}, {id: 113, name: 'Pigeonhole Principle'}
         ];
         let availableCompanies = [
             {id: 1, name: 'Citadel'}, {id: 2, name: 'Citadel Securities'}, {id: 3, name: 'HRT'},
@@ -4007,7 +4014,7 @@
 
         // ===== PROBLEM LABELS (toggle buttons) =====
         function generateProblemLabelButtons(labels) {
-            const availableLabels = ['Open-Ended', 'Frequently-Tested', 'Must-Do', 'Conceptual', 'Programming', 'Mental Math', '45 seconds Math', '30 seconds Math', '15 seconds Math'];
+            const availableLabels = ['Open-Ended', 'Frequently-Tested', 'Must-Do', 'Conceptual', 'Programming', 'Mental Math', '45 seconds Math', '30 seconds Math', '15 seconds Math', 'Multiple Solution Paths'];
             const selectedLabels = Array.isArray(labels) ? labels : (labels ? [labels] : []);
             return availableLabels.map(label => {
                 const isSelected = selectedLabels.some(l => l && l.toLowerCase() === label.toLowerCase());
