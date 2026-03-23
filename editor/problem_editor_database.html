@@ -1828,13 +1828,16 @@
                     allHints.push(...additionalHintsList.filter(h => h && h.trim()));
                 }
                 
+                // Delete existing hints first (for update case)
+                await supabase.from('hints').delete().eq('problem_id', problemUuid);
+
                 if (allHints.length > 0) {
                     const hintInserts = allHints.map((hintText, index) => ({
                         problem_id: problemUuid,
                         hint_text: hintText,
                         hint_order: index
                     }));
-                    
+
                     const { data: insertedHints, error: hintsError } = await supabase
                         .from('hints')
                         .insert(hintInserts)
@@ -1865,8 +1868,15 @@
                     // FIXED: Use problemUuid (the actual UUID) instead of problem.id (string identifier)
                     await insertSolutionsWorking(allSolutions, problemUuid, null);
                 }
+
+                // Handle subproblems
+                if (problem.subproblems && Object.keys(problem.subproblems).length > 0) {
+                    // Delete existing subproblems first (for update case)
+                    await supabase.from('subproblems').delete().eq('problem_id', problemUuid);
+                    await insertSubproblemsWorking(problem.subproblems, problemUuid);
+                }
             }
-            
+
             return { data };
         }
 
@@ -2483,8 +2493,13 @@
                     if (!problem.images) problem.images = [];
                     if (problem.included === undefined) problem.included = true;  // Default to included
                     if (!problem.keyword) problem.keyword = '';  // Initialize keyword field
-                    
-                    
+
+                    // Process hints array into additionalHints map
+                    if (problem.hints && Array.isArray(problem.hints) && problem.hints.length > 1) {
+                        const sortedHints = [...problem.hints].sort((a, b) => (a.hint_order || 0) - (b.hint_order || 0));
+                        additionalHints[problem.id] = sortedHints.slice(1).map(h => h.hint_text).filter(t => t && t.trim());
+                    }
+
                     // Convert topic names to IDs if needed
                     if (problem.topics && Array.isArray(problem.topics)) {
                         problem.topics = problem.topics.map(topic => {
