@@ -57,6 +57,7 @@ export async function middleware(request: NextRequest) {
 
       // Redirect to onboarding for protected routes
       if (request.nextUrl.pathname === '/problems' ||
+          request.nextUrl.pathname.startsWith('/problems/') ||
           request.nextUrl.pathname === '/practice' ||
           request.nextUrl.pathname === '/bookmarks' ||
           request.nextUrl.pathname === '/home' ||
@@ -76,6 +77,7 @@ export const config = {
   matcher: [
     '/home',
     '/problems',
+    '/problems/:path*',
     '/practice',
     '/bookmarks',
     '/auth/onboarding',

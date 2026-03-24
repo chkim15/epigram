@@ -1,67 +1,152 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useState, useEffect, useMemo } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import ProblemViewer from "@/components/problems/ProblemViewer";
-import ChatSidebar from "@/components/ai/ChatSidebar";
-import HandoutsViewer from "@/components/handouts/HandoutsViewer";
-import ResizablePanels from "@/components/ui/resizable-panels";
+import ProblemsListView from "@/components/problems/ProblemsListView";
+import CompanySidebar from "@/components/problems/CompanySidebar";
 import { supabase } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
-const DEFAULT_QUANT_TOPIC_ID = 54;
+interface ProblemWithTopics {
+  id: string;
+  problem_name: string | null;
+  difficulty: string | null;
+  company_labels: string[] | null;
+  problem_quant_topics: Array<{
+    quant_topic_id: number;
+    quant_topics: { name: string } | null;
+  }>;
+}
 
 function ProblemsPageContent() {
   const { user, isAuthenticated, isLoading, showCheckoutSuccess, setShowCheckoutSuccess } = useAuthGuard();
-  const searchParams = useSearchParams();
-  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(DEFAULT_QUANT_TOPIC_ID);
-  const [contentMode, setContentMode] = useState<'problems' | 'handouts'>('problems');
+  const [problems, setProblems] = useState<ProblemWithTopics[]>([]);
+  const [completedIds, setCompletedIds] = useState<string[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
-  // Parse URL parameters for topic filtering
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
+  const [selectedMainTopic, setSelectedMainTopic] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+
+  // Fetch problems and completion data
   useEffect(() => {
-    const topics = searchParams.get('topics');
-    if (topics) {
-      const topicIds = topics.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id));
-      if (topicIds.length === 1) {
-        setSelectedTopicId(topicIds[0]);
-      }
-    }
-  }, [searchParams]);
+    if (!isAuthenticated && !isLoading) return;
 
-  // Check if selected topic is a Quick References topic
-  useEffect(() => {
-    if (!selectedTopicId) return;
-
-    const checkTopicType = async () => {
+    async function fetchData() {
       try {
-        const { data: topic } = await supabase
-          .from('topics')
-          .select('main_topics')
-          .eq('id', selectedTopicId)
-          .single();
+        setDataLoading(true);
 
-        if (topic?.main_topics === 'Quick References') {
-          setContentMode('handouts');
-        } else {
-          setContentMode('problems');
+        // Query 1: All included problems with topic joins
+        const { data: problemsData, error: problemsError } = await supabase
+          .from('problems')
+          .select(`
+            id, problem_name, difficulty, company_labels,
+            problem_quant_topics(quant_topic_id, quant_topics(name))
+          `)
+          .eq('included', true)
+          .order('problem_id');
+
+        if (problemsError) throw problemsError;
+        setProblems((problemsData as unknown as ProblemWithTopics[]) || []);
+
+        // Query 2: User completed problems
+        if (user) {
+          const { data: completedData } = await supabase
+            .from('user_completed_problems')
+            .select('problem_id')
+            .eq('user_id', user.id);
+
+          if (completedData) {
+            setCompletedIds(completedData.map((c: { problem_id: string }) => c.problem_id));
+          }
         }
       } catch (err) {
-        console.error('Error checking topic type:', err);
+        console.error('Error fetching problems:', err);
+      } finally {
+        setDataLoading(false);
       }
-    };
+    }
 
-    checkTopicType();
-  }, [selectedTopicId]);
+    fetchData();
+  }, [user, isAuthenticated, isLoading]);
+
+  // Derived data
+  const completedSet = useMemo(() => new Set(completedIds), [completedIds]);
+
+  const mainTopicTags = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of problems) {
+      const seen = new Set<string>();
+      for (const pt of p.problem_quant_topics || []) {
+        const name = pt.quant_topics?.name;
+        if (name && !seen.has(name)) {
+          seen.add(name);
+          counts.set(name, (counts.get(name) || 0) + 1);
+        }
+      }
+    }
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [problems]);
+
+  const companyTags = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of problems) {
+      if (p.company_labels) {
+        for (const company of p.company_labels) {
+          counts.set(company, (counts.get(company) || 0) + 1);
+        }
+      }
+    }
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [problems]);
+
+  // Filtered problems
+  const filteredProblems = useMemo(() => {
+    return problems.filter((p) => {
+      // Hide problems without a name
+      if (!p.problem_name || p.problem_name.trim() === '') return false;
+
+      // Search filter
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!p.problem_name?.toLowerCase().includes(q)) return false;
+      }
+
+      // Difficulty filter
+      if (selectedDifficulty && p.difficulty !== selectedDifficulty) return false;
+
+      // Main topic filter
+      if (selectedMainTopic) {
+        const hasMatchingTopic = p.problem_quant_topics?.some(
+          (pt) => pt.quant_topics?.name === selectedMainTopic
+        );
+        if (!hasMatchingTopic) return false;
+      }
+
+      // Company filter
+      if (selectedCompany) {
+        if (!p.company_labels?.includes(selectedCompany)) return false;
+      }
+
+      return true;
+    });
+  }, [problems, searchQuery, selectedDifficulty, selectedMainTopic, selectedCompany]);
+
+  const solvedCount = useMemo(() => {
+    return filteredProblems.filter((p) => completedSet.has(p.id)).length;
+  }, [filteredProblems, completedSet]);
 
   if (isLoading) {
     return (
-      <div className="w-full h-screen flex items-center justify-center" style={{ backgroundColor: '#faf9f5' }}>
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" style={{ color: '#a16207' }} />
-          <p className="text-gray-600">Loading...</p>
-        </div>
+      <div className="w-full h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--background)' }}>
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#a16207' }} />
       </div>
     );
   }
@@ -75,43 +160,31 @@ function ProblemsPageContent() {
       showCheckoutSuccess={showCheckoutSuccess}
       onDismissCheckout={() => setShowCheckoutSuccess(false)}
     >
-      {selectedTopicId ? (
-        <ResizablePanels
-          leftPanel={
-            contentMode === 'handouts' ? (
-              <HandoutsViewer selectedTopicId={selectedTopicId} />
-            ) : (
-              <ProblemViewer
-                selectedTopicId={selectedTopicId}
-                selectedTopicIds={[]}
-                selectedDifficulties={[]}
-                viewMode="problems"
-                problemCount={10}
-                savedProblemIds={[]}
-              />
-            )
-          }
-          rightPanel={
-            <ChatSidebar
-              mode={contentMode}
-              currentTopicId={contentMode === 'handouts' ? selectedTopicId : null}
-            />
-          }
-          defaultLeftWidth={contentMode === 'handouts' ? 60 : 50}
-          minLeftWidth={25}
-          maxLeftWidth={75}
-          className="flex-1"
-          storageKey={contentMode === 'handouts' ? 'handouts-panels-width' : 'main-panels-width'}
-        />
+      {dataLoading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#a16207' }} />
+        </div>
       ) : (
-        <ProblemViewer
-          selectedTopicId={null}
-          selectedTopicIds={[]}
-          selectedDifficulties={[]}
-          viewMode="problems"
-          problemCount={10}
-          savedProblemIds={[]}
-        />
+        <div className="flex flex-1 min-h-0 px-8 lg:px-16">
+          <ProblemsListView
+            problems={filteredProblems}
+            completedSet={completedSet}
+            mainTopicTags={mainTopicTags}
+            totalCount={filteredProblems.length}
+            solvedCount={solvedCount}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedDifficulty={selectedDifficulty}
+            onDifficultyChange={setSelectedDifficulty}
+            selectedMainTopic={selectedMainTopic}
+            onMainTopicChange={setSelectedMainTopic}
+          />
+          <CompanySidebar
+            companyTags={companyTags}
+            selectedCompany={selectedCompany}
+            onSelectCompany={setSelectedCompany}
+          />
+        </div>
       )}
     </AppShell>
   );
@@ -121,9 +194,7 @@ export default function ProblemsPage() {
   return (
     <Suspense fallback={
       <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: '#3d3929', borderTopColor: 'transparent' }} />
-        </div>
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#a16207' }} />
       </div>
     }>
       <ProblemsPageContent />

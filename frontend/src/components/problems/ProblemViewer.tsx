@@ -34,6 +34,7 @@ import ScientificCalculatorDialog from "@/components/geogebra/ScientificCalculat
 import { useAuthStore } from "@/stores/authStore";
 
 interface ProblemViewerProps {
+  specificProblemId?: string;
   selectedTopicId: number | null;
   selectedTopicIds?: number[];
   selectedDifficulties?: string[];
@@ -48,7 +49,7 @@ interface MathFieldElement extends HTMLElement {
   getValue?: () => string;
 }
 
-export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, savedProblemIds = [], recommendedProblemIds = [] }: ProblemViewerProps) {
+export default function ProblemViewer({ specificProblemId, selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, savedProblemIds = [], recommendedProblemIds = [] }: ProblemViewerProps) {
   const {
     currentProblem,
     currentProblemIndex,
@@ -101,6 +102,30 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
     }
   }, []);
 
+  // Effect for specific problem (from /problems/[id] page)
+  useEffect(() => {
+    if (!specificProblemId) return;
+
+    const fetchSpecificProblem = async () => {
+      setLoading(true);
+      const { data: docs } = await supabase.from('documents').select('*');
+      if (docs) setAllDocuments(docs);
+
+      const { data, error } = await supabase
+        .from('problems')
+        .select('id, problem_id, document_id, problem_text, correct_answer, hint, solution_text, math_approach, reasoning_type, difficulty, importance, comment, version, created_at, updated_at, included, problem_name, problem_labels, company_labels, location_labels')
+        .eq('id', specificProblemId)
+        .single();
+
+      if (data && !error) {
+        setProblemList([data]);
+      }
+      setLoading(false);
+    };
+
+    fetchSpecificProblem();
+  }, [specificProblemId]);
+
   // Simple effect for recommended problems
   useEffect(() => {
     if (viewMode === 'recommended-problems' && recommendedProblemIds.length > 0) {
@@ -110,6 +135,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
 
   // Effect for other modes
   useEffect(() => {
+    if (specificProblemId) return; // handled by dedicated effect
     if (viewMode === 'recommended-problems') {
       // Handled by the effect above
       return;
