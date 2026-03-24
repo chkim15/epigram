@@ -45,6 +45,10 @@ export interface Database {
           comment: string | null;
           version: string;
           included: boolean;
+          problem_name: string | null;
+          problem_labels: string[] | null;
+          company_labels: string[] | null;
+          location_labels: string[] | null;
           created_at: string;
           updated_at: string;
         };
@@ -59,6 +63,23 @@ export interface Database {
         };
         Insert: Omit<Database['public']['Tables']['problem_topics']['Row'], 'created_at'>;
         Update: Partial<Database['public']['Tables']['problem_topics']['Insert']>;
+      };
+      quant_topics: {
+        Row: {
+          id: number;
+          name: string;
+        };
+        Insert: Omit<Database['public']['Tables']['quant_topics']['Row'], 'id'>;
+        Update: Partial<Database['public']['Tables']['quant_topics']['Insert']>;
+      };
+      problem_quant_topics: {
+        Row: {
+          id: string;
+          problem_id: string;
+          quant_topic_id: number;
+        };
+        Insert: Omit<Database['public']['Tables']['problem_quant_topics']['Row'], 'id'>;
+        Update: Partial<Database['public']['Tables']['problem_quant_topics']['Insert']>;
       };
       subproblems: {
         Row: {
@@ -293,6 +314,8 @@ export interface Database {
 export type Topic = Database['public']['Tables']['topics']['Row'];
 export type Problem = Database['public']['Tables']['problems']['Row'];
 export type ProblemTopic = Database['public']['Tables']['problem_topics']['Row'];
+export type QuantTopic = Database['public']['Tables']['quant_topics']['Row'];
+export type ProblemQuantTopic = Database['public']['Tables']['problem_quant_topics']['Row'];
 export type Subproblem = Database['public']['Tables']['subproblems']['Row'];
 export type Document = Database['public']['Tables']['documents']['Row'];
 export type User = Database['public']['Tables']['users']['Row'];

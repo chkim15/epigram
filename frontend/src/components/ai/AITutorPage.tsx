@@ -752,7 +752,7 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
         },
         body: JSON.stringify({
           message: apiMessageContent,
-          model: 'gpt-5', // Using GPT-5 for AI Tutor
+          model: 'claude-sonnet', // Using Claude Sonnet for AI Tutor
           conversationHistory: messages,
           currentProblem: null, // No problem context in AI Tutor
           subproblems: [],

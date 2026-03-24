@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
 
 // Initialize Supabase with service role for RPC calls
 const supabase = createClient(
@@ -7,22 +8,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Azure OpenAI configuration
-const AZURE_OPENAI_API_KEY = process.env.AZURE_OPENAI_API_KEY!;
-const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT!;
-const AZURE_OPENAI_EMBEDDING_DEPLOYMENT = process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT || 'text-embedding-3-large';
-// Using GPT-5-chat for better accuracy with mathematical content
-const AZURE_OPENAI_CHAT_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5 || 'gpt-5-chat';
-
 // Note: PDF to image conversion is handled client-side in the RecommendedPractice component
 // This approach works perfectly in serverless environments and provides better user experience
 
 /**
- * Extract text from image using GPT-5-chat vision capabilities
- * For images: Direct processing with GPT-5 vision
- * Using temperature=0 for deterministic and consistent results
+ * Extract text from image using Claude Sonnet vision capabilities
+ * For images: Direct processing with Claude vision
  */
-async function extractTextWithGPT5Vision(file: File): Promise<string> {
+async function extractTextWithVision(client: AnthropicBedrock, file: File): Promise<string> {
   try {
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer();
@@ -30,93 +23,57 @@ async function extractTextWithGPT5Vision(file: File): Promise<string> {
     const base64 = buffer.toString('base64');
 
     // Determine MIME type
-    const mimeType = file.type || 'image/png';
+    const mimeType = (file.type || 'image/png') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
 
-    console.log('Using GPT-5 vision to extract text from:', mimeType);
-
-    const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
-
-    // Create the proper data URL with base64 encoding
-    const dataUrl = `data:${mimeType};base64,${base64}`;
+    console.log('Using Claude Sonnet vision to extract text from:', mimeType);
 
     const extractionPrompt = 'Extract all mathematical content from this image. Include all text, equations, problem statements, and mathematical expressions. Use LaTeX notation for math. If there are multiple problems, clearly separate them.';
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': AZURE_OPENAI_API_KEY
-      },
-      body: JSON.stringify({
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert at extracting mathematical content from documents. Extract ALL text, equations, and mathematical expressions. Preserve LaTeX formatting for equations. Focus on the mathematical content and problem statements.'
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: extractionPrompt
+    const response = await client.messages.create({
+      model: 'us.anthropic.claude-sonnet-4-6',
+      system: 'You are an expert at extracting mathematical content from documents. Extract ALL text, equations, and mathematical expressions. Preserve LaTeX formatting for equations. Focus on the mathematical content and problem statements.',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mimeType,
+                data: base64,
               },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: dataUrl,
-                  detail: 'high' // Use high detail for better mathematical content extraction
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 4000,
-        temperature: 0
-      })
+            },
+            {
+              type: 'text',
+              text: extractionPrompt,
+            },
+          ],
+        },
+      ],
+      max_tokens: 4000,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('GPT-5 Vision API error:', error);
-
-      // Parse error to provide better feedback
-      try {
-        const errorObj = JSON.parse(error);
-        if (errorObj.error?.message) {
-          // Check if it's a PDF-specific issue
-          if (mimeType === 'application/pdf' && (errorObj.error.message.includes('image') || errorObj.error.message.includes('URL'))) {
-            throw new Error('PDF processing failed. The GPT-5 vision API may not support this PDF format. Please try converting to an image (PNG/JPEG) or using a different PDF.');
-          }
-          throw new Error(`Failed to extract text: ${errorObj.error.message}`);
-        }
-      } catch {
-        // If not JSON, use raw error
-      }
-
-      throw new Error(`Failed to extract text: ${error}`);
-    }
-
-    const data = await response.json();
-    const extractedText = data.choices[0].message.content;
+    const extractedText = response.content[0].type === 'text' ? response.content[0].text : '';
 
     if (!extractedText || extractedText.trim().length < 10) {
       throw new Error('Could not extract enough text from the file');
     }
 
-    console.log('Successfully extracted text using GPT-5 vision, length:', extractedText.length);
+    console.log('Successfully extracted text using Claude vision, length:', extractedText.length);
     return extractedText;
 
   } catch (error) {
-    console.error('Error extracting text with GPT-5 vision:', error);
+    console.error('Error extracting text with Claude vision:', error);
     throw error;
   }
 }
 
 
 /**
- * Identify relevant calculus topics from extracted text using Azure OpenAI
+ * Identify relevant calculus topics from extracted text using Claude
  */
-async function identifyTopics(text: string): Promise<number[]> {
+async function identifyTopics(client: AnthropicBedrock, text: string): Promise<number[]> {
   try {
     // Fetch all available topics from database
     const { data: topics, error } = await supabase
@@ -134,24 +91,13 @@ async function identifyTopics(text: string): Promise<number[]> {
       `${t.id}. ${t.main_topics} - ${t.subtopics} (${t.course})`
     ).join('\n');
 
-    // Call Azure OpenAI to identify relevant topics
-    const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': AZURE_OPENAI_API_KEY
-      },
-      body: JSON.stringify({
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a calculus expert. Analyze the given mathematical content and identify which topics from the provided list are most relevant. Return only the topic IDs as a JSON array of numbers.'
-          },
-          {
-            role: 'user',
-            content: `Analyze this mathematical content and identify the most relevant topics (return up to 5 topic IDs):
+    const response = await client.messages.create({
+      model: 'us.anthropic.claude-sonnet-4-6',
+      system: 'You are a calculus expert. Analyze the given mathematical content and identify which topics from the provided list are most relevant. Return only the topic IDs as a JSON array of numbers.',
+      messages: [
+        {
+          role: 'user',
+          content: `Analyze this mathematical content and identify the most relevant topics (return up to 5 topic IDs):
 
 Content to analyze:
 "${text.substring(0, 3000)}"
@@ -159,22 +105,13 @@ Content to analyze:
 Available topics:
 ${topicsList}
 
-Return only a JSON array of topic IDs, like [1, 4, 11]. Include only topics that are directly relevant to the content.`
-          }
-        ],
-        max_tokens: 150,
-        temperature: 0
-      })
+Return only a JSON array of topic IDs, like [1, 4, 11]. Include only topics that are directly relevant to the content.`,
+        },
+      ],
+      max_tokens: 150,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Azure OpenAI API error:', error);
-      return [];
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
 
     // Parse the JSON array from the response
     try {
@@ -203,6 +140,7 @@ Return only a JSON array of topic IDs, like [1, 4, 11]. Include only topics that
  * Now returns 3 problems per identified topic
  */
 async function selectSimilarProblemsWithLLM(
+  client: AnthropicBedrock,
   uploadedContent: string,
   candidateProblems: Array<{
     id: string;
@@ -262,24 +200,13 @@ ${problemsText}`;
     // Calculate total problems to select (3 per topic)
     const totalProblemsToSelect = identifiedTopics.length * 3;
 
-    // Call Azure OpenAI GPT-5 to select best matching problems
-    const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': AZURE_OPENAI_API_KEY
-      },
-      body: JSON.stringify({
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a calculus tutor finding practice problems similar to study materials. Analyze problems and their solution context to find the best matches for each identified topic.'
-          },
-          {
-            role: 'user',
-            content: `A student uploaded this study material:
+    const response = await client.messages.create({
+      model: 'us.anthropic.claude-sonnet-4-6',
+      system: 'You are a calculus tutor finding practice problems similar to study materials. Analyze problems and their solution context to find the best matches for each identified topic.',
+      messages: [
+        {
+          role: 'user',
+          content: `A student uploaded this study material:
 "${contentExcerpt}"
 
 The following topics were identified from the material: ${identifiedTopics.join(', ')}
@@ -297,22 +224,13 @@ Instructions:
 4. If a topic has fewer than 3 problems, you may select from general problems or problems from related topics
 5. A problem can be selected for multiple topics if it's highly relevant
 
-Return ONLY a JSON object with the format: {"selected": ["problem_id_1", "problem_id_2", ..., "problem_id_${totalProblemsToSelect}"]}`
-          }
-        ],
-        max_tokens: 400,
-        temperature: 0
-      })
+Return ONLY a JSON object with the format: {"selected": ["problem_id_1", "problem_id_2", ..., "problem_id_${totalProblemsToSelect}"]}`,
+        },
+      ],
+      max_tokens: 400,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Azure OpenAI API error:', error);
-      throw new Error(`LLM API error: ${error}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
 
     // Parse the JSON response
     try {
@@ -340,44 +258,16 @@ Return ONLY a JSON object with the format: {"selected": ["problem_id_1", "proble
   }
 }
 
-/**
- * Generate embedding for text using Azure OpenAI text-embedding-3-large
- * Uses 1536 dimensions for optimal quality while staying within pgvector limits
- */
-async function generateEmbedding(text: string): Promise<number[]> {
-  try {
-    const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_EMBEDDING_DEPLOYMENT}/embeddings?api-version=2024-06-01`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': AZURE_OPENAI_API_KEY
-      },
-      body: JSON.stringify({
-        input: text,
-        dimensions: 1536  // Use 1536 dimensions (reduced from full 3072)
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Azure OpenAI API error: ${error}`);
-    }
-
-    const data = await response.json();
-    return data.data[0].embedding;
-  } catch (error) {
-    console.error('Error generating embedding:', error);
-    throw error;
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const userId = formData.get('userId') as string;
     const isPDF = formData.get('isPDF') === 'true';
+
+    // Initialize Anthropic Bedrock client
+    const client = new AnthropicBedrock({
+      awsRegion: process.env.AWS_REGION || 'us-east-1',
+    });
 
     let extractedText = '';
     let pageCount = 0;
@@ -398,7 +288,7 @@ export async function POST(request: NextRequest) {
       pageCount = (extractedText.match(/--- Page \d+ ---/g) || []).length;
       console.log(`Received extracted text from PDF, length: ${extractedText.length}, pages: ${pageCount}`);
     } else {
-      // Handle image file - use GPT-5 vision
+      // Handle image file - use Claude vision
       const file = formData.get('file') as File;
       if (!file) {
         return NextResponse.json(
@@ -420,7 +310,7 @@ export async function POST(request: NextRequest) {
       console.log(`Processing single image file: ${file.name}...`);
 
       try {
-        extractedText = await extractTextWithGPT5Vision(file);
+        extractedText = await extractTextWithVision(client, file);
         console.log(`Successfully extracted text from image, length: ${extractedText.length}`);
       } catch (error) {
         console.error('Text extraction failed:', error);
@@ -451,7 +341,7 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Identify topics from the extracted text
     console.log('Identifying topics...');
-    const identifiedTopicIds = await identifyTopics(extractedText);
+    const identifiedTopicIds = await identifyTopics(client, extractedText);
 
     // Fetch topic details for the identified topics
     interface Topic {
@@ -582,34 +472,15 @@ export async function POST(request: NextRequest) {
     let selectedProblemIds: string[] = [];
 
     try {
-      selectedProblemIds = await selectSimilarProblemsWithLLM(extractedText, candidateProblems, identifiedTopicIds);
+      selectedProblemIds = await selectSimilarProblemsWithLLM(client, extractedText, candidateProblems, identifiedTopicIds);
       console.log(`LLM selected ${selectedProblemIds.length} problems (${identifiedTopicIds.length} topics x 3 problems)`);
     } catch (llmError) {
-      console.error('LLM selection failed, falling back to embedding search:', llmError);
+      console.error('LLM selection failed, falling back to random selection:', llmError);
 
-      // Fallback to embedding-based search if LLM fails
-      // For fallback, we'll still try to get 3 problems per topic, up to 15 total
-      const targetProblemCount = Math.min(identifiedTopicIds.length * 3, 15);
-      const embedding = await generateEmbedding(extractedText);
-      const { data: recommendations, error } = await supabase.rpc(
-        'find_similar_problems_new',
-        {
-          query_embedding: embedding,
-          difficulty_filter: ['easy', 'medium'],
-          exclude_user_id: userId || null,
-          match_limit: targetProblemCount
-        }
-      );
-
-      if (error || !recommendations) {
-        return NextResponse.json(
-          { error: 'Failed to find similar problems' },
-          { status: 500 }
-        );
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      selectedProblemIds = (recommendations as any[]).map(r => r.id);
+      // Fallback: select random problems from candidates
+      const shuffled = candidateProblems.sort(() => 0.5 - Math.random());
+      const targetCount = Math.min(identifiedTopicIds.length * 3, 15);
+      selectedProblemIds = shuffled.slice(0, targetCount).map(p => p.id);
     }
 
     // Get the selected problems with full details, maintaining order and avoiding duplicates

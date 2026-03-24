@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
           promo_code_used: promoCode || 'none',
         },
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/home?checkout=success`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/problems?checkout=success`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/?checkout=canceled`,
       metadata: {
         supabase_user_id: user.id,

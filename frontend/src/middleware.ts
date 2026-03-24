@@ -4,7 +4,7 @@ import { createServerClient } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
-  
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -43,29 +43,30 @@ export async function middleware(request: NextRequest) {
       .eq('user_id', session.user.id)
       .single()
 
-    // If on onboarding page and already completed, redirect to home
+    // If on onboarding page and already completed, redirect to problems
     if (request.nextUrl.pathname === '/auth/onboarding' && profile?.onboarding_completed) {
-      return NextResponse.redirect(new URL('/home', request.url))
+      return NextResponse.redirect(new URL('/problems', request.url))
     }
 
-    // If authenticated user hasn't completed onboarding and trying to access home or protected features
+    // If authenticated user hasn't completed onboarding and trying to access protected features
     if (!profile || !profile.onboarding_completed) {
       // Allow onboarding page itself
       if (request.nextUrl.pathname === '/auth/onboarding') {
         return response
       }
 
-      // Redirect to onboarding for home and other protected routes
-      if (request.nextUrl.pathname === '/home' ||
-          request.nextUrl.pathname.startsWith('/api/chat') ||
-          request.nextUrl.pathname.startsWith('/home/settings') ||
-          request.nextUrl.pathname.startsWith('/home/practice')) {
+      // Redirect to onboarding for protected routes
+      if (request.nextUrl.pathname === '/problems' ||
+          request.nextUrl.pathname === '/practice' ||
+          request.nextUrl.pathname === '/bookmarks' ||
+          request.nextUrl.pathname === '/home' ||
+          request.nextUrl.pathname.startsWith('/api/chat')) {
         return NextResponse.redirect(new URL('/auth/onboarding', request.url))
       }
     }
   }
 
-  // Allow unauthenticated users to access /home
+  // Allow unauthenticated users to access pages
   // They will have limited functionality but can browse
 
   return response
@@ -74,9 +75,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/home',
+    '/problems',
+    '/practice',
+    '/bookmarks',
     '/auth/onboarding',
     '/api/chat',
-    '/home/settings',
-    '/home/practice'
   ]
 }

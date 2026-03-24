@@ -143,7 +143,7 @@ export default function OnboardingPage() {
         throw updateError
       }
 
-      router.push('/home')
+      router.push('/problems')
     } catch (error) {
       console.error('Error updating profile:', error)
       setError('Failed to save your information. Please try again.')

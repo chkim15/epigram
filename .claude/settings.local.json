@@ -9,7 +9,8 @@
       "Bash(cat:*)",
       "Bash(node -e:*)",
       "Bash(curl:*)",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "Bash(find /Users/chulhee/src/epigram/frontend/src -name \"*login*\" -o -name \"*auth*\" -o -name \"*signin*\" 2>/dev/null | head -20)"
     ],
     "defaultMode": "acceptEdits"
   },

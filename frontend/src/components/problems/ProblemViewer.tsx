@@ -216,7 +216,8 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             .select(`
               id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
               math_approach, reasoning_type, difficulty, importance,
-              comment, version, created_at, updated_at, included
+              comment, version, created_at, updated_at, included,
+              problem_name, problem_labels, company_labels, location_labels
             `)
             .eq('included', true)
             .in('id', savedProblemIds);
@@ -239,6 +240,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
               id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
               math_approach, reasoning_type, difficulty, importance,
               comment, version, created_at, updated_at, included,
+              problem_name, problem_labels, company_labels, location_labels,
               problem_topics!inner(topic_id)
             `)
             .eq('included', true);
@@ -299,6 +301,7 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
             id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
             math_approach, reasoning_type, difficulty, importance,
             comment, version, created_at, updated_at, included,
+            problem_name, problem_labels, company_labels, location_labels,
             problem_topics!inner(topic_id)
           `)
           .eq('included', true)
@@ -337,7 +340,8 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
           .select(`
             id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
             math_approach, reasoning_type, difficulty, importance,
-            comment, version, created_at, updated_at, included
+            comment, version, created_at, updated_at, included,
+            problem_name, problem_labels, company_labels, location_labels
           `)
           .eq('included', true)
           .order('document_id')
@@ -375,7 +379,8 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
         .select(`
           id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
           math_approach, reasoning_type, difficulty, importance,
-          comment, version, created_at, updated_at, included
+          comment, version, created_at, updated_at, included,
+          problem_name, problem_labels, company_labels, location_labels
         `)
         .eq('included', true)
         .in('id', recommendedProblemIds);
@@ -453,7 +458,8 @@ export default function ProblemViewer({ selectedTopicId, selectedTopicIds = [], 
           problems (
             id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
             math_approach, reasoning_type, difficulty, importance,
-            comment, version, created_at, updated_at, included
+            comment, version, created_at, updated_at, included,
+            problem_name, problem_labels, company_labels, location_labels
           )
         `)
         .eq('user_id', user.id)

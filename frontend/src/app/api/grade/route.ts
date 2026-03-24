@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-
-// Initialize OpenAI client
-let openai: OpenAI | null = null;
+import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
 
 interface GradeRequest {
   userAnswer: string;
@@ -17,19 +14,16 @@ interface GradeResponse {
   explanation?: string;
 }
 
-// Simplified prompt for GPT-5-nano (reasoning model)
+// Simplified prompt for grading
 const GRADING_PROMPT = `Check if the student answer equals the correct answer mathematically. Return JSON only:
 {"isCorrect": true/false, "confidence": 0.0-1.0, "feedback": "short text"}`;
 
 export async function POST(req: NextRequest) {
   try {
-    // Check for API keys
-    const apiKey = process.env.AZURE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-    const isAzure = !!process.env.AZURE_OPENAI_API_KEY;
-
-    if (!apiKey) {
+    // Check for AWS credentials
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
+        { error: 'AWS credentials not configured' },
         { status: 500 }
       );
     }
@@ -44,28 +38,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Configure OpenAI client for GPT-5-nano
-    if (isAzure && process.env.AZURE_OPENAI_ENDPOINT) {
-      // Use GPT-5-nano deployment
-      const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5_NANO || 'gpt-5-nano';
-      const azureBaseURL = `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${deploymentName}`;
-
-      openai = new OpenAI({
-        apiKey: process.env.AZURE_OPENAI_API_KEY!,
-        baseURL: azureBaseURL,
-        defaultQuery: { 'api-version': '2025-04-01-preview' },
-        defaultHeaders: {
-          'api-key': process.env.AZURE_OPENAI_API_KEY!,
-        },
-      });
-    } else if (process.env.OPENAI_API_KEY) {
-      // Regular OpenAI configuration
-      openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
-    } else {
-      throw new Error('No OpenAI API key configured');
-    }
+    const client = new AnthropicBedrock({
+      awsRegion: process.env.AWS_REGION || 'us-east-1',
+    });
 
     // Build the grading query
     const query = problemText
@@ -80,58 +55,21 @@ Student Answer: ${userAnswer}
 
 Grade the student's answer.`;
 
-    // Prepare messages for OpenAI
-    const messages: Array<{
-      role: 'system' | 'user';
-      content: string;
-    }> = [
-      { role: 'system', content: GRADING_PROMPT },
-      { role: 'user', content: query }
-    ];
-
-    // Get grading result from GPT-5-nano
-    console.log('Calling OpenAI with:', {
-      model: isAzure ? 'gpt-5-nano' : 'gpt-5-nano',
-      deployment: process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5_NANO,
-      endpoint: process.env.AZURE_OPENAI_ENDPOINT,
-      messageCount: messages.length
+    // Get grading result from Claude Haiku
+    const completion = await client.messages.create({
+      model: 'anthropic.claude-haiku-4-5-20251001-v1:0',
+      system: GRADING_PROMPT,
+      messages: [
+        { role: 'user', content: query }
+      ],
+      max_tokens: 2000,
     });
 
-    // For Azure, the model parameter is ignored (deployment name in URL is used)
-    // But we still need to pass something
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-5-nano', // This is ignored by Azure, but required by the API
-      messages: messages,
-      // temperature: 0, // GPT-5-nano doesn't support temperature parameter
-      max_completion_tokens: 2000, // Much higher limit for reasoning model
-      // response_format: { type: 'json_object' }, // Try without forcing JSON for GPT-5-nano
-    });
-
-    console.log('OpenAI response:', JSON.stringify(completion, null, 2));
-    console.log('Message object:', completion.choices[0]?.message);
-
-    // Check for reasoning content in different fields
-    const message = completion.choices[0]?.message;
-    // Use unknown instead of any for better type safety
-    const messageAsUnknown = message as unknown as { reasoning_content?: string; text?: string };
-    const response = message?.content || messageAsUnknown?.reasoning_content || messageAsUnknown?.text;
-
-    // Log all message properties to debug
-    if (message) {
-      console.log('All message properties:', Object.keys(message));
-      console.log('Full message details:', JSON.stringify(message, null, 2));
-    }
+    const response = completion.content[0].type === 'text' ? completion.content[0].text : null;
 
     if (!response) {
-      console.error('No response content. Message:', completion.choices[0]?.message);
-      console.error('Finish reason:', completion.choices[0]?.finish_reason);
-
-      // If finish_reason is 'length', we need more tokens
-      if (completion.choices[0]?.finish_reason === 'length') {
-        console.error('Model hit token limit. Need to increase max_completion_tokens.');
-      }
-
-      throw new Error('No response from OpenAI - model may need different configuration');
+      console.error('No response content from Claude');
+      throw new Error('No response from Claude');
     }
 
     try {
@@ -164,19 +102,18 @@ Grade the student's answer.`;
   } catch (error) {
     console.error('Grading API Error:', error);
 
-    // More specific error handling
     if (error instanceof Error) {
-      if (error.message.includes('401')) {
+      if (error.message.includes('credentials') || error.message.includes('security token')) {
         return NextResponse.json(
-          { error: 'Invalid API key' },
+          { error: 'Invalid AWS credentials' },
           { status: 401 }
         );
-      } else if (error.message.includes('404')) {
+      } else if (error.message.includes('AccessDeniedException')) {
         return NextResponse.json(
-          { error: 'GPT-5-nano model not found. Check deployment configuration.' },
-          { status: 404 }
+          { error: 'Access denied - check AWS IAM permissions' },
+          { status: 403 }
         );
-      } else if (error.message.includes('429')) {
+      } else if (error.message.includes('throttl') || error.message.includes('rate')) {
         return NextResponse.json(
           { error: 'Rate limit exceeded' },
           { status: 429 }
