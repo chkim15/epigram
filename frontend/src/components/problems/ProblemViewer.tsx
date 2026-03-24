@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { Problem, Subproblem, Document, UserAnswer } from "@/types/database";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
+import { slugify } from "@/lib/utils/slugify";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
@@ -35,6 +37,7 @@ import { useAuthStore } from "@/stores/authStore";
 
 interface ProblemViewerProps {
   specificProblemId?: string;
+  problemSlug?: string;
   selectedTopicId: number | null;
   selectedTopicIds?: number[];
   selectedDifficulties?: string[];
@@ -49,7 +52,8 @@ interface MathFieldElement extends HTMLElement {
   getValue?: () => string;
 }
 
-export default function ProblemViewer({ specificProblemId, selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, savedProblemIds = [], recommendedProblemIds = [] }: ProblemViewerProps) {
+export default function ProblemViewer({ specificProblemId, problemSlug, selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, savedProblemIds = [], recommendedProblemIds = [] }: ProblemViewerProps) {
+  const router = useRouter();
   const {
     currentProblem,
     currentProblemIndex,
@@ -60,6 +64,7 @@ export default function ProblemViewer({ specificProblemId, selectedTopicId, sele
     canGoPrevious,
     setProblemList,
     setCurrentDocument,
+    setCurrentProblem,
     nextProblem,
     previousProblem,
     setLoading,
@@ -102,7 +107,48 @@ export default function ProblemViewer({ specificProblemId, selectedTopicId, sele
     }
   }, []);
 
-  // Effect for specific problem (from /problems/[id] page)
+  // Effect for slug-based navigation (from /problems/[slug] page)
+  // Loads ALL included problems so next/prev navigation works
+  useEffect(() => {
+    if (!problemSlug) return;
+
+    const fetchProblemsBySlug = async () => {
+      setLoading(true);
+      const { data: docs } = await supabase.from('documents').select('*');
+      if (docs) setAllDocuments(docs);
+
+      // Fetch all included problems with problem_name, ordered same as the list page
+      const { data: allProblems, error } = await supabase
+        .from('problems')
+        .select('id, problem_id, document_id, problem_text, correct_answer, hint, solution_text, math_approach, reasoning_type, difficulty, importance, comment, version, created_at, updated_at, included, problem_name, problem_labels, company_labels, location_labels')
+        .eq('included', true)
+        .not('problem_name', 'is', null)
+        .order('problem_id');
+
+      if (allProblems && !error) {
+        // Filter out problems with empty names
+        const validProblems = allProblems.filter(p => p.problem_name && p.problem_name.trim() !== '');
+
+        // Find the problem matching the slug
+        const matchIndex = validProblems.findIndex(p =>
+          p.problem_name && slugify(p.problem_name) === problemSlug
+        );
+
+        if (matchIndex >= 0) {
+          setProblemList(validProblems);
+          setCurrentProblem(validProblems[matchIndex]);
+        } else if (validProblems.length > 0) {
+          // Slug not found — show first problem
+          setProblemList(validProblems);
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchProblemsBySlug();
+  }, [problemSlug]);
+
+  // Effect for specific problem by ID (legacy / practice mode)
   useEffect(() => {
     if (!specificProblemId) return;
 
@@ -135,7 +181,7 @@ export default function ProblemViewer({ specificProblemId, selectedTopicId, sele
 
   // Effect for other modes
   useEffect(() => {
-    if (specificProblemId) return; // handled by dedicated effect
+    if (specificProblemId || problemSlug) return; // handled by dedicated effects
     if (viewMode === 'recommended-problems') {
       // Handled by the effect above
       return;
@@ -1718,7 +1764,16 @@ export default function ProblemViewer({ specificProblemId, selectedTopicId, sele
             <Button
               variant="outline"
               size="sm"
-              onClick={previousProblem}
+              onClick={() => {
+                previousProblem();
+                if (problemSlug) {
+                  const prevIndex = currentProblemIndex - 1;
+                  const prevProblem = problemList[prevIndex];
+                  if (prevProblem?.problem_name) {
+                    router.replace(`/problems/${slugify(prevProblem.problem_name)}`, { scroll: false });
+                  }
+                }
+              }}
               disabled={!canGoPrevious()}
               className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
               style={{
@@ -1736,7 +1791,16 @@ export default function ProblemViewer({ specificProblemId, selectedTopicId, sele
             <Button
               variant="outline"
               size="sm"
-              onClick={nextProblem}
+              onClick={() => {
+                nextProblem();
+                if (problemSlug) {
+                  const nextIndex = currentProblemIndex + 1;
+                  const nextProb = problemList[nextIndex];
+                  if (nextProb?.problem_name) {
+                    router.replace(`/problems/${slugify(nextProb.problem_name)}`, { scroll: false });
+                  }
+                }
+              }}
               disabled={!canGoNext()}
               className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
               style={{

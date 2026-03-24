@@ -1,15 +1,14 @@
 "use client";
 
 import { Suspense, use } from "react";
-import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ProblemViewer from "@/components/problems/ProblemViewer";
 import ChatSidebar from "@/components/ai/ChatSidebar";
 import ResizablePanels from "@/components/ui/resizable-panels";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
-function ProblemDetailContent({ id }: { id: string }) {
+function ProblemDetailContent({ slug }: { slug: string }) {
   const { isAuthenticated, isLoading, showCheckoutSuccess, setShowCheckoutSuccess } = useAuthGuard();
 
   if (isLoading) {
@@ -30,24 +29,10 @@ function ProblemDetailContent({ id }: { id: string }) {
       onDismissCheckout={() => setShowCheckoutSuccess(false)}
     >
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Back link */}
-        <div className="px-4 py-2 border-b flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
-          <Link
-            href="/problems"
-            className="inline-flex items-center gap-1 text-sm cursor-pointer transition-colors"
-            style={{ color: 'var(--muted-foreground)' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--foreground)'}
-            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted-foreground)'}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back to Problems
-          </Link>
-        </div>
-
         <ResizablePanels
           leftPanel={
             <ProblemViewer
-              specificProblemId={id}
+              problemSlug={slug}
               selectedTopicId={null}
               selectedTopicIds={[]}
               selectedDifficulties={[]}
@@ -68,7 +53,7 @@ function ProblemDetailContent({ id }: { id: string }) {
   );
 }
 
-export default function ProblemDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ProblemDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
 
   return (
@@ -77,7 +62,7 @@ export default function ProblemDetailPage({ params }: { params: Promise<{ id: st
         <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#a16207' }} />
       </div>
     }>
-      <ProblemDetailContent id={resolvedParams.id} />
+      <ProblemDetailContent slug={resolvedParams.slug} />
     </Suspense>
   );
 }

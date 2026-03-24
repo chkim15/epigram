@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, CheckCircle, Circle, ChevronDown, ChevronUp } from "lucide-react";
 import { MathContent } from "@/lib/utils/katex";
+import { slugify } from "@/lib/utils/slugify";
 
 interface ProblemRow {
   id: string;
@@ -33,7 +34,7 @@ interface ProblemsListViewProps {
 const DIFFICULTY_COLORS: Record<string, string> = {
   easy: '#10b981',
   medium: '#f59e0b',
-  hard: '#ef4444',
+  hard: '#f97316',
   very_hard: '#ef4444',
 };
 
@@ -41,7 +42,7 @@ const DIFFICULTY_LABELS: Record<string, string> = {
   easy: 'Easy',
   medium: 'Medium',
   hard: 'Hard',
-  very_hard: 'Hard',
+  very_hard: 'Very Hard',
 };
 
 export default function ProblemsListView({
@@ -197,6 +198,7 @@ export default function ProblemsListView({
           <option value="easy">Easy</option>
           <option value="medium">Medium</option>
           <option value="hard">Hard</option>
+          <option value="very_hard">Very Hard</option>
         </select>
 
         {/* Solved Count */}
@@ -235,7 +237,7 @@ export default function ProblemsListView({
             return (
               <div
                 key={problem.id}
-                onClick={() => router.push(`/problems/${problem.id}`)}
+                onClick={() => router.push(`/problems/${problem.problem_name ? slugify(problem.problem_name) : problem.id}`)}
                 className="flex items-center py-3 px-2 border-b cursor-pointer transition-colors"
                 style={{ borderColor: 'var(--border)' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--sidebar-background)'}

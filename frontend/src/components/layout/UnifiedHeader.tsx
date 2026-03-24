@@ -40,7 +40,7 @@ export default function UnifiedHeader({ className }: UnifiedHeaderProps) {
     <>
       <div
         className={cn(
-          "h-[46px] flex flex-shrink-0 px-4 items-center w-full border-b",
+          "h-[52px] flex flex-shrink-0 px-4 items-center w-full border-b",
           className
         )}
         style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}
