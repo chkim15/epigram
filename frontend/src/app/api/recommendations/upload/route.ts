@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
 
 // Initialize Supabase with service role for RPC calls
 const supabase = createClient(
@@ -8,14 +7,20 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Azure OpenAI configuration
+const AZURE_OPENAI_API_KEY = process.env.AZURE_OPENAI_API_KEY!;
+const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT!;
+// Using GPT-5-chat for better accuracy with mathematical content
+const AZURE_OPENAI_CHAT_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5 || 'gpt-5-chat';
+
 // Note: PDF to image conversion is handled client-side in the RecommendedPractice component
 // This approach works perfectly in serverless environments and provides better user experience
 
 /**
- * Extract text from image using Claude Sonnet vision capabilities
- * For images: Direct processing with Claude vision
+ * Extract text from image using GPT-5-chat vision capabilities
+ * For images: Direct processing with GPT-5 vision
  */
-async function extractTextWithVision(client: AnthropicBedrock, file: File): Promise<string> {
+async function extractTextWithGPT5Vision(file: File): Promise<string> {
   try {
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer();
@@ -23,57 +28,88 @@ async function extractTextWithVision(client: AnthropicBedrock, file: File): Prom
     const base64 = buffer.toString('base64');
 
     // Determine MIME type
-    const mimeType = (file.type || 'image/png') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+    const mimeType = file.type || 'image/png';
 
-    console.log('Using Claude Sonnet vision to extract text from:', mimeType);
+    console.log('Using GPT-5 vision to extract text from:', mimeType);
+
+    const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
+
+    // Create the proper data URL with base64 encoding
+    const dataUrl = `data:${mimeType};base64,${base64}`;
 
     const extractionPrompt = 'Extract all mathematical content from this image. Include all text, equations, problem statements, and mathematical expressions. Use LaTeX notation for math. If there are multiple problems, clearly separate them.';
 
-    const response = await client.messages.create({
-      model: 'us.anthropic.claude-sonnet-4-6',
-      system: 'You are an expert at extracting mathematical content from documents. Extract ALL text, equations, and mathematical expressions. Preserve LaTeX formatting for equations. Focus on the mathematical content and problem statements.',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mimeType,
-                data: base64,
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': AZURE_OPENAI_API_KEY
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert at extracting mathematical content from documents. Extract ALL text, equations, and mathematical expressions. Preserve LaTeX formatting for equations. Focus on the mathematical content and problem statements.'
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: extractionPrompt
               },
-            },
-            {
-              type: 'text',
-              text: extractionPrompt,
-            },
-          ],
-        },
-      ],
-      max_tokens: 4000,
+              {
+                type: 'image_url',
+                image_url: {
+                  url: dataUrl,
+                  detail: 'high'
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 4000,
+        temperature: 0
+      })
     });
 
-    const extractedText = response.content[0].type === 'text' ? response.content[0].text : '';
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('GPT-5 Vision API error:', error);
+
+      try {
+        const errorObj = JSON.parse(error);
+        if (errorObj.error?.message) {
+          throw new Error(`Failed to extract text: ${errorObj.error.message}`);
+        }
+      } catch {
+        // If not JSON, use raw error
+      }
+
+      throw new Error(`Failed to extract text: ${error}`);
+    }
+
+    const data = await response.json();
+    const extractedText = data.choices[0].message.content;
 
     if (!extractedText || extractedText.trim().length < 10) {
       throw new Error('Could not extract enough text from the file');
     }
 
-    console.log('Successfully extracted text using Claude vision, length:', extractedText.length);
+    console.log('Successfully extracted text using GPT-5 vision, length:', extractedText.length);
     return extractedText;
 
   } catch (error) {
-    console.error('Error extracting text with Claude vision:', error);
+    console.error('Error extracting text with GPT-5 vision:', error);
     throw error;
   }
 }
 
 
 /**
- * Identify relevant calculus topics from extracted text using Claude
+ * Identify relevant calculus topics from extracted text using Azure OpenAI
  */
-async function identifyTopics(client: AnthropicBedrock, text: string): Promise<number[]> {
+async function identifyTopics(text: string): Promise<number[]> {
   try {
     // Fetch all available topics from database
     const { data: topics, error } = await supabase
@@ -91,13 +127,23 @@ async function identifyTopics(client: AnthropicBedrock, text: string): Promise<n
       `${t.id}. ${t.main_topics} - ${t.subtopics} (${t.course})`
     ).join('\n');
 
-    const response = await client.messages.create({
-      model: 'us.anthropic.claude-sonnet-4-6',
-      system: 'You are a calculus expert. Analyze the given mathematical content and identify which topics from the provided list are most relevant. Return only the topic IDs as a JSON array of numbers.',
-      messages: [
-        {
-          role: 'user',
-          content: `Analyze this mathematical content and identify the most relevant topics (return up to 5 topic IDs):
+    const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': AZURE_OPENAI_API_KEY
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a calculus expert. Analyze the given mathematical content and identify which topics from the provided list are most relevant. Return only the topic IDs as a JSON array of numbers.'
+          },
+          {
+            role: 'user',
+            content: `Analyze this mathematical content and identify the most relevant topics (return up to 5 topic IDs):
 
 Content to analyze:
 "${text.substring(0, 3000)}"
@@ -105,13 +151,22 @@ Content to analyze:
 Available topics:
 ${topicsList}
 
-Return only a JSON array of topic IDs, like [1, 4, 11]. Include only topics that are directly relevant to the content.`,
-        },
-      ],
-      max_tokens: 150,
+Return only a JSON array of topic IDs, like [1, 4, 11]. Include only topics that are directly relevant to the content.`
+          }
+        ],
+        max_tokens: 150,
+        temperature: 0
+      })
     });
 
-    const content = response.content[0].type === 'text' ? response.content[0].text : '';
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Azure OpenAI API error:', error);
+      return [];
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
 
     // Parse the JSON array from the response
     try {
@@ -140,7 +195,6 @@ Return only a JSON array of topic IDs, like [1, 4, 11]. Include only topics that
  * Now returns 3 problems per identified topic
  */
 async function selectSimilarProblemsWithLLM(
-  client: AnthropicBedrock,
   uploadedContent: string,
   candidateProblems: Array<{
     id: string;
@@ -148,7 +202,7 @@ async function selectSimilarProblemsWithLLM(
     solution_text: string | null;
     difficulty: string;
     document_id: string;
-    topic_ids?: number[]; // Track which topics this problem belongs to
+    topic_ids?: number[];
   }>,
   identifiedTopics: number[]
 ): Promise<string[]> {
@@ -200,13 +254,23 @@ ${problemsText}`;
     // Calculate total problems to select (3 per topic)
     const totalProblemsToSelect = identifiedTopics.length * 3;
 
-    const response = await client.messages.create({
-      model: 'us.anthropic.claude-sonnet-4-6',
-      system: 'You are a calculus tutor finding practice problems similar to study materials. Analyze problems and their solution context to find the best matches for each identified topic.',
-      messages: [
-        {
-          role: 'user',
-          content: `A student uploaded this study material:
+    const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_CHAT_DEPLOYMENT}/chat/completions?api-version=2024-06-01`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': AZURE_OPENAI_API_KEY
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a calculus tutor finding practice problems similar to study materials. Analyze problems and their solution context to find the best matches for each identified topic.'
+          },
+          {
+            role: 'user',
+            content: `A student uploaded this study material:
 "${contentExcerpt}"
 
 The following topics were identified from the material: ${identifiedTopics.join(', ')}
@@ -224,13 +288,22 @@ Instructions:
 4. If a topic has fewer than 3 problems, you may select from general problems or problems from related topics
 5. A problem can be selected for multiple topics if it's highly relevant
 
-Return ONLY a JSON object with the format: {"selected": ["problem_id_1", "problem_id_2", ..., "problem_id_${totalProblemsToSelect}"]}`,
-        },
-      ],
-      max_tokens: 400,
+Return ONLY a JSON object with the format: {"selected": ["problem_id_1", "problem_id_2", ..., "problem_id_${totalProblemsToSelect}"]}`
+          }
+        ],
+        max_tokens: 400,
+        temperature: 0
+      })
     });
 
-    const content = response.content[0].type === 'text' ? response.content[0].text : '';
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Azure OpenAI API error:', error);
+      throw new Error(`LLM API error: ${error}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
 
     // Parse the JSON response
     try {
@@ -264,11 +337,6 @@ export async function POST(request: NextRequest) {
     const userId = formData.get('userId') as string;
     const isPDF = formData.get('isPDF') === 'true';
 
-    // Initialize Anthropic Bedrock client
-    const client = new AnthropicBedrock({
-      awsRegion: process.env.AWS_REGION || 'us-east-1',
-    });
-
     let extractedText = '';
     let pageCount = 0;
 
@@ -288,7 +356,7 @@ export async function POST(request: NextRequest) {
       pageCount = (extractedText.match(/--- Page \d+ ---/g) || []).length;
       console.log(`Received extracted text from PDF, length: ${extractedText.length}, pages: ${pageCount}`);
     } else {
-      // Handle image file - use Claude vision
+      // Handle image file - use GPT-5 vision
       const file = formData.get('file') as File;
       if (!file) {
         return NextResponse.json(
@@ -310,7 +378,7 @@ export async function POST(request: NextRequest) {
       console.log(`Processing single image file: ${file.name}...`);
 
       try {
-        extractedText = await extractTextWithVision(client, file);
+        extractedText = await extractTextWithGPT5Vision(file);
         console.log(`Successfully extracted text from image, length: ${extractedText.length}`);
       } catch (error) {
         console.error('Text extraction failed:', error);
@@ -341,7 +409,7 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Identify topics from the extracted text
     console.log('Identifying topics...');
-    const identifiedTopicIds = await identifyTopics(client, extractedText);
+    const identifiedTopicIds = await identifyTopics(extractedText);
 
     // Fetch topic details for the identified topics
     interface Topic {
@@ -410,7 +478,6 @@ export async function POST(request: NextRequest) {
         candidateProblems = fallbackData || [];
       } else {
         // Extract the problems from the join result and track which topics they belong to
-        // A problem can appear multiple times if it has multiple matching topics
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const problemsWithTopics = (problemsData as any[]) || [];
 
@@ -472,7 +539,7 @@ export async function POST(request: NextRequest) {
     let selectedProblemIds: string[] = [];
 
     try {
-      selectedProblemIds = await selectSimilarProblemsWithLLM(client, extractedText, candidateProblems, identifiedTopicIds);
+      selectedProblemIds = await selectSimilarProblemsWithLLM(extractedText, candidateProblems, identifiedTopicIds);
       console.log(`LLM selected ${selectedProblemIds.length} problems (${identifiedTopicIds.length} topics x 3 problems)`);
     } catch (llmError) {
       console.error('LLM selection failed, falling back to random selection:', llmError);
@@ -523,6 +590,9 @@ export async function POST(request: NextRequest) {
     const responseMessage = problemsWithSubproblems.length > 0
       ? `Found ${problemsWithSubproblems.length} similar problems${pageCount > 1 ? ` from ${pageCount} pages` : ''}`
       : 'No similar problems found. Try uploading more specific content.';
+
+    // Suppress unused variable warning - userId reserved for future per-user filtering
+    void userId;
 
     return NextResponse.json({
       success: true,

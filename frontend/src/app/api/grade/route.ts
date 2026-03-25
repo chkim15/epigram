@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
+import OpenAI from 'openai';
+
+// Initialize OpenAI client
+let openai: OpenAI | null = null;
 
 interface GradeRequest {
   userAnswer: string;
@@ -20,10 +23,13 @@ const GRADING_PROMPT = `Check if the student answer equals the correct answer ma
 
 export async function POST(req: NextRequest) {
   try {
-    // Check for AWS credentials
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+    // Check for API keys
+    const apiKey = process.env.AZURE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    const isAzure = !!process.env.AZURE_OPENAI_API_KEY;
+
+    if (!apiKey) {
       return NextResponse.json(
-        { error: 'AWS credentials not configured' },
+        { error: 'OpenAI API key not configured' },
         { status: 500 }
       );
     }
@@ -38,9 +44,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const client = new AnthropicBedrock({
-      awsRegion: process.env.AWS_REGION || 'us-east-1',
-    });
+    // Configure OpenAI client for GPT-5-nano
+    if (isAzure && process.env.AZURE_OPENAI_ENDPOINT) {
+      const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5_NANO || 'gpt-5-nano';
+      const azureBaseURL = `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${deploymentName}`;
+
+      openai = new OpenAI({
+        apiKey: process.env.AZURE_OPENAI_API_KEY!,
+        baseURL: azureBaseURL,
+        defaultQuery: { 'api-version': '2025-04-01-preview' },
+        defaultHeaders: {
+          'api-key': process.env.AZURE_OPENAI_API_KEY!,
+        },
+      });
+    } else if (process.env.OPENAI_API_KEY) {
+      openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+    } else {
+      throw new Error('No OpenAI API key configured');
+    }
 
     // Build the grading query
     const query = problemText
@@ -55,21 +78,23 @@ Student Answer: ${userAnswer}
 
 Grade the student's answer.`;
 
-    // Get grading result from Claude Haiku
-    const completion = await client.messages.create({
-      model: 'anthropic.claude-haiku-4-5-20251001-v1:0',
-      system: GRADING_PROMPT,
+    // Get grading result from GPT-5-nano
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-5-nano',
       messages: [
+        { role: 'system', content: GRADING_PROMPT },
         { role: 'user', content: query }
       ],
-      max_tokens: 2000,
+      max_completion_tokens: 2000,
     });
 
-    const response = completion.content[0].type === 'text' ? completion.content[0].text : null;
+    const message = completion.choices[0]?.message;
+    const messageAsUnknown = message as unknown as { reasoning_content?: string; text?: string };
+    const response = message?.content || messageAsUnknown?.reasoning_content || messageAsUnknown?.text;
 
     if (!response) {
-      console.error('No response content from Claude');
-      throw new Error('No response from Claude');
+      console.error('No response content from OpenAI');
+      throw new Error('No response from OpenAI');
     }
 
     try {
@@ -103,17 +128,17 @@ Grade the student's answer.`;
     console.error('Grading API Error:', error);
 
     if (error instanceof Error) {
-      if (error.message.includes('credentials') || error.message.includes('security token')) {
+      if (error.message.includes('401')) {
         return NextResponse.json(
-          { error: 'Invalid AWS credentials' },
+          { error: 'Invalid API key' },
           { status: 401 }
         );
-      } else if (error.message.includes('AccessDeniedException')) {
+      } else if (error.message.includes('404')) {
         return NextResponse.json(
-          { error: 'Access denied - check AWS IAM permissions' },
-          { status: 403 }
+          { error: 'GPT-5-nano model not found. Check deployment configuration.' },
+          { status: 404 }
         );
-      } else if (error.message.includes('throttl') || error.message.includes('rate')) {
+      } else if (error.message.includes('429')) {
         return NextResponse.json(
           { error: 'Rate limit exceeded' },
           { status: 429 }

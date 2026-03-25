@@ -87,9 +87,11 @@ Use **Geist** and **Geist Mono** via `next/font/google`. Applied as CSS variable
 
 ## AI Models
 
-### Primary: Claude via AWS Bedrock (`@anthropic-ai/bedrock-sdk`)
-- `claude-sonnet` → `us.anthropic.claude-sonnet-4-6` (chat, default in ChatSidebar)
-- `claude-haiku` → `anthropic.claude-haiku-4-5-20251001-v1:0` (grading endpoint)
+### Primary: GPT-5 via Azure OpenAI (`openai` SDK)
+- `gpt-5` → deployment `gpt-5-chat` (chat, default in ChatSidebar and AITutorPage)
+- `gpt-5-mini` → deployment `gpt-5-mini` (chat alternative)
+- `gpt-5-nano` → deployment `gpt-5-nano` (grading endpoint)
+- Recommendations endpoint uses Azure OpenAI REST API directly (GPT-5-chat deployment)
 
 ### Secondary: Gemini (`@google/generative-ai`)
 - `gemini-2.5-flash`, `gemini-2.5-pro` — supported in API route but not used by UI

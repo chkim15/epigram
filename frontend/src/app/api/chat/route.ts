@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
+import OpenAI from 'openai';
 
 // Initialize AI clients
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+
+// Configure OpenAI client - supports both Azure and regular OpenAI
+let openai: OpenAI | null = null;
+
 
 // Types
 interface ChatMessage {
@@ -119,10 +123,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      console.error('AWS credentials are not set');
+    if (!process.env.AZURE_OPENAI_API_KEY && !process.env.OPENAI_API_KEY) {
+      console.error('Neither AZURE_OPENAI_API_KEY nor OPENAI_API_KEY is set');
       return NextResponse.json(
-        { error: 'AWS credentials not configured for Claude API' },
+        { error: 'OpenAI API key not configured' },
         { status: 500 }
       );
     }
@@ -187,9 +191,9 @@ CRITICAL RULES:
       case 'gemini-2.5-pro':
             return await handleGeminiRequest(message, conversationHistory, systemPrompt, model, image);
 
-      case 'claude-sonnet':
-      case 'claude-haiku':
-            return await handleClaudeRequest(message, conversationHistory, systemPrompt, model, image);
+      case 'gpt-5':
+      case 'gpt-5-mini':
+            return await handleOpenAIRequest(message, conversationHistory, systemPrompt, model, image);
 
       default:
         console.error('Invalid model:', model);
@@ -330,7 +334,7 @@ async function handleGeminiRequest(
   }
 }
 
-async function handleClaudeRequest(
+async function handleOpenAIRequest(
   message: string,
   conversationHistory: ChatMessage[],
   systemPrompt: string,
@@ -338,23 +342,58 @@ async function handleClaudeRequest(
   image?: string
 ): Promise<Response> {
   try {
-    const client = new AnthropicBedrock({
-      awsRegion: process.env.AWS_REGION || 'us-east-1',
-    });
+    const apiKey = process.env.AZURE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    const isAzure = !!process.env.AZURE_OPENAI_API_KEY;
 
-    // Map model names to Bedrock model IDs
+    // Configure Azure OpenAI client based on the model
+    if (isAzure && process.env.AZURE_OPENAI_ENDPOINT) {
+      // Determine which deployment to use based on the model
+      let deploymentName: string;
+      if (model === 'gpt-5') {
+        deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5 || 'gpt-5-chat';
+      } else {
+        deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-5-mini';
+      }
+
+      const azureBaseURL = `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${deploymentName}`;
+
+      openai = new OpenAI({
+        apiKey: process.env.AZURE_OPENAI_API_KEY!,
+        baseURL: azureBaseURL,
+        defaultQuery: { 'api-version': '2025-04-01-preview' },
+        defaultHeaders: {
+          'api-key': process.env.AZURE_OPENAI_API_KEY!,
+        },
+      });
+    } else if (process.env.OPENAI_API_KEY) {
+      // Regular OpenAI configuration
+      openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+    } else {
+      throw new Error('No OpenAI API key configured');
+    }
+
+    if (!openai) {
+      throw new Error('Failed to initialize OpenAI client');
+    }
+
+    // Map our model names to OpenAI model names
+    // For Azure, the model is determined by the deployment name in the URL
     const modelMap: Record<string, string> = {
-      'claude-sonnet': 'us.anthropic.claude-sonnet-4-6',
-      'claude-haiku': 'anthropic.claude-haiku-4-5-20251001-v1:0',
+      'gpt-5': 'gpt-5-chat',
+      'gpt-5-mini': 'gpt-5-mini',
     };
 
-    const bedrockModel = modelMap[model] || modelMap['claude-sonnet'];
+    const openaiModel = modelMap[model] || 'gpt-5-mini';
 
-    // Build messages array for Claude (system prompt is separate)
+    // Build messages array for OpenAI with proper types
     const messages: Array<{
-      role: 'user' | 'assistant';
-      content: string | Array<{ type: string; text?: string; source?: { type: string; media_type: string; data: string } }>;
-    }> = [];
+      role: 'system' | 'user' | 'assistant';
+      content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
+    }> = [
+      { role: 'system', content: systemPrompt }
+    ];
 
     // Include conversation history (last 30 messages)
     const recentHistory = conversationHistory.slice(-30);
@@ -367,93 +406,118 @@ async function handleClaudeRequest(
 
     // Add current message with optional image
     if (image) {
-      // Extract base64 data and media type
-      const mediaTypeMatch = image.match(/^data:image\/([^;]+)/);
-      const mediaType = mediaTypeMatch ? `image/${mediaTypeMatch[1]}` : 'image/jpeg';
-      const base64Data = image.replace(/^data:image\/[^;]+;base64,/, '');
-
       messages.push({
         role: 'user',
         content: [
           {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: mediaType,
-              data: base64Data,
-            },
+            type: 'text',
+            text: message
           },
           {
-            type: 'text',
-            text: message,
-          },
-        ],
+            type: 'image_url',
+            image_url: {
+              url: image
+            }
+          }
+        ]
       });
     } else {
       messages.push({
         role: 'user',
-        content: message,
+        content: message
       });
     }
 
-    // Use streaming
-    const stream = client.messages.stream({
-      model: bedrockModel,
-      system: systemPrompt,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      messages: messages as any,
-      max_tokens: 4000,
-    });
+    // Try streaming first, fallback to non-streaming if not available
+    try {
+      const stream = await openai.chat.completions.create({
+        model: openaiModel,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        messages: messages as any,
+        max_completion_tokens: 4000,
+        stream: true,
+        // GPT-5 models may only support default temperature of 1
+        ...(model !== 'gpt-5-mini' && model !== 'gpt-5' && { temperature: 0.7 }),
+      });
 
-    // Create a readable stream to send back to the client
-    const encoder = new TextEncoder();
-    const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          stream.on('text', (text) => {
-            if (text) {
-              const data = `data: ${JSON.stringify({ content: text })}\n\n`;
-              controller.enqueue(encoder.encode(data));
+      // Create a readable stream to send back to the client
+      const encoder = new TextEncoder();
+      const readable = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of stream) {
+              const content = chunk.choices[0]?.delta?.content || '';
+              if (content) {
+                const data = `data: ${JSON.stringify({ content })}\n\n`;
+                controller.enqueue(encoder.encode(data));
+              }
             }
-          });
+            const endData = `data: ${JSON.stringify({ done: true })}\n\n`;
+            controller.enqueue(encoder.encode(endData));
+          } catch (error) {
+            console.error('Streaming error:', error);
+            const errorData = `data: ${JSON.stringify({ error: 'Stream error occurred' })}\n\n`;
+            controller.enqueue(encoder.encode(errorData));
+          } finally {
+            controller.close();
+          }
+        },
+      });
 
-          // Wait for the stream to complete
-          await stream.finalMessage();
+      return new Response(readable, {
+        headers: {
+          'Content-Type': 'text/stream-event',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'X-Accel-Buffering': 'no',
+        },
+      });
 
-          // Send final message to indicate stream is complete
-          const endData = `data: ${JSON.stringify({ done: true })}\n\n`;
-          controller.enqueue(encoder.encode(endData));
-        } catch (error) {
-          console.error('Claude streaming error:', error);
-          const errorData = `data: ${JSON.stringify({ error: 'Stream error occurred' })}\n\n`;
-          controller.enqueue(encoder.encode(errorData));
-        } finally {
-          controller.close();
-        }
-      },
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (streamError: any) {
+      // If streaming fails, fallback to non-streaming
+      if (streamError?.message?.includes('stream') || streamError?.message?.includes('organization')) {
+        console.log('Streaming not available, falling back to non-streaming...');
 
-    return new Response(readable, {
-      headers: {
-        'Content-Type': 'text/stream-event',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'X-Accel-Buffering': 'no',
-      },
-    });
+        const completion = await openai.chat.completions.create({
+          model: openaiModel,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          messages: messages as any,
+          max_completion_tokens: 4000,
+          stream: false,
+          ...(model !== 'gpt-5-mini' && model !== 'gpt-5' && { temperature: 0.7 }),
+        });
 
-  } catch (error) {
-    console.error('Claude API Error:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
+        const responseContent = completion.choices[0]?.message?.content || 'No response generated';
 
-    if (errorMessage.includes('credentials') || errorMessage.includes('security token')) {
-      throw new Error('AWS credentials are invalid or expired');
-    } else if (errorMessage.includes('AccessDeniedException')) {
-      throw new Error('Access denied - check AWS IAM permissions for Bedrock');
-    } else if (errorMessage.includes('throttl') || errorMessage.includes('rate')) {
-      throw new Error('Claude API rate limit exceeded');
+        return new Response(JSON.stringify({
+          response: responseContent,
+          model,
+          timestamp: new Date().toISOString()
+        }), {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      } else {
+        throw streamError;
+      }
+    }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error('OpenAI API Error:', error);
+
+    if (error?.status === 401) {
+      throw new Error('OpenAI API key is invalid or expired');
+    } else if (error?.status === 403) {
+      throw new Error('Access denied - API key may not have model access');
+    } else if (error?.status === 404) {
+      throw new Error(`Model not found - check model name spelling: ${model}`);
+    } else if (error?.status === 429) {
+      throw new Error('OpenAI API rate limit exceeded or quota reached');
     } else {
-      throw new Error(`Claude API error: ${errorMessage || 'Unknown error'}`);
+      throw new Error(`OpenAI API error: ${error?.message || 'Unknown error'}`);
     }
   }
 }
