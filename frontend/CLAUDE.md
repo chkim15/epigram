@@ -128,3 +128,68 @@ npm run dev
 ### Vercel deployment
 - Add env vars in Vercel dashboard: Supabase keys, AWS keys (Bedrock), Stripe keys, Resend key, `NEXT_PUBLIC_APP_URL`
 - Check build logs for TypeScript errors — warnings won't block deployment
+
+## Course Content Pipeline
+
+### Source Files
+- LaTeX sources live in `/storage/4-week-course/`
+- Topic metadata mapping in `src/data/course/course-structure.ts` (16 topics across 3 weeks, maps slugs → filenames)
+
+### Two Conversion Paths
+
+1. **JSON path**: `scripts/parse-course-tex.ts` (unified-latex AST parser) → `src/data/course/*.json`
+2. **MDX path**: `npm run build:mdx` runs Pandoc + `scripts/epigram.lua` filter → `src/data/course-mdx/*.mdx`
+
+MDX is primary (used if file exists); JSON is fallback.
+
+### Key Scripts
+
+- **`scripts/parse-course-tex.ts`** — AST-based parser, `cleanContent()` handles LaTeX cruft removal, `convertTabular()` for tables
+- **`scripts/parse-course-tex-v1.ts`** — deprecated regex-based parser (do not use)
+- **`scripts/epigram.lua`** — Pandoc Lua filter: expands custom macros, converts tcolorbox environments to fenced divs
+
+### Custom LaTeX Environments → Components
+
+| LaTeX Environment | Component | Attributes |
+|---|---|---|
+| `conceptbox` | `ConceptBox` | title |
+| `techniquebox` | `TechniqueBox` | title |
+| `keyresult` | `KeyResult` | title |
+| `warningbox` | `WarningBox` | title |
+| `workedbox` | `WorkedBox` | number, difficulty |
+| `freeproblem` / `premiumproblem` | `FreeProblem` / `PremiumProblem` | number, problemId, difficulty |
+| `solutionbox` | `SolutionBox` | — |
+| `tcolorbox` "By the end..." | `LearningObjectives` | — |
+| `tcolorbox` "Technique Toolkit/Summary" | `TechniqueSummary` | title (pipe table inside) |
+
+### MDX Rendering Pipeline
+
+- `preprocessMdx()` in topic page converts Pandoc fenced divs (`::: {.class attrs}`) to JSX tags
+- Uses `next-mdx-remote` + `remarkMath` + `remarkGfm` + `rehypeKatex`
+- Components defined in `src/components/course/mdx-components.tsx`
+
+### Known Post-Processing Issues (manual fixes needed after Pandoc)
+
+- Pandoc converts `tabular` to ASCII-art tables → must manually convert to markdown pipe tables
+- Fenced divs need `title` attribute format: `::: {.techniquesummary title="..."}`
+- `\&` in titles needs cleanup (handled in `cleanContent()` but check MDX output too)
+- Math regions must be preserved during escaping
+
+### Directory Structure Reference
+
+```
+frontend/scripts/
+  parse-course-tex.ts       # JSON parser (v2, AST)
+  parse-course-tex-v1.ts    # Deprecated
+  epigram.lua               # Pandoc Lua filter
+frontend/src/data/
+  course/*.json              # Parsed topic data
+  course/course-structure.ts # Topic metadata + slug mapping
+  course/load-topic.ts       # JSON loader
+  course-mdx/*.mdx           # Pandoc MDX output
+frontend/src/components/course/
+  mdx-components.tsx         # MDX custom components
+  CourseContent.tsx           # JSON fallback renderer
+  MdxTopicHeader.tsx         # Topic header
+  blocks/                    # Individual block components
+```
