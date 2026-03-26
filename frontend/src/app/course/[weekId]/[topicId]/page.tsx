@@ -263,6 +263,8 @@ function preprocessMdx(content: string): string {
       }
       if (inCodeBlock) continue;
       if (outLines[i].trimStart().startsWith("<")) continue;
+      // Skip directive lines (:::) — LC refs inside number="" attrs must stay plain
+      if (outLines[i].trimStart().startsWith(":::")) continue;
       // Skip lines that are pipe table separator rows (|---|---|)
       if (/^\|[\s-:|]+\|$/.test(outLines[i].trim())) continue;
       outLines[i] = outLines[i].replace(
