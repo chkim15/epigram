@@ -2,7 +2,33 @@
 
 import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, AlertTriangle, ExternalLink } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { getLeetCodeUrl } from "@/data/course/lc-slugs";
+
+function extractLcNumber(number?: string): number | null {
+  if (!number) return null;
+  const match = number.match(/LC\s*(\d+)/i);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+function LeetCodeLink({ number }: { number?: string }) {
+  const lcNum = extractLcNumber(number);
+  const url = lcNum ? getLeetCodeUrl(lcNum) : null;
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="p-1 rounded cursor-pointer transition-colors inline-flex"
+      style={{ color: "rgba(255,255,255,0.7)" }}
+      onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
+      onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
+      title={`Open LC ${lcNum} on LeetCode`}
+    >
+      <ExternalLink className="h-3.5 w-3.5" />
+    </a>
+  );
+}
 
 const DIFFICULTY_LABELS: Record<string, string> = {
   easy: "Easy",
@@ -135,8 +161,6 @@ function MdxWarningBox({ title, children }: BoxProps) {
 }
 
 function MdxWorkedBox({ number, difficulty, problemid, problemId, children }: { number?: string; difficulty?: string; problemid?: string; problemId?: string; children: ReactNode }) {
-  const router = useRouter();
-  const pid = problemid || problemId;
   const diffLabel = difficulty ? DIFFICULTY_LABELS[difficulty] || difficulty : undefined;
 
   return (
@@ -170,22 +194,7 @@ function MdxWorkedBox({ number, difficulty, problemid, problemId, children }: { 
             {diffLabel}
           </span>
         )}
-        {pid && (
-          <button
-            onClick={() => router.push(`/problems/${pid}`)}
-            className={`${diffLabel ? "" : "ml-auto "}p-1 rounded cursor-pointer transition-colors`}
-            style={{ color: "rgba(255,255,255,0.7)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "white")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "rgba(255,255,255,0.7)")
-            }
-            title="Open in Problem Viewer"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <LeetCodeLink number={number} />
       </div>
       <div
         className="px-4 py-4 text-sm leading-relaxed"
@@ -265,7 +274,6 @@ function MdxFreeProblem({
   difficulty?: string;
   children: ReactNode;
 }) {
-  const router = useRouter();
   const diffLabel = difficulty ? DIFFICULTY_LABELS[difficulty] || difficulty : undefined;
 
   return (
@@ -299,22 +307,7 @@ function MdxFreeProblem({
             {diffLabel}
           </span>
         )}
-        {problemId && (
-          <button
-            onClick={() => router.push(`/problems/${problemId}`)}
-            className={`${diffLabel ? "" : "ml-auto "}p-1 rounded cursor-pointer transition-colors`}
-            style={{ color: "rgba(255,255,255,0.7)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "white")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "rgba(255,255,255,0.7)")
-            }
-            title="Open in Problem Viewer"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <LeetCodeLink number={number} />
       </div>
       <div
         className="px-4 py-4 text-sm leading-relaxed"
@@ -337,7 +330,6 @@ function MdxPremiumProblem({
   difficulty?: string;
   children: ReactNode;
 }) {
-  const router = useRouter();
   const diffLabel = difficulty ? DIFFICULTY_LABELS[difficulty] || difficulty : undefined;
 
   return (
@@ -371,22 +363,7 @@ function MdxPremiumProblem({
             {diffLabel}
           </span>
         )}
-        {problemId && (
-          <button
-            onClick={() => router.push(`/problems/${problemId}`)}
-            className={`${diffLabel ? "" : "ml-auto "}p-1 rounded cursor-pointer transition-colors`}
-            style={{ color: "rgba(255,255,255,0.7)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "white")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "rgba(255,255,255,0.7)")
-            }
-            title="Open in Problem Viewer"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <LeetCodeLink number={number} />
       </div>
       <div
         className="px-4 py-4 text-sm leading-relaxed"

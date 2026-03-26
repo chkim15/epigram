@@ -51,6 +51,11 @@
 
 **Complexities:**
 
+| | Best | Average | Worst |
+|---|---|---|---|
+| Merge sort | $O(n\log n)$ | $O(n\log n)$ | $O(n\log n)$ |
+| Quick sort | $O(n\log n)$ | $O(n\log n)$ | $O(n^2)$ (bad pivot) |
+
 **Key insight:** prefer merge sort when stability or worst-case guarantee matters; prefer quick sort (with random pivot) in practice for better cache performance. Interviews often ask you to implement merge sort from scratch.
 :::
 

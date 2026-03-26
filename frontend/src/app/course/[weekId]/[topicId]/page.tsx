@@ -11,6 +11,7 @@ import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseContent from "@/components/course/CourseContent";
 import { getTopicBySlug } from "@/data/course/course-structure";
 import { loadTopicData } from "@/data/course/load-topic";
+import { LC_SLUGS } from "@/data/course/lc-slugs";
 import {
   ConceptBox,
   TechniqueBox,
@@ -249,6 +250,32 @@ function preprocessMdx(content: string): string {
 
   // Remove empty parentheses placeholders from learning objectives
   processed = processed.replace(/ \(\)/g, "");
+
+  // Auto-link inline LC references to LeetCode (e.g., "LC 75" → markdown link)
+  // Skip JSX tag lines and fenced code blocks
+  {
+    const outLines = processed.split("\n");
+    let inCodeBlock = false;
+    for (let i = 0; i < outLines.length; i++) {
+      if (outLines[i].startsWith("```")) {
+        inCodeBlock = !inCodeBlock;
+        continue;
+      }
+      if (inCodeBlock) continue;
+      if (outLines[i].trimStart().startsWith("<")) continue;
+      // Skip lines that are pipe table separator rows (|---|---|)
+      if (/^\|[\s-:|]+\|$/.test(outLines[i].trim())) continue;
+      outLines[i] = outLines[i].replace(
+        /\bLC\s+(\d+)\b/g,
+        (_match, num) => {
+          const slug = LC_SLUGS[parseInt(num, 10)];
+          if (!slug) return _match;
+          return `[LC ${num}](https://leetcode.com/problems/${slug}/)`;
+        }
+      );
+    }
+    processed = outLines.join("\n");
+  }
 
   // In pipe-table rows, replace | inside inline math with \vert
   // (GFM parser treats | as cell delimiter even inside $...$)

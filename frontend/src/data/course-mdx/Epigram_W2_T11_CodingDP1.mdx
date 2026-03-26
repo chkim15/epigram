@@ -115,6 +115,12 @@ This is the Fibonacci sequence shifted by one index.
 **Complexity:** $O(\text{amount}\times|\text{coins}|)$ time, $O(\text{amount})$ space.
 
 **LC 322 vs LC 518 --- the loop order trick:**
+
+| | Outer loop | Counts |
+|---|---|---|
+| LC 322 (min coins) | amounts | min over all orderings |
+| LC 518 (num combos) | coins | combinations only (no duplicates) |
+| *Permutations* | amounts | would count \{1,2\} and \{2,1\} separately |
 :::
 
 # String and Sequence DP
