@@ -426,7 +426,7 @@ function MdxTechniqueSummary({ title, children }: { title?: string, children: Re
   );
 }
 
-function MdxLearningObjectives({ children }: { children: ReactNode }) {
+function MdxLearningObjectives({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <div
       className="rounded-lg my-6 border overflow-hidden shadow-sm"
@@ -439,7 +439,7 @@ function MdxLearningObjectives({ children }: { children: ReactNode }) {
         className="px-4 py-2.5 text-sm font-semibold tracking-wide"
         style={{ backgroundColor: "#31364d", color: "white" }}
       >
-        By the end of this topic, you will be able to&hellip;
+        {title || <>By the end of this topic, you will be able to&hellip;</>}
       </div>
       <div className="px-4 py-3" style={{ color: "var(--foreground)" }}>
         {children}

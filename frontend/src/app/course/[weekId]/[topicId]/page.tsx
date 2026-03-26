@@ -4,6 +4,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
+import rehypePrettyCode from "rehype-pretty-code";
 import "katex/dist/katex.min.css";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
@@ -126,10 +127,10 @@ function escapeNonMathSegment(text: string): string {
 function escapeContentOutsideMath(content: string): string {
   const segments: string[] = [];
   let lastIdx = 0;
-  // Multi-line display math ($$...$$) and single-line inline math ($...$)
-  const mathRe = /\$\$[\s\S]*?\$\$|\$(?!\s)(?:[^$\\]|\\.)+?(?<!\s)\$/g;
+  // Protected regions: fenced code blocks, inline code, display math, inline math
+  const protectedRe = /`{3,}[^\n]*\n[\s\S]*?\n`{3,}|`[^`\n]+`|\$\$[\s\S]*?\$\$|\$(?!\s)(?:[^$\\]|\\.)+?(?<!\s)\$/g;
   let m;
-  while ((m = mathRe.exec(content)) !== null) {
+  while ((m = protectedRe.exec(content)) !== null) {
     if (m.index > lastIdx) {
       segments.push(escapeNonMathSegment(content.slice(lastIdx, m.index)));
     }
@@ -146,8 +147,69 @@ function escapeContentOutsideMath(content: string): string {
  * Convert Pandoc fenced divs (:::) to JSX component tags for MDX.
  * Handles nesting and preserves markdown content with blank line separators.
  */
+/**
+ * Convert indented code blocks (4-space) to fenced code blocks.
+ * MDX does not support indented code blocks; only fenced (```) works.
+ * Requires at least 2 consecutive indented lines to avoid false positives.
+ */
+function convertIndentedCodeBlocks(content: string): string {
+  const lines = content.split("\n");
+  const result: string[] = [];
+  let i = 0;
+  while (i < lines.length) {
+    const prevBlank =
+      result.length === 0 || result[result.length - 1].trim() === "";
+    if (prevBlank && /^    \S/.test(lines[i])) {
+      // Collect all consecutive indented (or blank-between-indented) lines
+      const block: string[] = [];
+      const start = i;
+      while (
+        i < lines.length &&
+        (/^    /.test(lines[i]) || lines[i].trim() === "")
+      ) {
+        if (
+          lines[i].trim() === "" &&
+          (i + 1 >= lines.length || !/^    /.test(lines[i + 1]))
+        ) {
+          break;
+        }
+        block.push(lines[i].slice(4));
+        i++;
+      }
+      // Trim trailing blank lines
+      while (block.length > 0 && block[block.length - 1].trim() === "") {
+        block.pop();
+      }
+      // Only convert if 2+ indented lines (avoids false positives)
+      if (block.filter((l) => l.trim() !== "").length >= 2) {
+        result.push("```python");
+        result.push(...block);
+        result.push("```");
+      } else {
+        // Not enough lines — put them back as-is
+        for (let j = start; j < i; j++) {
+          result.push(lines[j]);
+        }
+      }
+    } else {
+      result.push(lines[i]);
+      i++;
+    }
+  }
+  return result.join("\n");
+}
+
 function preprocessMdx(content: string): string {
   let processed = content;
+
+  // Normalize non-breaking spaces from Pandoc output
+  processed = processed.replace(/\u00a0/g, " ");
+
+  // Convert indented code blocks to fenced (must run before other processing)
+  processed = convertIndentedCodeBlocks(processed);
+
+  // Add python language to bare fenced code blocks from Pandoc (e.g. ``` {numbers="none"})
+  processed = processed.replace(/^```\s*\{[^}]*\}\s*$/gm, "```python");
 
   // Remove Pandoc raw inline attributes: `<!-- -->`{=html} → empty
   processed = processed.replace(/`<!--\s*-->`\{=html\}/g, "");
@@ -161,6 +223,13 @@ function preprocessMdx(content: string): string {
 
   // Escape stray Pandoc artifacts (<, >, {, }) outside math regions
   processed = escapeContentOutsideMath(processed);
+
+  // Replace \$ inside math with \DOLLAR macro (remarkMath treats $ in \$ as a delimiter)
+  const mathRe =
+    /\$\$[\s\S]*?\$\$|\$(?!\s)(?:[^$\\]|\\.)+?(?<!\s)\$/g;
+  processed = processed.replace(mathRe, (match) =>
+    match.replace(/\\\$/g, "\\DOLLAR ")
+  );
 
   // Ensure display math $$ is on its own line (remark-math requires this).
   // Note: In JS replacement strings, $$ is an escaped literal $, so use $$$$ for $$
@@ -319,7 +388,21 @@ export default async function TopicPage({
                     options={{
                       mdxOptions: {
                         remarkPlugins: [remarkMath, remarkGfm],
-                        rehypePlugins: [rehypeKatex],
+                        rehypePlugins: [
+                          [
+                            rehypeKatex,
+                            {
+                              macros: { "\\DOLLAR": "\\$" },
+                            },
+                          ],
+                          [
+                            rehypePrettyCode,
+                            {
+                              theme: "github-light",
+                              keepBackground: false,
+                            },
+                          ],
+                        ],
                       },
                     }}
                   />

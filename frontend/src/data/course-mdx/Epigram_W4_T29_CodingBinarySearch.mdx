@@ -1,4 +1,4 @@
-::: learningobjectives
+::: {.learningobjectives title="Binary Search: Two Templates"}
 **Template 1 --- find exact value** (`lo <= hi`, returns index or $-1$):
 
 ``` {numbers="none"}
@@ -161,8 +161,8 @@ Template 2 is the workhorse for **binary search on the answer** (LC 875, 1011, 4
 
 # Binary Search on the Answer
 
-::: tcolorbox
-**Pattern: Binary Search on the Answer.** When you need to find the minimum (or maximum) value $x$ such that some predicate `feasible(x)` is true:
+::: {.techniquebox title="Pattern: Binary Search on the Answer"}
+When you need to find the minimum (or maximum) value $x$ such that some predicate `feasible(x)` is true:
 
 1.  Identify the search space $[\texttt{lo}, \texttt{hi}]$.
 
@@ -325,9 +325,7 @@ Binary search on $i\in[0,m]$ (binary search on the shorter array).
 
 # Pattern Summary and Common Mistakes
 
-::: tcolorbox
-**Binary Search Pattern Toolkit**
-
+::: {.techniquesummary title="Binary Search Pattern Toolkit"}
 
 | **Problem** | **Template** | **Key** |
 |---|---|---|

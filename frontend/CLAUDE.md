@@ -21,8 +21,6 @@ Three themes defined in `globals.css`:
 
 User-selectable themes are `claude-light` and `claude-dark` (via `next-themes`). Use the `useAppTheme()` hook from `src/lib/utils/theme.ts`.
 
-**Components should use CSS variables** (`var(--background)`, `var(--foreground)`, etc.) — not hardcoded hex values.
-
 ### Color Palette (epigram theme reference)
 
 | Token | CSS Variable | Hex Value | Usage |
@@ -33,7 +31,6 @@ User-selectable themes are `claude-light` and `claude-dark` (via `next-themes`).
 | Sidebar BG | `var(--sidebar-background)` | `#f5f4ee` | Navigation areas |
 | Sidebar Accent | `var(--sidebar-accent)` | `#e9e6dc` | Toggles, highlights |
 | Hint/Accent | — | `#a16207` | Hints, warnings, subproblem markers |
-| Hover | — | `#f5f4ee` | Button hover states |
 | White | — | `#ffffff` | Input fields only |
 
 ### Font
@@ -42,48 +39,14 @@ Use **Geist** and **Geist Mono** via `next/font/google`. Applied as CSS variable
 
 ### UI Conventions
 
+- **Components must use CSS variables** (`var(--background)`, etc.) — not hardcoded hex values
 - **`cursor-pointer`** on ALL interactive elements (buttons, tabs, links)
 - **`custom-scrollbar`** class on all scrollable areas (defined in `globals.css`)
 - **Hover states**: consistent `backgroundColor` transitions via `onMouseEnter`/`onMouseLeave`
 - **Active tab states**: `bg-[#141310]` with white text
 - **White backgrounds**: reserved for input fields only
-
-### Standard Patterns
-
-**Button:**
-```tsx
-<Button
-  className="h-8 px-3 rounded-xl cursor-pointer border"
-  style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)', borderColor: 'var(--border)' }}
-  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--sidebar-background)'}
-  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--background)'}
->
-  Button Text
-</Button>
-```
-
-**Input:**
-```tsx
-<input
-  className="h-[50px] py-2 px-3 rounded-xl bg-white border focus:outline-none"
-  style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-/>
-```
-
-**Hint/Accent:**
-```tsx
-<button style={{ borderColor: '#a16207', color: '#a16207' }}>Hint Element</button>
-```
-
-### Design Rules for New Components
-
-1. Use CSS variables from theme — don't hardcode colors
-2. Use `var(--*)` CSS variables; reference hex values for the epigram theme only
-3. Add `cursor-pointer` to all interactive elements
-4. Implement hover states with consistent patterns
-5. White backgrounds only for input fields
-6. Use `var(--border)` for borders
-7. Use `#a16207` for hints, warnings, accent markers
+- **Borders**: use `var(--border)`
+- **Hints/warnings/accents**: use `#a16207`
 
 ## AI Models
 
@@ -144,12 +107,6 @@ npm run dev
 
 MDX is primary (used if file exists); JSON is fallback.
 
-### Key Scripts
-
-- **`scripts/parse-course-tex.ts`** — AST-based parser, `cleanContent()` handles LaTeX cruft removal, `convertTabular()` for tables
-- **`scripts/parse-course-tex-v1.ts`** — deprecated regex-based parser (do not use)
-- **`scripts/epigram.lua`** — Pandoc Lua filter: expands custom macros, converts tcolorbox environments to fenced divs
-
 ### Custom LaTeX Environments → Components
 
 | LaTeX Environment | Component | Attributes |
@@ -161,33 +118,42 @@ MDX is primary (used if file exists); JSON is fallback.
 | `workedbox` | `WorkedBox` | number, difficulty |
 | `freeproblem` / `premiumproblem` | `FreeProblem` / `PremiumProblem` | number, problemId, difficulty |
 | `solutionbox` | `SolutionBox` | — |
-| `tcolorbox` "By the end..." | `LearningObjectives` | — |
+| `tcolorbox` "By the end..." | `LearningObjectives` | title (optional; coding topics have distinct titles) |
 | `tcolorbox` "Technique Toolkit/Summary" | `TechniqueSummary` | title (pipe table inside) |
 
 ### MDX Rendering Pipeline
 
-- `preprocessMdx()` in topic page converts Pandoc fenced divs (`::: {.class attrs}`) to JSX tags
-- `escapeContentOutsideMath()` escapes `{`, `}`, `<`, `>` outside math regions (supports multi-line inline math)
-- Uses `next-mdx-remote` + `remarkMath` + `remarkGfm` + `rehypeKatex`
-- `MdxTopicHeader` renders topic title, subtopics, time estimate, prerequisites from JSON; hides learning objectives when MDX provides them via `hideLearningObjectives` prop
-- Components defined in `src/components/course/mdx-components.tsx`
+`preprocessMdx()` in `src/app/course/[weekId]/[topicId]/page.tsx` applies these transforms in order:
+
+1. **`convertIndentedCodeBlocks()`** — converts 4-space indented code → fenced ` ```python ` blocks (MDX doesn't support indented code blocks)
+2. **Pandoc cleanup** — removes `{=html}`, `{=latex}` raw attributes and HTML comments
+3. **`joinMultiLineInlineMath()`** — joins inline `$...$` spanning multiple lines onto one line
+4. **`escapeContentOutsideMath()`** — escapes `{`, `}`, `<`, `>` outside protected regions (math, inline code, fenced code blocks)
+5. **Display math separation** — ensures `$$` delimiters are on their own lines
+6. **Dash conversion** — ` --- ` → em-dash, `--` → en-dash
+7. **Pipe table math fix** — replaces `|` with `\vert` inside `$...$` within table rows
+8. **Fenced div → JSX** — converts Pandoc `::: {.class attrs}` to `<Component attrs>`
+
+Rendering stack: `next-mdx-remote` + `remarkMath` + `remarkGfm` + `rehypeKatex` + `rehype-pretty-code` (theme: `github-light`)
+
+`MdxTopicHeader` renders topic metadata from JSON. `convertDashes()` handles `---`→em-dash, `--`→en-dash, and `\&`→`&` in topicName, timeEstimate, prerequisites.
 
 ### Post-Processing After `build:mdx`
 
-After regenerating MDX, these manual fixes are needed:
+After regenerating MDX from LaTeX, these manual fixes are needed:
 
-1. **ASCII-art tables → pipe tables**: Pandoc converts `tabular` to ASCII-art. Run conversion script or manually replace. Technique summary tables (inside `techniquesummary` divs) and coding topic pattern tables both need this.
-2. **Dropped `center`/`tabular` content**: The Lua filter drops `center` divs. Tables inside conceptboxes (e.g., Distribution Quick Reference in T3, Martingale table in T9, OLS assumptions in T17, game matrices in T23, Greeks in T27) must be manually restored as pipe tables.
-3. **`\bordermatrix`**: Not supported by KaTeX. Convert to `\begin{array}` with `\hline` (see T8 for example).
-4. **Multi-line inline math**: The `escapeContentOutsideMath()` regex in page.tsx handles `$...$` spanning lines. If new math breaks, check the regex at page.tsx:88.
+1. **ASCII-art tables → pipe tables**: Pandoc converts `tabular` to ASCII-art. Technique summary and coding pattern tables need pipe table format.
+2. **Dropped `center`/`tabular` content**: The Lua filter drops `center` divs. Tables inside conceptboxes must be manually restored as pipe tables.
+3. **`\bordermatrix`**: Not supported by KaTeX. Convert to `\begin{array}` with `\hline` (see T8).
+4. **`tcolorbox` → proper directives**: Pandoc outputs `::: tcolorbox` which is not in the component map. Convert to `::: {.techniquesummary title="..."}`, `::: {.techniquebox title="..."}`, or `::: {.learningobjectives title="..."}` as appropriate. Remove the bold title line (move to `title=` attr).
+5. **`| ::: |` in tables**: Pandoc sometimes places closing `:::` inside a table row. Remove the malformed row and add a proper `:::` on its own line.
+6. **Double blank lines after `:::`**: Technique summary tables need exactly one blank line between `:::` opening and the pipe table (preprocessMdx adds another). Two blank lines breaks GFM table parsing.
+7. **`\&` in JSON**: Clean `\&` → `&` in `src/data/course/*.json` (topicName, prerequisites fields).
+8. **`multline*`**: Not supported by KaTeX. Convert to `aligned` environment.
 
 ### Directory Structure Reference
 
 ```
-frontend/scripts/
-  parse-course-tex.ts       # JSON parser (v2, AST)
-  parse-course-tex-v1.ts    # Deprecated
-  epigram.lua               # Pandoc Lua filter
 frontend/src/data/
   course/*.json              # Parsed topic data
   course/course-structure.ts # Topic metadata + slug mapping
@@ -198,4 +164,7 @@ frontend/src/components/course/
   CourseContent.tsx           # JSON fallback renderer
   MdxTopicHeader.tsx         # Topic header
   blocks/                    # Individual block components
+frontend/scripts/
+  parse-course-tex.ts        # JSON parser (AST-based)
+  epigram.lua                # Pandoc Lua filter
 ```

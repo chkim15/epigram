@@ -453,8 +453,18 @@ math-field:focus {
   margin: 0.5rem 0;
 }
 
-.technique-summary-body thead {
-  display: none;
+.technique-summary-body th {
+  padding: 0.5rem 0;
+  vertical-align: top;
+  border: none;
+  border-bottom: 1.5px solid rgba(30, 58, 95, 0.3);
+  font-weight: 600;
+  text-align: left;
+}
+
+.technique-summary-body th:first-child {
+  width: 35%;
+  padding-right: 1.5rem;
 }
 
 .technique-summary-body tr {
@@ -574,4 +584,38 @@ mark.pdf-search-highlight {
 mark.pdf-search-highlight.pdf-search-active {
   background-color: rgba(59, 130, 246, 0.7);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.8);
+}
+
+/* MDX Code Block Styles (rehype-pretty-code) */
+.mdx-content-body figure[data-rehype-pretty-code-figure] {
+  margin: 1.5rem 0;
+}
+
+.mdx-content-body figure[data-rehype-pretty-code-figure] pre {
+  background-color: #f8fbfd; /* Slight blue-grey background */
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem 0;
+  overflow-x: auto;
+}
+
+.mdx-content-body figure[data-rehype-pretty-code-figure] code {
+  counter-reset: line;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.875rem;
+}
+
+.mdx-content-body figure[data-rehype-pretty-code-figure] code > [data-line] {
+  padding: 0 1rem;
+}
+
+.mdx-content-body figure[data-rehype-pretty-code-figure] code > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1.5rem;
+  margin-right: 1.5rem;
+  text-align: right;
+  color: #60a5fa; /* Blue line numbers */
+  user-select: none;
 }
