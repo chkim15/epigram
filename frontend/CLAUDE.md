@@ -135,12 +135,12 @@ npm run dev
 
 ### Source Files
 - LaTeX sources live in `/storage/4-week-course/`
-- Topic metadata mapping in `src/data/course/course-structure.ts` (16 topics across 3 weeks, maps slugs → filenames)
+- Topic metadata mapping in `src/data/course/course-structure.ts` (29 topics across 4 weeks, maps slugs → filenames)
 
 ### Two Conversion Paths
 
 1. **JSON path**: `scripts/parse-course-tex.ts` (unified-latex AST parser) → `src/data/course/*.json`
-2. **MDX path**: `npm run build:mdx` runs Pandoc + `scripts/epigram.lua` filter → `src/data/course-mdx/*.mdx`
+2. **MDX path**: `npm run build:mdx` runs Pandoc + `scripts/epigram.lua` filter + `--wrap=none` → `src/data/course-mdx/*.mdx`
 
 MDX is primary (used if file exists); JSON is fallback.
 
@@ -167,15 +167,19 @@ MDX is primary (used if file exists); JSON is fallback.
 ### MDX Rendering Pipeline
 
 - `preprocessMdx()` in topic page converts Pandoc fenced divs (`::: {.class attrs}`) to JSX tags
+- `escapeContentOutsideMath()` escapes `{`, `}`, `<`, `>` outside math regions (supports multi-line inline math)
 - Uses `next-mdx-remote` + `remarkMath` + `remarkGfm` + `rehypeKatex`
+- `MdxTopicHeader` renders topic title, subtopics, time estimate, prerequisites from JSON; hides learning objectives when MDX provides them via `hideLearningObjectives` prop
 - Components defined in `src/components/course/mdx-components.tsx`
 
-### Known Post-Processing Issues (manual fixes needed after Pandoc)
+### Post-Processing After `build:mdx`
 
-- Pandoc converts `tabular` to ASCII-art tables → must manually convert to markdown pipe tables
-- Fenced divs need `title` attribute format: `::: {.techniquesummary title="..."}`
-- `\&` in titles needs cleanup (handled in `cleanContent()` but check MDX output too)
-- Math regions must be preserved during escaping
+After regenerating MDX, these manual fixes are needed:
+
+1. **ASCII-art tables → pipe tables**: Pandoc converts `tabular` to ASCII-art. Run conversion script or manually replace. Technique summary tables (inside `techniquesummary` divs) and coding topic pattern tables both need this.
+2. **Dropped `center`/`tabular` content**: The Lua filter drops `center` divs. Tables inside conceptboxes (e.g., Distribution Quick Reference in T3, Martingale table in T9, OLS assumptions in T17, game matrices in T23, Greeks in T27) must be manually restored as pipe tables.
+3. **`\bordermatrix`**: Not supported by KaTeX. Convert to `\begin{array}` with `\hline` (see T8 for example).
+4. **Multi-line inline math**: The `escapeContentOutsideMath()` regex in page.tsx handles `$...$` spanning lines. If new math breaks, check the regex at page.tsx:88.
 
 ### Directory Structure Reference
 

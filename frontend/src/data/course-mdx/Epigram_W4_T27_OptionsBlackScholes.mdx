@@ -1,0 +1,318 @@
+::: learningobjectives
+1.  **State and apply Put-Call Parity** to price puts from calls and construct explicit arbitrage portfolios when parity is violated.
+
+2.  **Price options using one-step and two-step binomial trees** via risk-neutral pricing and replicating portfolios.
+
+3.  **Price American puts** and determine when early exercise is optimal.
+
+4.  **Explain Delta hedging** and the role of Gamma in dynamic rebalancing.
+
+5.  **State the Black-Scholes assumptions and PDE** and give the sign and intuition for each Greek.
+
+6.  **Explain the volatility smile** and its implications for the Black-Scholes model.
+
+*Problems 1--3 cover no-arbitrage pricing and binomial trees. Problems 4--6 are Delta/Gamma hedging, the Black-Scholes PDE and Greeks, and the volatility smile.*
+:::
+
+# No-Arbitrage Pricing
+
+::: {.conceptbox title="Key Relationships"}
+**Put-Call Parity (European options):** $$C - P = S - Ke^{-rT}$$
+
+**Risk-neutral pricing (binomial tree):** $$p^* = \frac{e^{rT} - d}{u - d}
+  \qquad
+  V_0 = e^{-rT}\bigl[p^*\,V_u + (1-p^*)\,V_d\bigr]$$
+
+**Replicating portfolio:** $\Delta = (V_u-V_d)/(S_u-S_d)$ (shares), $B = e^{-rT}(V_d\,S_u-V_u\,S_d)/(S_u-S_d)$ (bond).
+:::
+
+::: {.workedbox number="1" difficulty="medium" problemid="quant_interview_fundamental_qdsi_p136"}
+**Put-Call Parity and Arbitrage.** European call: $S=\$100$, $K=\$105$, $r=5\%$/year, $T=1$ yr, $C=\$8$.
+
+1.  State Put-Call Parity.
+
+2.  Find the fair put price.
+
+3.  If the put is priced at \$10, construct an explicit arbitrage portfolio.
+:::
+
+::: solutionbox
+**(a) Put-Call Parity.** For European options on a non-dividend-paying stock: $$C - P = S - Ke^{-rT}$$ This follows from no-arbitrage: both sides replicate a forward contract with delivery price $K$.
+
+**(b) Fair put price.** $$P = C - S + Ke^{-rT}
+  = 8 - 100 + 105e^{-0.05}
+  = 8 - 100 + 99.88
+  = \boxed{\$7.88}$$
+
+**(c) Arbitrage when $P=\$10$.**
+
+The put is overpriced ($10 > 7.88$). Sell the overpriced put and hedge:
+
+| Action | Today | $S_T > K$ | $S_T \leq K$ |
+|---|---|---|---|
+| Sell put | $+10$ | $0$ | $-(K-S_T)$ |
+| Buy call | $-8$ | $+(S_T-K)$ | $0$ |
+| Short stock | $+100$ | $-S_T$ | $-S_T$ |
+| Lend $Ke^{-rT}=99.88$ | $-99.88$ | $+K$ | $+K$ |
+| **Net** | **$+2.12$** | $0$ | $0$ |
+
+Risk-free profit today: $10 - 8 + 100 - 99.88 = \boxed{\$2.12}$, with zero payoff at expiry in both scenarios.
+
+**Key takeaway:** Put-Call Parity: $C-P=S-Ke^{-rT}$. If violated, sell the overpriced side and buy the underpriced side plus a replicating hedge. Profit is locked in today.
+:::
+
+::: {.freeproblem number="2" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p137"}
+**One-Step Binomial Tree.** Stock at \$50; up to \$65 or down to \$40 in 1 year; $r=5\%$.
+
+1.  Find risk-neutral probabilities $p^*$, $1-p^*$.
+
+2.  Price a European call with $K=\$55$.
+
+3.  Verify via replicating portfolio.
+:::
+
+::: solutionbox
+**(a) Risk-neutral probability.**
+
+With discrete discounting, $(1+r)=1.05$. Set $(1+r)S_0 = p^* S_u + (1-p^*)S_d$: $$1.05\times50 = 65p^* + 40(1-p^*)
+  \implies 52.5 = 40 + 25p^*
+  \implies p^* = \frac{12.5}{25} = \boxed{0.5}$$
+
+**(b) Call price.** Payoffs: $C_u = \max(65-55,0)=10$, $C_d = \max(40-55,0)=0$. $$C_0 = \frac{1}{1.05}\bigl[0.5\times10 + 0.5\times0\bigr]
+  = \frac{5}{1.05}
+  \approx \boxed{\$4.76}$$
+
+**(c) Replicating portfolio ($\Delta$ shares $+$ bond $B$).**
+
+Require $\Delta S_u + 1.05B = C_u$ and $\Delta S_d + 1.05B = C_d$: $$65\Delta + 1.05B = 10,\qquad 40\Delta + 1.05B = 0$$ Subtracting: $25\Delta = 10 \Rightarrow \Delta = \dfrac{10}{25} = 0.40$ shares.
+
+From the down equation: $1.05B = -16 \Rightarrow B = -\dfrac{16}{1.05} \approx -\$15.24$.
+
+Portfolio value today: $$V_0 = 0.4\times50 - \frac{16}{1.05} = 20 - 15.238 = \boxed{\$4.76}$$  matches part (b) by no-arbitrage.
+
+Verify payoffs:
+
+- Up: $0.4\times65 + 1.05\times(-16/1.05) = 26 - 16 = \$10$
+
+- Down: $0.4\times40 + 1.05\times(-16/1.05) = 16 - 16 = \$0$
+
+**Key takeaway:** Risk-neutral pricing and replicating portfolio always give the same answer by no-arbitrage. $\Delta=0.40$ means you hold 40% of a share to hedge 1 call.
+:::
+
+::: {.freeproblem number="3" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p138"}
+**Two-Step Binomial Tree.** $S_0=\$50$, $u=1.2$, $d=0.85$, $r=3\%$ per period.
+
+1.  Draw the price tree for two periods.
+
+2.  Find risk-neutral probability $p^*$.
+
+3.  Price a European put with $K=\$52$.
+
+4.  Price an American put with $K=\$52$. Does early exercise ever make sense?
+:::
+
+::: solutionbox
+**(a) Price tree.**
+
+$S_{uu}=50\times1.44=72.00$, $S_{ud}=50\times1.02=51.00$, $S_{dd}=50\times0.7225=36.12$.
+
+**(b) Risk-neutral probability.** $$p^* = \frac{(1+r) - d}{u - d}
+  = \frac{1.03 - 0.85}{1.2 - 0.85}
+  = \frac{0.18}{0.35}
+  = \boxed{\frac{18}{35}\approx0.5143}$$
+
+**(c) European put ($K=\$52$).**
+
+Terminal payoffs: $P_{uu}=0$, $P_{ud}=1$, $P_{dd}=52-36.125=15.875$.
+
+Period-1 values (discount by $1/(1+r)=1/1.03$): $$P_u = \frac{1}{1.03}\!\left(\tfrac{18}{35}\times0
+        + \tfrac{17}{35}\times1\right)
+  = \frac{17}{35\times1.03} \approx \$0.4716$$ $$P_d = \frac{1}{1.03}\!\left(\tfrac{18}{35}\times1
+        + \tfrac{17}{35}\times15.875\right)
+  = \frac{8.225}{1.03} \approx \$7.985$$
+
+Period-0: $$P_0 = \frac{1}{1.03}\!\left(\tfrac{18}{35}\times0.4716
+        + \tfrac{17}{35}\times7.985\right)
+  \approx \frac{4.121}{1.03}
+  \approx \boxed{\$4.00}$$
+
+**(d) American put.**
+
+At each node, take $\max(\text{intrinsic value},\;\text{continuation value})$.
+
+*Up node ($S_u=60$):* Intrinsic $=\max(52-60,0)=0$. Continuation $=0.4716 > 0$. Do not exercise: $P_u^{\text{Am}}=0.4716$.
+
+*Down node ($S_d=42.50$):* Intrinsic $=52-42.5=9.50$. Continuation $=7.985 < 9.50$. **Early exercise is optimal**: $P_d^{\text{Am}}=9.50$.
+
+*Time 0:* Intrinsic $=52-50=2$. Continuation value: $$P_0^{\text{cont}} = \frac{1}{1.03}\!\left(\tfrac{18}{35}\times0.4716
+  + \tfrac{17}{35}\times9.50\right)
+  \approx \frac{4.857}{1.03} \approx 4.715$$ Since $4.715 > 2$, do not exercise at time 0. $$\boxed{P_0^{\text{Am}} \approx \$4.72}$$
+
+The American put is worth more than the European put (\$4.72 vs \$4.00) because early exercise at the down node is optimal --- intrinsic value \$9.50 exceeds the continuation value \$7.99.
+
+**Key takeaway:** American puts can be worth more than European puts due to early exercise. Early exercise is rational when the intrinsic value exceeds the continuation (time) value --- typically for deep in-the-money puts when interest rates are positive.
+:::
+
+# Hedging, Black-Scholes, and Market Realities
+
+::: {.premiumproblem number="4" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p139"}
+**Delta Hedging Intuition.** You sold 1 call with $\Delta=0.6$ on a stock at \$100.
+
+1.  How many shares to hold for Delta-neutrality?
+
+2.  If stock rises \$1, how does the hedged portfolio change?
+
+3.  What does $\Gamma=0.05$ tell you?
+
+4.  Explain the Gamma--Theta trade-off for a long option.
+:::
+
+::: solutionbox
+**(a) Delta-neutral hedge.**
+
+You are short 1 call with $\Delta=0.6$. Buy $\Delta=0.6$ shares of stock. Your portfolio: $+0.6$ shares $-1$ call.
+
+Portfolio Delta: $0.6\times1 - 0.6 = 0$. Delta-neutral.
+
+**(b) Portfolio change for $\Delta S = +\$1$.**
+
+Using the Delta approximation:
+
+- Short call changes by $\approx -\Delta\cdot\Delta S = -0.6\times1 = -\$0.60$.
+
+- Long 0.6 shares change by $+0.6\times1 = +\$0.60$.
+
+Net change: $$\Delta V_{\text{portfolio}} \approx -0.60 + 0.60 = \boxed{\$0}$$ This is *exactly* what Delta-neutrality means: to first order, small stock price moves do not change the portfolio value.
+
+**Note on second-order effects:** For large moves, the Gamma of the short call ($-0.05$) causes a *second-order* loss of $\frac{1}{2}\times0.05\times(\Delta S)^2$. But for a \$1 move, this is only $\approx\$0.025$ --- small relative to the first-order effect that exactly cancels.
+
+**(c) Gamma $=0.05$.**
+
+Gamma measures the rate of change of Delta with respect to the stock price: $$\Gamma = \frac{\partial^2 C}{\partial S^2} = 0.05$$ If the stock rises by \$1, the call's Delta increases by approximately $0.05$: from 0.60 to 0.65. You must *rebalance* by buying $0.05$ more shares to remain Delta-neutral.
+
+**(d) Gamma--Theta trade-off.**
+
+For a **long option** position:
+
+- **Gamma** $>0$: you benefit from large stock moves in either direction (convexity). A big move up or down increases your P&L.
+
+- **Theta** $<0$: you lose value as time passes (time decay). Every day you hold the option, it decays.
+
+The Black-Scholes PDE enforces: $$\Theta + \frac{1}{2}\sigma^2 S^2 \Gamma + rS\Delta = rV$$ For an at-the-money option: $\Theta \approx -\frac{1}{2}\sigma^2 S^2\Gamma$. A long position *pays* Theta (time decay) in exchange for *collecting* Gamma (profit from realised moves). If realised volatility exceeds implied volatility, the Gamma gains exceed the Theta cost: the position profits.
+
+**Key takeaway:** Delta-neutral: hold $\Delta$ shares per short call. Gamma measures how fast Delta changes --- large Gamma means frequent rebalancing needed. Long options: pay Theta, receive Gamma.
+:::
+
+::: {.premiumproblem number="5" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p140"}
+**Black-Scholes: Assumptions, PDE, and Greeks.**
+
+1.  State the five key assumptions.
+
+2.  Write the Black-Scholes PDE.
+
+3.  For a long European call: sign and intuition for each Greek.
+
+4.  Behaviour of Greeks deep ITM vs deep OTM.
+:::
+
+::: solutionbox
+**(a) Black-Scholes assumptions.**
+
+1.  Stock price follows geometric Brownian motion: $dS = \mu S\,dt + \sigma S\,dW_t$.
+
+2.  Constant volatility $\sigma$ and risk-free rate $r$.
+
+3.  No dividends during the option's life.
+
+4.  No transaction costs or taxes; continuous trading possible.
+
+5.  No arbitrage opportunities.
+
+**(b) Black-Scholes PDE.** $$\frac{1}{2}\sigma^2 S^2\,\frac{\partial^2 C}{\partial S^2}
+  + rS\,\frac{\partial C}{\partial S}
+  + \frac{\partial C}{\partial t}
+  = rC$$
+
+**(c) Greeks for a long European call.**
+
+| Greek | Sign | Intuition |
+|---|---|---|
+| $\Delta = \partial C/\partial S$ | $+$ (0 to 1) | Call value rises when stock rises. |
+| $\Gamma = \partial^2 C/\partial S^2$ | $+$ | Delta rises when stock rises (convexity). Call is always convex in $S$. |
+| $\Theta = \partial C/\partial t$ | $-$ | Time decay: option loses value as expiry approaches (all else equal). |
+| $\mathcal{V} = \partial C/\partial \sigma$ (Vega) | $+$ | Higher volatility increases the probability of large favourable moves; call is worth more. |
+| $\rho = \partial C/\partial r$ | $+$ | Higher rates reduce the PV of the strike payment; the call is worth more. |
+
+**(d) Deep ITM vs deep OTM.**
+
+| Greek | Deep ITM ($S\gg K$) | Deep OTM ($S\ll K$) |
+|---|---|---|
+| $\Delta$ | $\approx 1$ (acts like stock) | $\approx 0$ (insensitive) |
+| $\Gamma$ | $\approx 0$ | $\approx 0$ |
+| $\Gamma$ (ATM) | maximised at-the-money | maximised at-the-money |
+| $\Theta$ | large negative | small negative |
+| Vega | $\approx 0$ | $\approx 0$ |
+| Vega (ATM) | maximised at-the-money | maximised at-the-money |
+
+Deep ITM calls behave like stock ($\Delta\to1$). Deep OTM calls are nearly worthless and insensitive to small moves. Gamma and Vega are both maximised at-the-money where uncertainty about expiry outcome is highest.
+
+**Key takeaway:** BS PDE: $\frac{1}{2}\sigma^2S^2\Gamma
++ rS\Delta + \Theta = rC$. Call Greeks: $\Delta>0$, $\Gamma>0$, $\Theta<0$, Vega$>0$, $\rho>0$. Gamma and Vega peak ATM.
+:::
+
+::: {.premiumproblem number="6" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p141"}
+**Volatility Smile and Market Reality.**
+
+1.  What is the volatility smile/smirk?
+
+2.  Why do equity index puts have higher implied vol?
+
+3.  Name two model extensions that capture the smile.
+:::
+
+::: solutionbox
+**(a) Volatility smile/smirk.**
+
+In the Black-Scholes model, all options on the same underlying with the same expiry should have the same implied volatility $\sigma$ (since $\sigma$ is a constant input). In practice, if you back out the implied volatility from market prices, it varies with strike $K$:
+
+- **Volatility smile:** Implied vol is higher for both low and high strikes (U-shaped vs ATM). Common in FX markets.
+
+- **Volatility skew/smirk:** Implied vol is monotonically higher for lower strikes. Typical in equity index markets.
+
+This violates the BS assumption of constant $\sigma$, revealing that the model misprices options at extreme strikes.
+
+**(b) Equity index skew: tail risk.**
+
+For equity indices (e.g. S&P 500), deep out-of-the-money puts (low strike) trade at *higher* implied volatility than ATM options. This reflects:
+
+- **Demand for crash protection:** Portfolio managers buy OTM puts to hedge against large market declines, bidding up their prices (and implied vol).
+
+- **Fat left tail / negative skewness:** Markets have historically crashed (fallen sharply) more often than they have "crashed upward". The risk-neutral distribution implied by option prices has a fatter left tail than the lognormal assumed by Black-Scholes.
+
+**(c) Model extensions.**
+
+1.  **Stochastic volatility** (e.g. Heston 1993): $\sigma$ itself follows a mean-reverting process. Captures the smile because volatility clustering generates fat tails. The Heston model has a closed-form solution for European options.
+
+2.  **Local volatility** (Dupire 1994 / Derman-Kani): $\sigma = \sigma(S,t)$ is a deterministic function of stock price and time, calibrated to match all market prices exactly. Captures the smile by construction, but has poor dynamics for forward volatility.
+
+3.  **Jump-diffusion** (Merton 1976): adds Poisson jumps to the GBM. Sudden large drops generate a left tail fatter than lognormal, producing a skew.
+
+**Key takeaway:** Volatility smile $=$ implied vol varies with strike, violating BS. Equity skew: OTM puts expensive due to crash demand and fat left tail. Extensions: stochastic vol (Heston), local vol (Dupire), jump-diffusion (Merton).
+:::
+
+# Technique Summary
+
+::: {.techniquesummary title="Topic 27 Technique Toolkit"}
+
+| Technique | Description |
+|---|---|
+| **Put-Call Parity** | $C - P = S - Ke^{-rT}$. Violation $\Rightarrow$ sell overpriced side, buy underpriced plus hedge. |
+| **Risk-neutral prob.** | $p^* = (e^{rT}-d)/(u-d)$. Discount at $r$, not $\mu$. |
+| **Replicating portfolio** | $\Delta = (V_u-V_d)/(S_u-S_d)$; bond $B$ locks in value. |
+| **American vs European put** | American $\geq$ European. Early exercise: intrinsic $>$ continuation value (deep ITM, high $r$). |
+| **Delta hedge** | Hold $\Delta$ shares per short call. Rebalance as $\Delta$ drifts (Gamma effect). |
+| **Gamma--Theta** | Long option: $\Gamma>0$ (convexity gain), $\Theta<0$ (time decay). $\Theta \approx -\frac{1}{2}\sigma^2 S^2 \Gamma$ (ATM). |
+| **BS Greeks (call)** | $\Delta>0$, $\Gamma>0$, $\Theta<0$, Vega$>0$, $\rho>0$. $\Gamma$ and Vega peak ATM. |
+| **Vol smile** | Equity skew: OTM puts expensive. Models: stochastic vol (Heston), local vol (Dupire), jump-diffusion. |
+
+:::

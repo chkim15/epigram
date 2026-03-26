@@ -1,0 +1,138 @@
+{
+  "weekNum": 3,
+  "topicNum": 16,
+  "topicName": "Hypothesis Testing",
+  "subtopics": "Z-Tests $\\cdot$ t-Tests $\\cdot$ Power $\\cdot$ Bayesian Inference $\\cdot$ Multiple Testing $\\cdot$ Single-Observation Variance",
+  "freeProblems": 4,
+  "premiumProblems": 3,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "Topic 15 — CLT & LLN; Topic 2 — Bayes' Theorem",
+  "learningObjectives": [
+    "**Conduct a one-sample Z-test** for a proportion: compute the test statistic, compare to the critical value, and interpret the p-value.",
+    "**Apply Bayes' theorem** to identify which of two hypotheses is more likely given observed data, computing exact posterior probabilities.",
+    "**Conduct a two-sample Z-test** for equal proportions using a pooled standard error.",
+    "**Compute the power of a test** and find the required sample size to achieve a target power.",
+    "**Apply the Bonferroni correction** for multiple testing to control family-wise error rate.",
+    "**Conduct a one-sided t-test** for a mean and interpret the result with appropriate context.",
+    "**Estimate variance from a single observation** using the chi-squared distribution, and discuss the statistical limitations."
+  ],
+  "sections": [
+    {
+      "title": "Core Framework",
+      "blocks": [
+        {
+          "type": "conceptbox",
+          "title": "Hypothesis Testing Workflow",
+          "content": "**1. State hypotheses:** $H_{0}$ (null) and $H_{1}$ (alternative).\n\n**2. Choose test statistic** and its null distribution.\n\n**3. Compute** the test statistic from data.\n\n**4. Compare** to critical value (or compute p-value).\n\n**5. Conclude:** reject $H_{0}$ if $|T| > c_{\\alpha}$ (or $p<\\alpha$).\n\n\\medskip **Key statistics:**  <table class=\"course-table\"><tr><td>Test</td><td>Statistic</td><td>Null distribution</td></tr><tr><td>1-sample prop.\\</td><td>$Z=\\dfrac{\\hat{p}-p_0}{\\sqrt{p_{0}(1-p_{0})/n}}$</td><td>$N(0,1)$</td></tr><tr><td>2-sample prop.\\</td><td>$Z=\\dfrac{\\hat{p}_1-\\hat{p}_2}{\\sqrt{\\hat{p}(1-\\hat{p})(1/n_{1}+1/n_{2})}}$</td><td>$N(0,1)$</td></tr><tr><td>1-sample mean ($\\sigma$ unknown)</td><td>$t=\\dfrac{\\bar{X}-\\mu_0}{S/\\sqrt{n}}$</td><td>$t_{n-1}$</td></tr></table>"
+        }
+      ]
+    },
+    {
+      "title": "One-Sample Tests",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "easy",
+          "tier": "free",
+          "content": "**Hypothesis Test for Coin Fairness with 100 Tosses.** A coin is tossed $n=100$ times and 60 heads are observed. At significance level $\\alpha=5\\%$, test whether the coin is unbiased. Compute the test statistic, critical value, and p-value.",
+          "solution": "**Hypotheses:** $H_{0}: p=0.5$ (fair coin) vs $H_{1}: p\\neq0.5$ (two-sided).\n\n**Test statistic:** $\\hat{p}=60/100=0.6$. \\[Z = \\frac{\\hat{p}-p_{0}}{\\sqrt{p_{0}(1-p_{0})/n}}= \\frac{0.6-0.5}{\\sqrt{0.5\\cdot0.5/100}}= \\frac{0.1}{0.05}= 2.00\\]\n\n**Critical value** (two-sided, $\\alpha=5\\%$): $z_{0.025}=1.96$.\n\n**Decision:** $|Z|=2.00>1.96$, so **reject $H_{0**$} at the 5\\% level.\n\n**p-value:** \\[p = 2\\mathbb{P}(Z > 2.00) = 2(1-\\Phi(2.00)) \\approx 2\\times0.0228 = 0.0455\\] Since $p=4.55\\% < 5\\%$, we reject $H_{0}$. There is statistically significant evidence the coin is biased at the 5\\% level.\n\n**Practical note:** Statistical significance does not imply practical significance. A 60\\% head rate from 100 tosses is barely outside the 5\\% critical region ($z=2.00$ vs $z_{crit}=1.96$). More data would sharpen the inference.\n\n**Key takeaway:** The one-sample proportion Z-test standardises the observed deviation $\\hat{p}-p_{0}$ by $\\sqrt{p_{0}(1-p_{0})/n}$ and compares to the standard normal. p-value $<\\alpha$ $\\Leftrightarrow$ $|Z|>z_{\\alpha/2}$ (two-sided)."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p38",
+          "content": "**Identifying the Biased Coin via Bayesian Inference.** Two coins: one fair ($p=1/2$) and one biased ($p=2/3$). You toss coin 1 once and observe H. You toss coin 2 three times and observe H, H, T. Which coin is more likely to be the biased one, and what is that posterior probability?",
+          "solution": "**Setup.** Equal prior: $\\mathbb{P}(\\text{coin 1 biased})=\\mathbb{P}(\\text{coin 2 biased})=1/2$.\n\n**Likelihoods.**\n\n**Case A: Coin 1 biased ($p_{1**=2/3$), Coin 2 fair ($p_{2}=1/2$).} \\[\\mathcal{L}(A) = \\underbrace{\\frac{2}{3}}_{\\text{coin 1: H}}\\times\\underbrace{\\frac{1}{2}\\cdot\\frac{1}{2}\\cdot\\frac{1}{2}}_{\\text{coin 2: HHT}}= \\frac{2}{3}\\cdot\\frac{1}{8}= \\frac{1}{12}\\]\n\n**Case B: Coin 1 fair ($p_{1**=1/2$), Coin 2 biased ($p_{2}=2/3$).} \\[\\mathcal{L}(B) = \\underbrace{\\frac{1}{2}}_{\\text{coin 1: H}}\\times\\underbrace{\\frac{2}{3}\\cdot\\frac{2}{3}\\cdot\\frac{1}{3}}_{\\text{coin 2: HHT}}= \\frac{1}{2}\\cdot\\frac{4}{27}= \\frac{2}{27}\\]\n\n**Posterior probabilities.** \\[\\mathbb{P}(A\\mid\\text{data}) = \\frac{\\mathcal{L}(A)}{\\mathcal{L}(A)+\\mathcal{L}(B)}= \\frac{1/12}{1/12+2/27}= \\frac{1/12}{9/108+8/108}= \\frac{9/108}{17/108}= \\boxed{\\frac{9}{17} \\approx 52.9\\%}\\] \\[\\mathbb{P}(B\\mid\\text{data}) = \\frac{2/27}{1/12+2/27}= \\frac{8}{17}\\approx 47.1\\%\\]\n\n**Conclusion.** Coin 1 is *slightly* more likely to be the biased one (52.9\\% vs 47.1\\%). The single H from coin 1 provides modest evidence for bias; the two H's and one T from coin 2 are consistent with both fair ($\\mathbb{E}=1.5$ H) and biased ($\\mathbb{E}=2$ H but also common to get HHT).\n\n**Key takeaway:** Bayes updates the equal prior using the likelihood ratio $\\mathcal{L}(A)/\\mathcal{L}(B)=9/8$, giving a posterior ratio of 9:8. The single-observation coin yields more information per flip than the three-observation coin in this case because the biased coin's advantage is more pronounced for a single H (ratio $2/3$ vs $1/2$) than for HHT (ratio $4/27$ vs $1/8$)."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p113",
+          "content": "**Two-Sample Z-Test for Coin Bias.** Coin A: 200 flips, 120 heads. Coin B: 150 flips, 90 heads. \\begin{enumerate}[label=(\\alph{*})]\\item State $H_{0}$ and $H_{1}$ for equal bias.\n\n\\item Compute the test statistic and p-value.\n\n\\item At $\\alpha=0.05$, state your conclusion.\\end{enumerate}",
+          "solution": "**(a) Hypotheses.** $H_{0}: p_{A}=p_{B}$ vs $H_{1}: p_{A}\\neq p_{B}$ (two-sided).\n\n**(b) Test statistic.** $\\hat{p}_{A} = 120/200 = 0.60$,\\; $\\hat{p}_{B} = 90/150 = 0.60$.\n\nPooled proportion: $\\hat{p}=(120+90)/(200+150)=210/350=0.60$.\n\n\\[\\text{SE}= \\sqrt{\\hat{p}(1-\\hat{p})\\!\\left(\\frac{1}{n_{A}}+\\frac{1}{n_{B}}\\right)}= \\sqrt{0.60\\times0.40\\times\\left(\\frac{1}{200}+\\frac{1}{150}\\right)}\\] \\[= \\sqrt{0.24\\times\\frac{7}{600}}= \\sqrt{\\frac{1.68}{600}}= \\sqrt{0.0028}\\approx 0.0529\\]\n\n\\[Z = \\frac{\\hat{p}_{A} - \\hat{p}_{B}}{\\text{SE}}= \\frac{0.60-0.60}{0.0529}= 0\\]\n\np-value $= 2\\mathbb{P}(Z>0) = 1.000$.\n\n**(c) Conclusion.** Since $Z=0$ and p-value $=1.00 > 0.05$, we **fail to reject** $H_{0}$. There is no evidence that the two coins have different biases — in fact the sample proportions are identical at 60\\%.\n\n**Key takeaway:** When both sample proportions are equal, the test statistic is exactly zero regardless of sample size. This is a reminder that statistical tests compare proportions, not absolute counts. Always compute $\\hat{p}_{i}$ before computing the statistic."
+        },
+        {
+          "type": "freeproblem",
+          "number": "4",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p114",
+          "content": "**Power Calculation: Required Sample Size.** Test $H_{0}\\colon\\mu=0$ vs $H_{1}\\colon\\mu=1$ using a sample from $N(\\mu,4)$ at $\\alpha=0.05$. \\begin{enumerate}[label=(\\alph{*})]\\item For $n=25$, what is the power of the test?\n\n\\item What $n$ is needed for power $\\geq80\\%$?\n\n\\item Sketch the power curve as a function of $n$.\\end{enumerate}",
+          "solution": "**Setup.** $\\sigma^{2}=4$, $\\sigma=2$. Standard error $=2/\\sqrt{n}$. Reject $H_{0}$ when $\\bar{X}>z_{0.05}\\cdot(2/\\sqrt{n})=1.645\\cdot(2/\\sqrt{n})$ (one-sided; or use $\\pm1.96$ two-sided — here $H_{1}:\\mu=1>0$ suggests a one-sided test is more natural).\n\n**(a) Power at $n=25$.** Critical value: $c = 1.645\\times(2/5) = 0.658$. \\[\\text{Power}= \\mathbb{P}(\\bar{X}>0.658\\mid\\mu=1) = \\mathbb{P}\\!\\left(Z > \\frac{0.658-1}{0.4}\\right) = \\mathbb{P}(Z>-0.855) = \\Phi(0.855) \\approx \\boxed{80.4\\%}\\]\n\n**(b) Sample size for 80\\% power.** We need $\\mathbb{P}(\\bar{X}>c\\mid\\mu=1)\\geq0.80$, i.e.: \\[\\frac{c-1}{2/\\sqrt{n}}\\leq -z_{0.80}= -0.842\\] With $c=1.645\\times(2/\\sqrt{n})$: \\[\\frac{1.645\\times(2/\\sqrt{n})-1}{2/\\sqrt{n}}= 1.645 - \\frac{\\sqrt{n}}{2}\\leq -0.842\\] \\[\\frac{\\sqrt{n}}{2}\\geq 1.645+0.842 = 2.487 \\implies \\sqrt{n}\\geq4.974 \\implies n \\geq 24.7\\] \\[\\boxed{n = 25 \\text{ is sufficient for 80\\% power}}\\]\n\n**(c) Power curve.** The power as a function of $n$ is: \\[\\text{Power}(n) = \\Phi\\!\\left(\\frac{\\sqrt{n}}{2}-1.645\\right)\\]  <table class=\"course-table\"><tr><td>$n$</td><td>$\\sqrt{n}/2-1.645$</td><td>Power</td></tr><tr><td>5</td><td>$-0.528$</td><td>$29.9\\%$</td></tr><tr><td>10</td><td>$0.236$</td><td>$59.3\\%$</td></tr><tr><td>25</td><td>$0.855$</td><td>$80.4\\%$</td></tr><tr><td>50</td><td>$1.893$</td><td>$97.1\\%$</td></tr><tr><td>100</td><td>$3.355$</td><td>$99.96\\%$</td></tr></table> Power starts near $\\alpha=5\\%$ at $n=1$ and approaches 100\\% as $n\\to\\infty$, following an S-shaped (sigmoidal) curve.\n\n**Key takeaway:** Power $=\\Phi((\\text{effect size})\\cdot\\sqrt{n}/\\sigma - z_{\\alpha})$. Effect size here is $\\delta=1$. The formula links $\\alpha$, $\\beta$ (type II error), effect size, and sample size — fixing any three determines the fourth."
+        }
+      ]
+    },
+    {
+      "title": "Multiple Testing, t-Tests, and Variance Estimation",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "5",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p115",
+          "content": "**Multiple Testing: Bonferroni Correction.** A researcher runs 100 independent tests with $H_{0}$ true for all, using $\\alpha=0.05$ per test. \\begin{enumerate}[label=(\\alph{*})]\\item How many false positives are expected?\n\n\\item What is $\\mathbb{P}(\\text{at least one false positive})$?\n\n\\item What Bonferroni threshold $\\alpha^{*}$ controls FWER at 5\\%?\\end{enumerate}",
+          "solution": "**(a) Expected false positives.** Each test has $\\mathbb{P}(\\text{reject}\\mid H_{0}\\text{ true})=\\alpha=0.05$. With $m=100$ independent tests: \\[\\mathbb{E}[\\text{false positives}] = m\\alpha = 100\\times0.05 = \\boxed{5}\\]\n\n**(b) Probability of at least one false positive.** $\\mathbb{P}(\\text{no false positives}) = (1-\\alpha)^{m} = (0.95)^{100}$. \\[\\mathbb{P}(\\geq1\\text{ false positive}) = 1-(0.95)^{100}\\approx 1-e^{-5}\\approx 1-0.00674 = \\boxed{99.4\\%}\\] Virtually certain to make at least one false discovery — this is the *multiple testing problem*.\n\n**(c) Bonferroni correction.** The **family-wise error rate (FWER)** is the probability of any false positive. To control $\\mathrm{FWER}\\leq\\alpha_{\\text{FWER}}=0.05$: \\[\\mathbb{P}(\\text{any FP}) = 1-(1-\\alpha^{*})^{m} \\leq 0.05\\] By the union bound (Bonferroni): use $\\alpha^{*} = \\alpha_{\\text{FWER}}/m$: \\[m\\alpha^{*} = 0.05 \\implies \\alpha^{*} = \\frac{0.05}{100}= \\boxed{0.0005}\\] Each individual test is conducted at significance level $0.05\\%$.\n\n**Trade-off:** Bonferroni is conservative (it controls FWER but reduces power for each individual test). Alternatives include Benjamini-Hochberg (controls False Discovery Rate instead).\n\n**Key takeaway:** Running 100 tests at $\\alpha=5\\%$ gives a $>99\\%$ chance of at least one false positive. Always apply a multiplicity correction (Bonferroni: divide $\\alpha$ by $m$) in multiple-testing settings."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p116",
+          "content": "**One-Sided Drug Trial.** A drug manufacturer claims a new drug reduces blood pressure by at least 10 mmHg. You measure $n=25$ patients: mean reduction $\\bar{x}=8.5$ mmHg, sample standard deviation $s=4$ mmHg. \\begin{enumerate}[label=(\\alph{*})]\\item Set up the appropriate one-sided hypothesis test.\n\n\\item Compute the $t$-statistic.\n\n\\item Find the p-value and state your conclusion at $\\alpha=5\\%$.\\end{enumerate}",
+          "solution": "**(a) Hypotheses.** The manufacturer claims $\\mu\\geq10$. To challenge this claim (burden of proof on the challenger), set: \\[H_{0}\\colon\\mu\\geq10 \\quad\\text{vs}\\quad H_{1}\\colon\\mu<10\\] (one-sided lower-tail test). We reject $H_{0}$ if the observed mean is significantly *below* 10.\n\n**(b) $t$-statistic.** \\[t = \\frac{\\bar{x}-\\mu_{0}}{s/\\sqrt{n}}= \\frac{8.5-10}{4/\\sqrt{25}}= \\frac{-1.5}{0.8}= \\boxed{-1.875}\\]\n\n**(c) p-value and conclusion.** Under $H_{0}$, $t\\sim t_{24}$. \\[p = \\mathbb{P}(t_{24}< -1.875) \\approx 0.037\\] The critical value at $\\alpha=5\\%$ (one-sided, $df=24$) is $t_{0.05,24}=-1.711$.\n\nSince $t=-1.875 < -1.711$ (or equivalently $p=3.7\\%<5\\%$), we **reject $H_{0**$}. There is significant evidence at the 5\\% level that the mean reduction is *less than* 10 mmHg — the manufacturer's claim is not supported by this data.\n\n**Interpretation note.** The actual mean reduction of 8.5 mmHg may still be clinically meaningful, but it falls short of the claimed 10 mmHg reduction at this sample size and significance level.\n\n**Key takeaway:** In one-sided tests, match the direction of $H_{1}$ to the direction of the claim being challenged. Here: challenger says $\\mu<10$ (lower tail), so reject in the lower tail. Use the $t$-distribution when $\\sigma$ is unknown and $n$ is moderate."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "hard",
+          "problemId": "sig_qdsi_p16",
+          "content": "**Variance Estimation from a Single Normal Observation.** Sample one number $X$ from $N(0,\\sigma^{2})$. How do you estimate $\\sigma^{2}$? What is your confidence interval? Discuss the statistical challenges.",
+          "solution": "**Estimator.** The maximum likelihood estimator of $\\sigma^{2}$ from a single observation $x$ from $N(0,\\sigma^{2})$ is: \\[\\hat{\\sigma}^{2} = x^{2}\\] This follows because the log-likelihood is $\\ell(\\sigma^{2}) = -\\frac{1}{2}\\log\\sigma^{2} - \\frac{x^{2}}{2\\sigma^{2}}$, maximised at $\\sigma^{2}=x^{2}$.\n\n**Distribution of the estimator.** $X/\\sigma\\sim N(0,1)$, so $(X/\\sigma)^{2}\\sim\\chi^{2}(1)$, i.e.\\ $X^{2}/\\sigma^{2}\\sim\\chi^{2}(1)$. This means: \\[\\mathbb{E}[\\hat{\\sigma}^{2}] = \\mathbb{E}[X^{2}] = \\sigma^{2} \\qquad (\\hat{\\sigma}^{2}\\text{ is *unbiased*})\\] \\[\\text{Var}(\\hat{\\sigma}^{2}) = \\text{Var}(X^{2}) = \\sigma^{4}\\cdot\\text{Var}(\\chi^{2}(1)) = 2\\sigma^{4}\\]\n\n**Confidence interval.** Using $X^{2}/\\sigma^{2}\\sim\\chi^{2}(1)$, a 95\\% CI for $\\sigma^{2}$ inverts the pivot: \\[\\mathbb{P}\\!\\left(\\chi^{2}_{0.025,1}\\leq \\frac{x^{2}}{\\sigma^{2}}\\leq \\chi^{2}_{0.975,1}\\right) = 0.95\\] \\[\\mathbb{P}\\!\\left(\\frac{x^{2}}{\\chi^{2}_{0.975,1}}\\leq \\sigma^{2} \\leq \\frac{x^{2}}{\\chi^{2}_{0.025,1}}\\right) = 0.95\\] Using $\\chi^{2}_{0.025,1}\\approx0.001$ and $\\chi^{2}_{0.975,1}\\approx5.024$: \\[\\boxed{95\\%\\text{ CI for }\\sigma^2\\colon \\left[\\frac{x^{2}}{5.024},\\; \\frac{x^{2}}{0.001}\\right]}\\]\n\n**Statistical challenges.**\n\n\\begin{enumerate}\\item **Extreme width.** The ratio $5.024/0.001\\approx5000$, so the upper bound is roughly $1000$ times the lower bound. The CI is essentially uninformative.\n\n\\item **Asymmetry.** $\\chi^{2}(1)$ is highly right-skewed, so the lower bound $x^{2}/5.024$ is “safer” (tighter) than the upper bound.\n\n\\item **Zero problem.** If $x=0$, then $\\hat{\\sigma}^{2}=0$, which is clearly wrong (and the CI collapses to $[0,0]$). A single observation of zero is consistent with any $\\sigma^{2}$.\n\n\\item **High variance.** $\\text{Var}(\\hat{\\sigma}^{2})=2\\sigma^{4}$, so the relative standard deviation of $\\hat{\\sigma}^{2}$ is $\\sqrt{2}$ — 141\\% of the true value. This is irreducibly large with one observation.\n\n\\item **No consistent estimation:** You cannot consistently estimate $\\sigma^{2}$ from a single observation. As $n\\to\\infty$, the MLE $\\hat{\\sigma}^{2}_{n}\\to\\sigma^{2}$, but with $n=1$ you are stuck.\\end{enumerate}\n\n**Practical takeaway.** With $n=1$, the CI for $\\sigma^{2}$ is so wide as to be almost useless. In practice, one should either collect more data or incorporate a prior (Bayesian approach), which regularises the estimate."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 16 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>1-sample prop.\\ Z-test</th><th>$Z=(\\hat{p}-p_{0})/\\sqrt{p_{0}(1-p_{0})/n}$. Reject if $|Z|>1.96$ at 5\\%.</th></tr><tr><td>2-sample prop.\\ Z-test</td><td>Use pooled $\\hat{p}=(x_{1}+x_{2})/(n_{1}+n_{2})$ in SE.</td></tr><tr><td>1-sample t-test</td><td>$t=(\\bar{X}-\\mu_{0})/(S/\\sqrt{n})$, df $=n-1$. One-sided: compare to $t_{\\alpha,n-1}$.</td></tr><tr><td>Bayes for hypotheses</td><td>Posterior $\\propto$ prior $\\times$ likelihood. With equal priors, posterior ratio $=$ likelihood ratio.</td></tr><tr><td>Power formula</td><td>$\\text{Power}=\\Phi\\!\\left(\\frac{\\delta\\sqrt{n}}{\\sigma}-z_{\\alpha}\\right)$ where $\\delta$ = effect size.</td></tr><tr><td>Sample size for power</td><td>$n\\geq\\sigma^{2}(z_{\\alpha}+z_{\\beta})^{2}/\\delta^{2}$ where $z_{\\beta}=\\Phi^{-1}(\\text{power})$.</td></tr><tr><td>Bonferroni</td><td>Use $\\alpha^{*}=\\alpha/m$ per test to control FWER at $\\alpha$.</td></tr><tr><td>Single-obs.\\ variance</td><td>$\\hat{\\sigma}^{2}=x^{2}$; $x^{2}/\\sigma^{2}\\sim\\chi^{2}(1)$; CI is $[x^{2}/5.024,\\;x^{2}/0.001]$ — extremely wide.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Hypothesis Test for Coin Fairness with 100 Tosses",
+      "problemId": "quant_interview_fundamental_qdsi_p37"
+    },
+    {
+      "number": "2",
+      "name": "Identifying the Biased Coin via Bayesian Inference",
+      "problemId": "quant_interview_fundamental_qdsi_p38"
+    },
+    {
+      "number": "3",
+      "name": "Two-Sample Z-Test for Coin Bias",
+      "problemId": "quant_interview_fundamental_qdsi_p113"
+    },
+    {
+      "number": "4",
+      "name": "Power Calculation: Required Sample Size",
+      "problemId": "quant_interview_fundamental_qdsi_p114"
+    },
+    {
+      "number": "5",
+      "name": "Multiple Testing: Bonferroni Correction",
+      "problemId": "quant_interview_fundamental_qdsi_p115"
+    },
+    {
+      "number": "6",
+      "name": "One-Sided Drug Trial",
+      "problemId": "quant_interview_fundamental_qdsi_p116"
+    },
+    {
+      "number": "7",
+      "name": "Variance Estimation from a Single Normal Observation",
+      "problemId": "sig_qdsi_p16"
+    }
+  ]
+}

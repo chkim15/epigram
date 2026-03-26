@@ -1,0 +1,146 @@
+{
+  "weekNum": 1,
+  "topicNum": 7,
+  "topicName": "Miscellaneous Topics",
+  "subtopics": "Order Statistics $\\cdot$ Symmetry Arguments $\\cdot$ Geometric Probability $\\cdot$ Discrete Comparisons",
+  "freeProblems": 4,
+  "premiumProblems": 3,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "Topics 1–6 — full Week 1 review",
+  "learningObjectives": [
+    "**Apply symmetry arguments to discrete comparisons** — determine which of two independent random quantities is likely larger without brute-force enumeration.",
+    "**Use the uniform distribution on a sphere and ball** — derive expected values and variances of coordinates using symmetry and the connection to Gaussian distributions.",
+    "**Recognise and deploy the “extra coin” symmetry trick** — exploit the reflection symmetry of fair-coin sequences to compare head counts instantly.",
+    "**Compute moments of discrete distributions** using the full PMF — including $\\mathbb{E}[D^{2}]$, $\\mathbb{E}[D_{1} D_{2}]$, and expected values of order statistics of small dice samples.",
+    "**Compare distributions without full computation** — identify when a symmetry, coupling, or domination argument is faster than direct calculation.",
+    "**Work with the uniform distribution on the sphere** $S^{2}$ vs.\\ the unit ball $B^{3}$, understanding the difference in their uniform measures and how moments are computed for each."
+  ],
+  "sections": [
+    {
+      "title": "Introduction: The Art of the Quick Argument",
+      "blocks": [
+        {
+          "type": "text",
+          "content": "Topic7problemsshareacommonstructure:they*look*liketheyrequireheavycomputation,butacleanargument—symmetry,coupling,orasingleidentity—givestheanswerinundertwominutes.Practisespottingtheshortcutbeforereachingforthesum."
+        },
+        {
+          "type": "conceptbox",
+          "title": "Key Shortcuts to Look For",
+          "content": "\\begin{itemize}\\item **Symmetry:** $\\mathbb{P}(A > B)$, $\\mathbb{P}(A < B)$, and $\\mathbb{P}(A = B)$ sum to 1. If $A$ and $B$ have the same distribution, $\\mathbb{P}(A>B)=\\mathbb{P}(B>A)$.\n\n\\item **Extra-variable trick:** When comparing counts of two experiments of different sizes, try conditioning on the last draw.\n\n\\item **Independence factoring:** $\\mathbb{E}[XY]=\\mathbb{E}[X]\\mathbb{E}[Y]$ when $X\\perp\\!\\!\\!\\perp Y$.\n\n\\item **Sphere symmetry:** For a uniform point on a sphere or ball, $\\mathbb{E}[X]=\\mathbb{E}[Y]=\\mathbb{E}[Z]=0$ and $\\mathbb{E}[X^{2}]=\\mathbb{E}[Y^{2}]=\\mathbb{E}[Z^{2}]$ by symmetry — then use $\\mathbb{E}[X^{2}+Y^{2}+Z^{2}]=R^{2}$ (sphere) or $=\\frac{3}{5}R^{2}$ (ball) to pin down the value.\\end{itemize}"
+        }
+      ]
+    },
+    {
+      "title": "Discrete Probability and Symmetry",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Sum vs Product of Two Dice.** Let $X$ and $Y$ be independent fair six-sided dice rolls. Compute $\\mathbb{P}(X+Y > XY)$.",
+          "solution": "**Rearrange the inequality.** \\[X + Y > XY \\iff X + Y - XY > 0 \\iff X + Y - XY - 1 > -1 \\iff (X-1)(Y-1) < 1\\] Since $X,Y\\in\\{1,2,3,4,5,6\\}$, both $(X-1)$ and $(Y-1)$ are non-negative integers in $\\{0,1,2,3,4,5\\}$.\n\n$(X-1)(Y-1) < 1$ iff $(X-1)(Y-1) = 0$, i.e.\\ $X=1$ or $Y=1$ (or both).\n\n**Inclusion-Exclusion:** \\[\\mathbb{P}(X=1\\text{ or }Y=1) = \\mathbb{P}(X=1)+\\mathbb{P}(Y=1)-\\mathbb{P}(X=1,Y=1) = \\frac{1}{6}+\\frac{1}{6}-\\frac{1}{36}= \\frac{6+6-1}{36}= \\frac{11}{36}\\]\n\n\\[\\boxed{\\mathbb{P}(X+Y > XY) = \\frac{11}{36}}\\]\n\n**Key takeaway:** Algebraic rearrangement of the inequality $X+Y>XY$ to $(X-1)(Y-1)<1$ converts a two-variable comparison into an “at least one equals 1” event, solvable instantly by IEP."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p23",
+          "content": "**Probability Your Card Beats the Dealer's.** A standard deck has 13 ranks (each in 4 suits). You draw one card, then the dealer draws one without replacement. What is the probability that your rank is *strictly* larger than the dealer's?",
+          "solution": "**Method 1 — Symmetry.** Let $R_{Y}$ = your rank and $R_{D}$ = dealer's rank (values in $\\{1,…,13\\}$, each appearing 4 times). By symmetry of a uniform shuffle: $\\mathbb{P}(R_{Y} > R_{D}) = \\mathbb{P}(R_{D} > R_{Y})$.\n\nAlso, $\\mathbb{P}(R_{Y} > R_{D})+\\mathbb{P}(R_{Y} < R_{D})+\\mathbb{P}(R_{Y} = R_{D})=1$.\n\nSince the two draws are symmetric: $\\mathbb{P}(R_{Y}>R_{D})=\\mathbb{P}(R_{Y}<R_{D})$.\n\nSo $\\mathbb{P}(R_{Y}>R_{D}) = \\frac{1-\\mathbb{P}(R_{Y}=R_{D})}{2}$.\n\n**Compute $\\mathbb{P}(R_{Y**=R_{D})$.} There are $52\\times51$ ordered draws. Same-rank draws: 13 ranks, each with $4\\times3=12$ ordered pairs. Total same-rank pairs $= 13\\times12=156$. \\[\\mathbb{P}(R_{Y}=R_{D}) = \\frac{156}{52\\times51}= \\frac{156}{2652}= \\frac{12}{204}= \\frac{1}{17}\\]\n\n**Result:** \\[\\mathbb{P}(R_{Y} > R_{D}) = \\frac{1 - 1/17}{2}= \\frac{16/17}{2}= \\frac{8}{17}\\]\n\n**Method 2 — Direct.** $\\mathbb{P}(R_{Y}>R_{D}) = \\sum_{r=2}^{13}\\mathbb{P}(R_{Y}=r)\\,\\mathbb{P}(R_{D}<r\\mid R_{Y}=r)$. $\\mathbb{P}(R_{Y}=r) = 4/52 = 1/13$. Given $R_{Y}=r$, the dealer's card is uniform on the remaining 51 with $4(r-1)$ cards ranked below $r$. $\\mathbb{P}(R_{D}<r\\mid R_{Y}=r) = 4(r-1)/51$. \\[\\mathbb{P}(R_{Y}>R_{D}) = \\frac{1}{13}\\sum_{r=2}^{13}\\frac{4(r-1)}{51}= \\frac{4}{13\\cdot51}\\sum_{k=1}^{12}k = \\frac{4}{663}\\cdot78 = \\frac{312}{663}= \\frac{8}{17}\\] ✓\n\n**Key takeaway:** Symmetry + computing $\\mathbb{P}(\\text{tie})$ is faster than direct summation. Always check whether $\\mathbb{P}(A>B)=\\mathbb{P}(B>A)$ before computing."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "hard",
+          "problemId": "jane_street_qdsi_p1",
+          "content": "**Which Is Larger: A Uniform d20 or the Sum of Three d6?** Let $A\\sim\\mathrm{Uniform}\\{1,…,20\\}$ and $B=X_{1}+X_{2}+X_{3}$ where $X_{i}\\stackrel{\\text{iid}}{\\sim}\\mathrm{Uniform}\\{1,…,6\\}$. Which is more likely: $A>B$ or $B>A$?",
+          "solution": "**Compare means and supports.** $\\mathbb{E}[A]=10.5$,\\quad $\\mathbb{E}[B]=3\\times3.5=10.5$. Equal means: symmetry alone does not resolve which is larger.\n\n$A$ ranges over $\\{1,…,20\\}$; $B$ ranges over $\\{3,…,18\\}$. Note $B\\leq18<19,20$: whenever $A\\in\\{19,20\\}$, $A>B$ with certainty.\n\n**Key insight.** Write: \\[\\mathbb{P}(A>B)-\\mathbb{P}(B>A) = \\sum_{a=1}^{20}\\frac{1}{20}\\left[\\mathbb{P}(B<a)-\\mathbb{P}(B>a)\\right]\\] For $a\\leq3$: $\\mathbb{P}(B<a)=0$ (since $B\\geq3$), so these terms contribute $-\\mathbb{P}(B>a)/20<0$. For $a\\in\\{19,20\\}$: $\\mathbb{P}(B<a)=1$ (since $B\\leq18$), contributing $+1/20$ each.\n\nThe distribution of $B$ is symmetric about $10.5$, so $\\mathbb{P}(B<a)=\\mathbb{P}(B>21-a)$. Therefore terms at $a$ and $21-a$ cancel for $a$ away from the boundary. The asymmetry comes entirely from the boundary: $B$ cannot reach 19 or 20 (giving $A$ two free wins) but *can* reach 3 (giving $B$ no free wins when $A=1$ or $A=2$; those give $\\mathbb{P}(B>A)$ contributions).\n\n**Direct computation of $\\mathbb{P}(A>B)-\\mathbb{P}(B>A)$.**\n\nBy symmetry of $B$ about 10.5: $\\mathbb{P}(B=b)=\\mathbb{P}(B=21-b)$ for $b\\in\\{3,…,18\\}$. And since $A$ is uniform on $\\{1,…,20\\}$: \\[\\mathbb{P}(A>B) = \\frac{1}{20}\\sum_{a=1}^{20}\\mathbb{P}(B<a) = \\frac{1}{20}\\sum_{a=1}^{20}F_{B}(a-1)\\] \\[\\mathbb{P}(B>A) = \\frac{1}{20}\\sum_{a=1}^{20}\\mathbb{P}(B>a) = \\frac{1}{20}\\sum_{a=1}^{20}[1-F_{B}(a)]\\]\n\n$\\mathbb{P}(A>B)-\\mathbb{P}(B>A) = \\frac{1}{20}\\sum_{a=1}^{20}[F_{B}(a-1)+F_{B}(a)-1]$.\n\nFor $a\\leq2$: $F_{B}(a-1)=F_{B}(a)=0$ (since $B\\geq3$), contributing $-1$. For $a=19$: $F_{B}(18)=1$, $F_{B}(19)=1$ (since $B\\leq18$), contributing $+1$. For $a=20$: similarly contributing $+1$. For $a\\in\\{3,…,18\\}$: by symmetry of $B$, these sum to $0$.\n\nTotal: $\\frac{1}{20}[(-1)+(-1)+(+1)+(+1)] = 0$.\n\n**So $\\mathbb{P}(A>B)=\\mathbb{P}(B>A)$.**\n\n**What about ties?** $\\mathbb{P}(A=B)>0$ since $A$ and $B$ share the range $\\{3,…,18\\}$, so both $\\mathbb{P}(A>B)$ and $\\mathbb{P}(B>A)$ are strictly less than $1/2$.\n\n\\[\\boxed{\\mathbb{P}(A>B) = \\mathbb{P}(B>A)}\\] *Neither* is more likely — they are equally likely.\n\n**Key takeaway:** Equal means do not imply equal win probabilities in general, but here the boundary-asymmetry contributions at $a\\in\\{1,2\\}$ (where $B$ always wins) exactly cancel those at $a\\in\\{19,20\\}$ (where $A$ always wins). Recognise this via the symmetry of $B$ around $10.5$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "4",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p20",
+          "content": "**Extra Coin Advantage.** Player A flips $n+1$ fair coins and Player B flips $n$ fair coins. Let $H_{A}$ and $H_{B}$ be their respective numbers of heads. Find $\\mathbb{P}(H_{A} > H_{B})$.",
+          "solution": "**Claim:** $\\mathbb{P}(H_{A} > H_{B}) = \\frac{1}{2}$.\n\n**Elegant proof.** Label A's coins $C_{1},…,C_{n+1}$ and B's coins $D_{1},…,D_{n}$. Consider flipping all $2n+1$ coins together. Set $H_{A}=\\sum_{i=1}^{n+1}C_{i}$ and $H_{B}=\\sum_{j=1}^{n} D_{j}$.\n\n**Key coupling:** Suppose we set $D_{j}=C_{j}$ for $j=1,…,n$ (pair A's first $n$ coins with all of B's coins). Then: \\[H_{A} - H_{B} = \\sum_{i=1}^{n+1}C_{i} - \\sum_{j=1}^{n} C_{j} = C_{n+1}\\] So $H_{A} > H_{B} \\iff C_{n+1}= 1$ (the extra coin is heads), which has probability $\\frac{1}{2}$.\n\n**Formal proof without coupling.** Define $T=H_{A}+H_{B}^{c}$ where $H_{B}^{c} = n - H_{B}$ is B's tail count. Note $H_{A}\\sim\\mathrm{Binomial}(n+1,1/2)$ and $H_{B}^{c}\\sim \\mathrm{Binomial}(n,1/2)$ are independent. Then: $\\mathbb{P}(H_{A}>H_{B})=\\mathbb{P}(H_{A}>n-H_{B}^{c})=\\mathbb{P}(H_{A}+H_{B}^{c}>n)$.\n\n$H_{A}+H_{B}^{c}\\sim\\mathrm{Binomial}(2n+1,1/2)$. By symmetry of the Binomial$(2n+1,1/2)$ around $(2n+1)/2$: \\[\\mathbb{P}(H_{A}+H_{B}^{c}>n)=\\mathbb{P}\\!\\left(\\mathrm{Bin}(2n+1,\\tfrac{1}{2})>n\\right) =\\frac{1}{2}\\] (no tie possible since $2n+1$ is odd).\n\n\\[\\boxed{\\mathbb{P}(H_A > H_B) = \\frac{1}{2}}\\]\n\n**Key takeaway:** The extra coin trick: $H_{A}-H_{B}\\stackrel{d}{=}C_{n+1}-0$, so A wins with probability exactly $1/2$. Alternatively: $H_{A}+(\\text{B's tails})\\sim\\mathrm{Bin}(2n+1,1/2)$, symmetric around $n+1/2$, so strictly exceeds $n$ with probability $1/2$."
+        }
+      ]
+    },
+    {
+      "title": "Geometry and Continuous Distributions",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "5",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p66",
+          "content": "**Distribution of a Coordinate on a Sphere.** Pick a point uniformly at random on the surface of a sphere of radius $R$ in $\\mathbb{R}^{3}$. Let $X$ be its $x$-coordinate. Find $\\mathbb{E}[X]$ and $\\text{Var}(X)$.",
+          "solution": "**$\\mathbb{E}[X]=0$** by symmetry: the $x$-coordinate of a uniformly random point on a sphere has a distribution symmetric about 0.\n\n**$\\text{Var}(X) = \\mathbb{E}[X^{2**]$.} By symmetry $\\mathbb{E}[X^{2}]=\\mathbb{E}[Y^{2}]=\\mathbb{E}[Z^{2}]$. For a point $(X,Y,Z)$ on the sphere of radius $R$: $X^{2}+Y^{2}+Z^{2}=R^{2}$, so $\\mathbb{E}[X^{2}+Y^{2}+Z^{2}]=R^{2}$. \\[3\\mathbb{E}[X^{2}] = R^{2} \\implies \\mathbb{E}[X^{2}] = \\frac{R^{2}}{3}\\] \\[\\boxed{\\text{Var}(X) = \\frac{R^{2}}{3}}\\]\n\n**Marginal distribution of $X$.** For a uniform point on $S^{2}$ (radius $R$), the $z$-coordinate (equivalently $x$-coordinate) is $\\mathrm{Uniform}(-R, R)$. This follows from the fact that the surface area element at height $z$ on a sphere of radius $R$ is $2\\pi R\\,dz$ (Archimedes' theorem) — constant in $z$!\n\nSo $X\\sim\\mathrm{Uniform}(-R,R)$, which gives $\\mathbb{E}[X]=0$ and $\\text{Var}(X)=(2R)^{2}/12=R^{2}/3$. ✓\n\n**Key takeaway:** A uniform point on the sphere $S^{2}$ has $x$-coordinate $\\sim\\mathrm{Uniform}(-R,R)$ (Archimedes' hat-box theorem). Variance $= R^{2}/3$ follows from symmetry $\\mathbb{E}[X^{2}]=\\mathbb{E}[Y^{2}]=\\mathbb{E}[Z^{2}]$ and $X^{2}+Y^{2}+Z^{2}=R^{2}$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "medium",
+          "problemId": "five_rings_qdsi_p6",
+          "content": "**Variance of a Coordinate in a Unit Ball.** Let $(X,Y,Z)$ be uniformly distributed in the unit ball $\\{(x,y,z)\\in\\mathbb{R}^{3} : x^{2}+y^{2}+z^{2}\\leq1\\}$. Compute $\\text{Var}(X)$.",
+          "solution": "**$\\mathbb{E}[X]=0$** by symmetry (the ball is symmetric under $x\\mapsto-x$).\n\n**$\\mathbb{E}[X^{2**]$ by symmetry.} $\\mathbb{E}[X^{2}]=\\mathbb{E}[Y^{2}]=\\mathbb{E}[Z^{2}]$ (symmetry of the ball under permuting coordinates). So: \\[\\mathbb{E}[X^{2}] = \\frac{1}{3}\\mathbb{E}[X^{2}+Y^{2}+Z^{2}] = \\frac{1}{3}\\mathbb{E}\\!\\left[\\|{(X,Y,Z)}\\|^{2}\\right]\\]\n\n**Compute $\\mathbb{E}[\\|(X,Y,Z)\\|^{2**]$ for uniform in unit ball.} Let $r=\\|(X,Y,Z)\\|$. For the uniform distribution in the 3-ball, the marginal density of $r$ is: \\[f_{r}(r) = \\frac{4\\pi r^{2}}{(4/3)\\pi}= 3r^{2}, \\quad r\\in[0,1]\\] (surface area $4\\pi r^{2}$ divided by total volume $4\\pi/3$).\n\n\\[\\mathbb{E}[r^{2}] = \\int_{0}^{1} r^{2} \\cdot 3r^{2}\\,dr = 3\\int_{0}^{1} r^{4}\\,dr = 3\\cdot\\frac{1}{5}= \\frac{3}{5}\\]\n\n\\[\\mathbb{E}[X^{2}] = \\frac{1}{3}\\cdot\\frac{3}{5}= \\frac{1}{5}\\]\n\n\\[\\boxed{\\text{Var}(X) = \\frac{1}{5}}\\]\n\n**Contrast with sphere (surface):** $\\text{Var}(X)=1/3$ on the unit sphere surface vs.\\ $\\text{Var}(X)=1/5$ inside the unit ball. The ball concentrates more mass near the centre, reducing the second moment.\n\n**Key takeaway:** Uniform in the $n$-ball: $\\mathbb{E}[X_{i}^{2}]=1/(n+2)$ (general formula). For $n=3$: $1/5$. For $n=2$ (disk): $\\mathbb{E}[X^{2}]=1/4$. Always use the symmetry trick $\\mathbb{E}[X^{2}]=\\mathbb{E}[\\|v\\|^{2}]/n$."
+        }
+      ]
+    },
+    {
+      "title": "Moments of Dice Distributions",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "medium",
+          "problemId": "jane_street_qdsi_p2",
+          "content": "**Product, Square, and Median-Square of Dice.** Let $D, D_{1}, D_{2}\\stackrel{\\text{iid}}{\\sim}\\mathrm{Uniform}\\{1,…,6\\}$ and let $M$ be the median of 5 i.i.d.\\ fair six-sided dice. Compute and compare $\\mathbb{E}[D_{1}\\cdot D_{2}]$, $\\mathbb{E}[D^{2}]$, and $\\mathbb{E}[M^{2}]$.",
+          "solution": "**Basic moments of a fair die.** $\\mathbb{E}[D] = (1+2+3+4+5+6)/6 = 7/2$. $\\mathbb{E}[D^{2}] = (1^{2}+2^{2}+3^{2}+4^{2}+5^{2}+6^{2})/6 = (1+4+9+16+25+36)/6 = 91/6 \\approx 15.17$.\n\n**$\\mathbb{E}[D_{1**\\cdot D_{2}]$.} Since $D_{1}\\perp\\!\\!\\!\\perp D_{2}$: \\[\\mathbb{E}[D_{1}\\cdot D_{2}] = \\mathbb{E}[D_{1}]\\cdot\\mathbb{E}[D_{2}] = \\frac{7}{2}\\cdot\\frac{7}{2}= \\frac{49}{4}= 12.25\\]\n\n**$\\mathbb{E}[D^{2**]=91/6\\approx15.17$.}\n\nNote $\\mathbb{E}[D_{1} D_{2}] < \\mathbb{E}[D^{2}]$ since $\\text{Var}(D)=\\mathbb{E}[D^{2}]-(\\mathbb{E}[D])^{2} = 91/6 - 49/4 = 182/12 - 147/12 = 35/12 > 0$, and $\\mathbb{E}[D^{2}]=\\mathbb{E}[D]^{2}+\\text{Var}(D)>\\mathbb{E}[D]^{2}=\\mathbb{E}[D_{1} D_{2}]$.\n\n**$\\mathbb{E}[M^{2**]$ where $M$ is the median of 5 dice.}\n\nThe median of 5 i.i.d.\\ dice is the 3rd order statistic $D_{(3)}$. Its PMF: $\\mathbb{P}(D_{(3)}=k)$ = probability exactly 3 or more of 5 dice show $\\leq k$ AND exactly 3 or more show $\\geq k$.\n\nMore carefully: $\\mathbb{P}(D_{(3)}=k) = \\mathbb{P}(D_{(3)}\\leq k) - \\mathbb{P}(D_{(3)}\\leq k-1)$.\n\n$\\mathbb{P}(D_{(3)}\\leq k) = \\mathbb{P}(\\text{at least 3 of 5 dice}\\leq k) = \\sum_{j=3}^{5}\\binom{5}{j}(k/6)^{j}(1-k/6)^{5-j}$.\n\n <table class=\"course-table\"><tr><td>$k$</td><td>$\\mathbb{P}(D_{(3)}=k)$</td><td>$k^{2}\\mathbb{P}(D_{(3)}=k)$</td></tr><tr><td>1</td><td>$\\binom{5}{3}(1/6)^{3}(5/6)^{2}+\\binom{5}{4}(1/6)^{4}(5/6)+\\binom{5}{5}(1/6)^{5}$</td><td></td></tr></table>\n\nRather than expanding the full table, use the general formula for $\\mathbb{E}[D_{(k)}^{2}]$ via the Beta-Binomial: \\[\\mathbb{E}[D_{(3)}] = \\sum_{k=1}^{6} k\\cdot\\mathbb{P}(D_{(3)}=k)\\]\n\nComputing $\\mathbb{P}(D_{(3)}=k)$ for $k=1,…,6$:\n\nLet $p_{k}=k/6$. $\\mathbb{P}(D_{(3)}\\leq k)=\\sum_{j=3}^{5}\\binom{5}{j}p_{k}^{j} (1-p_{k})^{5-j}$.  <table class=\"course-table\"><tr><td>$k$</td><td>$p_{k}$</td><td>$\\mathbb{P}(D_{(3)}\\leq k)$</td><td>$\\mathbb{P}(D_{(3)}=k)$</td><td>$k^{2}\\cdot\\mathbb{P}$</td></tr><tr><td>1</td><td>$1/6$</td><td>$0.0353$</td><td>$0.0353$</td><td>$0.0353$</td></tr><tr><td>2</td><td>$2/6$</td><td>$0.2099$</td><td>$0.1746$</td><td>$0.6983$</td></tr><tr><td>3</td><td>$3/6$</td><td>$0.5000$</td><td>$0.2901$</td><td>$2.6111$</td></tr><tr><td>4</td><td>$4/6$</td><td>$0.7901$</td><td>$0.2901$</td><td>$4.6416$</td></tr><tr><td>5</td><td>$5/6$</td><td>$0.9647$</td><td>$0.1746$</td><td>$4.3646$</td></tr><tr><td>6</td><td>$6/6$</td><td>$1.0000$</td><td>$0.0353$</td><td>$1.2716$</td></tr><tr><td></td><td></td><td></td><td>Sum $=1$</td><td>$\\mathbb{E}[M^{2}]\\approx13.62$</td></tr></table>\n\nNote: $\\mathbb{P}(D_{(3)}=k)$ is symmetric around $k=3.5$ since the die is symmetric around $3.5$.\n\n\\[\\mathbb{E}[M^{2}] \\approx 13.62\\]\n\n**Comparison:** \\[\\mathbb{E}[M^{2}] \\approx 13.62 < \\mathbb{E}[D_{1} D_{2}] = 12.25? \\quad\\text{No:}\\quad 12.25 < 13.62 < 15.17\\] \\[\\boxed{\\mathbb{E}[D_1 D_2] = 12.25 < \\mathbb{E}[M^2] \\approx 13.62 < \\mathbb{E}[D^2] \\approx 15.17}\\]\n\n**Intuition:** \\begin{itemize}\\item $\\mathbb{E}[D_{1} D_{2}] = (\\mathbb{E}[D])^{2} < \\mathbb{E}[D^{2}]$: Jensen's inequality ($x^{2}$ is convex).\n\n\\item $\\mathbb{E}[M^{2}]$: the median of 5 dice is more concentrated around 3.5 than a single die, so its second moment is between $(\\mathbb{E}[D])^{2}$ and $\\mathbb{E}[D^{2}]$.\\end{itemize}\n\n**Key takeaway:** $\\mathbb{E}[D_{1} D_{2}]=\\mathbb{E}[D]^{2}$ (independence); $\\mathbb{E}[D^{2}]=\\mathbb{E}[D]^{2}+\\text{Var}(D)$ (definition of variance); $\\mathbb{E}[M^{2}]$ lies in between because the median is less dispersed than a single die."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 7 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>Algebraic rearrangement</th><th>Rewrite $f(X,Y)>0$ into a recognisable event before computing.</th></tr><tr><td>Symmetry for $\\mathbb{P}(A>B)$</td><td>If $A\\stackrel{d}{=}B$: $\\mathbb{P}(A>B)=\\mathbb{P}(B>A)$; find $\\mathbb{P}(\\text{tie})$ to resolve.</td></tr><tr><td>Tie probability shortcut</td><td>$\\mathbb{P}(A>B)=(1-\\mathbb{P}(A=B))/2$ when $A\\stackrel{d}{=}B$.</td></tr><tr><td>Extra-coin trick</td><td>$H_{n+1}-H_{n}\\stackrel{d}{=}C_{n+1}\\sim\\mathrm{Bern}(1/2)$; or use $H_{A}+H_{B}^{c}\\sim\\mathrm{Bin}(2n+1,1/2)$.</td></tr><tr><td>Sphere coordinate</td><td>$X\\sim\\mathrm{Unif}(-R,R)$ on $S^{2}(R)$ (Archimedes). $\\text{Var}(X)=R^{2}/3$.</td></tr><tr><td>Ball coordinate</td><td>$\\text{Var}(X_{i})=1/(n+2)$ for uniform in $n$-ball. Use $\\mathbb{E}[X^{2}]=\\mathbb{E}[r^{2}]/n$.</td></tr><tr><td>Radial density ($n$-ball)</td><td>$f_{r}(r)=nr^{n-1}$ for $r\\in[0,1]$. $\\mathbb{E}[r^{2}]=n/(n+2)$.</td></tr><tr><td>Independence factoring</td><td>$\\mathbb{E}[g(X)h(Y)]=\\mathbb{E}[g(X)]\\mathbb{E}[h(Y)]$ when $X\\perp\\!\\!\\!\\perp Y$.</td></tr><tr><td>Jensen for $x^{2$}</td><td>$\\mathbb{E}[D^{2}]>\\mathbb{E}[D]^{2}=\\mathbb{E}[D_{1} D_{2}]$; median is more concentrated, so $\\mathbb{E}[M^{2}]<\\mathbb{E}[D^{2}]$.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Sum vs Product of Two Dice",
+      "problemId": "five_rings_qdsi_p4"
+    },
+    {
+      "number": "2",
+      "name": "Probability Your Card Beats the Dealer's",
+      "problemId": "quant_interview_fundamental_qdsi_p23"
+    },
+    {
+      "number": "3",
+      "name": "Which Is Larger: A d20 or Sum of Three d6?",
+      "problemId": "jane_street_qdsi_p1"
+    },
+    {
+      "number": "4",
+      "name": "Extra Coin Advantage",
+      "problemId": "quant_interview_fundamental_qdsi_p20"
+    },
+    {
+      "number": "5",
+      "name": "Distribution of a Coordinate on a Sphere",
+      "problemId": "quant_interview_fundamental_qdsi_p66"
+    },
+    {
+      "number": "6",
+      "name": "Variance of a Coordinate in a Unit Ball",
+      "problemId": "five_rings_qdsi_p6"
+    },
+    {
+      "number": "7",
+      "name": "Product, Square, and Median-Square of Dice",
+      "problemId": "jane_street_qdsi_p2"
+    }
+  ]
+}

@@ -1,0 +1,314 @@
+::: learningobjectives
+1.  **Simulate arbitrary probabilities from a biased coin** using the Von Neumann technique and calculate the expected running time.
+
+2.  **Solve the Josephus problem** using the binary representation formula.
+
+3.  **Analyse the 100 prisoners loop strategy** and compute the success probability as $1-\sum_{k=51}^{100}1/k\approx31\%$.
+
+4.  **Apply backward induction** to the pirate game and derive the unique subgame perfect equilibrium.
+
+5.  **Explain the role of common knowledge** in the Blue-Eyed Islanders puzzle.
+
+6.  **Count clock hand overlaps** using relative angular velocity and determine exact overlap times.
+
+7.  **Design parity-based hat-guessing strategies** and understand why at most one error is guaranteed.
+
+8.  **Solve the 12-ball problem in 3 weighings** by systematic ternary decision tree construction.
+
+*Problems 1--4 are the standard quant interview brain teasers. Problems 5--8 are harder --- common knowledge, exact clock times, hat parity, and the 12-ball puzzle.*
+:::
+
+# Probability and Simulation
+
+::: {.workedbox number="1" difficulty="medium" problemid="squarepoint_capital_qdsi_p11"}
+**Simulating a Fair Coin from a Biased Coin.** You have a biased coin with $\mathbb{P}(H)=p$. Construct a fair outcome. How do you simulate $\mathbb{P}(H)=1/3$? If $p=0.99$, what is the expected running time?
+:::
+
+::: solutionbox
+**Von Neumann's trick (fair from biased).** Flip the biased coin *twice*:
+
+- HT $\to$ output H (probability $p(1-p)$)
+
+- TH $\to$ output T (probability $p(1-p)$)
+
+- HH or TT $\to$ *retry* (probability $p^2+(1-p)^2$)
+
+Since $\mathbb{P}(\text{output H}) = \mathbb{P}(\text{output T}) = p(1-p)$, each accepted outcome is equally likely. Expected flips per output: $\dfrac{1}{p(1-p)}$.
+
+**Simulating $\mathbb{P}(H)=1/3$.** Use Von Neumann to get fair bits, then: $00\to$ retry; $01\to H$; $10$ or $11\to T$. Each accepted outcome: $\mathbb{P}(H\mid\text{accepted})=(1/4)/(3/4)=1/3$.
+
+**Follow-up: $p=0.99$.**
+
+*Von Neumann:* $2p(1-p)=0.0198$, so $\mathbb{E}[\text{flips}]=1/(p(1-p))\approx\mathbf{101}$.
+
+*69-flip heuristic (approximate, not exact):* Choose $n$ such that $p^n\approx1/2$. For $p=0.99$: $n=\lceil\log(0.5)/\log(0.99)\rceil=69$. Define $A=\{\text{all 69 tosses are heads}\}$, $B=$ otherwise. $\mathbb{P}(A)=0.99^{69}\approx0.4998\neq0.5$ --- only *approximately* fair. Uses exactly $69$ flips but is not perfectly fair.
+
+*Known-bias method (exact, more efficient):* When $b$ is known, a recursive algorithm achieves exactly $\mathbb{P}(\text{output }A)=1/2$ with expected flips $=\dfrac{1}{2b(1-b)}$ --- exactly **half** the Von Neumann cost.
+
+For $p=0.99$: $\mathbb{E}[\text{flips}]=1/(2\times0.99\times0.01)\approx\mathbf{50.5}$.
+
+The algorithm: given current parameter $p_0=1/2$:
+
+1.  Toss coin. If $p\geq b$ and $X=H$: output $A$. Else if $X=T$: update $p\to(p-b)/(1-b)$ and repeat.
+
+2.  If $p<b$ and $X=T$: output $B$. Else if $X=H$: update $p\to p/b$ and repeat.
+
+Correctness: $\mathbb{P}(\text{output }A)=p_0=1/2$ (by induction on the recursion).
+
+**Comparison:**
+
+**Key takeaway:** Von Neumann extracts a fair bit in $1/(p(1-p))$ expected flips. For extreme $p$ (e.g. $0.99$) this is $\approx101$ --- very slow. The known-bias recursive method halves this to $\approx50.5$ and is still exact.
+:::
+
+::: {.freeproblem number="2" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p44"}
+**The Josephus Problem.** 100 people stand in a circle, labeled 1--100. Person 1 kills Person 2, passes the gun to Person 3, who kills Person 4, etc. What was the survivor's initial position?
+:::
+
+::: solutionbox
+**Josephus formula.** For $n$ people, write $n = 2^m + L$ where $2^m$ is the largest power of 2 not exceeding $n$ and $0\leq L < 2^m$. The survivor's position is: $$J(n) = 2L + 1$$
+
+**For $n=100$:** $100 = 64 + 36$, so $2^m = 64$ and $L = 36$. $$J(100) = 2\times36 + 1 = \boxed{73}$$
+
+**Why this formula works.** After the first pass through $64$ people (the first $2^m$ even positions are eliminated), the survivors are exactly the original odd positions $1,3,5,\ldots,127$ (remapped). The killing then restarts at what was position $3$ (now position 1 in the reduced circle). The renaming $k\to2k-1$ maps the reduced-circle Josephus winner back to the original labels.
+
+**Binary shortcut.** $100 = 1100100_2$. Move the leading 1 to the end: $100100\mathbf{1}_2 = 1001001_2 = 73$.
+
+**Key takeaway:** Josephus formula: $J(2^m+L)=2L+1$. Binary trick: rotate the leading bit to the end. For $n=100$: survivor is position 73.
+:::
+
+::: {.freeproblem number="3" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p130"}
+**100 Prisoners and the Loop Strategy.** 100 numbered prisoners, 100 numbered boxes, each containing a random prisoner number. Each prisoner opens at most 50 boxes. All must find their own number.
+
+1.  Probability of success with a random strategy.
+
+2.  Describe the loop strategy.
+
+3.  Show it succeeds iff there is no cycle of length $>50$.
+
+4.  Compute the probability of success ($\approx0.3119$).
+:::
+
+::: solutionbox
+**(a) Random strategy.** Each prisoner independently opens 50 random boxes. $\mathbb{P}(\text{prisoner }k\text{ finds their number})=50/100=1/2$. Since all prisoners are independent: $$\mathbb{P}(\text{all succeed}) = (1/2)^{100} \approx 8\times10^{-31}$$ Essentially zero.
+
+**(b) Loop strategy.** Prisoner $k$ starts with box $k$, then follows the chain: open box $k$, see number $j$, open box $j$, see number $l$, open box $l$, ..., until finding their own number $k$ or exhausting 50 openings.
+
+**(c) Success condition.** The 100 box contents form a permutation $\sigma$ of $\{1,\ldots,100\}$. The loop strategy traces the cycle of $\sigma$ containing $k$, starting from $k$. Prisoner $k$ finds their number iff the cycle containing $k$ has length $\leq 50$.
+
+All prisoners succeed iff *every* cycle of $\sigma$ has length $\leq 50$. Equivalently: $\sigma$ has no cycle of length $>50$.
+
+**(d) Probability of success.** $\mathbb{P}(\text{fail}) = \mathbb{P}(\text{some cycle has length} > 50)$.
+
+At most one cycle can have length $>50$ (since $51+51=102>100$). So: $$\mathbb{P}(\text{fail}) = \sum_{k=51}^{100}\mathbb{P}(\text{a specific cycle of length }k\text{ exists})
+  = \sum_{k=51}^{100}\frac{1}{k}$$ (A random permutation of $n$ elements has a cycle of length $k$ with probability $1/k$, for $k\leq n$.)
+
+$$\mathbb{P}(\text{success}) = 1 - \sum_{k=51}^{100}\frac{1}{k}
+  \approx 1 - \ln 2 \approx 1 - 0.6931 = 0.3069$$ (The exact value is $1 - \sum_{k=51}^{100}1/k \approx \boxed{0.3118}$; the approximation $1-\ln2$ uses $\sum_{k=51}^{100}1/k\approx\int_{50}^{100}dx/x=\ln2$.)
+
+**Why the loop strategy is brilliant:** It correlates the prisoners' strategies. Instead of $P=1/2^{100}$ (random, independent), it achieves $P\approx31\%$ by ensuring all prisoners' fates are tied to the *same* permutation's cycle structure.
+
+**Key takeaway:** Loop strategy $\mathbb{P}\approx31\%$ vs random $\mathbb{P}\approx8\times10^{-31}$. Success iff longest cycle $\leq50$. $\mathbb{P}(\text{fail})=\sum_{k=51}^{100}1/k\approx\ln2$.
+:::
+
+::: {.freeproblem number="4" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p131"}
+**Pirates and Gold: Backward Induction.** 5 perfectly rational pirates (ranked 1=most senior). Senior pirate proposes a split of 100 coins. If $\geq50\%$ agree, split is adopted; otherwise proposer is thrown overboard.
+
+1.  Backward induction: what do 2, 3, 4 pirates do?
+
+2.  What does Pirate 1 propose with 5 pirates?
+
+3.  Does the answer change with 200 coins or 1 coin?
+:::
+
+::: solutionbox
+**(a) Backward induction.**
+
+**2 pirates ($P_4$, $P_5$):** $P_4$ needs $\geq1$ of 2 votes (his own suffices). $P_4$ proposes $(100, 0)$: keeps all, passes nothing to $P_5$. $P_5$ gets 0 and cannot prevent this.
+
+**3 pirates ($P_3$, $P_4$, $P_5$):** $P_3$ needs 2 of 3 votes. $P_5$ knows if $P_3$ fails, $P_5$ gets 0 (from the 2-pirate game). So $P_5$ accepts any amount $\geq1$. $P_4$ knows if $P_3$ fails, $P_4$ gets 100. So $P_4$ will never vote for a proposal giving less than 100. $P_3$ bribes $P_5$ only: propose $(99, 0, 1)$. Votes: $P_3 + P_5$ (2 of 3). Passes.
+
+**4 pirates ($P_2$, $P_3$, $P_4$, $P_5$):** $P_2$ needs 2 of 4 votes. $P_4$ gets 0 if $P_2$ fails $\to$ accepts $\geq1$. $P_5$ gets 1 if $P_2$ fails $\to$ accepts $\geq2$. $P_3$ gets 99 if $P_2$ fails $\to$ won't accept less than 99. $P_2$ bribes $P_4$ only: propose $(99, 0, 1, 0)$. Votes: $P_2 + P_4$ (2 of 4). Passes.
+
+**(b) 5 pirates ($P_1$, ..., $P_5$):** $P_1$ needs 3 of 5.
+
+From 4-pirate game: $P_2$ gets 99, $P_3$ gets 0, $P_4$ gets 1, $P_5$ gets 0.
+
+- $P_3$ gets 0 if $P_1$ fails $\to$ accepts $\geq1$.
+
+- $P_5$ gets 0 if $P_1$ fails $\to$ accepts $\geq1$.
+
+- $P_2$ gets 99 if $P_1$ fails $\to$ won't accept less than 99.
+
+- $P_4$ gets 1 if $P_1$ fails $\to$ accepts $\geq2$.
+
+$P_1$ bribes $P_3$ and $P_5$ (cheapest two):
+
+$$\boxed{P_1\text{ proposes: }(98,\; 0,\; 1,\; 0,\; 1)}$$ Votes: $P_1, P_3, P_5$ (3 of 5). Passes. $P_1$ keeps 98.
+
+**(c) Does it change?**
+
+*200 coins:* The minimum bribe is still 1 coin each --- $P_3$ and $P_5$ each received 0 in the 4-pirate game, so they accept $\geq1$ regardless of the total pot. $P_1$ proposes $(198, 0, 1, 0, 1)$ and keeps 198. The structure is identical; only the amount $P_1$ retains changes.
+
+*1 coin:* $P_1$ needs to bribe *two* pirates at 1 coin each, but has only 1 coin total. $P_1$ cannot secure the 3 votes needed and is thrown overboard.
+
+With $P_1$ gone, the 4-pirate game ($P_2, P_3, P_4, P_5$) with 1 coin applies. $P_2$ needs 2 votes. $P_4$ gets 0 in the 3-pirate game, so accepts $\geq1$. $P_2$ proposes $(0,0,1,0)$: passes with $P_2+P_4$.
+
+Final outcome for all 5 pirates: $$\boxed{P_1\text{ thrown overboard};\quad
+  (P_2,P_3,P_4,P_5) = (0,0,1,0)}$$
+
+**Key takeaway:** Backward induction uniquely determines the subgame perfect equilibrium. $P_1$ proposes $[98,0,1,0,1]$ and passes with exactly 3 votes ($P_1$, $P_3$, $P_5$).
+:::
+
+# Logic Puzzles and Geometry
+
+::: {.premiumproblem number="5" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p132"}
+**Blue-Eyed Islanders: Common Knowledge.** An island has exactly 3 blue-eyed people. Everyone sees others' eyes but not their own. A visitor announces: "I see at least one person with blue eyes." What happens?
+
+1.  What happens if there is only 1 blue-eyed person?
+
+2.  What if there are exactly 2?
+
+3.  What happens with 3? When do they leave?
+
+4.  What role does common knowledge play?
+:::
+
+::: solutionbox
+**(a) 1 blue-eyed person.** The blue-eyed person sees nobody else with blue eyes. The visitor says "at least one" --- so the blue-eyed person deduces: "It must be me." They leave on **night 1**.
+
+**(b) 2 blue-eyed people ($B_1$, $B_2$).** $B_1$ sees $B_2$ and thinks: "If $B_2$ is the only one, $B_2$ would leave on night 1." Night 1 passes; $B_2$ doesn't leave. $B_1$ deduces: $B_2$ must see another blue-eyed person --- that's me. Both leave on **night 2**.
+
+**(c) 3 blue-eyed people ($B_1$, $B_2$, $B_3$).** $B_1$ sees $B_2$ and $B_3$ and thinks: "If only $B_2$ and $B_3$ are blue-eyed, they would both leave on night 2." Night 2 passes; neither leaves. $B_1$ deduces: $B_2$ and $B_3$ must each see another blue-eyed person besides each other --- that's me. All three leave on **night 3**.
+
+**General rule:** With $k$ blue-eyed people, all leave on **night $k$**.
+
+**(d) The role of common knowledge.**
+
+*Before the announcement:* Everyone on the island already sees at least one blue-eyed person (since there are 3). So the announcement seems to add no new information --- everyone already knew "there is at least one blue-eyed person."
+
+*Why the announcement matters:* The announcement creates **common knowledge** --- not just that everyone knows $X$, but that everyone knows that everyone knows $X$, and everyone knows that everyone knows that everyone knows $X$, *ad infinitum*.
+
+Before the announcement, while $B_1$ knows $B_2$ has blue eyes, $B_1$ doesn't know what $B_2$ *thinks* about the blue-eyed count. If $B_3$ is the only blue-eyed person (from $B_1$'s hypothetical), $B_1$ could imagine that $B_2$ thinks no one has blue eyes. The announcement rules out this nested uncertainty.
+
+*Precise failure:* Without the announcement, the chain of inductive reasoning breaks at the base case: no one knows that "everyone knows" the base fact, so the induction cannot start.
+
+**Key takeaway:** Common knowledge of a base fact is what allows inductive reasoning to proceed. The announcement transforms shared individual knowledge into common knowledge, triggering the chain of deductions.
+:::
+
+::: {.premiumproblem number="6" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p133"}
+**Clock Hands Overlap.**
+
+1.  How many times do the hands overlap in 24 hours?
+
+2.  What is the first overlap time after 12:00?
+
+3.  During the 1:00 hour, when do the hands overlap?
+:::
+
+::: solutionbox
+**Angular velocities.** Minute hand: $6^\circ$/min. Hour hand: $0.5^\circ$/min. Relative speed: $5.5^\circ$/min (minute gains $5.5^\circ$ per minute on the hour hand).
+
+**(a) Overlaps per day.** An overlap occurs every time the minute hand gains exactly $360^\circ$ on the hour hand: $$T_{\text{gap}} = \frac{360^\circ}{5.5^\circ/\text{min}}
+  = \frac{360}{5.5} = \frac{720}{11} \approx 65.45 \text{ min}$$ In 12 hours ($=720$ min): $720\div(720/11) = 11$ overlaps. In 24 hours: $\boxed{22}$ overlaps.
+
+Note: 12:00 is one of the 11 per half-day; the count of 11 (not 12) accounts for the fact that the hands start overlapping at 12:00 and the next overlap only occurs at $12+720/11$ min.
+
+**(b) First overlap after 12:00.** Starting at 12:00 (both hands at $0^\circ$), the minute hand next meets the hour hand after $720/11$ minutes: $$\frac{720}{11} \approx 65.45 \text{ min}
+  = 1 \text{ hour } \frac{60}{11} \text{ min}
+  = 1\text{h } 5\tfrac{5}{11}\text{ min}$$ $$\boxed{1:05\tfrac{5}{11}}$$
+
+**(c) Overlap during the 1:00 hour.** At 1:00, the hour hand is at $30^\circ$, minute hand at $0^\circ$. The minute hand must close the $30^\circ$ gap at $5.5^\circ$/min: $$6t = 30 + \tfrac{1}{2}t
+  \implies \tfrac{11}{2}t = 30
+  \implies t = \frac{60}{11} = 5\tfrac{5}{11}\text{ min past 1:00}$$ Converting $\tfrac{5}{11}$ min to seconds: $\tfrac{5}{11}\times60 = \tfrac{300}{11} = 27\tfrac{3}{11}$ seconds. $$\boxed{1{:}05{:}27\tfrac{3}{11}}$$ (consistent with part (b): $1{:}05\tfrac{5}{11}$ min $=1{:}05{:}27\tfrac{3}{11}$).
+
+**Key takeaway:** Relative speed $5.5^\circ$/min. Time between overlaps $= 720/11$ min. 22 overlaps per day. First after 12:00 is at $1:05\frac{5}{11}$.
+:::
+
+::: {.premiumproblem number="7" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p134"}
+**Hat Color Strategy: At Most One Wrong Guess.** 100 prisoners in a line, each wearing R or B. Each sees all hats ahead, not behind. Starting from the back, each guesses aloud.
+
+1.  What strategy guarantees at most 1 wrong guess?
+
+2.  Can you guarantee 0 wrong guesses?
+:::
+
+::: solutionbox
+**(a) Parity strategy: at most 1 wrong guess.**
+
+**Strategy:** Before entering, agree: Red $= 1$, Blue $= 0$. Prisoner 100 (at the back, sees 99 hats) announces the *parity* of the number of red hats among the 99 in front: $$g_{100} = \left(\sum_{i=1}^{99} h_i\right) \bmod 2$$ where $h_i\in\{0,1\}$ is the hat color.
+
+Prisoner 100 may be wrong (1 possible error). But:
+
+Each subsequent prisoner $k$ (from 99 down to 1) knows:
+
+- The announced parity from prisoner 100.
+
+- All guesses already announced (by prisoners 101,\...,k+1), hence how many red hats have been announced behind them.
+
+- All hats in front (prisoners 1,\...,k-1).
+
+From this, prisoner $k$ can deduce their own hat color exactly and guess correctly.
+
+**Guarantee: exactly 1 error** (only prisoner 100 may be wrong).
+
+**(b) Can we guarantee 0 errors?**
+
+**No.** Since prisoner 100 sees 99 hats but not their own, they have no information about their own hat. From prisoner 100's perspective, their hat is equally likely R or B regardless of what they see. Any deterministic rule they follow will be wrong for at least one hat configuration. Hence 0 errors cannot be guaranteed.
+
+**Key takeaway:** Parity strategy: prisoner 100 announces parity of visible reds (may be wrong); all others deduce their hat exactly. Result: *at most 1 error* (prisoner 100). No strategy guarantees 0 errors because the last guesser has no information about their own hat.
+:::
+
+::: {.premiumproblem number="8" difficulty="veryhard" problemId="quant_interview_fundamental_qdsi_p135"}
+**12 Balls, One Odd Weight, 3 Weighings.** One of 12 balls is either heavier or lighter. Identify it and determine heavier/lighter in 3 weighings with a balance scale.
+:::
+
+::: solutionbox
+**Information argument.** Each weighing has 3 outcomes: left heavy, right heavy, balanced. 3 weighings: $3^3=27$ possible outcome sequences. There are 24 possible scenarios (12 balls $\times$ 2 possibilities), so the information is just barely sufficient.
+
+**Weighing 1: Split 12 balls into groups of 4.** Label balls $A=\{1,2,3,4\}$, $B=\{5,6,7,8\}$, $C=\{9,10,11,12\}$.
+
+Weigh $A$ vs $B$ (4 balls each side).
+
+**Case 1: Balanced.** All 8 balls in $A$ and $B$ are normal. Odd ball is in $C$.
+
+**Weighing 2:** Weigh $\{9,10,11\}$ vs $\{1,2,3\}$ (using 3 known-normal balls from $A$).
+
+- **Balanced:** Odd ball is 12. **Weighing 3:** Weigh 12 vs 1 to determine heavier or lighter.
+
+- **Left heavy:** Odd ball is in $\{9,10,11\}$ and is heavier. **Weighing 3:** Weigh 9 vs 10. If balanced: 11 is heavy. If left heavy: 9 is heavy. If right heavy: 10 is heavy.
+
+- **Left light:** Odd ball in $\{9,10,11\}$ and is lighter. Same as above but lighter.
+
+**Case 2: $A$ heavy ($A$ side goes down).** Either an odd-heavy ball is in $A$ or an odd-light ball is in $B$.
+
+**Weighing 2:** Weigh $\{1,2,5\}$ vs $\{3,9,6\}$ (9 is known normal).
+
+- **Balanced:** Odd ball is 4 (heavy) or 7 or 8 (light). **Weighing 3:** Weigh 7 vs 8. If balanced: 4 is heavy. Else: lighter side is the odd-light ball.
+
+- **Left heavy:** Suspects: 1 or 2 (heavy), or 6 (light). **Weighing 3:** Weigh 1 vs 2. If balanced: 6 is light. If left heavy: 1 is heavy. If right heavy: 2 is heavy.
+
+- **Right heavy:** Suspects: 3 (heavy) or 5 (light). **Weighing 3:** Weigh 3 vs 9. If left heavy: 3 heavy. Else: 5 light.
+
+(Case 3: $A$ light is symmetric to Case 2.)
+
+**Complete strategy tree: 3 weighings always suffice.** $$\boxed{\text{Identify the odd ball and whether heavier or lighter in 3 weighings.}}$$
+
+**Key takeaway:** The key is the first weighing splits into 4-4-4, with one group as a "known normal" reference. Each subsequent weighing maintains a "suspect set" compatible with the outcomes, narrowing to 1 ball by the 3rd weighing.
+:::
+
+# Technique Summary
+
+::: {.techniquesummary title="Topic 26 Technique Toolkit"}
+
+| Technique | Description |
+|---|---|
+| **Von Neumann trick** | HT$\to$H, TH$\to$T, retry on HH/TT. Expected flips $=1/(p(1-p))$. |
+| **Josephus** | $J(2^m+L)=2L+1$. Binary: rotate leading 1 to end. |
+| **Prisoner loops** | Loop strategy: $\mathbb{P}\approx31\%=1-\sum_{k=51}^{100}1/k$. Fails iff longest cycle $>50$. |
+| **Pirates** | Backward induction: $P_1$ proposes $[98,0,1,0,1]$. Bribe the two cheapest supporters. |
+| **Blue eyes** | With $k$ blue-eyed people, all leave on night $k$. Announcement creates common knowledge. |
+| **Clock overlaps** | Relative speed $5.5^\circ$/min. Gap time $720/11$ min. 22 overlaps/day. First after 12:00 at $1{:}05\frac{5}{11}$. |
+| **Hat parity** | Last prisoner announces parity of visible reds. All others deduce correctly. At most 1 error. |
+| **12 balls** | Split 4-4-4; use balanced group as reference. 3 weighings give $3^3=27\geq24$ discriminations. |
+
+:::

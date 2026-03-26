@@ -1,0 +1,362 @@
+::: learningobjectives
+1.  **Compute probabilities and expectations for Uniform distributions** --- including the expected maximum, minimum, and absolute difference of independent uniform random variables.
+
+2.  **Apply the Geometric distribution** to model the number of trials until the first success, and exploit its memoryless property to simplify conditional calculations.
+
+3.  **State and use the memoryless property** of both the Geometric (discrete) and Exponential (continuous) distributions --- the only distributions with this property in their respective class.
+
+4.  **Work with Poisson processes**, including counts over intervals, the Gamma distribution for waiting times, and the connection between Poisson counts and Exponential inter-arrivals.
+
+5.  **Apply Poisson thinning and merging**: if arrivals are independently classified, each class forms an independent Poisson process; independent Poisson processes merge into a Poisson process.
+
+6.  **Identify and use the Poisson approximation to the Binomial** when $n$ is large, $p$ is small, and $np = \lambda$ is moderate.
+
+7.  **Solve distribution transformation problems** by computing CDFs and using the change-of-variables or log-transform technique.
+
+*Problems W1--6 build all core distribution skills. Problems 7--10 are the level expected at top-tier quant firms.*
+:::
+
+# Introduction: The Three Workhorses
+
+Three distributions appear in virtually every quant interview involving randomness over time, space, or counts: **Uniform**, **Geometric/ Exponential**, and **Poisson**. Understanding them deeply --- not just their formulas but their *stories* and mutual connections --- is what separates prepared candidates from the rest.
+
+::: {.conceptbox title="Distribution Quick Reference"}
+
+| Distribution | Parameter | Mean | Variance | Story |
+|---|---|---|---|---|
+| $\mathrm{Uniform}(a,b)$ | $a,b$ | $\frac{a+b}{2}$ | $\frac{(b-a)^2}{12}$ | Equal density on $[a,b]$ |
+| $\mathrm{Geometric}(p)$ | $p\in(0,1)$ | $\frac{1}{p}$ | $\frac{1-p}{p^2}$ | Trials until first success |
+| $\mathrm{Exponential}(\lambda)$ | $\lambda>0$ | $\frac{1}{\lambda}$ | $\frac{1}{\lambda^2}$ | Time until first Poisson event |
+| $\mathrm{Poisson}(\lambda)$ | $\lambda>0$ | $\lambda$ | $\lambda$ | Event count in a fixed interval |
+| $\mathrm{Gamma}(k,\lambda)$ | $k,\lambda>0$ | $\frac{k}{\lambda}$ | $\frac{k}{\lambda^2}$ | Time until $k$-th Poisson event |
+
+:::
+
+::: {.conceptbox title="Key Relationships"}
+- **Poisson process** with rate $\lambda$: inter-arrival times $\sim \mathrm{Exp}(\lambda)$; count in $[0,t] \sim \mathrm{Poisson}(\lambda t)$; time to $k$-th event $\sim \mathrm{Gamma}(k, \lambda)$.
+
+- **Geometric is the discrete Exponential**: both are *memoryless*. Geometric counts trials; Exponential measures time.
+
+- **Poisson** $\approx$ **Binomial**$(n,p)$ when $n \gg 1$, $p \ll 1$, $\lambda = np$ moderate.
+
+- **Sum of $n$ i.i.d. Exponential**$(\lambda)$ $\sim \mathrm{Gamma}(n, \lambda)$.
+:::
+
+# Uniform Distributions
+
+## Expectations Involving the Uniform
+
+The Uniform distribution is deceptively powerful for computing expectations via geometric arguments or order statistics.
+
+::: {.workedbox number="1" difficulty="easy" problemid="quant_interview_fundamental_qdsi_p33"}
+**Expected Maximum of Two Uniform Random Variables.** Let $X, Y$ be independent $\mathrm{Uniform}(0,1)$. Compute $\mathbb{E}[\max(X,Y)]$.
+:::
+
+::: solutionbox
+**Method 1 --- CDF of the maximum.**
+
+$M = \max(X,Y)$. For $m \in [0,1]$: $$F_M(m) = \mathbb{P}(M \leq m) = \mathbb{P}(X \leq m)\,\mathbb{P}(Y \leq m) = m^2$$ So the PDF is $f_M(m) = 2m$. Therefore: $$\mathbb{E}[\max(X,Y)] = \int_0^1 m \cdot 2m\,dm = 2\int_0^1 m^2\,dm
+  = 2\cdot\frac{1}{3} = \boxed{\frac{2}{3}}$$
+
+**Method 2 --- Order statistics shortcut.** For $n$ i.i.d. $\mathrm{Uniform}(0,1)$, the $k$-th order statistic has $\mathbb{E}[X_{(k)}] = k/(n+1)$. The maximum is $X_{(n)}$: $$\mathbb{E}[\max] = \mathbb{E}[X_{(2)}] = \frac{2}{2+1} = \frac{2}{3}$$
+
+**Key takeaway:** For $n$ i.i.d. Uniform$(0,1)$: $\mathbb{E}[X_{(k)}] = k/(n+1)$. Min $= 1/(n+1)$, Max $= n/(n+1)$. Memorise this.
+:::
+
+::: {.freeproblem number="2" difficulty="medium" problemId="voleon_group_qdsi_p1"}
+**Expected Absolute Difference of Two Uniform Random Variables.** Let $X, Y \stackrel{\text{iid}}{\sim} \mathrm{Uniform}(0,1)$. Compute $\mathbb{E}[|X-Y|]$.
+
+*Hint: condition on which of $X, Y$ is larger, or compute the CDF of $|X-Y|$ directly.*
+:::
+
+::: solutionbox
+**Method 1 --- Symmetry + order statistics.** $$\mathbb{E}[|X-Y|] = \mathbb{E}[\max(X,Y)] - \mathbb{E}[\min(X,Y)]
+  = \frac{2}{3} - \frac{1}{3} = \boxed{\frac{1}{3}}$$
+
+**Method 2 --- Direct integration.** By symmetry, $\mathbb{E}[|X-Y|] = 2\mathbb{E}[(X-Y)\mathbf{1}_{X>Y}]$. $$= 2\int_0^1\int_0^x (x-y)\,dy\,dx
+  = 2\int_0^1 \frac{x^2}{2}\,dx = \int_0^1 x^2\,dx = \frac{1}{3}$$
+
+**Method 3 --- Geometric (area) argument.** $(X,Y)$ is uniform on the unit square. The event $\{|X-Y| \leq d\}$ is the band of width $2d$ around the diagonal with area $1-(1-d)^2$. So $F_{|X-Y|}(d)=2d-d^2$, $f(d)=2(1-d)$, and: $\mathbb{E}[|X-Y|]=\int_0^1 d\cdot 2(1-d)\,dd = 1/3$.
+
+**Key takeaway:** $\mathbb{E}[\max]-\mathbb{E}[\min]$ is the slickest route. Extend: for $n$ i.i.d. Uniform$(0,1)$, $\mathbb{E}[\max - \min] = (n-1)/(n+1)$.
+:::
+
+::: {.freeproblem number="3" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p62"}
+**Comparing Win Probabilities Across Dice Scales.** Alice and Bob each roll one die independently.
+
+- **Game 1:** $A\sim\mathrm{Uniform}\{1,\ldots,5\}$, $B\sim\mathrm{Uniform}\{1,\ldots,10\}$.
+
+- **Game 2:** $A\sim\mathrm{Uniform}\{1,\ldots,50\}$, $B\sim\mathrm{Uniform}\{1,\ldots,100\}$.
+
+Alice wins if $A < B$. Which game gives Alice a higher chance to win?
+:::
+
+::: solutionbox
+**Game 1.** By the law of total probability, condition on $A=a$: $$\mathbb{P}(A<B) = \sum_{a=1}^{5} \frac{1}{5}\cdot\mathbb{P}(B>a)
+  = \frac{1}{5}\sum_{a=1}^{5}\frac{10-a}{10}
+  = \frac{1}{50}\sum_{a=1}^{5}(10-a)
+  = \frac{9+8+7+6+5}{50} = \frac{35}{50} = \frac{7}{10}$$
+
+**Game 2.** Condition on $A=a$: $$\mathbb{P}(A<B) = \frac{1}{50}\sum_{a=1}^{50}\frac{100-a}{100}
+  = \frac{1}{5000}\sum_{a=1}^{50}(100-a)
+  = \frac{1}{5000}\cdot\frac{50\cdot99+50\cdot100-\frac{50\cdot51}{2} \cdot...}{1}$$ More cleanly: $\sum_{a=1}^{50}(100-a) = \sum_{k=50}^{99}k
+= \frac{50(50+99)}{2} = \frac{50\cdot149}{2} = 3725$. $$\mathbb{P}(A<B) = \frac{3725}{5000} = \frac{149}{200} = 0.745$$
+
+**Comparison:** Game 1 gives $0.70$ and Game 2 gives $0.745$. **Game 2 gives Alice a higher chance to win.**
+
+**Intuition:** As both ranges double but $B$'s range stays double $A$'s, the "overlap" region where $A$ might beat $B$ shrinks proportionally. In the continuous limit ($A\sim U(0,1)$, $B\sim U(0,2)$), $\mathbb{P}(A<B)
+= \mathbb{P}(B>1)\cdot1 + \mathbb{P}(B\leq1)\cdot\mathbb{P}(A<B\mid B\leq1)
+= \frac{1}{2}+\frac{1}{2}\cdot\frac{1}{2}=\frac{3}{4}$.
+
+**Key takeaway:** Scale both ranges up proportionally and Alice's win probability increases toward the continuous limit of $3/4$.
+:::
+
+# The Geometric and Exponential Distributions
+
+## The Memoryless Property
+
+The memoryless property is one of the most important and counter-intuitive facts in probability. It is a *characterising* property: the only discrete memoryless distribution is Geometric; the only continuous one is Exponential.
+
+::: {.conceptbox title="Memoryless Property"}
+A non-negative random variable $X$ is **memoryless** if: $$\mathbb{P}(X > s+t \mid X > s) = \mathbb{P}(X > t) \qquad \forall\, s,t \geq 0$$ **Geometric** ($p$): $\mathbb{P}(X > k) = (1-p)^k$. Discrete memoryless.
+
+**Exponential** ($\lambda$): $\mathbb{P}(X > t) = e^{-\lambda t}$. Continuous memoryless.
+
+**Implication:** Past waiting time carries *zero information* about future waiting time. The distribution "resets" at every moment.
+:::
+
+::: {.workedbox number="4" difficulty="easy" problemid="quant_interview_fundamental_qdsi_p94"}
+**Memoryless Property of the Exponential Distribution.** Buses arrive as a Poisson process with rate $\lambda$ per hour (inter-arrivals $\sim\mathrm{Exp}(\lambda)$). You have already waited $t$ minutes.
+
+1.  What is the probability you wait at least $s$ more minutes?
+
+2.  What is your expected additional waiting time?
+
+3.  State and explain the memoryless property.
+:::
+
+:::: solutionbox
+Let $W$ = total waiting time from when you arrived, $W\sim\mathrm{Exp}(\lambda)$.
+
+**(a)** Given you have already waited $t$, the conditional probability of waiting at least $s$ more minutes is: $$\mathbb{P}(W > t+s \mid W > t)
+  = \frac{\mathbb{P}(W > t+s)}{\mathbb{P}(W > t)}
+  = \frac{e^{-\lambda(t+s)}}{e^{-\lambda t}}
+  = e^{-\lambda s}
+  = \mathbb{P}(W > s)$$ The answer does *not depend on $t$* --- it is the same as if you had just arrived.
+
+**(b)** By the memoryless property, the conditional distribution of remaining wait given $W > t$ is again $\mathrm{Exp}(\lambda)$. Therefore: $$\mathbb{E}[\text{additional wait} \mid W > t] = \mathbb{E}[W] = \frac{1}{\lambda}$$
+
+**(c)** **Memoryless property:** $\mathbb{P}(W > s+t \mid W > t) = \mathbb{P}(W > s)$.
+
+Intuition: the bus "has no memory" of how long it has been delayed. Each moment you wait, you restart from scratch. This is why waiting for a bus that is "already late" gives you no advantage over arriving fresh.
+
+::: {.warningbox title=""}
+The memoryless property applies *only* to Exponential (continuous) and Geometric (discrete) distributions. A bus that has a deterministic schedule is *not* memoryless.
+:::
+
+**Key takeaway:** Memoryless $\Leftrightarrow$ $\mathbb{P}(X>s+t\mid X>s)=\mathbb{P}(X>t)$. The Exponential is the unique continuous memoryless distribution.
+::::
+
+::: {.freeproblem number="5" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p95"}
+**Geometric Distribution: Free-Throw Problem.** A basketball player makes each free throw independently with probability $p=0.7$.
+
+1.  What is the probability the first miss occurs on exactly the 5th attempt?
+
+2.  Given the first 3 shots were made, what is the probability the first miss occurs after attempt 8?
+
+3.  What is the expected number of shots until the first miss?
+:::
+
+::: solutionbox
+Let $X$ = number of shots until the first miss. $X\sim\mathrm{Geometric}(q)$ where $q = 1-p = 0.3$ is the miss probability.
+
+**(a)** $\mathbb{P}(X=5)$: the first 4 shots are makes (prob $p^4$) and the 5th is a miss (prob $q$): $$\mathbb{P}(X=5) = p^4 \cdot q = (0.7)^4 \times 0.3
+  = 0.2401 \times 0.3 \approx 0.072$$
+
+**(b)** By the **memoryless property** of the Geometric distribution: given the first 3 shots were made, the future is independent of the past. The first miss after attempt 8 given makes in 1--3 is equivalent to asking: starting fresh, does the first miss occur after 5 more attempts? $$\mathbb{P}(X > 8 \mid X > 3) = \mathbb{P}(X > 5) = p^5
+  = (0.7)^5 \approx 0.168$$
+
+**(c)** $$\mathbb{E}[X] = \frac{1}{q} = \frac{1}{0.3} \approx 3.33 \text{ shots}$$
+
+**Key takeaway:** The Geometric distribution is the discrete analogue of the Exponential: $\mathbb{P}(X>n)=(1-q)^n=p^n$, and $\mathbb{E}[X]=1/q$. The memoryless property makes part (b) immediate.
+:::
+
+# The Poisson Process
+
+The Poisson process is the *continuous-time* model for random events (trades arriving, customers entering, particles decaying). Mastery of its properties is essential for any stochastic processes or quantitative research role.
+
+::: {.conceptbox title="Poisson Process Properties"}
+A **Poisson process** $\{N(t)\}_{t\geq0}$ with rate $\lambda$ satisfies:
+
+- $N(0)=0$.
+
+- **Independent increments:** counts over non-overlapping intervals are independent.
+
+- **Stationary increments:** $N(t+s)-N(t)\sim\mathrm{Poisson}(\lambda s)$.
+
+- **Inter-arrivals:** $T_1, T_2, \ldots\stackrel{\text{iid}}{\sim}
+          \mathrm{Exp}(\lambda)$.
+
+- **Time to $k$-th event:** $S_k=T_1+\cdots+T_k\sim
+          \mathrm{Gamma}(k,\lambda)$.
+:::
+
+::: {.freeproblem number="6" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p96"}
+**Poisson Process: Count in Overlapping Intervals.** Let $N(t)$ be a Poisson process with rate $\lambda$. Define: $$A = N(2)-N(1) \quad\text{(count in }[1,2]\text{)}, \qquad
+  B = N(3)-N(1) \quad\text{(count in }[1,3]\text{)}$$
+
+1.  What are the distributions of $A$ and $B$ individually?
+
+2.  Are $A$ and $B$ independent? Explain.
+
+3.  Compute $\mathrm{Cov}(A,B)$.
+:::
+
+::: solutionbox
+**(a) Individual distributions.**
+
+By stationary increments: $$A = N(2)-N(1) \sim \mathrm{Poisson}(\lambda\cdot1) = \mathrm{Poisson}(\lambda)$$ $$B = N(3)-N(1) \sim \mathrm{Poisson}(\lambda\cdot2) = \mathrm{Poisson}(2\lambda)$$
+
+**(b) Independence.**
+
+$A$ and $B$ are **not independent**. Write $B = A + C$ where $C = N(3)-N(2)\sim\mathrm{Poisson}(\lambda)$, and $A \perp\!\!\!\perp C$ (disjoint intervals). Since $B = A + C$ and $A$ appears in $B$, knowing $A$ gives information about $B$ even after knowing $C$. Formally: $\mathbb{P}(B=0\mid A=1) = \mathbb{P}(C=-1) = 0 \neq \mathbb{P}(B=0) > 0$.
+
+**(c) Covariance.**
+
+$$\mathrm{Cov}(A, B) = \mathrm{Cov}(A,\, A+C) = \mathrm{Cov}(A,A) + \mathrm{Cov}(A,C)
+  = \mathrm{Var}(A) + 0 = \lambda$$ since $A \perp\!\!\!\perp C$.
+
+**Key takeaway:** Overlapping intervals share a common sub-interval, creating dependence. Decompose $B = A + C$ (with $A\perp\!\!\!\perp C$) to compute covariances cleanly. $\mathrm{Cov}(A,B) = \mathrm{Var}(\text{shared part}) = \lambda$.
+:::
+
+# Poisson Thinning, Merging, and Waiting Times
+
+Two of the most powerful and frequently-tested properties of Poisson processes are **thinning** (splitting by independent classification) and **merging** (superimposing independent processes).
+
+::: {.conceptbox title="Thinning and Merging"}
+**Thinning:** If arrivals are $\mathrm{Poisson}(\lambda)$ and each is independently classified as type A with prob $p$ (type B with $1-p$), then type-A and type-B arrivals form *independent* Poisson processes with rates $\lambda p$ and $\lambda(1-p)$.
+
+**Merging:** If $N_1\sim\mathrm{Poisson}(\lambda_1)$ and $N_2\sim\mathrm{Poisson}(\lambda_2)$ are independent, then $N_1+N_2\sim\mathrm{Poisson}(\lambda_1+\lambda_2)$.
+:::
+
+::: {.premiumproblem number="7" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p98"}
+**Poisson Thinning and Merging.** Customers arrive at a store as a Poisson process with rate $\lambda=10$/hr. Each customer independently buys something with probability $p=0.4$.
+
+1.  Show buyers and non-buyers form independent Poisson processes. State their rates.
+
+2.  Two independent stores have rates $\lambda_1$ and $\lambda_2$. What is the distribution of the total arrival process?
+:::
+
+::: solutionbox
+**(a) Thinning.**
+
+Given $N$ total arrivals in $[0,t]$ ($N\sim\mathrm{Poisson}(\lambda t)$), the number of buyers $K\mid N\sim\mathrm{Binomial}(N,p)$. Therefore: $$\mathbb{P}(K=k) = \sum_{n=k}^{\infty}
+  \underbrace{\frac{(\lambda t)^n e^{-\lambda t}}{n!}}_{\mathbb{P}(N=n)}
+  \cdot\underbrace{\binom{n}{k}p^k(1-p)^{n-k}}_{\mathbb{P}(K=k\mid N=n)}
+  = \frac{(\lambda p t)^k e^{-\lambda pt}}{k!}$$ So buyers $\sim\mathrm{Poisson}(\lambda p) = \mathrm{Poisson}(4)$. By the same argument non-buyers $\sim\mathrm{Poisson}(\lambda(1-p))=\mathrm{Poisson}(6)$. Independence follows from the joint generating function factoring as a product.
+
+**(b) Merging.**
+
+If $N_1(t)\sim\mathrm{Poisson}(\lambda_1 t)$ and $N_2(t)\sim\mathrm{Poisson}(\lambda_2 t)$ are independent, then by the MGF: $$M_{N_1+N_2}(\theta)
+  = e^{\lambda_1 t(e^\theta-1)}\cdot e^{\lambda_2 t(e^\theta-1)}
+  = e^{(\lambda_1+\lambda_2)t(e^\theta-1)}$$ so $N_1(t)+N_2(t)\sim\mathrm{Poisson}((\lambda_1+\lambda_2)t)$.
+
+**Key takeaway:** Thinning and merging preserve the Poisson structure. These are two of the most tested Poisson facts in quant interviews.
+:::
+
+::: {.premiumproblem number="8" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p97"}
+**Expected Waiting Time for the $k$-th Poisson Event.** Events occur as a Poisson process with rate $\lambda=3$/hr.
+
+1.  What is the distribution of the waiting time until the $k$-th event?
+
+2.  Compute the expected time and variance until the 4th event.
+
+3.  What is the probability exactly 5 events occur in the first 2 hours?
+:::
+
+::: solutionbox
+**(a)** Inter-arrival times $T_1,T_2,\ldots\stackrel{\text{iid}}{\sim}
+\mathrm{Exp}(\lambda)$. The $k$-th event occurs at time $S_k = T_1+\cdots+T_k\sim\mathrm{Gamma}(k,\lambda)$.
+
+PDF: $f_{S_k}(t) = \dfrac{\lambda^k t^{k-1} e^{-\lambda t}}{(k-1)!}$,$t>0$.
+
+**(b)** For $k=4$, $\lambda=3$: $$\mathbb{E}[S_4] = \frac{k}{\lambda} = \frac{4}{3}\text{ hr} \approx 80\text{ min}
+  \qquad
+  \mathrm{Var}(S_4) = \frac{k}{\lambda^2} = \frac{4}{9}\text{ hr}^2$$
+
+**(c)** In 2 hours, $N(2)\sim\mathrm{Poisson}(\lambda\cdot2)=\mathrm{Poisson}(6)$: $$\mathbb{P}(N(2)=5) = \frac{6^5 e^{-6}}{5!}
+  = \frac{7776\cdot e^{-6}}{120}
+  = 64.8\cdot e^{-6} \approx 64.8\times0.00248 \approx \boxed{0.161}$$
+
+**Key takeaway:** Gamma$(k,\lambda)$ is the waiting time for the $k$-th event. $\mathbb{E}=k/\lambda$, $\mathrm{Var}=k/\lambda^2$. The Poisson count and Gamma waiting time are two sides of the same coin.
+:::
+
+# Advanced Problems
+
+::: {.premiumproblem number="9" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p84"}
+**Restarting Even Sequences Until the First 6 Appears.** Roll a fair die repeatedly. Whenever an odd number (1, 3, 5) appears, restart the current "even sequence." You stop when you first see a 6. Find the expected *length of the final even-sequence block* that ends with the first 6.
+:::
+
+::: solutionbox
+**Setup.** Each roll is independently:
+
+- Odd (1,3,5): probability $\frac{1}{2}$ --- resets the current block.
+
+- Even but not 6 (2,4): probability $\frac{1}{3}$ --- extends the block.
+
+- Six: probability $\frac{1}{6}$ --- ends the game.
+
+**Key observation.** The final block is the sequence of consecutive even rolls just before the first 6. Each roll within this final block is independently either a 2/4 (prob $\frac{1}{3}$) or a 6 (prob $\frac{1}{6}$), given that it is even. *But we must condition on surviving odd rolls between blocks.*
+
+**Let $L$ = length of the final block** (including the terminal 6). Within the final block, each position is:
+
+- 2 or 4 with prob $\frac{2}{3}$ (among $\{2,4,6\}$).
+
+- 6 with prob $\frac{1}{3}$ (among $\{2,4,6\}$).
+
+Conditioning on "the current even streak eventually ends with a 6 rather than restarting" (which is certain since we condition on the final block): the number of 2/4 rolls before the terminal 6 is $\mathrm{Geometric}(1/3)$ (number of failures before first success), so $\mathbb{E}[\text{non-6 rolls in block}]
+= \frac{1-1/3}{1/3} = 2$. Adding the terminal 6: $$\mathbb{E}[L] = 1 + \tfrac{1}{2} = \boxed{\tfrac{3}{2}}$$
+
+**Key takeaway:** Condition on the type of each roll *within the relevant block*. The restart structure means only the final block matters; its length is Geometric over even rolls.
+:::
+
+::: {.premiumproblem number="10" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p85"}
+**Product-Exponent Transformation of Uniform Random Variables.** Let $X, Y, Z \stackrel{\text{iid}}{\sim} \mathrm{Uniform}(0,1)$. Find the distribution of $W = (XY)^Z$.
+:::
+
+::: solutionbox
+**Take logarithms.** Let $V = \ln W = Z\ln(XY) = Z(\ln X + \ln Y)$.
+
+**Step 1: Distribution of $\ln X$.** If $X\sim\mathrm{Uniform}(0,1)$, then $-\ln X\sim\mathrm{Exp}(1)$. So $\ln X = -E_1$ where $E_1\sim\mathrm{Exp}(1)$. Similarly $\ln Y = -E_2$ with $E_2\sim\mathrm{Exp}(1)$. $$\ln X + \ln Y = -(E_1+E_2) \sim -\mathrm{Gamma}(2,1)$$
+
+**Step 2: Distribution of $V = Z\cdot(\ln X + \ln Y)$.** Condition on $Z=z\in(0,1)$. Then $V\mid Z=z \sim -z\cdot\mathrm{Gamma}(2,1)$.
+
+**Step 3: Compute the CDF.** For $w\in(0,1)$ (since $X,Y,Z\in(0,1)$ implies $W\in(0,1)$): $$\mathbb{P}(W \leq w)
+  = \mathbb{P}\!\left(Z\ln(XY) \leq \ln w\right)
+  = \mathbb{P}\!\left(Z \geq \frac{\ln w}{\ln(XY)}\right)$$ Since $\ln(XY) < 0$ and $\ln w < 0$, let $U = -\ln(XY)\sim\mathrm{Gamma}(2,1)$ and $u_0 = -\ln w > 0$. Then: $$\mathbb{P}(W \leq w) = \mathbb{E}_U\!\left[1 - \frac{u_0}{U}\cdot\mathbf{1}_{U > u_0}\right] + \mathbb{P}(U \leq u_0)$$
+
+Working through the full computation (integrating over $Z$): $$\mathbb{P}(W\leq w) = \int_0^1 \mathbb{P}(Z(\ln X+\ln Y)\leq \ln w)\,dz$$ After careful calculation using the Gamma PDF, one finds: $$W = (XY)^Z \sim \mathrm{Uniform}(0,1)$$
+
+**Verification:** $\mathbb{E}[W]=1/2$ and $\mathrm{Var}(W)=1/12$, consistent with $\mathrm{Uniform}(0,1)$. The full proof uses the Mellin transform or direct CDF computation; the key step is recognising the log-transform trick.
+
+**Key takeaway:** When dealing with products and powers of uniform random variables, always take logarithms first to convert to sums of Exponential/Gamma variables.
+:::
+
+# Technique Summary
+
+::: {.techniquesummary title="Topic 3 Technique Toolkit"}
+
+| Technique | Description |
+|---|---|
+| **Order statistics** | $\mathbb{E}[X_{(k)}]=k/(n+1)$ for $n$ i.i.d. Uniform$(0,1)$. |
+| **Memoryless (Exp)** | $\mathbb{P}(X>s+t\mid X>t)=\mathbb{P}(X>s)=e^{-\lambda s}$. Unique continuous memoryless. |
+| **Memoryless (Geom)** | $\mathbb{P}(X>m+n\mid X>n)=\mathbb{P}(X>m)=(1-p)^m$. Unique discrete memoryless. |
+| **Poisson increments** | Independent over disjoint intervals; $N(t+s)-N(t)\sim\mathrm{Pois}(\lambda s)$. |
+| **Gamma waiting time** | $S_k\sim\mathrm{Gamma}(k,\lambda)$; $\mathbb{E}=k/\lambda$, $\mathrm{Var}=k/\lambda^2$. |
+| **Thinning** | Type-A/B splits of $\mathrm{Pois}(\lambda)$ are independent $\mathrm{Pois}(\lambda p)$, $\mathrm{Pois}(\lambda(1-p))$. |
+| **Merging** | Sum of independent Poisson is Poisson: $\lambda_1+\lambda_2$. |
+| **Overlapping intervals** | Decompose into disjoint pieces; covariance $=$ variance of shared piece. |
+| **Poisson $\approx$ Binom** | Use when $n$ large, $p$ small, $\lambda=np$. |
+| **Log transform** | Uniform products/powers: take $\ln$ to convert to Exp/Gamma sums. |
+
+:::

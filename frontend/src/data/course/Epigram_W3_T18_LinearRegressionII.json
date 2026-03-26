@@ -1,0 +1,128 @@
+{
+  "weekNum": 3,
+  "topicNum": 18,
+  "topicName": "Linear Regression II",
+  "subtopics": "Regression Geometry $\\cdot$ Correlated Covariates $\\cdot$ Frisch–Waugh $\\cdot$ Ridge & Lasso",
+  "freeProblems": 4,
+  "premiumProblems": 3,
+  "timeEstimate": "120–150 minutes",
+  "prerequisites": "Topic 17 — Linear Regression I; Topic 6 — Covariance",
+  "learningObjectives": [
+    "**Trace the effect of duplicating observations** on coefficients, standard errors, $R^{2}$, and the reduced chi-square.",
+    "**Explain how uncorrelated weak predictors can combine** into a strong model, using the geometry of orthogonal projection.",
+    "**Predict the direction of coefficient change** when a correlated covariate is added to a regression.",
+    "**State and apply the Frisch–Waugh–Lovell theorem**: sequential OLS (residual-on-residual) equals multiple OLS iff the regressors are orthogonal.",
+    "**Compute the population regression slope** for a geometric distribution and recognise that symmetry does not guarantee slope $= 1$.",
+    "**Explain weighted least squares** and identify when it reduces to OLS.",
+    "**Derive the Ridge closed-form solution** and explain why Lasso produces sparse solutions via the KKT conditions and corner geometry of the $\\ell^{1}$ ball."
+  ],
+  "sections": [
+    {
+      "title": "Regression Under Repeated and Correlated Data",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Effect of Duplicating Observations in OLS Regression.** What happens if you duplicate all $n$ data points (creating $2n$ observations) to: (i) coefficient estimates, (ii) standard errors and $t$-statistics, (iii) $R^{2}$, (iv) chi-square statistic, (v) reduced chi-square?",
+          "solution": "Let $\\hat{\\beta}$, $\\hat{\\sigma}^{2}$, $R^{2}$ etc.\\ denote the original quantities. After duplication ($n\\to2n$):\n\n**(i) Coefficient estimates $\\hat{\\beta**$: unchanged.} Doubling every observation is equivalent to weighting all observations equally by 2. The OLS formula $\\hat{\\beta}=(X^{\\top} X)^{-1}X^{\\top} y$ doubles both $X^{\\top} X$ and $X^{\\top} y$, and they cancel: $\\hat{\\beta}_{\\text{dup}}=(2X^{\\top} X)^{-1}(2X^{\\top} y)=\\hat{\\beta}$.\n\n**(ii) Standard errors: halved. $t$-statistics: multiplied by $\\sqrt{2**$.} $\\hat{\\sigma}^{2}_{\\text{dup}}= \\text{RSS}_{\\text{dup}}/(2n-p) \\approx 2\\,\\text{RSS}/(2n) = \\hat{\\sigma}^{2}$ (same variance estimate). $\\text{Var}(\\hat{\\beta}_{\\text{dup}})=\\hat{\\sigma}^{2}(2X^{\\top} X)^{-1}= \\frac{1}{2}\\text{Var}(\\hat{\\beta})$. Standard error $\\to$ SE/$\\sqrt{2}$. $t$-statistic $= \\hat{\\beta}/\\text{SE}\\to \\sqrt{2}\\cdot t$.\n\n**(iii) $R^{2**$: unchanged.} $R^{2} = 1-\\text{RSS}/\\text{TSS}$. Both RSS and TSS double under duplication, so their ratio is preserved. $R^{2}$ is unchanged.\n\n**(iv) Chi-square statistic $\\chi^{2** = \\text{RSS}/\\sigma^{2}$: doubled.} RSS doubles but $\\sigma^{2}$ is fixed (assumed known), so $\\chi^{2}$ doubles.\n\n**(v) Reduced chi-square ($\\chi^{2**_{\\nu} = \\chi^{2}/\\nu$, where $\\nu=n-p$): approximately unchanged.} $\\chi^{2}_{\\nu} = \\text{RSS}/((n-p)\\sigma^{2})$. After duplication: $2\\,\\text{RSS}/((2n-p)\\sigma^{2})\\approx\\text{RSS}/((n-p)\\sigma^{2})$ for large $n$. It stays approximately equal to 1 if the model is correctly specified.\n\n <table class=\"course-table\"><tr><td>Quantity</td><td>Effect of duplication</td><td>Why</td></tr><tr><td>$\\hat{\\beta}$</td><td>Unchanged</td><td>$(2X^{\\top} X)^{-1}(2X^{\\top} y)$ cancels</td></tr><tr><td>SE($\\hat{\\beta}$)</td><td>Divided by $\\sqrt{2}$</td><td>$(2X^{\\top} X)^{-1}$ halves variance</td></tr><tr><td>$t$-statistic</td><td>Multiplied by $\\sqrt{2}$</td><td>$\\hat{\\beta}/\\text{SE}$</td></tr><tr><td>$R^{2}$</td><td>Unchanged</td><td>RSS and TSS both double</td></tr><tr><td>$\\chi^{2}$</td><td>Doubled</td><td>RSS doubles, $\\sigma^{2}$ fixed</td></tr><tr><td>Reduced $\\chi^{2}$</td><td>Approximately unchanged</td><td>RSS/$\\nu$ preserved</td></tr></table>\n\n**Key takeaway:** Duplicating data *artificially inflates* precision (halves SE, doubles $t$). The model fit ($R^{2}$, coefficients) is unchanged — your model is not better, you just pretend to have more information than you do. This is why independent observations are a core assumption of OLS."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "citadel_qdsi_p6",
+          "content": "**When Weak Predictors Combine into a Strong Linear Model.** Three separate regressions $Y=aX_{1}$, $Y=bX_{2}$, $Y=cX_{3}$ each have very low $R^{2}$. Can the multiple regression $Y=\\beta_{1} X_{1}+\\beta_{2} X_{2} +\\beta_{3} X_{3}$ have a much higher $R^{2}$? Explain.",
+          "solution": "**Yes, absolutely.** This phenomenon is well-illustrated by the following construction.\n\n**Key insight: uncorrelated predictors combine additively.** If $X_{1}, X_{2}, X_{3}$ are mutually uncorrelated and $Y = X_{1}+X_{2}+X_{3} +\\varepsilon$, then: \\begin{itemize}\\item Each individual regression $Y\\sim X_{j}$ has $R^{2}_{j} = \\text{Var}(X_{j})/\\text{Var}(Y)$. If $\\text{Var}(X_{j})$ is small relative to $\\text{Var}(Y)$, each individual $R^{2}$ is low.\n\n\\item The multiple regression $Y\\sim X_{1}+X_{2}+X_{3}$ has $R^{2} = (\\text{Var}(X_{1})+\\text{Var}(X_{2})+\\text{Var}(X_{3}))/\\text{Var}(Y)$, which can be close to 1 even when each individual $R^{2}$ is small.\\end{itemize}\n\n**Numerical example.** Let $Y=X_{1}+X_{2}+X_{3}+\\varepsilon$ with $X_{j}\\stackrel{\\text{iid}}{\\sim}N(0,1)$ and $\\varepsilon\\sim N(0,0.01)$. Then $\\text{Var}(Y)\\approx3$. \\begin{itemize}\\item $R^{2}(Y\\sim X_{j}) = 1/3 \\approx 33\\%$ each.\n\n\\item $R^{2}(Y\\sim X_{1}+X_{2}+X_{3}) = 3/3.01 \\approx 99.7\\%$.\\end{itemize} In general: if $R^{2}_{j} = r$ for all $j$ and the $X_{j}$ are uncorrelated: $R^{2}_{\\text{multiple}}= 3r/(1-\\text{noise fraction})$.\n\n**Why does this happen?** The column space of $(X_{1}, X_{2}, X_{3})$ is much richer than any individual column. Even if each predictor explains a small fraction of $\\text{Var}(Y)$ on its own, together they can explain most of it — provided they capture *different* aspects of $Y$ (i.e.\\ they are not collinear).\n\n**Key takeaway:** Low individual $R^{2}$ does not imply a low combined $R^{2}$. Uncorrelated predictors combine orthogonally, and their explanatory power adds up. This is a fundamental reason to include multiple predictors in a model even when each one individually appears weak."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "hard",
+          "problemId": "citadel_qdsi_p1",
+          "content": "**How Correlated Covariates Change Regression Coefficients.** Assume centered variables with $\\text{Corr}(Y,X_{1})>0$, $\\text{Corr}(Y,X_{2})=0$, and $\\text{Corr}(X_{1},X_{2})\\neq0$. Compare the coefficient on $X_{1}$ in (1) $Y=aX_{1}$ and (2) $Y=b_{1}X_{1}+b_{2}X_{2}$. Which is larger?",
+          "solution": "**Claim:** $b_{1} > a > 0$.\n\n**Derivation.** Simple regression: $a = \\text{Cov}(Y,X_{1})/\\text{Var}(X_{1}) > 0$.\n\nMultiple regression normal equations (centered variables): \\begin{align*}b_{1}\\text{Var}(X_{1}) + b_{2}\\text{Cov}(X_{1},X_{2})&= \\text{Cov}(Y,X_{1}) \\\\ b_{1}\\text{Cov}(X_{1},X_{2}) + b_{2}\\text{Var}(X_{2})&= \\text{Cov}(Y,X_{2}) = 0\\end{align*} From the second equation: $b_{2} = -b_{1}\\text{Cov}(X_{1},X_{2})/\\text{Var}(X_{2})$.\n\nSubstitute into the first: \\[b_{1}\\text{Var}(X_{1}) - b_{1}\\frac{\\text{Cov}(X_{1},X_{2})^{2}}{\\text{Var}(X_{2})}= \\text{Cov}(Y,X_{1})\\] \\[b_{1}\\text{Var}(X_{1})\\!\\left(1-\\frac{\\text{Cov}(X_{1},X_{2})^{2}}{\\text{Var}(X_{1})\\text{Var}(X_{2})}\\right) = \\text{Cov}(Y,X_{1})\\] \\[b_{1}\\text{Var}(X_{1})(1-\\rho_{12}^{2}) = \\text{Cov}(Y,X_{1})\\] \\[b_{1} = \\frac{\\text{Cov}(Y,X_{1})}{\\text{Var}(X_{1})(1-\\rho_{12}^{2})}= \\frac{a}{1-\\rho_{12}^{2}}\\]\n\nSince $\\rho_{12}\\neq0$, we have $0 < 1-\\rho_{12}^{2} < 1$, so: \\[\\boxed{b_1 = \\frac{a}{1-\\rho_{12}^{2}} > a > 0}\\]\n\n**Intuition.** $X_{2}$ is uncorrelated with $Y$ but correlated with $X_{1}$. When $X_{2}$ is excluded, part of its correlation with $Y$ (which is zero on net, but the correlation path goes through $X_{1}$) “leaks” into $a$. Including $X_{2}$ in the model forces $b_{2}\\neq0$, and the model repartitions the explanatory credit. The coefficient on $X_{1}$ must increase to compensate for $X_{2}$ drawing some of the shared variation with $X_{1}$ away.\n\nMore precisely: $b_{2} = -b_{1}\\rho_{12}\\sqrt{\\text{Var}(X_{1})/\\text{Var}(X_{2})}< 0$ (if $\\rho_{12}>0$). Adding a negatively-loaded $X_{2}$ makes $X_{1}$'s coefficient larger to maintain the same predicted values.\n\n**Key takeaway:** When adding an uncorrelated-with-$Y$ but correlated-with-$X_{1}$ variable, the coefficient on $X_{1}$ is inflated by the factor $1/(1-\\rho_{12}^{2})$. This is the VIF again — the same mechanism that inflates variance also inflates coefficients."
+        },
+        {
+          "type": "freeproblem",
+          "number": "4",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p88",
+          "content": "**When Does Sequential OLS Equal Multiple Regression?** Step 1: Regress $Y$ on $X_{1}$; get coefficient $b_{1}$ and residual $R_{Y} = Y - b_{1} X_{1}$. Step 2: Regress $R_{Y}$ on $X_{2}$; get coefficient $b_{2}$. Separately, regress $Y$ on both $(X_{1},X_{2})$ simultaneously to get $(a_{1},a_{2})$. When is $(a_{1},a_{2})=(b_{1},b_{2})$?",
+          "solution": "**Answer:** $(a_{1},a_{2})=(b_{1},b_{2})$ if and only if $\\text{Cov}(X_{1},X_{2})=0$ (i.e.\\ $X_{1}$ and $X_{2}$ are orthogonal).\n\n**The Frisch–Waugh–Lovell (FWL) Theorem.** The FWL theorem states that the coefficient on $X_{2}$ from the multiple regression equals the coefficient from regressing the *residual of $Y$ after projecting out $X_{1*$} on the *residual of $X_{2*$ after projecting out $X_{1}$}: \\[a_{2} = \\frac{\\text{Cov}(\\tilde{Y},\\tilde{X}_{2})}{\\text{Var}(\\tilde{X}_{2})}\\] where $\\tilde{Y}=M_{1} Y$, $\\tilde{X}_{2}=M_{1} X_{2}$, and $M_{1}$ is the annihilator matrix for $X_{1}$: $M_{1} = I - X_{1}(X_{1}^{\\top} X_{1})^{-1}X_{1}^{\\top}$.\n\n**Sequential step 2 uses $R_{Y**$ but not $\\tilde{X}_{2}$.} In step 2, you regress $R_{Y} = \\tilde{Y}$ on $X_{2}$ (not $\\tilde{X}_{2}$): \\[b_{2} = \\frac{\\text{Cov}(\\tilde{Y}, X_{2})}{\\text{Var}(X_{2})}\\] This equals $a_{2}$ iff $\\tilde{X}_{2} = X_{2}$, i.e.\\ $M_{1} X_{2} = X_{2}$, which means $X_{1}^{\\top} X_{2}=0$ — orthogonality.\n\nSimilarly, step 1 gives $b_{1} = \\text{Cov}(Y,X_{1})/\\text{Var}(X_{1})$, which equals $a_{1}$ iff $X_{2}$ adds no information to the coefficient on $X_{1}$, again requiring $\\text{Cov}(X_{1},X_{2})=0$ (from the T17 P5 OVB formula).\n\n**In summary:**  <table class=\"course-table\"><tr><td>Condition</td><td>$b_{1} = a_{1}$?</td><td>$b_{2} = a_{2}$?</td></tr><tr><td>$\\text{Cov}(X_{1},X_{2})=0$</td><td>Yes</td><td>Yes</td></tr><tr><td>$\\text{Cov}(X_{1},X_{2})\\neq0$</td><td>No (in general)</td><td>No (in general)</td></tr></table>\n\n**FWL applied correctly.** To always recover $(a_{1},a_{2})$ sequentially: \\begin{enumerate}\\item Regress $Y$ on $X_{1}$: get $b_{1}$ and $\\tilde{Y}=R_{Y}$.\n\n\\item Regress $X_{2}$ on $X_{1}$: get $\\tilde{X}_{2} = R_{X_2}$.\n\n\\item Regress $\\tilde{Y}$ on $\\tilde{X}_{2}$: get $a_{2}$. (*Not* on $X_{2}$!)\\end{enumerate} And $a_{1}\\neq b_{1}$ in general; to recover $a_{1}$, use the full multiple regression.\n\n**Key takeaway:** Sequential OLS equals multiple OLS only when $X_{1}\\perp X_{2}$. The correct partial-out procedure (FWL) requires residualising *both* $Y$ and $X_{2}$ against $X_{1}$."
+        }
+      ]
+    },
+    {
+      "title": "Geometry, WLS, and Regularisation",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "5",
+          "difficulty": "hard",
+          "problemId": "citadel_qdsi_p8",
+          "content": "**Does Geometric Symmetry Imply Regression Slope 1?** $(X,Y)$ is uniform on the rectangle with vertices $(1,2)$, $(2,1)$, $(-1,-2)$, $(-2,-1)$. Run the population regression $Y\\approx\\alpha+\\beta X$. Is $\\beta=1$?",
+          "solution": "**No.** Despite the rectangle's long axis having slope 1, the regression slope is $\\beta = 4/5 \\neq 1$.\n\n**Setup.** The four vertices form a parallelogram centred at the origin. Parameterise: $(X,Y) = (1,2) + s(1,-1) + t(-3,-3)$ for $s,t\\in[0,1]$, giving $X = 1+s-3t$ and $Y = 2-s-3t$.\n\nSince the distribution is symmetric under $(X,Y)\\mapsto(-X,-Y)$: $\\mathbb{E}[X]=\\mathbb{E}[Y]=0$, so $\\alpha=0$.\n\n**Compute moments.** \\[\\mathbb{E}[X^{2}] = \\int_{0}^{1}\\!\\!\\int_{0}^{1}(1+s-3t)^{2}\\,ds\\,dt = \\frac{5}{6}\\] \\[\\mathbb{E}[XY] = \\int_{0}^{1}\\!\\!\\int_{0}^{1}(1+s-3t)(2-s-3t)\\,ds\\,dt = \\frac{2}{3}\\]\n\n**Regression slope.** \\[\\beta = \\frac{\\mathbb{E}[XY]}{\\mathbb{E}[X^{2}]}= \\frac{2/3}{5/6}= \\frac{2}{3}\\cdot\\frac{6}{5}= \\boxed{\\frac{4}{5}}\\]\n\n**Why is $\\beta\\neq1$?** The long axis of the rectangle has slope 1, but the regression slope is $\\rho(X,Y)$ when $\\text{Var}(X)=\\text{Var}(Y)$ (which holds here since $\\mathbb{E}[X^{2}]=\\mathbb{E}[Y^{2}]=5/6$). Since $\\rho = \\mathbb{E}[XY]/\\mathbb{E}[X^{2}] = 4/5 < 1$, the slope is strictly less than 1.\n\nThe rectangle has significant width perpendicular to the long axis (the short sides have slope $-1$, spreading the distribution in the $X+Y$ direction). This perpendicular spread reduces the correlation from 1 to $4/5$.\n\n**Intuition: regression slope $\\neq$ slope of the main axis.** The regression slope $\\beta = \\rho\\cdot\\sigma_{Y}/\\sigma_{X} = \\rho$ (here $\\sigma_{X}=\\sigma_{Y}$). The principal axis has slope 1 (corresponding to the eigenvector of the covariance matrix), but the regression line is the conditional mean $\\mathbb{E}[Y\\mid X]$, which is pulled toward the overall mean (0) by the within-column spread.\n\n**Key takeaway:** Regression slope $=\\rho$ when $\\text{Var}(X)=\\text{Var}(Y)$. Geometric symmetry (the axis of the shape has slope 1) does not imply regression slope 1. The regression line is always “flatter” than the principal axis due to regression to the mean."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "medium",
+          "problemId": "sig_qdsi_p11",
+          "content": "**Weighted Regression Under Heterogeneous Data Density.** In linear regression, given data points with different densities at different areas, what is the best fitting strategy? When does WLS reduce to OLS?",
+          "solution": "**Weighted Least Squares (WLS).** When observations have heterogeneous precision, WLS minimises the *weighted* sum of squared residuals: \\[\\hat{\\beta}_{\\text{WLS}}= \\arg\\min_{\\beta} \\sum_{i=1}^{n} w_{i}(y_{i}-x_{i}^{\\top}\\beta)^{2} = (X^{\\top} W X)^{-1}X^{\\top} W y\\] where $W = \\mathrm{diag}(w_{1},…,w_{n})$ and $w_{i} > 0$.\n\n**When to use WLS.**\n\n*Case 1: Heteroskedasticity.* If $\\text{Var}(\\varepsilon_{i})=\\sigma^{2}/w_{i}$ (varying noise), set $w_{i}$ proportional to precision ($=1/\\text{Var}$): \\[w_{i} = \\frac{1}{\\text{Var}(\\varepsilon_{i})}\\] This makes WLS the GLS (Generalised Least Squares) estimator, which is BLUE when errors have this structure.\n\n*Case 2: Density-weighted regression.* If dense regions of the data space are over-represented and you want the model to fit sparse regions equally well, down-weight high-density regions: \\[w_{i} \\propto \\frac{1}{f(x_{i})}\\] where $f$ is the empirical density. This produces a model that minimises the *expected squared error over the covariate distribution* rather than over the sample distribution.\n\n*Case 3: Aggregated data.* If observation $i$ is an average of $n_{i}$ raw data points, set $w_{i} = n_{i}$ (weighted by group size).\n\n**When WLS reduces to OLS.** WLS $=$ OLS when all weights are equal: $w_{1}=w_{2}=\\cdots=w_{n}=c$. In matrix form: $W = cI$, so $(X^{\\top} WX)^{-1}X^{\\top} Wy = c(X^{\\top} X)^{-1}X^{\\top} y/c = (X^{\\top} X)^{-1}X^{\\top} y = \\hat{\\beta}_{\\text{OLS}}$.\n\n**Key takeaway:** WLS is OLS with a re-weighting of observations. Set $w_{i}=1/\\sigma_{i}^{2}$ to correct for heteroskedasticity, or $w_{i}\\propto1/f(x_{i})$ to balance data density. WLS reduces to OLS when all weights are equal (homoskedastic, uniform-density case)."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p117",
+          "content": "**Ridge vs Lasso: Bias–Variance Trade-off.** \\begin{enumerate}[label=(\\alph{*})]\\item Write the optimisation problems for Ridge (L2) and Lasso (L1).\n\n\\item Derive the closed-form Ridge solution.\n\n\\item Why does Lasso produce sparse solutions while Ridge does not?\n\n\\item As $\\lambda\\to\\infty$, what happens to the coefficients?\\end{enumerate}",
+          "solution": "**(a) Optimisation problems.** \\[\\hat{\\beta}_{\\text{Ridge}}= \\arg\\min_{\\beta} \\underbrace{\\|y-X\\beta\\|_2^2}_{\\text{fit}}+ \\lambda\\underbrace{\\|\\beta\\|_2^2}_{\\text{L2 penalty}}\\] \\[\\hat{\\beta}_{\\text{Lasso}}= \\arg\\min_{\\beta} \\|y-X\\beta\\|_{2}^{2} + \\lambda\\|\\beta\\|_{1} = \\arg\\min_{\\beta} \\|y-X\\beta\\|_{2}^{2} + \\lambda\\sum_{j}|\\beta_{j}|\\]\n\n**(b) Ridge closed-form solution.** Take the gradient of the Ridge objective and set to zero: \\[\\frac{\\partial}{\\partial\\beta}\\left[\\|y-X\\beta\\|_{2}^{2}+\\lambda\\|\\beta\\|_{2}^{2}\\right] = -2X^{\\top}(y-X\\beta) + 2\\lambda\\beta = 0\\] \\[X^{\\top} X\\beta + \\lambda\\beta = X^{\\top} y\\] \\[(X^{\\top} X + \\lambda I)\\beta = X^{\\top} y\\] \\[\\boxed{\\hat{\\beta}_{\\text{Ridge}} = (X^\\top X + \\lambda I)^{-1}X^\\top y}\\] Note: $X^{\\top} X + \\lambda I$ is always invertible for $\\lambda>0$, since $X^{\\top} X$ is PSD and $\\lambda I$ adds $\\lambda>0$ to all eigenvalues.\n\n**(c) Why Lasso produces sparse solutions.**\n\n*Geometric argument.* The Lasso constraint $\\|\\beta\\|_{1}\\leq t$ defines an $\\ell^{1}$ ball (a “diamond” in 2D, an octahedron in 3D) with corners at the coordinate axes. When the OLS contours (ellipsoids) first touch this ball, they are most likely to touch at a corner, where at least one coordinate is exactly zero. The $\\ell^{2}$ ball (Ridge) has no corners, so the contours touch the smooth boundary and no coefficient is exactly zero.\n\n*KKT argument.* The Lasso KKT stationarity condition is: $-2X_{j}^{\\top} r + \\lambda\\,\\mathrm{sign}(\\hat{\\beta}_{j}) = 0$ (if $\\hat{\\beta}_{j}\\neq0$). For $\\hat{\\beta}_{j}=0$: $|-2X_{j}^{\\top} r|\\leq\\lambda$ (subgradient). When $\\lambda$ is large enough that $|2X_{j}^{\\top} r|\\leq\\lambda$, the solution is $\\hat{\\beta}_{j}=0$ exactly.\n\nRidge stationarity: $-2X_{j}^{\\top} r + 2\\lambda\\hat{\\beta}_{j}=0 \\Rightarrow \\hat{\\beta}_{j} = X_{j}^{\\top} r/\\lambda \\neq 0$ in general.\n\n**(d) As $\\lambda\\to\\infty$.** \\begin{itemize}\\item **Ridge:** $\\hat{\\beta}_{\\text{Ridge}}= (X^{\\top} X+\\lambda I)^{-1}X^{\\top} y \\to \\frac{1}{\\lambda}X^{\\top} y \\to \\mathbf{0}$. All coefficients shrink smoothly toward zero.\n\n\\item **Lasso:** As $\\lambda$ increases, coefficients are set to zero one by one (soft-thresholding). For large enough $\\lambda$, all coefficients are exactly zero: $\\hat{\\beta}_{\\text{Lasso}}\\to\\mathbf{0}$.\\end{itemize}\n\n <table class=\"course-table\"><tr><td></td><td>Ridge (L2)</td><td>Lasso (L1)</td></tr><tr><td>Closed form</td><td>Yes: $(X^{\\top} X+\\lambda I)^{-1}X^{\\top} y$</td><td>No (requires optimisation)</td></tr><tr><td>Sparsity</td><td>No (all $\\hat{\\beta}_{j}\\to0$ as $\\lambda\\uparrow$)</td><td>Yes (some $\\hat{\\beta}_{j}=0$ exactly)</td></tr><tr><td>$\\lambda\\to\\infty$</td><td>All coeff.\\ $\\to0$ smoothly</td><td>All coeff.\\ $\\to0$ via threshold</td></tr><tr><td>Geometry</td><td>Smooth $\\ell^{2}$ ball, no corners</td><td>Diamond $\\ell^{1}$ ball with corners</td></tr></table>\n\n**Key takeaway:** Ridge shrinks all coefficients but never to exactly zero; Lasso performs variable selection (exact zeros) because the $\\ell^{1}$ penalty's non-differentiability at zero enables the subdifferential condition to be satisfied with $\\hat{\\beta}_{j}=0$."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 18 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>Duplicate data</th><th>$\\hat{\\beta}$ unchanged; SE $/\\sqrt{2}$; $t\\times\\sqrt{2}$; $R^{2}$ unchanged; $\\chi^{2}$ doubled.</th></tr><tr><td>Combining weak predictors</td><td>Uncorrelated weak predictors can combine to high $R^{2}$. $R^{2}_{\\text{multi}}\\geq R^{2}_{\\text{single}}$ always.</td></tr><tr><td>Correlated covariate effect</td><td>Adding $X_{2}$ with $\\text{Corr}(Y,X_{2})=0$ and $\\text{Corr}(X_{1},X_{2})\\neq0$: coefficient on $X_{1}$ inflates by $1/(1-\\rho_{12}^{2})$.</td></tr><tr><td>Frisch–Waugh–Lovell</td><td>Sequential OLS $=$ multiple OLS iff $X_{1}\\perp X_{2}$. Correct FWL: residualise both $Y$ and $X_{2}$ on $X_{1}$.</td></tr><tr><td>Regression slope</td><td>$\\beta = \\rho\\cdot\\sigma_{Y}/\\sigma_{X}$. When $\\sigma_{X}=\\sigma_{Y}$: $\\beta=\\rho$. Main axis slope $\\neq\\beta$ in general.</td></tr><tr><td>WLS</td><td>$(X^{\\top} WX)^{-1}X^{\\top} Wy$. Set $w_{i}=1/\\sigma_{i}^{2}$ for heteroskedasticity. WLS $=$ OLS when $W\\propto I$.</td></tr><tr><td>Ridge</td><td>$(X^{\\top} X+\\lambda I)^{-1}X^{\\top} y$. Always invertible; shrinks all coeff.\\ toward 0.</td></tr><tr><td>Lasso vs Ridge sparsity</td><td>Lasso: $\\ell^{1}$ ball has corners $\\Rightarrow$ exact zeros. Ridge: $\\ell^{2}$ ball is smooth $\\Rightarrow$ no exact zeros.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Effect of Duplicating Observations in OLS Regression",
+      "problemId": "voleon_group_qdsi_p4"
+    },
+    {
+      "number": "2",
+      "name": "When Weak Predictors Combine into a Strong Linear Model",
+      "problemId": "citadel_qdsi_p6"
+    },
+    {
+      "number": "3",
+      "name": "How Correlated Covariates Change Regression Coefficients",
+      "problemId": "citadel_qdsi_p1"
+    },
+    {
+      "number": "4",
+      "name": "When Does Sequential OLS Equal Multiple Regression?",
+      "problemId": "quant_interview_fundamental_qdsi_p88"
+    },
+    {
+      "number": "5",
+      "name": "Does Geometric Symmetry Imply Regression Slope 1?",
+      "problemId": "citadel_qdsi_p8"
+    },
+    {
+      "number": "6",
+      "name": "Weighted Regression Under Heterogeneous Data Density",
+      "problemId": "sig_qdsi_p11"
+    },
+    {
+      "number": "7",
+      "name": "Ridge vs Lasso: Bias-Variance Trade-off",
+      "problemId": "quant_interview_fundamental_qdsi_p117"
+    }
+  ]
+}

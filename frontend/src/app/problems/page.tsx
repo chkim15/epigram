@@ -13,6 +13,7 @@ interface ProblemWithTopics {
   problem_name: string | null;
   difficulty: string | null;
   company_labels: string[] | null;
+  problem_labels: string[] | null;
   problem_quant_topics: Array<{
     quant_topic_id: number;
     quant_topics: { name: string } | null;
@@ -23,6 +24,7 @@ function ProblemsPageContent() {
   const { user, isAuthenticated, isLoading, showCheckoutSuccess, setShowCheckoutSuccess } = useAuthGuard();
   const [problems, setProblems] = useState<ProblemWithTopics[]>([]);
   const [completedIds, setCompletedIds] = useState<string[]>([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   // Filter state
@@ -30,6 +32,8 @@ function ProblemsPageContent() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [selectedMainTopic, setSelectedMainTopic] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   // Fetch problems and completion data
   useEffect(() => {
@@ -43,7 +47,7 @@ function ProblemsPageContent() {
         const { data: problemsData, error: problemsError } = await supabase
           .from('problems')
           .select(`
-            id, problem_name, difficulty, company_labels,
+            id, problem_name, difficulty, company_labels, problem_labels,
             problem_quant_topics(quant_topic_id, quant_topics(name))
           `)
           .eq('included', true)
@@ -52,15 +56,24 @@ function ProblemsPageContent() {
         if (problemsError) throw problemsError;
         setProblems((problemsData as unknown as ProblemWithTopics[]) || []);
 
-        // Query 2: User completed problems
+        // Query 2 & 3: User completed and bookmarked problems
         if (user) {
-          const { data: completedData } = await supabase
-            .from('user_completed_problems')
-            .select('problem_id')
-            .eq('user_id', user.id);
+          const [{ data: completedData }, { data: bookmarkedData }] = await Promise.all([
+            supabase
+              .from('user_completed_problems')
+              .select('problem_id')
+              .eq('user_id', user.id),
+            supabase
+              .from('user_bookmarks')
+              .select('problem_id')
+              .eq('user_id', user.id),
+          ]);
 
           if (completedData) {
             setCompletedIds(completedData.map((c: { problem_id: string }) => c.problem_id));
+          }
+          if (bookmarkedData) {
+            setBookmarkedIds(bookmarkedData.map((b: { problem_id: string }) => b.problem_id));
           }
         }
       } catch (err) {
@@ -75,14 +88,58 @@ function ProblemsPageContent() {
 
   // Derived data
   const completedSet = useMemo(() => new Set(completedIds), [completedIds]);
+  const bookmarkedSet = useMemo(() => new Set(bookmarkedIds), [bookmarkedIds]);
+
+  const toggleBookmark = async (problemId: string) => {
+    if (!user) return;
+    const isBookmarked = bookmarkedSet.has(problemId);
+    if (isBookmarked) {
+      setBookmarkedIds((prev) => prev.filter((id) => id !== problemId));
+      await supabase
+        .from('user_bookmarks')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('problem_id', problemId);
+    } else {
+      setBookmarkedIds((prev) => [...prev, problemId]);
+      await supabase
+        .from('user_bookmarks')
+        .insert({ user_id: user.id, problem_id: problemId });
+    }
+  };
 
   const mainTopicTags = useMemo(() => {
+    const allowedTopics = new Set([
+      "Induction", "Logical Reasoning", "Symmetry", "Series", "Pigeon Principle",
+      "Problem Simplification", "Modular Arithmetic", "Proof by Contradiction",
+      "Calculus Methods", "Vector Geometry", "Determinant and Rank",
+      "Eigenvalues and Eigenvectors", "Positive Semi-Definiteness (PSD)", "Quadratic Forms",
+      "Counting", "Geometric Probability", "Combinatorial Probability",
+      "Inclusion and Exclusion Principle", "Conditional Probability and Bayesian Law",
+      "Expectation and Variance", "Covariance and Correlation", "Uniform Distribution",
+      "Geometric Distribution", "Exponential Distribution", "Poisson Distribution",
+      "(Multivariate) Gaussian Distributions", "Linearity of Expectations", "Order Statistics",
+      "Max and Min", "Applications of Symmetry", "Markov Chain", "Martingale",
+      "Random Walk", "Dynamical Programming", "Coin Flipping", "Dice Rolling",
+      "Game Theory", "Sampling Distribution", "Bias-Variance", "Likelihood",
+      "Bayesian Inference", "Law of Large Numbers (LLN)", "Central Limit Theorem (CLT)",
+      "Rejection Sampling", "Uniform Sampling", "Hypothesis Testing", "Linear Regression",
+      "Ridge and Lasso Regression", "Time Series Analysis", "Monte Carlo",
+      "Information Theory", "Games", "Bidding", "Optimization", "Finance",
+      "Approximation", "Paradox", "Factorials", "Number Theory", "Prime Number",
+      "Permutations", "Combinations", "Harmonic Number", "Cards",
+      "Binomial Distribution", "Bernoulli Distribution", "Sharpe Ratio",
+      "Brain Teasers", "Recursion", "Matrix Algebra", "Binary Matrices",
+      "Portfolio Optimization", "Inequalities (Estimate)", "Nash Equilibrium",
+      "Optimal Strategy",
+    ]);
+
     const counts = new Map<string, number>();
     for (const p of problems) {
       const seen = new Set<string>();
       for (const pt of p.problem_quant_topics || []) {
         const name = pt.quant_topics?.name;
-        if (name && !seen.has(name)) {
+        if (name && !seen.has(name) && allowedTopics.has(name)) {
           seen.add(name);
           counts.set(name, (counts.get(name) || 0) + 1);
         }
@@ -135,9 +192,23 @@ function ProblemsPageContent() {
         if (!p.company_labels?.includes(selectedCompany)) return false;
       }
 
+      // Tag filter
+      if (selectedTag) {
+        if (!p.problem_labels?.includes(selectedTag)) return false;
+      }
+
+      // Status filter
+      if (selectedStatus === 'completed') {
+        if (!completedSet.has(p.id)) return false;
+      } else if (selectedStatus === 'not_started') {
+        if (completedSet.has(p.id)) return false;
+      } else if (selectedStatus === 'bookmarked') {
+        if (!bookmarkedSet.has(p.id)) return false;
+      }
+
       return true;
     });
-  }, [problems, searchQuery, selectedDifficulty, selectedMainTopic, selectedCompany]);
+  }, [problems, searchQuery, selectedDifficulty, selectedMainTopic, selectedCompany, selectedTag, selectedStatus, completedSet, bookmarkedSet]);
 
   const solvedCount = useMemo(() => {
     return filteredProblems.filter((p) => completedSet.has(p.id)).length;
@@ -165,7 +236,7 @@ function ProblemsPageContent() {
           <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#a16207' }} />
         </div>
       ) : (
-        <div className="flex flex-1 min-h-0 px-8 lg:px-16">
+        <div className="flex flex-1 min-h-0 overflow-hidden px-8 lg:px-16">
           <ProblemsListView
             problems={filteredProblems}
             completedSet={completedSet}
@@ -178,6 +249,12 @@ function ProblemsPageContent() {
             onDifficultyChange={setSelectedDifficulty}
             selectedMainTopic={selectedMainTopic}
             onMainTopicChange={setSelectedMainTopic}
+            selectedTag={selectedTag}
+            onTagChange={setSelectedTag}
+            selectedStatus={selectedStatus}
+            onStatusChange={setSelectedStatus}
+            bookmarkedSet={bookmarkedSet}
+            onToggleBookmark={toggleBookmark}
           />
           <CompanySidebar
             companyTags={companyTags}

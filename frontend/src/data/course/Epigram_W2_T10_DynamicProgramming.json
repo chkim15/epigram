@@ -1,0 +1,138 @@
+{
+  "weekNum": 2,
+  "topicNum": 10,
+  "topicName": "Dynamic Programming",
+  "subtopics": "Optimal Stopping $\\cdot$ Threshold Strategies $\\cdot$ Bellman Equations $\\cdot$ Secretary Problem",
+  "freeProblems": 3,
+  "premiumProblems": 3,
+  "timeEstimate": "120–150 minutes",
+  "prerequisites": "Topic 9 — Martingales; Topic 5 — Expectation & Variance",
+  "learningObjectives": [
+    "**Set up and solve the Bellman equation** for finite-horizon optimal stopping problems: $V_{t} = \\mathbb{E}[\\max(\\text{stop now}, V_{t+1})]$.",
+    "**Derive the optimal threshold strategy** for dice reroll games — the threshold is the continuation value, and it changes with the number of rolls remaining.",
+    "**Apply backward induction** to the Red-Blue ball game and the retirement problem, computing the value function state-by-state from the terminal condition.",
+    "**Solve the Secretary Problem** — derive the optimal $1/e$ stopping rule and its probability of success.",
+    "**Solve the Two-Egg problem** using triangle numbers and explain why the optimal strategy has a decreasing step size.",
+    "**Recognise the convergence of threshold strategies** — as the number of re-rolls $k\\to\\infty$, the expected score converges to the maximum, not the expectation."
+  ],
+  "sections": [
+    {
+      "title": "Introduction: The Bellman Principle",
+      "blocks": [
+        {
+          "type": "text",
+          "content": "Dynamicprogrammingsolvessequentialdecisionproblemsbyworking*backwards*fromtheend.Thekeyidentityisthe**Bellman equation**:\\[V_{t}(\\text{state}) = \\max\\!\\bigl(\\underbrace{\\text{payoff if stop now}}_{\\text{stop}},\\; \\underbrace{\\mathbb{E}[V_{t+1}(\\text{next state})]}_{\\text{continue}}\\bigr)\\]Solvefrom$t=T$(terminal,forcedstop)backwardsto$t=0$.Theoptimalstrategyateachstepis:stopiff“stopnow”$\\geq$continuationvalue."
+        },
+        {
+          "type": "conceptbox",
+          "title": "Threshold Strategies",
+          "content": "For problems where the current observation $X_{t}$ is drawn i.i.d.\\ and you choose whether to stop, the optimal strategy is always a **threshold rule**: stop iff $X_{t} \\geq c_{t}$ for some threshold $c_{t}$ that depends on time remaining. As time runs out, $c_{t}$ typically decreases (accept lower values when fewer chances remain)."
+        }
+      ]
+    },
+    {
+      "title": "Dice Reroll Games",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Optimal Stopping in a Dice Reroll Game.**\n\n**Part 1.** Roll a fair six-sided die up to 3 times; stop early if you like; your score is the last roll. What is your expected score under optimal play?\n\n**Part 2.** Same setup but each re-roll costs \\$1 (first roll is free). What is the expected *net* payoff under optimal play?",
+          "solution": "**Part 1: No cost.**\n\n**Backward induction.** Let $V_{k}$ = expected score with $k$ rolls remaining (after rolling once). Stop iff current value $\\geq V_{k-1}$ (the continuation value).\n\n**$k=1$ (last roll):** Must stop. $V_{1} = \\mathbb{E}[D] = 7/2$.\n\n**$k=2$ (one re-roll left):** Re-roll iff current value $< V_{1} = 7/2$, i.e.\\ iff current value $\\leq 3$. \\[V_{2} = \\underbrace{\\tfrac{3}{6}}_{P(\\leq 3)}\\cdot V_{1} + \\underbrace{\\tfrac{3}{6}}_{P(\\geq 4)}\\cdot\\mathbb{E}[D\\mid D\\geq4] = \\tfrac{1}{2}\\cdot\\tfrac{7}{2}+ \\tfrac{1}{2}\\cdot\\tfrac{4+5+6}{3}= \\tfrac{7}{4}+ \\tfrac{5}{2}= \\frac{17}{4}= 4.25\\]\n\n**$k=3$ (two re-rolls left):** Re-roll iff current value $< V_{2} = 17/4 = 4.25$, i.e.\\ iff current value $\\leq 4$. \\[V_{3} = \\tfrac{4}{6}\\cdot V_{2} + \\tfrac{2}{6}\\cdot\\mathbb{E}[D\\mid D\\geq5] = \\tfrac{2}{3}\\cdot\\tfrac{17}{4}+ \\tfrac{1}{3}\\cdot\\tfrac{5+6}{2}= \\tfrac{17}{6}+ \\tfrac{11}{6}= \\frac{28}{6}= \\boxed{\\frac{14}{3} \\approx 4.67}\\]\n\n**Optimal strategy:** Roll 1: keep if $\\geq 5$, else reroll. Roll 2: keep if $\\geq 4$, else reroll. Roll 3: must keep.\n\n**Part 2: Cost \\$1 per re-roll.**\n\nLet $V^{c}_{k}$ = expected *net* payoff with $k$ re-rolls remaining. Re-rolling costs \\$1, so it is worth re-rolling iff the current value $< V^{c}_{k-1}- (-1) = V^{c}_{k-1}+ 1$... wait: re-rolling costs \\$1 and gives expected continuation $V^{c}_{k-1}$ net, so re-roll iff: current value $< V^{c}_{k-1}- 1 + 1$... more carefully:\n\nNet payoff from re-rolling $= V^{c}_{k-1}- 1$ (pay \\$1 and get $V^{c}_{k-1}$). Re-roll iff current value $< V^{c}_{k-1}- 1 + 1$...\n\nLet us restart cleanly. At any stage, with $k$ re-rolls *still available*, you have just rolled value $x$. Net expected payoff if you stop: $x$. Net expected payoff if you re-roll: $-1 + V^{c}_{k-1}$. Re-roll iff $x < V^{c}_{k-1}- 1$... but since the die is integer, re-roll iff $x \\leq \\lfloor V^{c}_{k-1}- 1\\rfloor$.\n\nActually: re-roll iff $x < V^{c}_{k-1}- 0$, where $V^{c}_{k-1}$ already incorporates the cost. The net gain from re-rolling is $(V^{c}_{k-1}- 1) - x$. Re-roll iff $V^{c}_{k-1}- 1 > x$, i.e.\\ $x < V^{c}_{k-1}- 1$.\n\n**$k=0$ (no re-rolls):** $V^{c}_{0} = 7/2$.\n\n**$k=1$:** Re-roll iff $x < V^{c}_{0} - 1 = 5/2$, i.e.\\ $x \\leq 2$. \\[V^{c}_{1} = \\tfrac{2}{6}(V^{c}_{0} - 1) + \\tfrac{4}{6}\\cdot\\mathbb{E}[D\\mid D\\geq3] = \\tfrac{1}{3}\\cdot\\tfrac{5}{2}+ \\tfrac{2}{3}\\cdot\\tfrac{3+4+5+6}{4}= \\tfrac{5}{6}+ \\tfrac{2}{3}\\cdot\\tfrac{9}{2}= \\tfrac{5}{6}+ 3 = \\frac{23}{6}\\approx 3.83\\]\n\nHmm, let me recheck by being careful. Threshold: re-roll if $x < V^{c}_{0} - 1 = 7/2 - 1 = 5/2 = 2.5$, so re-roll if $x \\leq 2$. \\[V^{c}_{1} = \\tfrac{2}{6}\\cdot(-1 + V^{c}_{0}) + \\tfrac{4}{6}\\cdot\\mathbb{E}[D\\mid D\\geq3]\\] $-1+V^{c}_{0} = 7/2-1=5/2$. $\\mathbb{E}[D\\mid D\\geq3]=(3+4+5+6)/4=9/2$. $V^{c}_{1} = \\tfrac{2}{6}\\cdot\\tfrac{5}{2}+\\tfrac{4}{6}\\cdot\\tfrac{9}{2}= \\tfrac{5}{6}+3 = \\tfrac{23}{6}$... but this exceeds $V^{c}_{0}=7/2=3.5$.\n\nThe issue: $V^{c}_{0}$ is the value with 0 re-rolls available and *already having rolled once*. But $V^{c}_{1}$ starts with a free first roll. Let me re-define:\n\nLet $V^{c}_{k}$ = expected net payoff *starting fresh* with $k$ re-rolls available. Then: $V^{c}_{k} = \\mathbb{E}_{X}[\\max(X,\\; V^{c}_{k-1}-1)]$ where $X\\sim\\mathrm{Unif}\\{1,…,6\\}$.\n\n**$V^{c**_{0} = 7/2$.}\n\n**$V^{c**_{1}$:} Threshold $V^{c}_{0}-1 = 5/2$. Re-roll if $X \\leq 2$. \\[V^{c}_{1} = \\tfrac{2}{6}(V^{c}_{0}-1)+\\tfrac{4}{6}\\cdot\\tfrac{9}{2}= \\tfrac{2}{6}\\cdot\\tfrac{5}{2}+\\tfrac{4}{6}\\cdot\\tfrac{9}{2}= \\tfrac{5}{6}+3 = \\frac{23}{6}\\approx 3.83\\] Wait, but $V^{c}_{1}-0$ should be less than $V^{c}_{1}$ without costs.\n\nActually: $V^{c}_{1}$ uses the *current roll* (which is free) so starting value is $X$; if $X$ is bad we pay \\$1 to re-roll. So $V^{c}_{1}$ IS the expected net starting with 1 re-roll and rolling the initial (free) roll first. Let me just be explicit:\n\n <table class=\"course-table\"><tr><td>Re-rolls available</td><td>Threshold (re-roll if $\\leq$)</td><td>Expected net</td></tr><tr><td>0</td><td>—</td><td>$7/2 = 3.50$</td></tr><tr><td>1</td><td>$\\lfloor V^{c}_{0} - 1\\rfloor = 2$</td><td>$23/6 \\approx 3.83$</td></tr><tr><td>2</td><td>$\\lfloor V^{c}_{1} - 1\\rfloor = 2$</td><td>$71/18 \\approx 3.94$</td></tr><tr><td>3</td><td>$\\lfloor V^{c}_{2} - 1\\rfloor = 2$</td><td>$215/54 \\approx 3.98$</td></tr></table>\n\nWith each additional re-roll (at \\$1 each), the net payoff increases toward 4 (the expected value of max over many rolls minus the costs).\n\n**For the original problem (3 rolls total = 2 re-rolls):** \\[\\boxed{V^c_2 = \\frac{71}{18} \\approx 3.94 \\text{ net}}\\]\n\n**Key takeaway:** The threshold strategy is: re-roll iff current value $\\leq \\lfloor\\text{continuation net value}- 1\\rfloor$. With a \\$1 cost, re-rolling only pays off if you are well below the expected value; here the threshold is $\\leq 2$ for all $k \\geq 1$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "jane_street_qdsi_p6",
+          "content": "**Optimal Stopping in a Red-Blue Ball Drawing Game.** A box has 4 blue balls and 3 red balls. Draw without replacement. Each blue ball drawn earns $+\\$1$; each red ball drawn costs $-\\$1$. You may stop at any time (your payoff is accumulated so far). What is the optimal strategy and expected payoff?",
+          "solution": "**State.** At any point, let $b$ = blue balls remaining and $r$ = red balls remaining. Define $V(b,r)$ = optimal expected *additional* payoff from this state onwards.\n\n**Bellman equation.** \\[V(b,r) = \\max\\!\\Bigl(0,\\; \\underbrace{\\tfrac{b}{b+r}(1+V(b-1,r)) + \\tfrac{r}{b+r}(-1+V(b,r-1))}_{\\text{draw one ball}}\\Bigr)\\] Stop (take 0 additional payoff) whenever the expected gain from drawing is non-positive.\n\n**Boundary conditions:** $V(0,r)=0$ (only red left: stop immediately); $V(b,0)=b$ (only blue left: draw all).\n\n**Backward induction table:**\n\n <table class=\"course-table\"><tr><td>$b\\backslash r$</td><td>0</td><td>1</td><td>2</td><td>3</td></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>$\\frac{1}{2}$</td><td>0</td><td>0</td></tr><tr><td>2</td><td>2</td><td>$\\frac{4}{3}$</td><td>$\\frac{2}{3}$</td><td>$\\frac{1}{5}$</td></tr><tr><td>3</td><td>3</td><td>$\\frac{9}{4}$</td><td>$\\frac{3}{2}$</td><td>$\\frac{17}{20}$</td></tr><tr><td>4</td><td>4</td><td>$\\frac{16}{5}$</td><td>$\\frac{12}{5}$</td><td>$\\frac{58}{35}$</td></tr></table>\n\n**Derivation of key entries:** $V(1,1) = \\max(0,\\;\\tfrac{1}{2}(1+0)+\\tfrac{1}{2}(-1+0)) = \\max(0,0) = 0$? No: $V(1,1)=\\max(0,\\tfrac{1}{2}\\cdot(1+V(0,1))+\\tfrac{1}{2}\\cdot(-1+V(1,0))) = \\max(0,\\tfrac{1}{2}+0+\\tfrac{1}{2}(-1+1)) =\\max(0,\\tfrac{1}{2})=\\tfrac{1}{2}$.\n\n$V(1,2)=\\max(0,\\tfrac{1}{3}(1+0)+\\tfrac{2}{3}(-1+0))=\\max(0,-\\tfrac{1}{3})=0$.\n\n$V(2,3)=\\max(0,\\tfrac{4}{7}(1+V(1,3))+\\tfrac{3}{7}(-1+V(2,2))) =\\max(0,\\tfrac{4}{7}+\\tfrac{3}{7}(-1+\\tfrac{2}{3})) =\\max(0,\\tfrac{4}{7}-\\tfrac{1}{7})=\\tfrac{3}{7}$? Let me recalculate: $V(1,3)=0$, $V(2,2)=2/3$. $\\tfrac{4}{7}(1+0)+\\tfrac{3}{7}(-1+2/3) =\\tfrac{4}{7}-\\tfrac{3}{7}\\cdot\\tfrac{1}{3}=\\tfrac{4}{7}-\\tfrac{1}{7}=\\tfrac{3}{7}$. But the table shows $V(2,3)=1/5$? Let me recheck.\n\nRe-computing: $V(2,3)$: $b=2$, $r=3$. $\\tfrac{2}{5}(1+V(1,3))+\\tfrac{3}{5}(-1+V(2,2)) =\\tfrac{2}{5}(1+0)+\\tfrac{3}{5}(-1+\\tfrac{2}{3}) =\\tfrac{2}{5}+\\tfrac{3}{5}\\cdot(-\\tfrac{1}{3}) =\\tfrac{2}{5}-\\tfrac{1}{5}=\\tfrac{1}{5}$. $V(2,3)=\\max(0,1/5)=1/5$. ✓\n\n$V(4,3)$: $b=4$, $r=3$. \\[\\tfrac{4}{7}(1+V(3,3))+\\tfrac{3}{7}(-1+V(4,2)) = \\tfrac{4}{7}(1+\\tfrac{17}{20})+\\tfrac{3}{7}(-1+\\tfrac{12}{5}) = \\tfrac{4}{7}\\cdot\\tfrac{37}{20}+\\tfrac{3}{7}\\cdot\\tfrac{7}{5}= \\tfrac{148}{140}+\\tfrac{21}{35}= \\tfrac{37}{35}+\\tfrac{3}{5}= \\frac{58}{35}\\] $\\max(0,\\tfrac{58}{35})=\\tfrac{58}{35}\\approx\\$1.66$.\n\n\\[\\boxed{V(4,3) = \\frac{58}{35} \\approx \\$1.66}\\]\n\n**Optimal strategy:** Stop whenever $V(b,r)=0$, i.e.\\ when the table entry is 0 or when the expected next draw is non-positive. From the table: stop at $(1,2)$, $(1,3)$, $(0,r)$ for any $r$. In general: stop when $r \\geq 2b$ (roughly). Never draw when only red balls remain.\n\n**Key takeaway:** The state-based Bellman equation uniquely determines the value function. Memorise: $V(b,0)=b$, $V(0,r)=0$, and the recurrence. The answer $58/35\\approx\\$1.66$ rewards careful play — naive “always draw” gives $\\mathbb{E}[\\text{net}]=4-3=\\$1$."
+        }
+      ]
+    },
+    {
+      "title": "The Secretary Problem",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "3",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p105",
+          "content": "**Secretary Problem (Optimal Stopping).** Interview $n$ candidates in random order. After each interview you must immediately hire or reject (no recalls). \\begin{enumerate}[label=(\\alph{*})]\\item Show the optimal strategy is: reject the first $k-1$ candidates, then hire the first who is better than all previously seen.\n\n\\item Find the optimal $k$ for large $n$.\n\n\\item What is the probability of hiring the best candidate as $n\\to\\infty$?\\end{enumerate}",
+          "solution": "**(a) Optimality of the threshold strategy.**\n\nBy an exchange argument, the optimal strategy must be of *threshold* form: observe a “burn-in” of $k-1$ candidates without hiring, then hire the first candidate who is better than all previous. Informally: any strategy that hires a non-record (not the best seen so far) is dominated by waiting for a record.\n\n**(b) Optimal $k$ for large $n$.**\n\nWith threshold $k$, the probability of hiring the best candidate: \\begin{multline*}P(k,n) = \\sum_{j=k}^{n}\\mathbb{P}(\\text{best is at position }j \\text{ and no candidate}\\\\ \\text{in positions }k,…,j-1 \\text{ is better than all in }1,…,k-1)\\end{multline*} \\[= \\sum_{j=k}^{n}\\frac{1}{n}\\cdot\\frac{k-1}{j-1}= \\frac{k-1}{n}\\sum_{j=k}^{n}\\frac{1}{j-1}\\] For large $n$, set $k=\\lfloor tn\\rfloor$ and the sum $\\to \\int_{t}^{1} \\frac{1}{x}\\,dx = -\\ln t$: \\[P(k,n) \\approx t(-\\ln t)\\] Maximise over $t$: $\\frac{d}{dt}[t(-\\ln t)] = -\\ln t - 1 = 0 \\Rightarrow t = 1/e$. \\[\\boxed{k^* = \\left\\lfloor\\frac{n}{e}\\right\\rfloor}\\]\n\n**(c) Probability of hiring the best as $n\\to\\infty$.**\n\nAt $t=1/e$: $P_{\\max}= \\frac{1}{e}\\cdot(-\\ln\\frac{1}{e}) = \\frac{1}{e}\\cdot1 = \\frac{1}{e}\\approx 36.8\\%$.\n\n\\[\\boxed{\\mathbb{P}(\\text{hire best}) \\to \\frac{1}{e} \\approx 36.8\\%}\\]\n\n**Intuition.** The $1/e$ rule balances two competing errors: \\begin{itemize}\\item Too short burn-in: accept a mediocre candidate because we have no frame of reference.\n\n\\item Too long burn-in: the best candidate passed during burn-in and we hire no one.\\end{itemize}\n\n**Key takeaway:** The Secretary Problem is the canonical optimal stopping problem. The answer $1/e$ for both the optimal threshold fraction and the success probability is one of the most memorable results in probability."
+        }
+      ]
+    },
+    {
+      "title": "The Two-Egg Problem",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "4",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p106",
+          "content": "**Two-Egg Problem: Optimal Floor Testing.** You have 2 eggs and a 100-story building. An egg breaks from floor $F$ or higher. Minimise the worst-case number of drops to find $F$. \\begin{enumerate}[label=(\\alph{*})]\\item If you perform at most $k$ drops total, what is the maximum number of floors you can check?\n\n\\item What is the minimum $k$ for a 100-story building?\n\n\\item Describe the optimal strategy.\\end{enumerate}",
+          "solution": "**(a) Maximum floors with $k$ drops.**\n\nWith 2 eggs and a budget of $k$ drops, the optimal strategy drops egg 1 from decreasing step sizes: \\begin{itemize}\\item First drop: floor $k$. If it breaks, use egg 2 to check floors $1,2,…,k-1$ (at most $k-1$ more drops). Total budget: $1+(k-1)=k$. ✓\n\n\\item If egg 1 survives: jump to floor $k+(k-1)=2k-1$. If it breaks, check floors $k+1,…,2k-2$ with egg 2 ($k-2$ more drops). Total: $2+(k-2)=k$. ✓\n\n\\item Continue: drops from floors $k, 2k-1, 3k-3, …$ (step sizes $k, k-1, k-2, …, 1$).\\end{itemize}\n\nThe maximum number of floors checkable with $k$ drops is: \\[T(k) = k + (k-1) + (k-2) + \\cdots + 1 = \\binom{k}{1}+\\binom{k-1}{1}+\\cdots = \\frac{k(k+1)}{2}\\]\n\n**(b) Minimum $k$ for 100 floors.**\n\nWe need $T(k) \\geq 100$: \\[\\frac{k(k+1)}{2}\\geq 100 \\implies k(k+1) \\geq 200\\] $k=13$: $13\\cdot14=182 < 200$. $k=14$: $14\\cdot15=210 \\geq 200$. \\[\\boxed{k_{\\min} = 14 \\text{ drops}}\\]\n\n**(c) Optimal strategy.**\n\nDrop egg 1 from decreasing heights: \\[\\text{Floors: }14,\\; 14+13=27,\\; 27+12=39,\\; 39+11=50,\\; 50+10=60,\\; 60+9=69,\\; …\\] (step sizes $14, 13, 12, 11, 10, 9, …$). If egg 1 breaks at step $j$ (from floor $f_{j}$), use egg 2 to check $f_{j-1}+1, f_{j-1}+2, …, f_{j}-1$ one by one.\n\nThe genius of this strategy: the decreasing step size ensures the *total* drops used is always exactly $k$ in the worst case, regardless of which step egg 1 breaks at.\n\n**DP perspective.** Let $V(e, f)$ = min worst-case drops with $e$ eggs and $f$ floors remaining. Then: \\[V(1, f) = f, \\qquad V(e, 0) = 0\\] \\[V(e, f) = 1 + \\min_{x=1}^{f}\\max(V(e-1, x-1),\\; V(e, f-x))\\] The formula $T(k)=k(k+1)/2$ is the closed-form solution for $e=2$.\n\n**Key takeaway:** With 2 eggs, the answer is $\\lceil(-1+\\sqrt{1+8n})/2\\rceil$ drops for $n$ floors. For $n=100$: 14 drops. The decreasing-step strategy ensures constant worst-case cost."
+        }
+      ]
+    },
+    {
+      "title": "Multi-Reroll and Retirement DP",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "5",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p107",
+          "content": "**Optimal Dice Game with Limited Re-rolls.** Roll a fair 6-sided die. You may pay to re-roll up to $k$ times (each re-roll replaces the current value at zero cost). Score = final die value. \\begin{enumerate}[label=(\\alph{*})]\\item Find the optimal threshold and expected score for $k=1,2,3$.\n\n\\item As $k\\to\\infty$, what does the expected score converge to?\\end{enumerate}",
+          "solution": "**(a) Backward induction.**\n\nLet $V_{k}$ = expected score with $k$ re-rolls remaining. Optimal strategy: re-roll iff current value $< V_{k-1}$ (the continuation value). Since the die is integer, re-roll iff current value $\\leq \\lfloor V_{k-1}\\rfloor$.\n\n**$k=0$:** $V_{0} = \\mathbb{E}[D] = 7/2 = 3.5$. (No re-rolls.)\n\n**$k=1$:** Threshold $\\lfloor 3.5\\rfloor = 3$. Re-roll if $\\leq 3$. \\[V_{1} = \\tfrac{3}{6}\\cdot V_{0} + \\tfrac{3}{6}\\cdot\\mathbb{E}[D\\mid D\\geq4] = \\tfrac{1}{2}\\cdot\\tfrac{7}{2}+\\tfrac{1}{2}\\cdot\\tfrac{4+5+6}{3}= \\tfrac{7}{4}+\\tfrac{5}{2}= \\boxed{\\frac{17}{4} = 4.25}\\]\n\n**$k=2$:** Threshold $\\lfloor 4.25\\rfloor = 4$. Re-roll if $\\leq 4$. \\[V_{2} = \\tfrac{4}{6}\\cdot V_{1}+\\tfrac{2}{6}\\cdot\\mathbb{E}[D\\mid D\\geq5] = \\tfrac{2}{3}\\cdot\\tfrac{17}{4}+\\tfrac{1}{3}\\cdot\\tfrac{5+6}{2}= \\tfrac{17}{6}+\\tfrac{11}{6}= \\boxed{\\frac{28}{6} = \\frac{14}{3} \\approx 4.67}\\]\n\n**$k=3$:** Threshold $\\lfloor 14/3\\rfloor = 4$. Re-roll if $\\leq 4$. \\[V_{3} = \\tfrac{4}{6}\\cdot V_{2}+\\tfrac{2}{6}\\cdot\\tfrac{11}{2}= \\tfrac{2}{3}\\cdot\\tfrac{14}{3}+\\tfrac{1}{3}\\cdot\\tfrac{11}{2}= \\tfrac{28}{9}+\\tfrac{11}{6}= \\tfrac{56}{18}+\\tfrac{33}{18}= \\boxed{\\frac{89}{18} \\approx 4.94}\\]\n\n <table class=\"course-table\"><tr><td>$k$</td><td>Threshold</td><td>Expected score</td><td></td></tr><tr><td>0</td><td>none</td><td>$7/2 = 3.50$</td><td></td></tr><tr><td>1</td><td>$\\leq 3$</td><td>$17/4 = 4.25$</td><td></td></tr><tr><td>2</td><td>$\\leq 4$</td><td>$14/3 \\approx 4.67$</td><td></td></tr><tr><td>3</td><td>$\\leq 4$</td><td>$89/18 \\approx 4.94$</td><td></td></tr></table>\n\n**(b) Limit as $k\\to\\infty$.**\n\nAs $k\\to\\infty$, $V_{k}\\to6$ (the maximum face value).\n\nIntuition: with infinitely many re-rolls, you can always re-roll until you get a 6. The threshold increases monotonically towards 6, and eventually you re-roll anything less than 6.\n\nMore precisely: $V_{k}\\to6$ because at any level $V_{k}<6$, the strategy says re-roll values $\\leq\\lfloor V_{k}\\rfloor$. The threshold eventually reaches 5 (re-roll if $\\leq 5$), giving: $V_{\\infty} = \\tfrac{5}{6}V_{\\infty} + \\tfrac{1}{6}\\cdot6 \\Rightarrow \\tfrac{1}{6}V_{\\infty} = 1 \\Rightarrow V_{\\infty} = 6$. ✓\n\n**Key takeaway:** The threshold increases from 3 to 4 to 4 to eventually 5. The value sequence $3.5, 4.25, 4.67, 4.94, …$ converges to 6 but slowly. Even $k=10$ gives only $\\approx 5.71$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p108",
+          "content": "**Best Time to Retire: Multi-Period DP.** Each year, salary $X\\sim\\mathrm{Uniform}\\{1,…,6\\}$ (i.i.d.). Retire at end of year $t$: payout $= X_{t}\\cdot(n-t+1)$, where $n$ is the horizon and multiplier decreases with time. \\begin{enumerate}[label=(\\alph{*})]\\item For $n=3$, find the optimal retirement policy via DP.\n\n\\item What is the expected payout under the optimal policy?\\end{enumerate}",
+          "solution": "**Setup.** At year $t$, observe salary $X_{t}$ and choose to retire (get $X_{t}\\cdot(n-t+1)$) or continue. Let $V(t)$ = expected payout from year $t$ onwards under optimal play, *before* observing $X_{t}$. Here $n=3$.\n\n**Boundary (year 3, $t=3$):** Must retire. Multiplier $=1$. \\[V(3) = \\mathbb{E}[X\\cdot1] = \\frac{7}{2}\\]\n\n**Year 2 ($t=2$):** Multiplier $=2$. Retire if $2X_{2} \\geq V(3)$, i.e.\\ $X_{2} \\geq V(3)/2 = 7/4 = 1.75$, so retire if $X_{2}\\geq2$. \\begin{align*}V(2)&= \\mathbb{P}(X\\geq2)\\cdot\\mathbb{E}[2X\\mid X\\geq2] +\\mathbb{P}(X<2)\\cdot V(3) &= \\tfrac{5}{6}\\cdot2\\cdot\\tfrac{2+3+4+5+6}{5}+\\tfrac{1}{6}\\cdot\\tfrac{7}{2}&= \\tfrac{5}{6}\\cdot\\tfrac{40}{5}+\\tfrac{7}{12}= \\tfrac{5}{6}\\cdot8+\\tfrac{7}{12}= \\tfrac{20}{3}+\\tfrac{7}{12}= \\frac{80+7}{12}= \\frac{87}{12}= \\frac{29}{4}= 7.25\\end{align*}\n\n**Year 1 ($t=1$):** Multiplier $=3$. Retire if $3X_{1}\\geq V(2)$, i.e.\\ $X_{1}\\geq V(2)/3 = 29/12 \\approx 2.42$, so retire if $X_{1}\\geq3$. \\begin{align*}V(1)&= \\mathbb{P}(X\\geq3)\\cdot3\\cdot\\mathbb{E}[X\\mid X\\geq3] +\\mathbb{P}(X<3)\\cdot V(2) &= \\tfrac{4}{6}\\cdot3\\cdot\\tfrac{3+4+5+6}{4}+\\tfrac{2}{6}\\cdot\\tfrac{29}{4}&= \\tfrac{4}{6}\\cdot3\\cdot\\tfrac{9}{2}+\\tfrac{1}{3}\\cdot\\tfrac{29}{4}&= \\tfrac{4}{6}\\cdot\\tfrac{27}{2}+\\tfrac{29}{12}= 9+\\tfrac{29}{12}= \\tfrac{108+29}{12}= \\frac{137}{12}\\approx 11.42\\end{align*}\n\n\\[\\boxed{V(1) = \\frac{137}{12} \\approx \\$11.42}\\]\n\n**Summary of optimal policy:**  <table class=\"course-table\"><tr><td>Year</td><td>Multiplier</td><td>Retire if</td><td>Else continue</td></tr><tr><td>1</td><td>3</td><td>$X_{1} \\geq 3$ (payout $\\geq 9$)</td><td>wait for year 2</td></tr><tr><td>2</td><td>2</td><td>$X_{2} \\geq 2$ (payout $\\geq 4$)</td><td>wait for year 3</td></tr><tr><td>3</td><td>1</td><td>always</td><td>—</td></tr></table>\n\n**Key takeaway:** With a decreasing multiplier, the incentive to retire early is high — in year 1 you only need a salary of $\\geq3$ (50\\% of the time) to beat the continuation value. The optimal policy has *increasing* thresholds in terms of raw salary but *decreasing* thresholds in terms of multiplied payout."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 10 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>Bellman equation</th><th>$V_{t}=\\max(\\text{stop now},\\mathbb{E}[V_{t+1}])$. Solve backwards from terminal.</th></tr><tr><td>Threshold strategy</td><td>Stop iff current value $\\geq$ continuation value. Threshold changes with time remaining.</td></tr><tr><td>Dice reroll (no cost)</td><td>$V_{0}=3.5$; threshold $= \\lfloor V_{k-1}\\rfloor$. $V_{1}=17/4$, $V_{2}=14/3$, $V_{\\infty}=6$.</td></tr><tr><td>Red-Blue balls</td><td>$V(b,r)=\\max(0,\\mathbb{E}[\\text{draw}])$. Stop when $r\\geq2b$ approximately. $V(4,3)=58/35$.</td></tr><tr><td>Secretary Problem</td><td>Observe $\\lfloor n/e\\rfloor$ candidates, then hire first record. $\\mathbb{P}(\\text{success})\\to1/e$.</td></tr><tr><td>Two-Egg problem</td><td>$T(k)=k(k+1)/2$ floors with $k$ drops. For 100 floors: $k=14$.</td></tr><tr><td>Multi-reroll</td><td>Re-roll if $\\leq\\lfloor V_{k-1}\\rfloor$. Threshold increases to 5 as $k\\to\\infty$; $V_{\\infty}=6$.</td></tr><tr><td>Retirement DP</td><td>Retire if current payout $\\geq$ continuation value. Thresholds decrease with time.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Optimal Stopping in a Dice Reroll Game",
+      "problemId": "quant_interview_fundamental_qdsi_p54"
+    },
+    {
+      "number": "2",
+      "name": "Optimal Stopping in a Red-Blue Ball Drawing Game",
+      "problemId": "jane_street_qdsi_p6"
+    },
+    {
+      "number": "3",
+      "name": "Secretary Problem (Optimal Stopping)",
+      "problemId": "quant_interview_fundamental_qdsi_p105"
+    },
+    {
+      "number": "4",
+      "name": "Two-Egg Problem: Optimal Floor Testing",
+      "problemId": "quant_interview_fundamental_qdsi_p106"
+    },
+    {
+      "number": "5",
+      "name": "Optimal Dice Game with Limited Re-rolls",
+      "problemId": "quant_interview_fundamental_qdsi_p107"
+    },
+    {
+      "number": "6",
+      "name": "Best Time to Retire: Multi-Period DP",
+      "problemId": "quant_interview_fundamental_qdsi_p108"
+    }
+  ]
+}

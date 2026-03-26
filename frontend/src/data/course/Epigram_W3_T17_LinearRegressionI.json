@@ -1,0 +1,182 @@
+{
+  "weekNum": 3,
+  "topicNum": 17,
+  "topicName": "Linear Regression I",
+  "subtopics": "OLS $\\cdot$ Gauss–Markov $\\cdot$ Multicollinearity $\\cdot$ Omitted Variable Bias $\\cdot$ MLE vs OLS",
+  "freeProblems": 5,
+  "premiumProblems": 5,
+  "timeEstimate": "120–150 minutes",
+  "prerequisites": "Topic 15 — CLT; Topic 6 — Covariance & Correlation",
+  "learningObjectives": [
+    "**State the Gauss–Markov assumptions** and identify which violations are addressed by which remedies.",
+    "**Justify MSE as the canonical regression loss** from both statistical (BLUE, Gauss–Markov) and computational perspectives.",
+    "**Solve the population OLS problem analytically** by taking expectations, computing normal equations, and solving the resulting linear system.",
+    "**Diagnose and fix perfect multicollinearity** — recognise that OLS breaks down when regressors are linearly dependent, and drop the redundant variable.",
+    "**Derive omitted variable bias** explicitly as $\\tilde{\\beta}_{1} = \\beta_{1} + \\beta_{2}\\,\\delta_{21}$, where $\\delta_{21}$ is the coefficient from regressing $X_{2}$ on $X_{1}$.",
+    "**Explain variance inflation from multicollinearity** using the VIF formula and the geometry of projection.",
+    "**Understand the relationship between OLS and MLE**: they coincide under Gaussian errors; OLS is BLUE under Gauss–Markov regardless of error distribution.",
+    "**Relate the slopes of the two simple regressions** $Y$ on $X$ and $X$ on $Y$: their product equals $\\rho^{2}$."
+  ],
+  "sections": [
+    {
+      "title": "Introduction: The Classical Linear Model",
+      "blocks": [
+        {
+          "type": "text",
+          "content": "The**classical linear model**(CLM)is$Y_{i} = \\mathbf{x}_{i}^{\\top} \\boldsymbol{\\beta}+ \\varepsilon_{i}$.Itscentralresultisthe**Gauss–Markov theorem**:undertheCLMassumptions(excludingnormality),OLSisBLUE—theBestLinearUnbiasedEstimator."
+        },
+        {
+          "type": "conceptbox",
+          "title": "OLS Formula and Gauss--Markov",
+          "content": "**OLS estimator:** $\\hat{\\boldsymbol{\\beta}}= (X^{\\top} X)^{-1}X^{\\top}\\mathbf{y}$ (requires $X^{\\top} X$ invertible).\n\n**Simple regression** ($Y=a+bX+\\varepsilon$): \\[\\hat{b}= \\frac{\\text{Cov}(X,Y)}{\\text{Var}(X)}, \\qquad \\hat{a}= \\bar{Y}- \\hat{b}\\bar{X}\\]\n\n**Gauss–Markov theorem:** Under linearity, strict exogeneity ($\\mathbb{E}[\\varepsilon\\mid X]=0$), no perfect multicollinearity, and homoskedasticity ($\\text{Var}(\\varepsilon\\mid X)=\\sigma^{2} I$), the OLS estimator is BLUE.\n\n**MLE equivalence:** Under $\\varepsilon\\sim N(0,\\sigma^{2})$, MLE $\\equiv$ OLS for $\\beta$ (maximising the Gaussian likelihood is equivalent to minimising the sum of squared residuals)."
+        }
+      ]
+    },
+    {
+      "title": "Assumptions and Loss Function",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Key Assumptions of the Classical Linear Model.** State the main assumptions behind classical linear regression and common ways to address violations of each.",
+          "solution": "<table class=\"course-table\"><tr><th>Assumption</th><th>What it says</th><th>Violation / Remedy</th></tr><tr><td>Linearity</td><td>$\\mathbb{E}[Y\\mid X]=X\\beta$</td><td>Nonlinearity: add polynomial terms, use GAMs or nonparametric methods</td></tr><tr><td>Strict Exogeneity</td><td>$\\mathbb{E}[\\varepsilon\\mid X]=0$; no omitted variables correlated with $X$</td><td>Endogeneity: use instrumental variables (IV) or 2SLS</td></tr><tr><td>No Perfect Multicollinearity</td><td>$X^{\\top} X$ invertible; no regressor is a linear combination of others</td><td>Drop or combine the redundant variables; use ridge regression</td></tr><tr><td>Homoskedasticity</td><td>$\\text{Var}(\\varepsilon_{i}\\mid X)=\\sigma^{2}$ (constant)</td><td>Heteroskedasticity: use White (HC) robust standard errors, or WLS</td></tr><tr><td>No Autocorrelation</td><td>$\\text{Cov}(\\varepsilon_{i},\\varepsilon_{j}\\mid X)=0$ for $i\\neq j$</td><td>Serial correlation in time series: use Newey–West SEs, GLS, or ARMA residuals</td></tr><tr><td>Normality ($\\varepsilon$)</td><td>$\\varepsilon\\mid X\\sim N(0,\\sigma^{2})$ — needed for exact inference</td><td>Non-normality: invoke CLT for large $n$; use robust or bootstrap inference</td></tr></table>\n\n**Key takeaway:** The first four assumptions are the core Gauss–Markov conditions and guarantee BLUE. Normality is a stronger assumption needed for exact ($t$- and $F$-) inference in finite samples; the CLT rescues inference asymptotically without it."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "citadel_qdsi_p17",
+          "content": "**Why MSE is the Canonical Regression Loss.** Why is the loss function in regression typically the mean squared error (MSE) rather than the mean absolute error (MAE) or another loss? Discuss statistical and computational reasons.",
+          "solution": "**Statistical reasons.** \\begin{itemize}\\item **Gauss–Markov / BLUE:** Under the Gauss–Markov assumptions, OLS (which minimises MSE) produces the Best Linear Unbiased Estimator. No other linear unbiased estimator has lower variance.\n\n\\item **Equivalence with Gaussian MLE:** When errors are $N(0,\\sigma^{2})$, maximising the likelihood is identical to minimising the sum of squared residuals. OLS is therefore the MLE under Gaussian errors.\n\n\\item **Optimal predictor for squared loss:** The conditional mean $\\mathbb{E}[Y\\mid X]$ minimises $\\mathbb{E}[(Y-f(X))^{2}]$ over all functions $f$, so MSE targets the object of interest.\n\n\\item **Variance decomposition:** MSE decomposes cleanly as $\\text{Bias}^{2} + \\text{Variance}$, enabling interpretable bias–variance trade-off analysis.\\end{itemize}\n\n**Computational reasons.** \\begin{itemize}\\item **Differentiability:** MSE is differentiable everywhere; the squared function has a unique, easily computed gradient. MAE is non-differentiable at zero.\n\n\\item **Closed-form solution:** Minimising MSE yields the normal equations $X^{\\top} X\\hat{\\beta}=X^{\\top} y$, which have the closed-form solution $\\hat{\\beta}=(X^{\\top} X)^{-1}X^{\\top} y$. MAE has no closed form in general and requires iterative methods.\n\n\\item **Quadratic programming:** The MSE objective is a convex quadratic, enabling efficient optimisation even at very large scale.\\end{itemize}\n\n**When MAE is preferred.** MAE is more *robust to outliers* (it penalises large residuals linearly, not quadratically) and targets the conditional *median* rather than the mean. In finance, where return distributions are heavy-tailed, MAE or quantile regression is often more appropriate.\n\n**Key takeaway:** MSE dominates because of its analytical tractability (closed form, differentiable, BLUE, Gaussian MLE). MAE is a robust alternative when outliers are a concern."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "hard",
+          "problemId": "citadel_qdsi_p2",
+          "content": "**OLS Projection of $XY$ onto $(X,Y,1)$.** Let $X,Y\\sim\\mathrm{Uniform}(0,1)$ be independent. Find the population least-squares coefficients $(a,b,c)$ minimising $\\mathbb{E}\\!\\left[(XY - (aX+bY+c))^{2}\\right]$.",
+          "solution": "**Normal equations.** Differentiating with respect to $a$, $b$, $c$ and setting equal to zero: \\begin{align*}\\frac{\\partial}{\\partial a}:&\\quad \\mathbb{E}[X^{2}]\\,a + \\mathbb{E}[XY]\\,b + \\mathbb{E}[X]\\,c = \\mathbb{E}[X^{2} Y] \\\\ \\frac{\\partial}{\\partial b}:&\\quad \\mathbb{E}[XY]\\,a + \\mathbb{E}[Y^{2}]\\,b + \\mathbb{E}[Y]\\,c = \\mathbb{E}[XY^{2}] \\\\ \\frac{\\partial}{\\partial c}:&\\quad \\mathbb{E}[X]\\,a + \\mathbb{E}[Y]\\,b + c = \\mathbb{E}[XY]\\end{align*}\n\n**Moments of $\\mathrm{Uniform**(0,1)$ (using independence):} \\[\\mathbb{E}[X]=\\mathbb{E}[Y]=\\tfrac{1}{2},\\quad \\mathbb{E}[X^{2}]=\\mathbb{E}[Y^{2}]=\\tfrac{1}{3},\\quad \\mathbb{E}[XY]=\\mathbb{E}[X]\\mathbb{E}[Y]=\\tfrac{1}{4}\\] \\[\\mathbb{E}[X^{2}Y]=\\mathbb{E}[X^{2}]\\mathbb{E}[Y]=\\tfrac{1}{6},\\quad \\mathbb{E}[XY^{2}]=\\tfrac{1}{6}\\]\n\n**Substituting:** \\begin{align*}\\tfrac{1}{3}\\,a + \\tfrac{1}{4}\\,b + \\tfrac{1}{2}\\,c&= \\tfrac{1}{6}\\\\ \\tfrac{1}{4}\\,a + \\tfrac{1}{3}\\,b + \\tfrac{1}{2}\\,c&= \\tfrac{1}{6}\\\\ \\tfrac{1}{2}\\,a + \\tfrac{1}{2}\\,b + c&= \\tfrac{1}{4}\\end{align*}\n\n**Symmetry.** Subtracting equation 1 from equation 2: $(\\tfrac{1}{4}-\\tfrac{1}{3})a + (\\tfrac{1}{3}-\\tfrac{1}{4})b = 0 \\Rightarrow b=a$.\n\nWith $a=b$, equation 3 gives $a + c = 1/4$. Equation 1 becomes $\\tfrac{1}{3}a + \\tfrac{1}{4}a + \\tfrac{1}{2}c = \\tfrac{1}{6}$, i.e.\\ $\\tfrac{7}{12}a + \\tfrac{1}{2}c = \\tfrac{1}{6}$. Substituting $c=\\tfrac{1}{4}-a$: $\\tfrac{7}{12}a + \\tfrac{1}{8}- \\tfrac{a}{2}= \\tfrac{1}{6}\\Rightarrow \\tfrac{1}{12}a = \\tfrac{1}{24}\\Rightarrow a=\\tfrac{1}{2}$. Then $c = \\tfrac{1}{4}-\\tfrac{1}{2}= -\\tfrac{1}{4}$.\n\n\\[\\boxed{a = \\frac{1}{2},\\quad b = \\frac{1}{2},\\quad c = -\\frac{1}{4}}\\]\n\nSo the best linear approximation to $XY$ is $\\frac{1}{2}X + \\frac{1}{2}Y - \\frac{1}{4}$.\n\n**Interpretation.** Since $\\mathbb{E}[XY]=\\mathbb{E}[X]\\mathbb{E}[Y]=\\frac{1}{4}$ (independence), and $\\mathbb{E}[X]=\\mathbb{E}[Y]=\\frac{1}{2}$, the intercept $c=-\\frac{1}{4}$ centres the prediction correctly. The coefficients $a=b=\\frac{1}{2}$ reflect the symmetry between $X$ and $Y$.\n\n**Key takeaway:** Population OLS normal equations are $\\mathbb{E}[XZ]=\\mathbb{E}[(\\mathbf{x}^{\\top}\\boldsymbol{\\beta})Z]$ for each regressor $Z$. Symmetry arguments ($X\\stackrel{d}{=}Y$ and independence) force $a=b$, then one equation pins down $c$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "4",
+          "difficulty": "medium",
+          "problemId": "citadel_qdsi_p16",
+          "content": "**Perfect Multicollinearity in Linear Regression.** Fit $Y \\approx \\beta_{0} + \\beta_{1} x_{1} + \\beta_{2} x_{2} + \\beta_{3} z$ where $z = (x_{1}+x_{2})/2$. \\begin{enumerate}[label=(\\alph{*})]\\item Is the OLS solution unique?\n\n\\item What happens to the coefficients and fitted values?\n\n\\item How should you fix the specification?\\end{enumerate}",
+          "solution": "**(a) Uniqueness.** No. The regressors are linearly dependent: $z = \\frac{1}{2}x_{1} + \\frac{1}{2}x_{2}$, so the design matrix $X$ has rank $< 4$. The matrix $X^{\\top} X$ is *singular* and $(X^{\\top} X)^{-1}$ does not exist. OLS has infinitely many solutions.\n\n**(b) What happens to coefficients and fitted values.** Any solution $(\\beta_{0}, \\beta_{1}, \\beta_{2}, \\beta_{3})$ can be replaced by $(\\beta_{0}, \\beta_{1}+t, \\beta_{2}+t, \\beta_{3}-2t)$ for any $t\\in\\mathbb{R}$, since: \\[\\beta_{1} x_{1} + \\beta_{2} x_{2} + \\beta_{3} z = (\\beta_{1}+t)x_{1} + (\\beta_{2}+t)x_{2} + (\\beta_{3}-2t)z\\] (because $x_{1}=2z-x_{2}$ and $x_{2}=2z-x_{1}$). The fitted values $\\hat{Y}= X\\hat{\\beta}$ are *uniquely determined* (the projection onto the column space of $X$ is unique), but individual coefficients are not.\n\n**(c) Fix.** Drop one of the three correlated regressors. Since $z$ is a linear combination of $x_{1}$ and $x_{2}$, drop $z$ and fit: \\[Y \\approx \\beta_{0} + \\beta_{1} x_{1} + \\beta_{2} x_{2}\\] Alternatively, replace $(x_{1}, x_{2}, z)$ with $(x_{1}+x_{2}, x_{1}-x_{2})$ (two orthogonal contrasts) to remove the collinearity structurally.\n\n**Key takeaway:** Perfect multicollinearity ($z$ is an exact linear combination of other regressors) makes $X^{\\top} X$ singular. Coefficients are unidentified but fitted values are still unique. The remedy is to drop or recombine the linearly dependent variables."
+        },
+        {
+          "type": "freeproblem",
+          "number": "5",
+          "difficulty": "hard",
+          "problemId": "squarepoint_capital_qdsi_p5",
+          "content": "**Omitted Variable Bias.** True model: $Y = \\beta_{1} X_{1} + \\beta_{2} X_{2} + u$ with $\\mathbb{E}[u\\mid X_{1},X_{2}]=0$. You run the misspecified regression $Y = \\tilde{\\beta}_{1} X_{1} + \\varepsilon$. Derive the bias $\\mathbb{E}[\\tilde{\\beta}_{1}] - \\beta_{1}$ when $\\text{Cov}(X_{1},X_{2})\\neq0$.",
+          "solution": "**OLS coefficient from the misspecified regression:** \\[\\tilde{\\beta}_{1} = \\frac{\\text{Cov}(X_{1}, Y)}{\\text{Var}(X_{1})}\\]\n\n**Substitute the true model $Y = \\beta_{1** X_{1} + \\beta_{2} X_{2} + u$:} \\[\\text{Cov}(X_{1}, Y) = \\text{Cov}(X_{1},\\, \\beta_{1} X_{1} + \\beta_{2} X_{2} + u) = \\beta_{1}\\text{Var}(X_{1}) + \\beta_{2}\\text{Cov}(X_{1},X_{2}) + \\text{Cov}(X_{1},u)\\] Since $\\mathbb{E}[u\\mid X_{1},X_{2}]=0$, we have $\\text{Cov}(X_{1},u)=0$. Thus: \\[\\tilde{\\beta}_{1} = \\frac{\\beta_{1}\\text{Var}(X_{1})+\\beta_{2}\\text{Cov}(X_{1},X_{2})}{\\text{Var}(X_{1})}= \\beta_{1} + \\beta_{2}\\cdot\\frac{\\text{Cov}(X_{1},X_{2})}{\\text{Var}(X_{1})}\\]\n\nLet $\\delta_{21}= \\text{Cov}(X_{1},X_{2})/\\text{Var}(X_{1})$ be the coefficient from the population regression of $X_{2}$ on $X_{1}$. Then: \\[\\boxed{\\mathbb{E}[\\tilde{\\beta}_1] = \\beta_1 + \\beta_2\\,\\delta_{21}}\\qquad\\text{Bias}= \\beta_{2}\\,\\delta_{21}\\]\n\n**The bias is zero iff:** \\begin{itemize}\\item $\\beta_{2}=0$ (the omitted variable truly has no effect), or\n\n\\item $\\delta_{21}=0$, i.e.\\ $\\text{Cov}(X_{1},X_{2})=0$ ($X_{2}$ is orthogonal to $X_{1}$).\\end{itemize}\n\n**Example.** Regress wages on education only, omitting ability. If ability is positively correlated with education ($\\delta_{21}>0$) and has a positive wage effect ($\\beta_{2}>0$), then $\\tilde{\\beta}_{1}$ *overestimates* the causal effect of education.\n\n**Key takeaway:** OVB $= \\beta_{2} \\times \\delta_{21}$. The bias is the product of (i) the true effect of the omitted variable and (ii) the correlation of the omitted variable with the included regressor. This is the most important formula in applied econometrics."
+        }
+      ]
+    },
+    {
+      "title": "Multicollinearity, Prediction Bounds, and MLE vs OLS",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p72",
+          "content": "**Variance Inflation from Multicollinearity.** Explain why adding a correlated regressor $X_{2}$ to the regression of $Y$ on $X_{1}$ can *increase* $\\text{Var}(\\hat{\\beta}_{1})$.",
+          "solution": "**Formula for $\\text{Var}(\\hat{\\beta**_{1})$ in the two-regressor model.}\n\nIn $Y = \\beta_{1} X_{1} + \\beta_{2} X_{2} + \\varepsilon$ with $\\text{Corr}(X_{1},X_{2})=\\rho$: \\[\\text{Var}(\\hat{\\beta}_{1}) = \\frac{\\sigma^{2}}{n\\,\\text{Var}(X_{1})}\\cdot\\frac{1}{1-\\rho^{2}}= \\underbrace{\\frac{\\sigma^{2}}{n\\,\\text{Var}(X_{1})}}_{\\text{univariate variance}}\\times\\underbrace{\\frac{1}{1-\\rho^{2}}}_{\\text{VIF}}\\] The **Variance Inflation Factor (VIF)** $= 1/(1-\\rho^{2}) \\geq 1$.\n\n**Why VIF $> 1$?** \\begin{itemize}\\item **Geometric view:** OLS estimates $\\hat{\\beta}_{1}$ by projecting $Y$ onto the component of $X_{1}$ orthogonal to $X_{2}$. When $X_{1}$ and $X_{2}$ are correlated, the orthogonal component of $X_{1}$ is small — there is little independent variation in $X_{1}$ after partialling out $X_{2}$. Less variation means higher estimation uncertainty.\n\n\\item **Signal extraction view:** When $X_{1}\\approx X_{2}$, any assignment of credit between $\\beta_{1}$ and $\\beta_{2}$ fits the data nearly equally well. The data cannot distinguish $\\beta_{1}$ from $\\beta_{2}$, leading to high variance in both.\\end{itemize}\n\n**Numerical example.**  <table class=\"course-table\"><tr><td>$\\rho$</td><td>VIF</td><td>$\\text{Var}(\\hat{\\beta}_{1})$ relative to univariate</td></tr><tr><td>0.0</td><td>1.00</td><td>$1\\times$ (no inflation)</td></tr><tr><td>0.5</td><td>1.33</td><td>$33\\%$ larger</td></tr><tr><td>0.9</td><td>5.26</td><td>$5.3\\times$ larger</td></tr><tr><td>0.99</td><td>50.25</td><td>$50\\times$ larger</td></tr><tr><td>0.999</td><td>500</td><td>essentially infinite</td></tr></table>\n\n**Remedies:** Ridge regression (shrinks coefficients); PCA regression (uses orthogonal components); drop one of the correlated variables; collect more data; centre and standardise variables.\n\n**Key takeaway:** Adding a correlated regressor inflates $\\text{Var}(\\hat{\\beta}_{1})$ by the factor VIF $= 1/(1-\\rho^{2})$. Near-perfect collinearity ($\\rho\\to1$) makes VIF $\\to\\infty$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "medium",
+          "problemId": "squarepoint_capital_qdsi_p2",
+          "content": "**Does Adding an Irrelevant Regressor Change the Coefficient?** (1) Regress $Y$ on $X_{1}$ only: get coefficient $\\beta$. (2) Regress $Y$ on $X_{1}$ and $X_{2}$: get coefficients $\\beta_{1}$ and $\\beta_{2}$. If $\\hat{\\beta}_{2}=0$ in regression (2), must $\\hat{\\beta}_{1}=\\beta$?",
+          "solution": "**Yes** — if $\\hat{\\beta}_{2}=0$ in the multiple regression, then $\\hat{\\beta}_{1}=\\beta$ (the simple regression coefficient).\n\n**Proof.** The OLS estimate $\\hat{\\beta}_{1}$ from the multiple regression $Y=\\beta_{1} X_{1}+\\beta_{2} X_{2}+\\varepsilon$ satisfies the normal equations: \\[\\begin{pmatrix}X_{1}^{\\top} X_{1}&X_{1}^{\\top} X_{2} \\\\ X_{2}^{\\top} X_{1}&X_{2}^{\\top} X_{2}\\end{pmatrix} \\begin{pmatrix}\\hat{\\beta}_{1}\\\\\\hat{\\beta}_{2}\\end{pmatrix} = \\begin{pmatrix}X_{1}^{\\top} Y\\\\X_{2}^{\\top} Y\\end{pmatrix}\\] The first row gives: $X_{1}^{\\top} X_{1}\\,\\hat{\\beta}_{1} + X_{1}^{\\top} X_{2}\\,\\hat{\\beta}_{2} = X_{1}^{\\top} Y$.\n\nIf $\\hat{\\beta}_{2}=0$, this simplifies to: $X_{1}^{\\top} X_{1}\\,\\hat{\\beta}_{1} = X_{1}^{\\top} Y$, which is exactly the normal equation from the simple regression of $Y$ on $X_{1}$ alone. Therefore $\\hat{\\beta}_{1} = \\beta$. ✓\n\n**Intuition.** When $\\hat{\\beta}_{2}=0$, $X_{2}$ contributes nothing to explaining $Y$ *after* conditioning on $X_{1}$. The model effectively reduces to the simple regression, and $X_{1}$'s coefficient is unaffected.\n\n**Important caveat.** This is a sample result. In the population, $\\beta_{2}^{\\text{pop}}=0$ does not guarantee that $\\hat{\\beta}_{2}=0$ (sampling variation). Conversely, $\\hat{\\beta}_{2}=0$ in sample does not mean $\\beta_{2}^{\\text{pop}}=0$.\n\n**Key takeaway:** If the additional regressor's coefficient is exactly zero in the multiple regression, the remaining coefficient(s) are identical to those from the restricted (smaller) model. This follows directly from the structure of the normal equations."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "8",
+          "difficulty": "medium",
+          "problemId": "citadel_qdsi_p4",
+          "content": "**Bounds on Prediction Error When Adding Predictors.** Let $E_{1}$, $E_{2}$, $E_{12}$ be the minimum population MSE using only $X_{1}$, only $X_{2}$, and both $X_{1}$ and $X_{2}$ respectively. What range can $E_{12}$ take in terms of $E_{1}$ and $E_{2}$?",
+          "solution": "**Upper bound.** Adding more predictors never increases the minimum MSE (we can always set the coefficient on the new predictor to zero and recover the simpler model): \\[E_{12}\\leq \\min(E_{1}, E_{2})\\]\n\n**Lower bound.** The MSE is always non-negative: \\[E_{12}\\geq 0\\]\n\n**Full range:** \\[\\boxed{0 \\;\\leq\\; E_{12} \\;\\leq\\; \\min(E_1, E_2)}\\]\n\n**Both bounds are tight:** \\begin{itemize}\\item $E_{12}=0$: achieved when $Y = f(X_{1}, X_{2})$ exactly (perfect prediction), e.g.\\ $Y=X_{1}+X_{2}$.\n\n\\item $E_{12}=\\min(E_{1},E_{2})$: achieved when the two predictors carry exactly the same information, e.g.\\ $X_{2}=X_{1}$ (perfect collinearity). In this case adding $X_{2}$ contributes nothing beyond $X_{1}$.\\end{itemize}\n\n**Is $E_{12**\\leq E_{1} \\cdot E_{2}$?} Not necessarily — MSEs multiply in variance decompositions only under independence.\n\n**Key takeaway:** Adding predictors to a regression can only maintain or improve the fit in population (it always weakly reduces minimum MSE). The improvement can range from zero (redundant predictor) to full (the new predictor explains the remaining residual perfectly)."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "9",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p76",
+          "content": "**OLS and MLE Estimation in the Linear Model.** Consider $Y = a + bX + \\varepsilon$. Estimate $(a,b)$ by (1) least squares and (2) maximum likelihood. Under what conditions are the estimators the same?",
+          "solution": "**OLS estimates.** Minimise $\\sum_{i=1}^{n}(y_{i} - a - bx_{i})^{2}$: \\[\\hat{b}_{\\text{OLS}}= \\frac{\\sum(x_{i}-\\bar{x})(y_{i}-\\bar{y})}{\\sum(x_{i}-\\bar{x})^{2}}= \\frac{\\widehat{\\text{Cov}}(X,Y)}{\\widehat{\\text{Var}}(X)}, \\qquad \\hat{a}_{\\text{OLS}}= \\bar{y}- \\hat{b}\\bar{x}\\]\n\n**MLE estimates.** Assume $\\varepsilon_{i}\\stackrel{\\text{iid}}{\\sim}N(0,\\sigma^{2})$. The log-likelihood is: \\[\\ell(a,b,\\sigma^{2}) = -\\frac{n}{2}\\log(2\\pi\\sigma^{2}) -\\frac{1}{2\\sigma^{2}}\\sum_{i=1}^{n}(y_{i}-a-bx_{i})^{2}\\] Maximising over $(a,b)$ for fixed $\\sigma^{2}$ is equivalent to *minimising* $\\sum(y_{i}-a-bx_{i})^{2}$, which is exactly OLS. Therefore: \\[\\hat{a}_{\\text{MLE}}= \\hat{a}_{\\text{OLS}}, \\qquad \\hat{b}_{\\text{MLE}}= \\hat{b}_{\\text{OLS}}\\] (The MLE for $\\sigma^{2}$ is $\\hat{\\sigma}^{2}_{\\text{MLE}}= \\frac{1}{n}\\sum\\hat{\\varepsilon}_{i}^{2}$, which differs from the unbiased OLS estimate $S^{2}=\\frac{1}{n-2}\\sum\\hat{\\varepsilon}_{i}^{2}$.)\n\n**Conditions for equivalence.** OLS $=$ MLE for $(\\beta)$ iff the errors are *normally distributed* (Gaussian). For non-Gaussian errors: \\begin{itemize}\\item OLS remains BLUE under Gauss–Markov but is not MLE.\n\n\\item MLE uses the true error distribution; it can be more efficient than OLS for heavy-tailed errors (e.g.\\ use LAD for Laplace-distributed errors).\\end{itemize}\n\n**Key takeaway:** OLS $=$ MLE$(\\beta)$ under Gaussian errors. Gauss–Markov guarantees OLS is BLUE regardless of error distribution. These are two separate justifications for OLS."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "10",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p79",
+          "content": "**Slope Reciprocity in Two Simple Linear Regressions.** Given $(X,Y)$ with $\\mathbb{E}[X]=\\mathbb{E}[Y]=0$: fit (1) $Y=aX+\\varepsilon$ and (2) $X=cY+\\eta$. What is the relationship between $a$ and $c$?",
+          "solution": "**OLS formulas.** With $\\mathbb{E}[X]=\\mathbb{E}[Y]=0$: \\[\\hat{a}= \\frac{\\text{Cov}(X,Y)}{\\text{Var}(X)}, \\qquad \\hat{c}= \\frac{\\text{Cov}(X,Y)}{\\text{Var}(Y)}\\]\n\n**Relationship.** \\[\\hat{a}\\cdot\\hat{c}= \\frac{\\text{Cov}(X,Y)}{\\text{Var}(X)}\\cdot\\frac{\\text{Cov}(X,Y)}{\\text{Var}(Y)}= \\frac{\\text{Cov}(X,Y)^{2}}{\\text{Var}(X)\\text{Var}(Y)}= \\rho_{XY}^{2}\\] \\[\\boxed{\\hat{a}\\cdot\\hat{c} = \\rho^2}\\] where $\\rho=\\text{Corr}(X,Y)$.\n\n**Consequences.** \\begin{itemize}\\item $\\hat{c}\\neq 1/\\hat{a}$ in general (the regression of $X$ on $Y$ is *not* the inverse of the regression of $Y$ on $X$).\n\n\\item $\\hat{a}\\cdot\\hat{c}= \\rho^{2} \\leq 1$, so $\\hat{c}\\leq 1/\\hat{a}$ whenever $\\rho^{2}\\leq1$.\n\n\\item Equality $\\hat{a}\\cdot\\hat{c}=1$ holds iff $\\rho^{2}=1$, i.e.\\\n $Y=kX$ almost surely for some constant $k$.\n\n\\item Both slopes $\\hat{a}$ and $\\hat{c}$ lie between 0 and 1 in absolute value when $\\text{Var}(X)>\\text{Var}(Y)$ (or vice versa).\\end{itemize}\n\n**Geometric interpretation.** The two regression lines pass through the origin (since $\\mathbb{E}[X]=\\mathbb{E}[Y]=0$) and both pass through the point $(\\bar{x},\\bar{y})=(0,0)$. They are not inverse mappings of each other because OLS minimises different residuals in each direction.\n\n**Key takeaway:** The product of the two OLS slopes equals $\\rho^{2}$, not 1. This is a classic result testing whether candidates understand that regression is not symmetric: regressing $Y$ on $X$ is different from inverting the regression of $X$ on $Y$."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 17 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>OLS formula</th><th>$\\hat{b}=\\text{Cov}(X,Y)/\\text{Var}(X)$; $\\hat{a}=\\bar{Y}-\\hat{b}\\bar{X}$. Matrix form: $(X^{\\top} X)^{-1}X^{\\top} Y$.</th></tr><tr><td>Normal equations (population)</td><td>$\\mathbb{E}[X_{j}(Y-X^{\\top}\\beta)]=0$ for each regressor $X_{j}$.</td></tr><tr><td>OLS $=$ MLE</td><td>Under Gaussian errors: OLS $\\equiv$ MLE for $\\beta$. BLUE under Gauss–Markov without normality.</td></tr><tr><td>Perfect multicollinearity</td><td>$X^{\\top} X$ singular $\\Rightarrow$ $\\beta$ not unique. Fitted values $\\hat{Y}$ are still unique.</td></tr><tr><td>OVB formula</td><td>$\\tilde{\\beta}_{1} = \\beta_{1} + \\beta_{2}\\delta_{21}$ where $\\delta_{21}=\\text{Cov}(X_{1},X_{2})/\\text{Var}(X_{1})$.</td></tr><tr><td>VIF</td><td>$\\text{Var}(\\hat{\\beta}_{1}) \\propto 1/(1-\\rho^{2})$. VIF $= 1/(1-R^{2}_{X_1|X_{-1}})$ in general.</td></tr><tr><td>Adding predictors</td><td>$E_{12}\\leq\\min(E_{1},E_{2})$ (never hurts in population). In sample: $R^{2}$ always increases.</td></tr><tr><td>Slope reciprocity</td><td>$\\hat{a}_{\\text{Y on X}}\\cdot\\hat{c}_{\\text{X on Y}}=\\rho^{2}$. Not 1 in general.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Key Assumptions of the Classical Linear Model",
+      "problemId": "voleon_group_qdsi_p3"
+    },
+    {
+      "number": "2",
+      "name": "Why MSE is the Canonical Regression Loss",
+      "problemId": "citadel_qdsi_p17"
+    },
+    {
+      "number": "3",
+      "name": "OLS Projection of XY onto (X, Y, 1)",
+      "problemId": "citadel_qdsi_p2"
+    },
+    {
+      "number": "4",
+      "name": "Perfect Multicollinearity in Linear Regression",
+      "problemId": "citadel_qdsi_p16"
+    },
+    {
+      "number": "5",
+      "name": "Omitted Variable Bias in Linear Regression",
+      "problemId": "squarepoint_capital_qdsi_p5"
+    },
+    {
+      "number": "6",
+      "name": "Variance Inflation from Multicollinearity",
+      "problemId": "quant_interview_fundamental_qdsi_p72"
+    },
+    {
+      "number": "7",
+      "name": "Does Adding an Irrelevant Regressor Change the Coefficient?",
+      "problemId": "squarepoint_capital_qdsi_p2"
+    },
+    {
+      "number": "8",
+      "name": "Bounds on Prediction Error When Adding Predictors",
+      "problemId": "citadel_qdsi_p4"
+    },
+    {
+      "number": "9",
+      "name": "OLS and MLE Estimation in the Linear Model",
+      "problemId": "quant_interview_fundamental_qdsi_p76"
+    },
+    {
+      "number": "10",
+      "name": "Slope Reciprocity in Two Simple Linear Regressions",
+      "problemId": "quant_interview_fundamental_qdsi_p79"
+    }
+  ]
+}

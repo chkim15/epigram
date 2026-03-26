@@ -1,0 +1,344 @@
+::: learningobjectives
+
+| **Algorithm** | **Complexity** | **When to use** |
+|---|---|---|
+| Merge sort | $O(n\log n)$, stable | Linked lists; counting inversions |
+| Quick sort/select | $O(n)$ avg select | $k$-th element; partition |
+| Dutch flag (3-way) | $O(n)$ | 3-value partition (0/1/2) |
+| Bucket / radix | $O(n+k)$ | Max gap; large range, small $n$ |
+| Custom comparator | --- | Largest number; non-obvious sort key |
+| ::: |  |  |
+
+
+# Core Sorting Implementations
+
+::: {.workedbox number="LC 912" difficulty="medium" problemid=""}
+**Sort an Array.** Sort an integer array without using built-in sort. Implement merge sort *and* outline quick sort with random pivot selection.
+:::
+
+::: solutionbox
+**Merge sort** --- stable, $O(n\log n)$ guaranteed:
+
+    def sortArray(nums: list[int]) -> list[int]:
+        if len(nums) <= 1:
+            return nums
+        mid = len(nums) // 2
+        L = sortArray(nums[:mid])
+        R = sortArray(nums[mid:])
+        # merge two sorted halves
+        i = j = 0; res = []
+        while i < len(L) and j < len(R):
+            if L[i] <= R[j]: res.append(L[i]); i += 1
+            else:             res.append(R[j]); j += 1
+        return res + L[i:] + R[j:]
+
+**Quick sort with random pivot** --- $O(n\log n)$ average, $O(n^2)$ worst case:
+
+    import random
+
+    def quickSort(nums: list[int], lo: int, hi: int) -> None:
+        if lo >= hi: return
+        pivot_idx = random.randint(lo, hi)
+        nums[pivot_idx], nums[hi] = nums[hi], nums[pivot_idx]
+        pivot = nums[hi]; wall = lo
+        for i in range(lo, hi):
+            if nums[i] <= pivot:
+                nums[wall], nums[i] = nums[i], nums[wall]
+                wall += 1
+        nums[wall], nums[hi] = nums[hi], nums[wall]
+        quickSort(nums, lo, wall - 1)
+        quickSort(nums, wall + 1, hi)
+
+**Complexities:**
+
+**Key insight:** prefer merge sort when stability or worst-case guarantee matters; prefer quick sort (with random pivot) in practice for better cache performance. Interviews often ask you to implement merge sort from scratch.
+:::
+
+::: {.freeproblem number="LC 75" difficulty="medium" problemId="lc_75"}
+**Sort Colors (Dutch National Flag).** Given an array with values 0, 1, 2, sort it in-place in $O(n)$ time and $O(1)$ space.
+:::
+
+::: solutionbox
+**Dutch National Flag (3-pointer):** maintain three regions: $[\,0,\texttt{lo})$ = all 0s, $[\texttt{lo},\texttt{mid})$ = all 1s, $(\texttt{hi},n)$ = all 2s. The range $[\texttt{mid},\texttt{hi}]$ is unexplored.
+
+    def sortColors(nums: list[int]) -> None:
+        lo, mid, hi = 0, 0, len(nums) - 1
+        while mid <= hi:
+            if nums[mid] == 0:
+                nums[lo], nums[mid] = nums[mid], nums[lo]
+                lo += 1; mid += 1
+            elif nums[mid] == 1:
+                mid += 1
+            else:                           # nums[mid] == 2
+                nums[mid], nums[hi] = nums[hi], nums[mid]
+                hi -= 1                     # don't advance mid: swap from hi is unknown
+
+**Complexity:** $O(n)$ time, $O(1)$ space.
+
+**Why not advance `mid` after swapping with `hi`?** The element swapped from `hi` is unknown --- it could be 0, 1, or 2. We must examine it before moving forward.
+
+**Key insight:** the Dutch flag problem is the inner step of 3-way quicksort. The pattern generalises to any 3-category partition.
+:::
+
+# Interval Problems and Custom Comparators
+
+::: {.freeproblem number="LC 56" difficulty="medium" problemId="lc_56"}
+**Merge Intervals.** Given a list of intervals, merge all overlapping intervals and return the non-overlapping result.
+:::
+
+::: solutionbox
+**Sort then scan:** sort by start time; greedily extend the last interval or start a new one.
+
+    def merge(intervals: list[list[int]]) -> list[list[int]]:
+        intervals.sort(key=lambda x: x[0])    # sort by start
+        res = [intervals[0]]
+        for start, end in intervals[1:]:
+            if start <= res[-1][1]:            # overlaps with last interval
+                res[-1][1] = max(res[-1][1], end)
+            else:
+                res.append([start, end])
+        return res
+
+**Complexity:** $O(n\log n)$ (dominated by sort), $O(n)$ space.
+
+**LC 57 (Insert Interval):** given a sorted non-overlapping list and a new interval, insert and re-merge. Three phases: collect intervals entirely before, merge overlapping, collect entirely after.
+
+    def insert(intervals, newInterval):
+        res = []
+        i, n = 0, len(intervals)
+        # Phase 1: add all intervals ending before newInterval starts
+        while i < n and intervals[i][1] < newInterval[0]:
+            res.append(intervals[i]); i += 1
+        # Phase 2: merge all overlapping intervals
+        while i < n and intervals[i][0] <= newInterval[1]:
+            newInterval[0] = min(newInterval[0], intervals[i][0])
+            newInterval[1] = max(newInterval[1], intervals[i][1])
+            i += 1
+        res.append(newInterval)
+        # Phase 3: add remaining intervals
+        return res + intervals[i:]
+
+**Key insight:** after sorting, a single linear scan suffices. Overlap condition: `next.start <= last.end`.
+:::
+
+::: {.freeproblem number="LC 179" difficulty="medium" problemId="lc_179"}
+**Largest Number.** Given a list of non-negative integers, arrange them to form the largest possible number.
+:::
+
+::: solutionbox
+**Custom comparator:** for two strings $a$ and $b$, prefer $a$ before $b$ if $ab > ba$ (lexicographic comparison of concatenations).
+
+    from functools import cmp_to_key
+
+    def largestNumber(nums: list[int]) -> str:
+        strs = [str(n) for n in nums]
+
+        def compare(a: str, b: str) -> int:
+            if a + b > b + a: return -1   # a should come first
+            if a + b < b + a: return  1   # b should come first
+            return 0
+
+        strs.sort(key=cmp_to_key(compare))
+        result = ''.join(strs)
+        return '0' if result[0] == '0' else result   # edge case: all zeros
+
+**Complexity:** $O(n\log n \cdot L)$ where $L$ = max digit length.
+
+**Why is this comparator transitive?** The ordering defined by $a \succ b \Leftrightarrow ab > ba$ is a valid total order --- it can be proved using properties of string concatenation. Python's `cmp_to_key` converts a 3-way comparator to a key function.
+
+**Edge case:** if the largest element is 0, all elements are 0; return `’0’` not `’000...’`.
+:::
+
+# Merge Sort on Linked Lists and Counting Inversions
+
+::: {.freeproblem number="LC 148" difficulty="medium" problemId="lc_148"}
+**Sort List.** Sort a linked list in $O(n\log n)$ time and $O(1)$ space (i.e. iterative bottom-up merge sort).
+:::
+
+::: solutionbox
+**Top-down merge sort** (simpler, $O(\log n)$ stack space):
+
+    def sortList(head):
+        if not head or not head.next:
+            return head
+        # Find middle using slow/fast pointers
+        slow, fast = head, head.next
+        while fast and fast.next:
+            slow = slow.next; fast = fast.next.next
+        mid = slow.next; slow.next = None  # split into two halves
+        L = sortList(head)
+        R = sortList(mid)
+        return mergeLists(L, R)
+
+    def mergeLists(l1, l2):
+        dummy = cur = ListNode(0)
+        while l1 and l2:
+            if l1.val <= l2.val: cur.next = l1; l1 = l1.next
+            else:                 cur.next = l2; l2 = l2.next
+            cur = cur.next
+        cur.next = l1 or l2
+        return dummy.next
+
+**Complexity:** $O(n\log n)$ time, $O(\log n)$ space (recursion).
+
+**Key insight:** finding the middle of a linked list uses the slow/fast pointer pattern. Split the list by setting `slow.next = None`, recurse on each half, then merge.
+
+**$O(1)$ space (bottom-up):** process sublists of length $1, 2,
+4, 8,\ldots$, merging adjacent pairs in each pass. Avoids recursion entirely.
+:::
+
+::: {.premiumproblem number="LC 315" difficulty="hard" problemId="lc_315"}
+**Count of Smaller Numbers After Self.** For each element in `nums`, count how many elements to its right are smaller than it. Return the counts array.
+:::
+
+::: solutionbox
+**Merge sort approach:** augment the merge step to count right-to-left inversions. Track original indices throughout.
+
+    def countSmaller(nums: list[int]) -> list[int]:
+        n = len(nums)
+        counts = [0] * n
+        indexed = list(enumerate(nums))   # (original_index, value)
+
+        def merge_sort(arr):
+            if len(arr) <= 1:
+                return arr
+            mid = len(arr) // 2
+            L = merge_sort(arr[:mid])
+            R = merge_sort(arr[mid:])
+            merged = []; j = 0
+            for i, item in enumerate(L):
+                # advance j while R[j] < current L element
+                while j < len(R) and R[j][1] < item[1]:
+                    merged.append(R[j]); j += 1
+                # all j elements from R that came before item are smaller
+                counts[item[0]] += j
+                merged.append(item)
+            return merged + R[j:]
+
+        merge_sort(indexed)
+        return counts
+
+**Complexity:** $O(n\log n)$ time, $O(n)$ space.
+
+**How the counting works:** when merging, every element from $R$ that is placed before an element from $L$ is smaller than that $L$ element and appears to its right in the original array. The count of such $R$ elements when we place $L[i]$ is exactly `j`.
+
+**Alternative --- Binary Indexed Tree (BIT/Fenwick):** process right-to-left; for each element, query the BIT for count of elements smaller, then insert. $O(n\log n)$ time with simpler code.
+:::
+
+::: {.premiumproblem number="LC 493" difficulty="hard" problemId="lc_493"}
+**Reverse Pairs.** Count pairs $(i, j)$ with $i < j$ and $\texttt{nums}[i] > 2\cdot
+\texttt{nums}[j]$.
+:::
+
+::: solutionbox
+**Modified merge sort:** *before* merging two sorted halves, count valid pairs across the split. Then merge normally.
+
+The key: for each element $L[i]$ in the left half, find how many elements $R[j]$ satisfy $R[j] < L[i]/2$. Since both halves are sorted, use a two-pointer to advance $j$.
+
+    def reversePairs(nums: list[int]) -> int:
+        count = [0]
+
+        def merge_sort(arr: list[int]) -> list[int]:
+            if len(arr) <= 1:
+                return arr
+            mid = len(arr) // 2
+            L = merge_sort(arr[:mid])
+            R = merge_sort(arr[mid:])
+            # Count reverse pairs BEFORE merging (both halves are sorted)
+            j = 0
+            for l_val in L:
+                while j < len(R) and l_val > 2 * R[j]:
+                    j += 1
+                count[0] += j
+            # Standard merge
+            merged = []; i = k = 0
+            while i < len(L) and k < len(R):
+                if L[i] <= R[k]: merged.append(L[i]); i += 1
+                else:             merged.append(R[k]); k += 1
+            return merged + L[i:] + R[k:]
+
+        merge_sort(nums)
+        return count[0]
+
+**Complexity:** $O(n\log n)$ time, $O(n)$ space.
+
+**Key insight:** count first, merge second. The condition $L[i] > 2R[j]$ uses a two-pointer that advances monotonically because both halves are sorted. Separating counting from merging avoids double-counting.
+:::
+
+# Bucket Sort and Linear-Time Gaps
+
+::: {.premiumproblem number="LC 164" difficulty="hard" problemId="lc_164"}
+**Maximum Gap.** Given an unsorted array, return the maximum difference between successive elements in its sorted form. Solve in $O(n)$ time.
+:::
+
+::: solutionbox
+**Pigeonhole / bucket sort argument:** With $n$ elements, there are $n-1$ gaps. The average gap is $(\texttt{max}-\texttt{min})/(n-1)$. By the pigeonhole principle, the maximum gap is $\geq$ the average --- so the maximum gap must span at least one empty bucket.
+
+**Algorithm:**
+
+1.  Create $n-1$ buckets, each of width $w = \lceil(\texttt{max}-\texttt{min})/(n-1)\rceil$.
+
+2.  Assign each element to a bucket; track only the min and max per bucket.
+
+3.  The maximum gap is the maximum over all consecutive *non-empty* buckets of $(\texttt{next.min} - \texttt{prev.max})$.
+
+<!-- -->
+
+    def maximumGap(nums: list[int]) -> int:
+        if len(nums) < 2: return 0
+        mn, mx = min(nums), max(nums)
+        if mn == mx: return 0
+        n = len(nums)
+        bucket_size  = max(1, (mx - mn) // (n - 1))
+        bucket_count = (mx - mn) // bucket_size + 1
+        # Each bucket: [min_val, max_val]
+        buckets = [[None, None] for _ in range(bucket_count)]
+        for num in nums:
+            idx = (num - mn) // bucket_size
+            b = buckets[idx]
+            b[0] = num if b[0] is None else min(b[0], num)
+            b[1] = num if b[1] is None else max(b[1], num)
+        # Scan non-empty buckets for maximum gap
+        max_gap, prev_max = 0, mn
+        for b in buckets:
+            if b[0] is None: continue          # empty bucket: skip
+            max_gap  = max(max_gap, b[0] - prev_max)
+            prev_max = b[1]
+        return max_gap
+
+**Complexity:** $O(n)$ time and space.
+
+**Why the max gap cannot be within a bucket:** each bucket has width $\leq w \leq$ average gap. So any two elements in the same bucket differ by at most $w$, which is $\leq$ the average. The maximum gap must therefore be between elements in *different* (non-adjacent) buckets --- captured by the scan over non-empty buckets.
+:::
+
+# Pattern Summary and Common Mistakes
+
+::: tcolorbox
+**Sorting Pattern Toolkit**
+
+
+| **Problem** | **Algorithm** | **Key trick** |
+|---|---|---|
+| LC 912 Sort array | Merge / quick sort | random pivot; stable merge |
+| LC 75 Sort colors | Dutch National Flag | 3 pointers; don't advance `mid` on swap from `hi` |
+| LC 56 Merge intervals | Sort + scan | overlap: `next.start `$\leq$` last.end` |
+| LC 57 Insert interval | 3-phase scan | before / overlap / after |
+| LC 179 Largest number | Custom comparator | sort by $ab$ vs $ba$ concatenation |
+| LC 148 Sort list | Merge sort on LL | slow/fast split; $O(1)$ space: bottom-up |
+| LC 315 Count smaller | Merge sort + count | count during merge; track index |
+| LC 493 Reverse pairs | Merge sort + count | count before merge; two-pointer |
+| LC 164 Maximum gap | Bucket sort | pigeonhole: max gap spans empty bucket |
+
+
+**Common Mistakes**
+
+- **LC 75 Dutch flag:** advancing `mid` after swapping with `hi` --- the swapped element is unknown and must be re-examined.
+
+- **LC 179:** comparing number values instead of string concatenations. `’9’ > ’30’` lexicographically but $9 < 30$ numerically; always compare as strings via concatenation.
+
+- **LC 315 vs LC 493:** in LC 315, count *during* the merge (as $R$ elements are placed before $L$ elements). In LC 493, count *before* the merge with a separate two-pointer pass.
+
+- **LC 164 bucket size:** use `max(1, ...)` to avoid division by zero when all elements are equal (return 0 early in that case).
+
+- **LC 148 linked list split:** set `slow.next = None` after finding the midpoint, otherwise the list is not actually split and you recurse infinitely.
+:::

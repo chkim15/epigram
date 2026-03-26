@@ -1,0 +1,411 @@
+::: learningobjectives
+These problems ask you to *design* a data structure with specific operation complexities. The design pattern is always the same:
+
+1.  Identify the target complexity for each operation.
+
+2.  Choose the right underlying structures (hash map, heap, doubly-linked list, ...) to achieve it.
+
+3.  Maintain invariants carefully across all operations.
+:::
+
+# Augmented Stack and O(1) Random Access
+
+::: {.workedbox number="LC 155" difficulty="medium" problemid=""}
+**Min Stack.** Design a stack supporting `push`, `pop`, `top`, and `getMin` --- all in $O(1)$.
+:::
+
+::: solutionbox
+**Key idea:** maintain a parallel `min_stack` that always holds the running minimum at each level.
+
+    class MinStack:
+        def __init__(self):
+            self.stack = []
+            self.min_stack = []           # min_stack[i] = min of stack[0..i]
+
+        def push(self, val: int) -> None:
+            self.stack.append(val)
+            # running min: new element or current min, whichever is smaller
+            cur_min = min(val, self.min_stack[-1]) if self.min_stack else val
+            self.min_stack.append(cur_min)
+
+        def pop(self) -> None:
+            self.stack.pop()
+            self.min_stack.pop()
+
+        def top(self) -> int:
+            return self.stack[-1]
+
+        def getMin(self) -> int:
+            return self.min_stack[-1]
+
+**Complexity:** all operations $O(1)$.
+
+**Key insight:** The parallel `min_stack` stores the *prefix minimum* at every level, so after any pop the previous minimum is immediately available. No extra search needed.
+:::
+
+::: {.freeproblem number="LC 380" difficulty="medium" problemId="lc_380"}
+**Insert Delete GetRandom O(1).** Design a set supporting `insert`, `remove`, and `getRandom` (uniform) --- all average $O(1)$.
+:::
+
+::: solutionbox
+**The challenge:** arrays allow $O(1)$ random access but $O(n)$ deletion; hash sets allow $O(1)$ deletion but no $O(1)$ random access. Combine both.
+
+**Key idea:** swap-to-end deletion.
+
+    import random
+
+    class RandomizedSet:
+        def __init__(self):
+            self.vals = []         # list for O(1) random access
+            self.idx  = {}         # val -> index in vals
+
+        def insert(self, val: int) -> bool:
+            if val in self.idx:
+                return False
+            self.idx[val] = len(self.vals)
+            self.vals.append(val)
+            return True
+
+        def remove(self, val: int) -> bool:
+            if val not in self.idx:
+                return False
+            # Swap val with the last element, then pop
+            i, last = self.idx[val], self.vals[-1]
+            self.vals[i] = last
+            self.idx[last] = i
+            self.vals.pop()
+            del self.idx[val]
+            return True
+
+        def getRandom(self) -> int:
+            return random.choice(self.vals)
+
+**Complexity:** all operations $O(1)$ amortized.
+
+**Key insight:** deleting from the middle of an array is $O(n)$. By swapping the target with the last element first, deletion becomes $O(1)$. Update the displaced element's index in the hash map after the swap.
+:::
+
+# Trie and LRU Cache
+
+::: {.freeproblem number="LC 208" difficulty="medium" problemId="lc_208"}
+**Implement Trie (Prefix Tree).** Implement `insert`, `search` (exact match), and `startsWith` (prefix check).
+:::
+
+::: solutionbox
+**Structure:** each node holds a dictionary of child nodes and an `end` flag marking completed words.
+
+    class Trie:
+        def __init__(self):
+            self.children: dict = {}
+            self.end: bool = False
+
+        def insert(self, word: str) -> None:
+            node = self
+            for ch in word:
+                node = node.children.setdefault(ch, Trie())
+            node.end = True
+
+        def _find(self, prefix: str):
+            """Return node at end of prefix, or None if prefix absent."""
+            node = self
+            for ch in prefix:
+                if ch not in node.children:
+                    return None
+                node = node.children[ch]
+            return node
+
+        def search(self, word: str) -> bool:
+            node = self._find(word)
+            return node is not None and node.end
+
+        def startsWith(self, prefix: str) -> bool:
+            return self._find(prefix) is not None
+
+**Complexity:** $O(L)$ per operation where $L$ = word length. Space: $O(\sum |w_i|)$ in the worst case.
+
+**Key insight:** Factor out common traversal logic into a `_find` helper. `search` = reach end of word AND `end` flag is set. `startsWith` = reach end of prefix (don't check `end`).
+:::
+
+::: {.freeproblem number="LC 146" difficulty="medium" problemId="lc_146"}
+**LRU Cache.** Design a cache with capacity $k$ supporting $O(1)$ `get` and `put`. When full, evict the *least recently used* entry.
+:::
+
+::: solutionbox
+**Key structures:** hash map (for $O(1)$ lookup) $+$ doubly-linked list (to maintain recency order in $O(1)$). Python's `OrderedDict` provides both.
+
+    from collections import OrderedDict
+
+    class LRUCache:
+        def __init__(self, capacity: int):
+            self.cap   = capacity
+            self.cache = OrderedDict()   # maintains insertion/access order
+
+        def get(self, key: int) -> int:
+            if key not in self.cache:
+                return -1
+            self.cache.move_to_end(key)  # mark as most recently used
+            return self.cache[key]
+
+        def put(self, key: int, value: int) -> None:
+            self.cache[key] = value
+            self.cache.move_to_end(key)  # mark as most recently used
+            if len(self.cache) > self.cap:
+                self.cache.popitem(last=False)  # evict LRU (front of deque)
+
+**Complexity:** $O(1)$ for both `get` and `put`.
+
+**From-scratch implementation:** use a doubly-linked list with sentinel head/tail nodes plus a hash map `key `$\to$` node`. On access, detach the node and move it to the tail. On eviction, remove the head's neighbour.
+
+**Key insight:** `OrderedDict.move_to_end(k)` is $O(1)$ (it's a doubly-linked list under the hood). `popitem(last=False)` removes the oldest entry --- the LRU.
+:::
+
+# Iterators, Heaps, and Advanced Caches
+
+::: {.premiumproblem number="LC 341" difficulty="medium" problemId="lc_341"}
+**Flatten Nested List Iterator.** Given a nested list of integers (each element is an integer or a list of integers), implement an iterator that flattens it.
+:::
+
+::: solutionbox
+**Key idea:** use a stack of iterators. On `hasNext`, keep popping until the stack top is a plain integer.
+
+    class NestedIterator:
+        def __init__(self, nestedList):
+            # Stack of iterators; start with one iterator over the root list
+            self.stack = [iter(nestedList)]
+            self.next_val = None
+            self._advance()
+
+        def _advance(self):
+            """Advance until a plain integer is at the front."""
+            self.next_val = None
+            while self.stack:
+                try:
+                    item = next(self.stack[-1])
+                except StopIteration:
+                    self.stack.pop()       # exhausted; pop and continue
+                    continue
+                if item.isInteger():
+                    self.next_val = item.getInteger()
+                    return
+                else:
+                    self.stack.append(iter(item.getList()))
+
+        def next(self) -> int:
+            val = self.next_val
+            self._advance()
+            return val
+
+        def hasNext(self) -> bool:
+            return self.next_val is not None
+
+**Complexity:** $O(1)$ amortized per `next` and `hasNext` (each element visited exactly once).
+
+**Key insight:** pre-fetching in `_advance` means `hasNext` is a simple `None` check. The stack of iterators handles arbitrary nesting depth without recursion.
+:::
+
+::: {.premiumproblem number="LC 295" difficulty="hard" problemId="lc_295"}
+**Find Median from Data Stream.** Support `addNum` and `findMedian`. `addNum`: $O(\log n)$; `findMedian`: $O(1)$.
+:::
+
+::: solutionbox
+**Key idea:** maintain two heaps:
+
+- `lo`: max-heap of the lower half (store negated values in Python's min-heap).
+
+- `hi`: min-heap of the upper half.
+
+**Invariant:** $|\texttt{lo}| = |\texttt{hi}|$ or $|\texttt{lo}| = |\texttt{hi}|+1$.
+
+    import heapq
+
+    class MedianFinder:
+        def __init__(self):
+            self.lo = []   # max-heap (negate values): lower half
+            self.hi = []   # min-heap: upper half
+
+        def addNum(self, num: int) -> None:
+            heapq.heappush(self.lo, -num)           # push to lower half
+            # balance: move largest of lo to hi
+            heapq.heappush(self.hi, -heapq.heappop(self.lo))
+            # maintain size invariant: lo can have one extra
+            if len(self.hi) > len(self.lo):
+                heapq.heappush(self.lo, -heapq.heappop(self.hi))
+
+        def findMedian(self) -> float:
+            if len(self.lo) > len(self.hi):
+                return float(-self.lo[0])           # odd count: top of lo
+            return (-self.lo[0] + self.hi[0]) / 2  # even count: average of tops
+
+**Complexity:** `addNum` $O(\log n)$; `findMedian` $O(1)$.
+
+**Key insight:** the "push to lo then move top to hi" trick ensures the heap split stays balanced and the median is always at one (or both) heap tops. No searching required.
+:::
+
+::: {.premiumproblem number="LC 460" difficulty="hard" problemId="lc_460"}
+**LFU Cache.** Design a cache with capacity $k$ supporting $O(1)$ `get` and `put`. Evict the *least frequently used* entry (break ties by LRU within the same frequency).
+:::
+
+::: solutionbox
+**Key structures:**
+
+- `key_val`: `key `$\to$` value`.
+
+- `key_freq`: `key `$\to$` frequency`.
+
+- `freq_keys`: `freq `$\to$` OrderedDict(key `$\to$` None)` (insertion-ordered set for LRU tie-breaking).
+
+- `min_freq`: current minimum frequency.
+
+<!-- -->
+
+    from collections import defaultdict, OrderedDict
+
+    class LFUCache:
+        def __init__(self, capacity: int):
+            self.cap = capacity
+            self.key_val  = {}
+            self.key_freq = {}
+            self.freq_keys = defaultdict(OrderedDict)
+            self.min_freq = 0
+
+        def _touch(self, key: int) -> None:
+            """Increment frequency of key and update structures."""
+            f = self.key_freq[key]
+            self.key_freq[key] = f + 1
+            del self.freq_keys[f][key]
+            if not self.freq_keys[f] and f == self.min_freq:
+                self.min_freq += 1
+            self.freq_keys[f + 1][key] = None
+
+        def get(self, key: int) -> int:
+            if key not in self.key_val:
+                return -1
+            self._touch(key)
+            return self.key_val[key]
+
+        def put(self, key: int, value: int) -> None:
+            if self.cap <= 0:
+                return
+            if key in self.key_val:
+                self.key_val[key] = value
+                self._touch(key)
+                return
+            if len(self.key_val) >= self.cap:
+                # evict LFU (then LRU within LFU group)
+                evict, _ = self.freq_keys[self.min_freq].popitem(last=False)
+                del self.key_val[evict]
+                del self.key_freq[evict]
+            self.key_val[key]  = value
+            self.key_freq[key] = 1
+            self.freq_keys[1][key] = None
+            self.min_freq = 1
+
+**Complexity:** $O(1)$ per `get` and `put`.
+
+**Key insight:** `min_freq` only needs to be reset to 1 on `put` (new keys always start at frequency 1). On `_touch`, `min_freq` can only increase by 1 (if the old min-freq bucket is now empty).
+:::
+
+::: {.premiumproblem number="LC 432" difficulty="hard" problemId="lc_432"}
+**All O(1) Data Structure.** Design a data structure supporting: `inc(key)`, `dec(key)`, `getMaxKey()`, `getMinKey()` --- all in $O(1)$.
+:::
+
+::: solutionbox
+**Key structures:** a doubly-linked list of *frequency buckets* (ordered by count) plus a hash map `key `$\to$` bucket node`.
+
+Each bucket node holds a count and an `OrderedDict` of keys at that count. The list head has the minimum count, the tail has the maximum.
+
+    from collections import defaultdict
+
+    class AllOne:
+        class Bucket:
+            def __init__(self, count):
+                self.count = count
+                self.keys  = set()
+                self.prev  = self.next = None
+
+        def __init__(self):
+            self.head = self.Bucket(0)   # sentinel min
+            self.tail = self.Bucket(0)   # sentinel max
+            self.head.next = self.tail
+            self.tail.prev = self.head
+            self.key_bucket = {}         # key -> Bucket
+
+        def _insert_after(self, node, new_node):
+            new_node.prev, new_node.next = node, node.next
+            node.next.prev = node.next = new_node
+
+        def _remove(self, node):
+            node.prev.next, node.next.prev = node.next, node.prev
+
+        def inc(self, key: str) -> None:
+            if key in self.key_bucket:
+                b = self.key_bucket[key]
+                nxt = b.next
+                if nxt is self.tail or nxt.count != b.count + 1:
+                    self._insert_after(b, self.Bucket(b.count + 1))
+                b.next.keys.add(key)
+                self.key_bucket[key] = b.next
+                b.keys.discard(key)
+                if not b.keys:
+                    self._remove(b)
+            else:
+                if self.head.next is self.tail or self.head.next.count != 1:
+                    self._insert_after(self.head, self.Bucket(1))
+                self.head.next.keys.add(key)
+                self.key_bucket[key] = self.head.next
+
+        def dec(self, key: str) -> None:
+            b = self.key_bucket[key]
+            if b.count == 1:
+                del self.key_bucket[key]
+            else:
+                prv = b.prev
+                if prv is self.head or prv.count != b.count - 1:
+                    self._insert_after(prv, self.Bucket(b.count - 1))
+                b.prev.keys.add(key)
+                self.key_bucket[key] = b.prev
+            b.keys.discard(key)
+            if not b.keys:
+                self._remove(b)
+
+        def getMaxKey(self) -> str:
+            return next(iter(self.tail.prev.keys)) if self.tail.prev is not self.head else ""
+
+        def getMinKey(self) -> str:
+            return next(iter(self.head.next.keys)) if self.head.next is not self.tail else ""
+
+**Complexity:** all operations $O(1)$.
+
+**Key insight:** max/min in $O(1)$ requires the buckets to always be sorted by count. A doubly-linked list of buckets (adjacent counts are adjacent nodes) achieves this. On increment/decrement, only the neighbouring bucket is touched --- $O(1)$ work.
+:::
+
+# Pattern Summary and Common Mistakes
+
+::: tcolorbox
+**Data Structures Pattern Toolkit**
+
+
+| **Problem** | **Core structures** | **Key trick** |
+|---|---|---|
+| LC 155 Min Stack | Stack + parallel min-stack | prefix min at each level |
+| LC 380 Randomized Set | Array + HashMap | swap-to-end deletion |
+| LC 208 Trie | Tree of dicts | `_find` helper; `end` flag |
+| LC 146 LRU Cache | OrderedDict | `move_to_end` + `popitem(last=False)` |
+| LC 341 Nested Iterator | Stack of iterators | pre-fetch in `_advance` |
+| LC 295 Median Heaps | Max-heap + min-heap | push to lo, balance, read tops |
+| LC 460 LFU Cache | 3 hashmaps + OrderedDict | `min_freq` resets only on new key |
+| LC 432 All-O(1) | DLL of buckets + HashMap | sorted buckets; $O(1)$ neighbour access |
+
+
+**Common Mistakes**
+
+- **LC 380 swap-to-end:** must update the displaced element's index in the map *before* deleting the removed element's entry.
+
+- **LC 295 heap sign:** Python's `heapq` is a min-heap. Negate values for the lower-half max-heap. Forgetting this gives wrong medians.
+
+- **LC 460 LFU:** `min_freq` must be reset to 1 on every `put` for a *new* key (not on updates to existing keys).
+
+- **LC 146 LRU:** `put` must also call `move_to_end` for existing keys (update then mark-recent), not just for new insertions.
+
+- **LC 432:** sentinel head/tail nodes prevent null-pointer errors when the list is empty. Always check `prev is not head` / `next is not tail` before reading keys.
+:::

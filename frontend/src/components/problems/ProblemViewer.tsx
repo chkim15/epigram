@@ -19,7 +19,7 @@ import {
   Calculator,
   Lightbulb,
   ChevronDown,
-  Bookmark,
+  Star,
   Check,
   Brain,
   FileText,
@@ -137,9 +137,13 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
         if (matchIndex >= 0) {
           setProblemList(validProblems);
           setCurrentProblem(validProblems[matchIndex]);
-        } else if (validProblems.length > 0) {
-          // Slug not found — show first problem
+        } else {
+          // Try matching by problem_id (e.g. from course page links)
+          const idMatch = validProblems.find(p => p.problem_id === problemSlug);
           setProblemList(validProblems);
+          if (idMatch) {
+            setCurrentProblem(idMatch);
+          }
         }
       }
       setLoading(false);
@@ -1128,7 +1132,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
             {viewMode === 'bookmarks' ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                  <Bookmark className="mx-auto h-12 w-12 text-gray-400" />
+                  <Star className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
                     No Bookmarked Problems
                   </h3>
@@ -1346,7 +1350,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                             }
                           }}
                         >
-                          <Bookmark className={cn(
+                          <Star className={cn(
                             "!h-6 !w-6",
                             isBookmarked && "fill-current"
                           )} />

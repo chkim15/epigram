@@ -16,9 +16,9 @@ interface UnifiedHeaderProps {
 }
 
 const NAV_TABS = [
+  { label: "Course", href: "/course", match: "/course" },
   { label: "Problems", href: "/problems", match: "/problems" },
   { label: "Practice", href: "/practice", match: "/practice" },
-  { label: "Bookmarks", href: "/bookmarks", match: "/bookmarks" },
 ] as const;
 
 export default function UnifiedHeader({ className }: UnifiedHeaderProps) {

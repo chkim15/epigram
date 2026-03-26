@@ -1,0 +1,142 @@
+{
+  "weekNum": 3,
+  "topicNum": 15,
+  "topicName": "Law of Large Numbers and CLT",
+  "subtopics": "Normal Approximation $\\cdot$ Delta Method $\\cdot$ Sample Variance $\\cdot$ Slutsky $\\cdot$ Symmetry Arguments",
+  "freeProblems": 4,
+  "premiumProblems": 3,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "Topic 4 — Gaussian Distributions; Topic 5 — Expectation & Variance",
+  "learningObjectives": [
+    "**Apply the CLT to compute normal approximations** for Binomial tail probabilities, including the continuity correction.",
+    "**Compare convergence rates across sample sizes** using the CLT precision formula $\\sigma/\\sqrt{n}$.",
+    "**State and apply the Delta Method** to find the asymptotic distribution of smooth functions of a sample mean.",
+    "**Derive the distribution of the sample variance** via the chi-squared distribution, and state its asymptotic normality.",
+    "**State and apply Slutsky's Theorem** to handle limits of products and sums of sequences converging in distribution and probability.",
+    "**Use symmetry to compute exact probabilities** involving comparisons of binomial counts, recognising when a coin-flip symmetry gives an exact answer."
+  ],
+  "sections": [
+    {
+      "title": "Core Results",
+      "blocks": [
+        {
+          "type": "conceptbox",
+          "title": "Law of Large Numbers and Central Limit Theorem",
+          "content": "Let $X_{1},X_{2},…$ be i.i.d.\\ with mean $\\mu$ and variance $\\sigma^{2}$.\n\n**Weak LLN:** $\\bar{X}_{n} \\xrightarrow{p}\\mu$.\n\n**CLT:** $\\dfrac{\\bar{X}_n - \\mu}{\\sigma/\\sqrt{n}}\\xrightarrow{d}N(0,1)$, i.e.\\ $\\sqrt{n}(\\bar{X}_{n}-\\mu)\\xrightarrow{d}N(0,\\sigma^{2})$.\n\n**Precision:** The standard error of $\\bar{X}_{n}$ is $\\sigma/\\sqrt{n}$. Halving the standard error requires *four times* the sample size."
+        },
+        {
+          "type": "conceptbox",
+          "title": "Delta Method and Slutsky's Theorem",
+          "content": "**Delta Method.** If $\\sqrt{n}(\\bar{X}_{n}-\\mu)\\xrightarrow{d}N(0,\\sigma^{2})$ and $g$ is differentiable at $\\mu$ with $g'(\\mu)\\neq0$: \\[\\sqrt{n}(g(\\bar{X}_{n})-g(\\mu))\\xrightarrow{d}N\\!\\bigl(0,\\,[g'(\\mu)]^{2}\\sigma^{2}\\bigr)\\] **Slutsky's Theorem.** If $X_{n}\\xrightarrow{d}X$ and $Y_{n}\\xrightarrow{p}c$ (a constant): \\[X_{n}+Y_{n}\\xrightarrow{d}X+c \\qquad\\text{and}\\qquad X_{n}Y_{n}\\xrightarrow{d}cX \\qquad\\text{and}\\qquad X_{n}/Y_{n}\\xrightarrow{d}X/c\\;(c\\neq0)\\]"
+        }
+      ]
+    },
+    {
+      "title": "Normal Approximations",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "easy",
+          "tier": "free",
+          "content": "**Normal Approximation to a Binomial Tail.** Flip 400 fair coins. What is $\\mathbb{P}(\\text{more than 220 heads})$? Use the normal approximation.",
+          "solution": "Let $X\\sim\\mathrm{Binomial}(400, 1/2)$. Then $\\mathbb{E}[X]=200$ and $\\text{Var}(X)=400\\cdot\\tfrac{1}{2}\\cdot\\tfrac{1}{2}=100$, so $\\mathrm{sd}(X)=10$.\n\n**Without continuity correction:** \\[\\mathbb{P}(X > 220) = \\mathbb{P}\\!\\left(Z > \\frac{220-200}{10}\\right) = \\mathbb{P}(Z > 2) \\approx 2.28\\%\\]\n\n**With continuity correction** (more accurate): \\[\\mathbb{P}(X \\geq 221) \\approx \\mathbb{P}\\!\\left(Z > \\frac{220.5-200}{10}\\right) = \\mathbb{P}(Z > 2.05) \\approx 2.02\\%\\]\n\nThe exact Binomial answer is $\\approx 2.01\\%$, so the continuity correction is noticeably more accurate here.\n\n\\[\\boxed{\\mathbb{P}(\\text{more than 220 heads}) \\approx \\mathbb{P}(Z>2) \\approx 2.28\\%}\\]\n\n**Key takeaway:** For $X\\sim\\mathrm{Bin}(n,p)$, standardise as $Z=(X-np)/\\sqrt{np(1-p)}$. The continuity correction replaces $\\mathbb{P}(X>k)$ with $\\mathbb{P}(Z>(k+0.5-\\mu)/\\sigma)$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "sig_qdsi_p20",
+          "content": "**Head Count Comparison: 8 vs 10 Coin Tosses.** I toss 8 fair coins; you toss 10. What is the probability I get more heads than you?",
+          "solution": "Let $H_{8}\\sim\\mathrm{Bin}(8,1/2)$ and $H_{10}\\sim\\mathrm{Bin}(10,1/2)$ independently. We want $\\mathbb{P}(H_{8} > H_{10})$.\n\n**Direct computation.** $\\mathbb{P}(H_{8} > H_{10}) = \\sum_{j=1}^{8}\\mathbb{P}(H_{8}=j)\\mathbb{P}(H_{10}<j) = \\sum_{j=1}^{8}\\dfrac{\\binom{8}{j}}{256}\\sum_{k=0}^{j-1}\\dfrac{\\binom{10}{k}}{1024}$.\n\nThe total sample space has $2^{8}\\cdot2^{10}=2^{18}=262{,}144$ equally likely outcomes. Counting favorable outcomes gives:\n\n\\[\\boxed{\\mathbb{P}(H_8>H_{10}) = \\frac{15{,}751}{65{,}536} \\approx 24.0\\%}\\]\n\n**Intuition / CLT check.** $D = H_{8} - H_{10}$ has $\\mathbb{E}[D]=4-5=-1 < 0$ and $\\text{Var}(D)=8\\cdot\\tfrac{1}{4}+10\\cdot\\tfrac{1}{4}= \\tfrac{9}{2}$. So $D$ is centred below zero, making $\\mathbb{P}(D>0)<1/2$ reasonable. (The CLT gives $\\mathbb{P}(Z>1/\\sqrt{4.5})\\approx 31.8\\%$, which is less accurate here because $n$ is small.)\n\n**Key takeaway:** With fewer coins than your opponent, you face a mean deficit of $-1$ head. The exact answer $\\approx24\\%$ is well below $1/2$ and reflects that disadvantage."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p109",
+          "content": "**Convergence Rate Comparison Across Firms.** Company A: 100 transactions/day. Company B: 10{,}000 transactions/day. Both have transaction mean $\\mu=\\$100$ and standard deviation $\\sigma=\\$50$. \\begin{enumerate}[label=(\\alph{*})]\\item Find $\\mathbb{P}(|\\bar{X}_{A} - 100|>5)$ and $\\mathbb{P}(|\\bar{X}_{B}-100|>5)$.\n\n\\item How many transactions does Company A need to match B's precision?\\end{enumerate}",
+          "solution": "**(a)** By CLT, $\\bar{X}_{n}\\approx N(\\mu, \\sigma^{2}/n)$.\n\n**Company A ($n_{A**=100$):} \\[\\frac{|\\bar{X}_{A}-100|}{50/\\sqrt{100}}= \\frac{|\\bar{X}_{A}-100|}{5}\\] \\[\\mathbb{P}(|\\bar{X}_{A}-100|>5) = \\mathbb{P}(|Z|>1) \\approx 31.7\\%\\]\n\n**Company B ($n_{B**=10{,}000$):} \\[\\frac{|\\bar{X}_{B}-100|}{50/\\sqrt{10{,}000}}= \\frac{|\\bar{X}_{B}-100|}{0.5}\\implies \\mathbb{P}(|\\bar{X}_{B}-100|>5) = \\mathbb{P}(|Z|>10) \\approx 0\\%\\] (essentially zero; $B$ is far more precise).\n\n**(b)** For Company A to match B's standard error of $0.5$: \\[\\frac{50}{\\sqrt{n}}= 0.5 \\implies \\sqrt{n}= 100 \\implies n = 10{,}000\\] Company A needs to process $10{,}000$ transactions — 100 times its current daily volume.\n\n**Key takeaway:** Standard error $\\propto 1/\\sqrt{n}$. To reduce standard error by a factor of $10$, you need $100\\times$ more data. This is the *square root law* of statistical precision."
+        },
+        {
+          "type": "freeproblem",
+          "number": "4",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p110",
+          "content": "**The Delta Method.** Let $X_{1},…,X_{n}$ be i.i.d.\\ with mean $\\mu>0$ and variance $\\sigma^{2}$. \\begin{enumerate}[label=(\\alph{*})]\\item State the Delta Method for smooth $g$.\n\n\\item Apply to find the asymptotic distribution of $\\sqrt{n}(1/\\bar{X}_{n} - 1/\\mu)$.\n\n\\item Apply to find the asymptotic distribution of $\\sqrt{n}(\\log\\bar{X}_{n} - \\log\\mu)$.\\end{enumerate}",
+          "solution": "**(a) Delta Method.** If $\\sqrt{n}(\\bar{X}_{n}-\\mu)\\xrightarrow{d}N(0,\\sigma^{2})$ and $g$ is differentiable at $\\mu$ with $g'(\\mu)\\neq0$, then: \\[\\sqrt{n}(g(\\bar{X}_{n})-g(\\mu))\\xrightarrow{d}N\\bigl(0,\\;[g'(\\mu)]^{2}\\sigma^{2}\\bigr)\\] **Proof sketch:** Taylor expand $g(\\bar{X}_{n}) \\approx g(\\mu) + g'(\\mu)(\\bar{X}_{n}-\\mu)$ and apply the CLT.\n\n**(b) $g(x) = 1/x$.** $g'(x) = -1/x^{2}$, so $g'(\\mu) = -1/\\mu^{2}$. \\[\\sqrt{n}\\!\\left(\\frac{1}{\\bar{X}_{n}}-\\frac{1}{\\mu}\\right) \\xrightarrow{d}N\\!\\left(0,\\;\\frac{\\sigma^{2}}{\\mu^{4}}\\right)\\]\n\n**(c) $g(x) = \\log x$.** $g'(x) = 1/x$, so $g'(\\mu) = 1/\\mu$. \\[\\sqrt{n}(\\log\\bar{X}_{n} - \\log\\mu) \\xrightarrow{d}N\\!\\left(0,\\;\\frac{\\sigma^{2}}{\\mu^{2}}\\right)\\] Note: $\\sigma^{2}/\\mu^{2} = (\\text{CV})^{2}$ where CV $= \\sigma/\\mu$ is the coefficient of variation.\n\n**Key takeaway:** The Delta Method is essential for asymptotic inference on non-linear statistics. Memorise: variance scales by $[g'(\\mu)]^{2}$. Common cases: $g=1/x$ gives factor $1/\\mu^{4}$; $g=\\log x$ gives factor $1/\\mu^{2}$; $g=\\sqrt{x}$ gives factor $1/(4\\mu)$."
+        }
+      ]
+    },
+    {
+      "title": "Sample Variance and Slutsky's Theorem",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "5",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p111",
+          "content": "**CLT for Sample Variance.** Let $X_{1},…,X_{n}\\stackrel{\\text{iid}}{\\sim}N(\\mu,\\sigma^{2})$. Let $S^{2} = \\frac{1}{n-1}\\sum_{i=1}^{n}(X_{i}-\\bar{X})^{2}$. \\begin{enumerate}[label=(\\alph{*})]\\item Show $(n-1)S^{2}/\\sigma^{2}\\sim\\chi^{2}(n-1)$.\n\n\\item Is $S^{2}$ an unbiased estimator of $\\sigma^{2}$?\n\n\\item What is the asymptotic distribution of $\\sqrt{n}(S^{2}-\\sigma^{2})$?\\end{enumerate}",
+          "solution": "**(a) $(n-1)S^{2**/\\sigma^{2}\\sim\\chi^{2}(n-1)$.}\n\nWrite $X_{i} - \\bar{X}= (X_{i} - \\mu) - (\\bar{X}-\\mu)$. Let $Z_{i} = (X_{i}-\\mu)/\\sigma \\stackrel{\\text{iid}}{\\sim}N(0,1)$. Then: \\[\\frac{(n-1)S^{2}}{\\sigma^{2}}= \\sum_{i=1}^{n} Z_{i}^{2} - n\\bar{Z}^{2} = \\|\\mathbf{Z}\\|^{2} - n\\bar{Z}^{2}\\] By the decomposition $\\|\\mathbf{Z}\\|^{2} = (\\sum Z_{i}^{2}/n) +$ residual, one shows $\\sum_{i=1}^{n}(Z_{i}-\\bar{Z})^{2} = \\|\\mathbf{Z}-\\bar{Z}\\mathbf{1}\\|^{2}$ is the squared norm of the projection of $\\mathbf{Z}$ onto the $(n-1)$-dimensional subspace orthogonal to $\\mathbf{1}$. Since $\\mathbf{Z}\\sim N(\\mathbf{0},I)$, this projection has distribution $\\chi^{2}(n-1)$. Crucially, $\\bar{Z}\\perp\\!\\!\\!\\perp S^{2}$ (by Basu's theorem or direct calculation).\n\n**(b) Unbiasedness.** $\\mathbb{E}[(n-1)S^{2}/\\sigma^{2}] = n-1$ (mean of $\\chi^{2}(n-1)$), so $\\mathbb{E}[S^{2}] = \\sigma^{2}$. Yes, $S^{2}$ **is unbiased**. This is why we divide by $n-1$ (not $n$): the sample mean $\\bar{X}$ absorbs one degree of freedom.\n\n**(c) Asymptotic normality of $S^{2**$.}\n\nSince $(n-1)S^{2}/\\sigma^{2}\\sim\\chi^{2}(n-1)$: \\[\\text{Var}(S^{2}) = \\frac{\\sigma^{4}}{(n-1)^{2}}\\cdot\\text{Var}(\\chi^{2}(n-1)) = \\frac{\\sigma^{4}}{(n-1)^{2}}\\cdot2(n-1) = \\frac{2\\sigma^{4}}{n-1}\\approx \\frac{2\\sigma^{4}}{n}\\] By the CLT applied to $\\chi^{2}(n-1)$ (which is a sum of $n-1$ i.i.d.\\\nterms): \\[\\sqrt{n}(S^{2}-\\sigma^{2})\\xrightarrow{d}N(0,\\;2\\sigma^{4})\\]\n\n**Key takeaway:** The factor $2\\sigma^{4}$ is the asymptotic variance of $\\sqrt{n}(S^{2}-\\sigma^{2})$. This can also be obtained via the Delta Method on the chi-squared, or from the fourth central moment of the normal ($\\mu_{4}=3\\sigma^{4}$): the asymptotic variance of $S^{2}$ is $(\\mu_{4}-\\sigma^{4})/n = 2\\sigma^{4}/n$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p112",
+          "content": "**Slutsky's Theorem Application.** Suppose $X_{n}\\xrightarrow{d}N(0,1)$ and $Y_{n}\\xrightarrow{p}2$. \\begin{enumerate}[label=(\\alph{*})]\\item State Slutsky's Theorem.\n\n\\item Limiting distribution of $X_{n}/Y_{n}$.\n\n\\item Limiting distribution of $X_{n} + Y_{n}$.\\end{enumerate}",
+          "solution": "**(a) Slutsky's Theorem.** If $X_{n}\\xrightarrow{d}X$ and $Y_{n}\\xrightarrow{p}c$ (constant), then: \\[X_{n}+Y_{n}\\xrightarrow{d}X+c,\\quad X_{n}Y_{n}\\xrightarrow{d}cX,\\quad X_{n}/Y_{n}\\xrightarrow{d}X/c\\;(c\\neq0)\\] The key requirement is that $Y_{n}$ must converge *in probability* to a constant — convergence in distribution to a non-degenerate random variable is not sufficient.\n\n**(b) $X_{n**/Y_{n}$.} By Slutsky with $X=N(0,1)$ and $c=2$: \\[\\frac{X_{n}}{Y_{n}}\\xrightarrow{d}\\frac{N(0,1)}{2}\\sim N\\!\\left(0,\\frac{1}{4}\\right)\\] \\[\\boxed{X_n/Y_n\\xrightarrow{d}N(0,1/4)}\\]\n\n**(c) $X_{n** + Y_{n}$.} \\[X_{n}+Y_{n}\\xrightarrow{d}N(0,1)+2\\sim N(2,1)\\] \\[\\boxed{X_n+Y_n\\xrightarrow{d}N(2,1)}\\]\n\n**Why Slutsky is needed (not just continuous mapping):** If $Y_{n}\\xrightarrow{d}Y$ (non-constant), then $(X_{n},Y_{n})$ might not jointly converge unless $X_{n}$ and $Y_{n}$ are independent. Slutsky avoids this by requiring $Y_{n}\\xrightarrow{p}c$, which guarantees joint convergence $(X_{n},Y_{n})\\xrightarrow{d}(X,c)$.\n\n**Key takeaway:** Slutsky lets you replace consistent estimators (e.g.\\ $S_{n}\\xrightarrow{p}\\sigma$) with their limits in asymptotic distribution statements. This is the theoretical basis for confidence intervals using estimated standard errors."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "veryhard",
+          "problemId": "worldquant_qdsi_p1",
+          "content": "**Comparing Binomial Head Counts with Unequal Sample Sizes.** Let $H_{A}\\sim\\mathrm{Bin}(2021,1/2)$ and $H_{B}\\sim\\mathrm{Bin}(1010,1/2)$ be independent. Compute $\\mathbb{P}(H_{A} > 2H_{B})$.",
+          "solution": "**The answer is *exactly** $\\boldsymbol{1/2*$}, not just approximately. The proof is a coin-flip symmetry argument.\n\n**Exact proof via symmetry.** Replace $H_{A}$ with $H_{A}' = 2021 - H_{A}$ (flip all of A's 2021 coins) and $H_{B}$ with $H_{B}' = 1010 - H_{B}$ (flip all of B's 1010 coins). Since the coins are fair, $(H_{A}', H_{B}')$ has the same joint distribution as $(H_{A}, H_{B})$. Therefore: \\[\\mathbb{P}(H_{A} > 2H_{B}) = \\mathbb{P}(H_{A}' > 2H_{B}') = \\mathbb{P}(2021-H_{A} > 2(1010-H_{B}))\\] \\[= \\mathbb{P}(2021 - H_{A} > 2020 - 2H_{B}) = \\mathbb{P}(1 > H_{A} - 2H_{B})\\] Since $H_{A} - 2H_{B}$ is *integer-valued*: \\[\\mathbb{P}(1 > H_{A} - 2H_{B}) = \\mathbb{P}(H_{A} - 2H_{B} \\leq 0) = \\mathbb{P}(H_{A} \\leq 2H_{B})\\] So we have established: \\[\\mathbb{P}(H_{A} > 2H_{B}) = \\mathbb{P}(H_{A} \\leq 2H_{B})\\] Since $\\{H_{A} > 2H_{B}\\}$ and $\\{H_{A} \\leq 2H_{B}\\}$ are complementary (they partition the sample space and have zero overlap): \\[\\mathbb{P}(H_{A} > 2H_{B}) + \\mathbb{P}(H_{A} \\leq 2H_{B}) = 1 \\implies \\mathbb{P}(H_{A} > 2H_{B}) = \\mathbb{P}(H_{A} \\leq 2H_{B}) = \\boxed{\\frac{1}{2}}\\] **This is exact, not an approximation.**\n\n**Why the “$1$” in $2021 = 2\\times1010+1$ is essential.** The symmetry works because flipping all coins transforms $H_{A} > 2H_{B}$ into $H_{A} - 2H_{B} < 1$, which for integer-valued $H_{A} - 2H_{B}$ is exactly $H_{A} \\leq 2H_{B}$. If $2021$ were replaced by any even number $2m$ (so $n_{A}=2n_{B}$), the transformation would give $H_{A} < 2H_{B}$, and $\\{H_{A} > 2H_{B}\\}$, $\\{H_{A} = 2H_{B}\\}$, $\\{H_{A} < 2H_{B}\\}$ would be three non-empty events, spoiling the exact $1/2$.\n\n**CLT as a consistency check (not a proof of exactness).** Let $D = H_{A} - 2H_{B}$. Then $\\mathbb{E}[D] = \\frac{2021}{2}- 2\\cdot\\frac{1010}{2}= \\frac{1}{2}$ and $\\text{Var}(D) = \\frac{2021}{4}+ 4\\cdot\\frac{1010}{4}= \\frac{6061}{4}$.\n\nBy CLT, $D \\approx N\\!\\left(\\tfrac{1}{2}, \\tfrac{6061}{4}\\right)$. We want $\\mathbb{P}(D \\geq 1)$. With continuity correction: \\[\\mathbb{P}(D\\geq1) \\approx \\mathbb{P}\\!\\left(N\\geq 0.5\\right) = \\mathbb{P}\\!\\left(Z \\geq \\frac{0.5-0.5}{\\sqrt{6061}/2}\\right) = \\mathbb{P}(Z\\geq0) = \\frac{1}{2}\\]\n\nInterestingly, the CLT with continuity correction gives exactly $1/2$ here as well — but this is a coincidence of the normal approximation, not a proof. The symmetry argument above is the only rigorous justification for the *exact* answer.\n\n**Numerical verification (all exact):**  <table class=\"course-table\"><tr><td>Parameters</td><td>Exact $\\mathbb{P}(H_{A} > 2H_{B})$</td><td></td></tr><tr><td>$n_{A}=3$, $n_{B}=1$</td><td>$8/16 = 1/2$</td><td></td></tr><tr><td>$n_{A}=5$, $n_{B}=2$</td><td>$64/128 = 1/2$</td><td></td></tr><tr><td>$n_{A}=7$, $n_{B}=3$</td><td>$512/1024 = 1/2$</td><td></td></tr><tr><td>$n_{A}=2021$, $n_{B}=1010$</td><td>$1/2$</td><td>(by symmetry)</td></tr></table>\n\n**Key takeaway:** The answer is exactly $1/2$. The proof requires recognising the coin-flip symmetry and using the integer-valued structure to convert a strict inequality to a non-strict one. The CLT with continuity correction also gives $1/2$ here, but only the symmetry argument is an exact proof. This problem tests whether you can identify the elegant exact argument over a brute-force CLT calculation."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 15 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>CLT standardisation</th><th>$Z=(X-np)/\\sqrt{np(1-p)}$ for Bin$(n,p)$. Add $\\pm0.5$ for continuity correction.</th></tr><tr><td>Square root law</td><td>SE $=\\sigma/\\sqrt{n}$. To halve SE: need $4\\times$ data. To reduce by $10\\times$: need $100\\times$ data.</td></tr><tr><td>Delta Method</td><td>$\\sqrt{n}(g(\\bar{X}_{n})-g(\\mu))\\xrightarrow{d}N(0,[g'(\\mu)]^{2}\\sigma^{2})$. Key: variance scales by $[g'(\\mu)]^{2}$.</td></tr><tr><td>Sample variance</td><td>$(n-1)S^{2}/\\sigma^{2}\\sim\\chi^{2}(n-1)$; $S^{2}$ is unbiased; $\\sqrt{n}(S^{2}-\\sigma^{2})\\xrightarrow{d}N(0,2\\sigma^{4})$.</td></tr><tr><td>Slutsky</td><td>$Y_{n}\\xrightarrow{p}c$: replace $Y_{n}$ by $c$ in products, sums, quotients of converging sequences.</td></tr><tr><td>Coin-flip symmetry</td><td>Replace $H_{n}$ with $n-H_{n}$ to find a complementary event. The key is the integer-valued “off-by-one”.</td></tr><tr><td>$n_{A=2n_{B}+1$ rule}</td><td>$\\mathbb{P}(\\mathrm{Bin}(2k+1,1/2)>2\\cdot\\mathrm{Bin}(k,1/2))=1/2$ exactly, by coin-flip symmetry.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Normal Approximation to a Binomial Tail",
+      "problemId": "sig_qdsi_p6"
+    },
+    {
+      "number": "2",
+      "name": "Head Count Comparison: 8 vs 10 Coin Tosses",
+      "problemId": "sig_qdsi_p20"
+    },
+    {
+      "number": "3",
+      "name": "Convergence Rate Comparison Across Firms",
+      "problemId": "quant_interview_fundamental_qdsi_p109"
+    },
+    {
+      "number": "4",
+      "name": "The Delta Method",
+      "problemId": "quant_interview_fundamental_qdsi_p110"
+    },
+    {
+      "number": "5",
+      "name": "CLT for Sample Variance",
+      "problemId": "quant_interview_fundamental_qdsi_p111"
+    },
+    {
+      "number": "6",
+      "name": "Slutsky's Theorem Application",
+      "problemId": "quant_interview_fundamental_qdsi_p112"
+    },
+    {
+      "number": "7",
+      "name": "Comparing Binomial Head Counts with Unequal Sample Sizes",
+      "problemId": "worldquant_qdsi_p1"
+    }
+  ]
+}

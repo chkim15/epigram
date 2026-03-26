@@ -1,0 +1,260 @@
+::: learningobjectives
+1.  **Define and compute conditional probability** by correctly restricting the sample space --- and avoid the classic trap of confusing "at least one" with "this specific one."
+
+2.  **Apply Bayes' Theorem** using a structured prior $\times$ likelihood table, and use the Law of Total Probability to compute the normalising denominator.
+
+3.  **Update beliefs sequentially** --- understand how repeated evidence compounds through likelihood ratios, and why strong evidence can overturn even a tiny prior.
+
+4.  **Work with continuous priors and posteriors**, including recognising the Beta-Binomial conjugate pair and reading off the posterior distribution from its functional form.
+
+5.  **Set up and solve probability recurrences** by conditioning on the first or last step, then solving the resulting linear recurrence $a_n = Ar^n + c$.
+
+6.  **Model sequential games as absorbing Markov chains**, including Gambler's Ruin and the two-point lead series.
+
+7.  **Connect geometric probability with conditioning**, including the $n$-simplex volume result $\mathbb{P}(\sum X_i \leq 1)
+            = 1/n!$
+
+*Problems 1--5 build all of the above skills. Problems 6--9 and A1--A3 are the level expected in final-round interviews at top quant firms.*
+:::
+
+# Introduction: Updating Beliefs with Evidence
+
+Conditional probability is the mathematical language of *updating beliefs when new information arrives*. Every risk model, trading signal, and Bayesian inference problem rests on the same core question:
+
+::: {.conceptbox title="The Core Formula"}
+$$\mathbb{P}(A \mid B) = \frac{\mathbb{P}(A \cap B)}{\mathbb{P}(B)},
+  \qquad \mathbb{P}(B) > 0$$ This is **not** symmetric: $\mathbb{P}(A\mid B) \neq \mathbb{P}(B\mid A)$ in general. Confusing the two is one of the most common errors in quant interviews.
+:::
+
+**Interview mindset:** (1) Write out the sample space *after conditioning* --- restrict to outcomes where $B$ occurred. (2) Count favourable outcomes within that restricted space. (3) Or use Bayes' Theorem to reverse the conditioning.
+
+# Conditional Probability: Restricting the Sample Space
+
+## Classic Pitfall: The Two-Children Problem
+
+::: {.workedbox number="1" difficulty="easy" problemid="quant_interview_fundamental_qdsi_p1"}
+**The Two-Children Probability Puzzle.** A family has two children (boys and girls equally likely, independent).
+
+1.  Given at least one boy, what is $\mathbb{P}(\text{both boys})$?
+
+2.  Given one *specific* child (say, the elder) is a boy, what is $\mathbb{P}(\text{both boys})$?
+:::
+
+:::: solutionbox
+$\Omega = \{BB, BG, GB, GG\}$, all equally likely.
+
+**(a)** Condition on $\{BB, BG, GB\}$: favourable = $\{BB\}$. $\mathbb{P} = \mathbf{1/3}$.
+
+**(b)** Condition on $\{BB, BG\}$ (elder is boy): favourable = $\{BB\}$. $\mathbb{P} = \mathbf{1/2}$.
+
+::: {.warningbox title=""}
+The answer to (a) is $\mathbf{1/3}$, not $1/2$. "At least one boy" does not identify *which* child, so it eliminates $GG$ but retains 3 outcomes. The wording of the conditioning statement is everything.
+:::
+
+**Key takeaway:** Always write out the restricted sample space explicitly. "At least one" and "this specific one" condition on different events.
+::::
+
+# Bayes' Theorem and the Law of Total Probability
+
+::: {.conceptbox title="Bayes’ Theorem"}
+Let $A_1,\ldots,A_n$ partition $\Omega$. For any event $B$ with $\mathbb{P}(B)>0$: $$\mathbb{P}(A_i \mid B)
+  = \frac{\mathbb{P}(B \mid A_i)\,\mathbb{P}(A_i)}
+         {\displaystyle\sum_{j=1}^{n}\mathbb{P}(B \mid A_j)\,\mathbb{P}(A_j)}$$ The denominator is the **Law of Total Probability (LOTP)**.
+:::
+
+::: {.techniquebox title="Bayes in Four Steps"}
+1.  Identify hypothesis $A_i$ and evidence $B$.
+
+2.  State the **prior**: $\mathbb{P}(A_i)$.
+
+3.  State the **likelihood**: $\mathbb{P}(B\mid A_i)$.
+
+4.  Compute the **posterior** by normalising prior $\times$ likelihood.
+
+A clear table of prior $\times$ likelihood is almost always the cleanest interview presentation.
+:::
+
+## The Monty Hall Problem
+
+::: {.workedbox number="2" difficulty="medium" problemid="quant_interview_fundamental_qdsi_p22"}
+**The Monty Hall Problem.** 3 doors: car behind 1, goats behind 2. You choose a door. Monty (who knows) opens another door revealing a goat. Should you switch? What is $\mathbb{P}(\text{win})$ if you switch?
+:::
+
+:::: solutionbox
+WLOG you chose Door 1 and Monty opened Door 3. Let $C_i=\{\text{car behind door }i\}$.
+
+LOTP: $\mathbb{P}(\text{opens 3}) = \tfrac{1}{2}\cdot\tfrac{1}{3}+1\cdot\tfrac{1}{3}
++0\cdot\tfrac{1}{3} = \tfrac{1}{2}$.
+
+Posteriors: $\mathbb{P}(C_1\mid\text{opens 3})=\tfrac{1}{3}$, $\mathbb{P}(C_2\mid\text{opens 3})=\mathbf{\tfrac{2}{3}}$.
+
+**Switch wins with probability $2/3$.**
+
+**Intuitive shortcut:** You win by switching iff your original pick was wrong. $\mathbb{P}(\text{original wrong})=2/3$.
+
+::: {.warningbox title=""}
+"Two doors remain, so it must be $1/2$." Wrong --- Monty's action is not random; it carries information. If Monty opened a random door and happened to reveal a goat, *then* it would be $1/2$.
+:::
+
+**Key takeaway:** When the information provider has *choice*, their action carries information that Bayes must incorporate.
+::::
+
+::: {.freeproblem number="3" difficulty="medium" problemId="sig_qdsi_p29"}
+**Painted Cube Conditional Probability.** A $3\times3\times3$ cube is painted red outside and cut into 27 small cubes. One small cube is chosen at random, rolled, and the top face is red. What is the probability the cube came from a *corner*?
+:::
+
+::: solutionbox
+LOTP: $\mathbb{P}(\text{top red}) = \tfrac{8}{27}\cdot\tfrac{1}{2}
++\tfrac{12}{27}\cdot\tfrac{1}{3}+\tfrac{6}{27}\cdot\tfrac{1}{6}
+= \tfrac{9}{27}=\tfrac{1}{3}$.
+
+$$\mathbb{P}(\text{corner}\mid\text{top red})
+  = \frac{\frac{1}{2}\cdot\frac{8}{27}}{\frac{1}{3}}
+  = \boxed{\frac{4}{9}}$$
+
+**Key takeaway:** Build the likelihood table first, apply LOTP for the denominator, then Bayes for the posterior.
+:::
+
+# Bayesian Updating with Continuous Priors
+
+::: {.conceptbox title="Continuous Bayes’ Theorem"}
+Prior density $\pi(\theta)$, likelihood $f(x\mid\theta)$: $$\pi(\theta\mid x) \propto f(x\mid\theta)\,\pi(\theta)$$ The proportionality constant is the normaliser. Identify the *shape* of the posterior --- often you can read off the distribution family from the form.
+:::
+
+::: {.freeproblem number="4" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p57"}
+**Posterior Distribution of a Coin Bias After One Head.** Coin bias $b\sim\mathrm{Uniform}(0,1)$. You toss once and see Head. Find the posterior distribution of $b$.
+:::
+
+::: solutionbox
+Likelihood: $\mathbb{P}(H\mid b)=b$. Posterior: $\pi(b\mid H)\propto b\cdot1=b$. Normalise: $\int_0^1 2b\,db=1$, so $\pi(b\mid H)=2b$ on $[0,1]$.
+
+This is $\mathrm{Beta}(2,1)$ with $\mathbb{E}[b\mid H]=\tfrac{2}{3}$.
+
+**General pattern (Beta-Binomial conjugacy):** Prior $\mathrm{Beta}(\alpha,\beta)$ + $h$ heads in $n$ tosses $\Rightarrow$ posterior $\mathrm{Beta}(\alpha+h,\beta+n-h)$.
+
+**Key takeaway:** Recognising conjugate pairs (Beta-Bernoulli, Gamma-Poisson, Normal-Normal) is a standard interview expectation.
+:::
+
+# Counting Inside Conditional Probability
+
+::: {.freeproblem number="5" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p2"}
+**Probability of Strictly Increasing Dice Rolls.** Roll a fair die three times, getting $(X_1,X_2,X_3)$. What is $\mathbb{P}(X_1<X_2<X_3)$?
+:::
+
+::: solutionbox
+**Method 1 --- Symmetry.** $\mathbb{P}(\text{all distinct})=\tfrac{6\cdot5\cdot4}{216}=\tfrac{5}{9}$. Given all distinct, exactly 1 of $3!=6$ orderings is strictly increasing. $$\mathbb{P}(X_1<X_2<X_3)=\frac{5}{9}\times\frac{1}{6}=\frac{5}{54}$$
+
+**Method 2 --- Direct.** Strictly increasing triples $(a<b<c)$ from $\{1,\ldots,6\}$: $\dbinom{6}{3}=20$. $\mathbb{P}=20/216=5/54$.
+
+**Key takeaway:** Among all $k!$ orderings of $k$ distinct values, exactly 1 is increasing. Generalises: $\mathbb{P}(\text{strict increase, }k\text{ dice})
+=\dbinom{6}{k}/6^k$.
+:::
+
+# Repeated Experiments and Sequential Updating
+
+::: {.premiumproblem number="6" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p39"}
+**The Double-Headed Coin Problem.** 1000 coins: 999 fair, 1 double-headed. Pick one at random, flip 10 times, observe 10 heads. What is $\mathbb{P}(\text{picked double-headed coin})$?
+:::
+
+::: solutionbox
+Prior: $\mathbb{P}(D)=1/1000$, $\mathbb{P}(F)=999/1000$. Likelihoods: $\mathbb{P}(H^{10}\mid D)=1$, $\mathbb{P}(H^{10}\mid F)=1/1024$.
+
+LOTP: $\mathbb{P}(H^{10})=\tfrac{1024}{1024000}+\tfrac{999}{1024000}=\tfrac{2023}{1024000}$.
+
+$$\mathbb{P}(D\mid H^{10})=\frac{1024}{2023}\approx\boxed{50.6\%}$$
+
+**Key takeaway:** Likelihood ratio $=1024:1$ overwhelms the prior ratio $1:999$. After $n$ heads: $\mathbb{P}(D\mid H^n)=2^n/(2^n+999)\to1$.
+:::
+
+::: {.premiumproblem number="7" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p8"}
+**Probability of Winning a Two-Point Lead Series.** Alice wins each round with probability $p$, Bob with $q=1-p$. They play until one player leads by 2. What is $\mathbb{P}(\text{Bob wins})$?
+:::
+
+::: solutionbox
+Let lead $L=$ (Alice's wins) $-$ (Bob's wins). Absorbing barriers at $L=+2$ (Alice wins) and $L=-2$ (Bob wins). Let $r_i=\mathbb{P}(\text{Bob wins}\mid L=i)$.
+
+Boundary: $r_{-2}=1$, $r_2=0$. Recurrence: $r_i=p\cdot r_{i+1}+q\cdot r_{i-1}$.
+
+Solving the system: $r_1=q\cdot r_0$,$r_{-1}=p\cdot r_0+q$,$r_0=p\cdot r_1+q\cdot r_{-1}$.
+
+Substituting: $r_0(p^2+q^2)=q^2$, so: $$\boxed{r_0 = \frac{q^2}{p^2+q^2}}$$ Verify: $p=q=1/2\Rightarrow r_0=1/2$;$p=1\Rightarrow r_0=0$.
+
+**Key takeaway:** This is Gambler's Ruin on $\{-2,-1,0,1,2\}$. Recognise "ahead by $k$" stopping rules as absorbing Markov chains.
+:::
+
+# Recurrences and Solving for Probabilities
+
+::: {.premiumproblem number="8" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p5"}
+**Recurrence for Even Number of Heads.** Biased coin, $\mathbb{P}(H)=p$, tossed $n$ times. Let $a_n=\mathbb{P}(\text{even heads})$. Find a recurrence for $a_n$, solve it, and verify.
+:::
+
+::: solutionbox
+Condition on the $n$-th toss: $a_n = p(1-a_{n-1})+(1-p)a_{n-1} = p+(1-2p)a_{n-1}$.
+
+General solution ($r=1-2p$): $a_n=A\cdot r^n+\tfrac{1}{2}$. Initial condition $a_0=1$: $A=\tfrac{1}{2}$. $$\boxed{a_n = \frac{1+(1-2p)^n}{2}}$$ Verify: $n=1$: $a_1=\tfrac{2-2p}{2}=1-p=\mathbb{P}(T)$; $p=1/2$: $a_n=1/2$ for all $n$.
+
+**Key takeaway:** Linear recurrence $a_n=c_1 a_{n-1}+c_0$ has solution $Ar^n+\text{particular}$. The $(1-2p)^n$ term decays to 0 for $0<p<1$.
+:::
+
+# Geometric Probability Meets Conditioning
+
+::: {.premiumproblem number="9" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p28"}
+**Probability the Sum of Uniform Variables Is at Most One.** Let $X_1,\ldots,X_n\stackrel{\text{iid}}{\sim}\mathrm{Unif}(0,1)$. Find $\mathbb{P}(X_1+\cdots+X_n\leq1)$.
+:::
+
+::: solutionbox
+The event is the standard $n$-simplex $\Delta_n=\{(x_1,\ldots,x_n)\in[0,1]^n:x_1+\cdots+x_n\leq1\}$.
+
+**Classical result:** $\mathrm{Vol}(\Delta_n)=1/n!$
+
+**Proof by induction.** Condition on $X_n=t$: $$\mathbb{P}\!\Bigl(\sum_{i=1}^n X_i\leq1\Bigr)
+  = \int_0^1\mathbb{P}\!\Bigl(\sum_{i=1}^{n-1}X_i\leq1-t\Bigr)dt
+  = \int_0^1\frac{(1-t)^{n-1}}{(n-1)!}dt
+  = \frac{1}{n!}$$
+
+$$\boxed{\mathbb{P}(X_1+\cdots+X_n\leq1) = \frac{1}{n!}}$$
+
+Verify: $n=1$: $1/1!=1$;$n=2$: $1/2$ (below diagonal); $n=3$: $1/6$ (tetrahedron).
+
+**Key takeaway:** The $n$-simplex volume $1/n!$ is one of the most useful geometric facts in probability. It appears in order statistics, Dirichlet distributions, and optimal stopping theory.
+:::
+
+# Additional Exercises
+
+::: {.premiumproblem number="A1" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p63"}
+**Expected Payoff in a Stop-or-Bust Dice Game.** Roll a fair die repeatedly. Roll 1/2/3: earn \$1 and roll again. Roll 4/5: stop, keep all money. Roll 6: stop, payoff \$0. Find the expected payoff.
+
+*Hint: condition on the first roll; the "earn and continue" branch restarts the game but with \$1 already in hand.*
+:::
+
+::: {.premiumproblem number="A2" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p59"}
+**Who Hits First in an Alternating Shooting Game.** Players $A$ and $B$ take turns shooting. Each shot hits with probability $p$ independently. $A$ shoots first. What is $\mathbb{P}(A\text{ hits first})$?
+
+*Hint: $A$ wins on round 1 with prob $p$; both miss with prob $(1-p)^2$ and the game restarts. Sum the geometric series.*
+:::
+
+::: {.premiumproblem number="A3" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p89"}
+**Stopping Time for Sequential Candy Removal.** A bag has 3 red and 3 blue candies. Each turn: draw one uniformly at random. If red, eat it (remove). If blue, return it. Expected turns until all red candies are gone?
+
+*Hint: with $r$ red and $b$ blue, $\mathbb{P}(\text{draw red})=r/(r+b)$. Think of each red candy's expected waiting time as a geometric random variable, using the linearity of expectation.*
+:::
+
+# Technique Summary
+
+::: {.techniquesummary title="Topic 2 Technique Toolkit"}
+
+| Technique | Description |
+|---|---|
+| **Definition** | $\mathbb{P}(A\mid B)=\mathbb{P}(A\cap B)/\mathbb{P}(B)$. Restrict then count. |
+| **Bayes' Theorem** | Prior $\times$ likelihood table; LOTP denominator. |
+| **LOTP** | $\mathbb{P}(B)=\sum_i\mathbb{P}(B\mid A_i)\mathbb{P}(A_i)$. |
+| **Sample space** | Write all outcomes; cross out those inconsistent with conditioning. |
+| **Reversing** | Know $\mathbb{P}(\text{data}\mid\text{hyp})$, want $\mathbb{P}(\text{hyp}\mid\text{data})$: use Bayes. |
+| **Sequential update** | Each posterior becomes next prior. Ratios multiply. |
+| **Conjugate priors** | Beta+Binom$\to$Beta; $(\alpha,\beta)\to(\alpha+h,\beta+n-h)$. |
+| **Recurrence** | Condition on first/last step; solve $a_n=Ar^n+c$. |
+| **Gambler's Ruin** | "Ahead by $k$" $\Rightarrow$ absorbing Markov chain. |
+| **Geometric / Bayes** | Simplex $\{x:\sum x_i\leq1\}$ has volume $1/n!$. |
+| **Monty Hall lesson** | Information provider with *choice* $\Rightarrow$ action carries info. |
+
+:::

@@ -1,0 +1,105 @@
+{
+  "weekNum": 3,
+  "topicNum": 21,
+  "topicName": "Coding Session 5: Stack and Queue",
+  "subtopics": "Matching $\\cdot$ Evaluation $\\cdot$ Monotonic Stack $\\cdot$ Two-Pointer $\\cdot$ Histogram",
+  "freeProblems": 4,
+  "premiumProblems": 5,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "LC 20, 232, 150, 394, 739, 901, 42, 84, 85",
+  "learningObjectives": [],
+  "sections": [
+    {
+      "title": "Matching and Evaluation",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "LC 20",
+          "difficulty": "easy",
+          "tier": "free",
+          "content": "**Valid Parentheses.** Given a string of \\texttt{()[]\\{\\}}, return \\texttt{True} iff every open bracket is closed in the correct order.",
+          "solution": "**Key idea:** push open brackets; on a close bracket, check that the top of the stack is the matching open bracket.\n\n\\begin{lstlisting}\ndef isValid(s: str) -> bool:\n    stack = []\n    match = {')': '(', ']': '[', '}': '{'}\n    for c in s:\n        if c in '([{':\n            stack.append(c)\n        elif not stack or stack[-1] != match[c]:\n            return False         # unmatched close bracket\n        else:\n            stack.pop()\n    return not stack             # stack empty iff all matched\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(n)$ space.\n\n**Key insight:** the check \\texttt{not stack or stack[-1] != match[c]} handles two failure modes at once: (1) close bracket with nothing open, (2) wrong type of open bracket on top. The final \\texttt{not stack} catches unclosed brackets."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 232",
+          "difficulty": "easy",
+          "problemId": "lc_232",
+          "content": "**Implement Queue Using Two Stacks.** Implement a FIFO queue using only two stacks with amortized $O(1)$ operations.",
+          "solution": "**Key idea:** use \\texttt{s1} as the inbox (push here) and \\texttt{s2} as the outbox (pop/peek from here). Transfer *all* elements from \\texttt{s1} to \\texttt{s2} when \\texttt{s2} is empty.\n\n\\begin{lstlisting}\nclass MyQueue:\n    def __init__(self):\n        self.s1 = []    # inbox\n        self.s2 = []    # outbox\n\n    def _transfer(self) -> None:\n        if not self.s2:\n            while self.s1:\n                self.s2.append(self.s1.pop())\n\n    def push(self, x: int) -> None:\n        self.s1.append(x)\n\n    def pop(self) -> int:\n        self._transfer()\n        return self.s2.pop()\n\n    def peek(self) -> int:\n        self._transfer()\n        return self.s2[-1]\n\n    def empty(self) -> bool:\n        return not self.s1 and not self.s2\n\\end{lstlisting}\n\n**Complexity:** \\texttt{push} $O(1)$; \\texttt{pop}/\\texttt{peek} $O(n)$ worst case but $O(1)$ amortized (each element transferred once).\n\n**Key insight:** reversing a stack gives FIFO order. Delay the transfer until the outbox is empty — this amortises the $O(n)$ cost over all subsequent pops."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 150",
+          "difficulty": "medium",
+          "problemId": "lc_150",
+          "content": "**Evaluate Reverse Polish Notation.** Evaluate an expression in RPN (postfix notation).",
+          "solution": "**Key idea:** push operands; on an operator, pop two operands, apply the operator, and push the result.\n\n\\begin{lstlisting}\ndef evalRPN(tokens: list[str]) -> int:\n    stack = []\n    for t in tokens:\n        if t in ('+', '-', '*', '/'):\n            b, a = stack.pop(), stack.pop()   # b is TOS (second operand)\n            if   t == '+': stack.append(a + b)\n            elif t == '-': stack.append(a - b)\n            elif t == '*': stack.append(a * b)\n            else:          stack.append(int(a / b))  # truncate toward zero\n        else:\n            stack.append(int(t))\n    return stack[0]\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(n)$ space.\n\n**Division pitfall:** Python's \\texttt{//} floors toward $-\\infty$, but the problem requires truncation toward zero (e.g.\\\n$-7//2 = -4$ in Python, but the answer is $-3$). Use \\texttt{int(a/b)} instead."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 394",
+          "difficulty": "medium",
+          "problemId": "lc_394",
+          "content": "**Decode String.** Decode a string encoded as \\texttt{k[encoded_string]}, where the encoded string inside the brackets is repeated $k$ times.",
+          "solution": "**Key idea:** push the current string and repeat count onto the stack when entering \\texttt{[}; pop and expand when hitting \\texttt{]}.\n\n\\begin{lstlisting}\ndef decodeString(s: str) -> str:\n    stack    = []   # each entry: (string_so_far, repeat_count)\n    cur_str  = ”\n    cur_num  = 0\n    for c in s:\n        if c.isdigit():\n            cur_num = cur_num * 10 + int(c)   # multi-digit numbers\n        elif c == '[':\n            stack.append((cur_str, cur_num))\n            cur_str, cur_num = ”, 0\n        elif c == ']':\n            prev_str, num = stack.pop()\n            cur_str = prev_str + num * cur_str\n        else:\n            cur_str += c\n    return cur_str\n\\end{lstlisting}\n\n**Complexity:** $O(n\\cdot k_{\\max})$ time where $k_{\\max}$ is the largest repeat count.\n\n**Key insight:** the stack saves the *context* (what was being built before the opening bracket). On \\texttt{]}, restore that context and append the repeated inner string. Multi-digit numbers are handled by accumulating: \\texttt{cur_num = cur_num * 10 + digit}."
+        }
+      ]
+    },
+    {
+      "title": "Monotonic Stack",
+      "blocks": [
+        {
+          "type": "freeproblem",
+          "number": "LC 739",
+          "difficulty": "medium",
+          "problemId": "lc_739",
+          "content": "**Daily Temperatures.** For each day, find how many days until a warmer temperature. Return the answer as an array (0 if no warmer day exists).",
+          "solution": "**Pattern: monotonic decreasing stack of indices.**\n\nMaintain a stack of indices with *decreasing* temperatures. When we see a temperature higher than the stack top, the top has found its answer.\n\n\\begin{lstlisting}\ndef dailyTemperatures(temperatures: list[int]) -> list[int]:\n    n = len(temperatures)\n    ans = [0] * n\n    stack = []        # indices, decreasing temperatures\n    for i, t in enumerate(temperatures):\n        while stack and temperatures[stack[-1]] < t:\n            j = stack.pop()\n            ans[j] = i - j     # days until warmer\n        stack.append(i)\n    return ans\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(n)$ space (each index pushed and popped at most once).\n\n**Key insight:** the stack stores indices waiting for a warmer day. A *decreasing* monotonic stack means we pop (and answer) as soon as we find a warmer temperature. Elements remaining in the stack at the end have answer 0."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 901",
+          "difficulty": "medium",
+          "problemId": "lc_901",
+          "content": "**Online Stock Span.** For each day's price, return the *span* — the maximum number of consecutive previous days (including today) where the price was $\\leq$ today's price.",
+          "solution": "**Pattern: monotonic decreasing stack with *accumulated span**.*\n\nInstead of storing indices, store \\texttt{(price, span)} pairs. When popping, accumulate the span.\n\n\\begin{lstlisting}\nclass StockSpanner:\n    def __init__(self):\n        self.stack = []   # (price, span)\n\n    def next(self, price: int) -> int:\n        span = 1\n        while self.stack and self.stack[-1][0] <= price:\n            span += self.stack.pop()[1]   # absorb span of popped element\n        self.stack.append((price, span))\n        return span\n\\end{lstlisting}\n\n**Complexity:** $O(1)$ amortized per call.\n\n**Example:** prices \\texttt{[100, 80, 60, 70, 60, 75, 85]} $\\to$ spans \\texttt{[1, 1, 1, 2, 1, 4, 6]}.\n\n**Key insight:** accumulating spans during pops avoids re-scanning previously processed days. This is the “compressed” version of LC 739 — instead of answering future questions, we aggregate past information."
+        }
+      ]
+    },
+    {
+      "title": "Hard Classics: Rain, Histograms, Rectangles",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "LC 42",
+          "difficulty": "hard",
+          "problemId": "lc_42",
+          "content": "**Trapping Rain Water.** Given an elevation map \\texttt{height}, compute how much water it can trap after raining.",
+          "solution": "**Two-pointer approach** (optimal):\n\nWater at position $i$ is $\\min(\\text{left_max},\\;\\text{right_max}) - \\text{height}[i]$. Use two pointers shrinking from both ends: process whichever side has the smaller maximum.\n\n\\begin{lstlisting}\ndef trap(height: list[int]) -> int:\n    left, right = 0, len(height) - 1\n    left_max = right_max = 0\n    water = 0\n    while left < right:\n        if height[left] < height[right]:\n            if height[left] >= left_max:\n                left_max = height[left]    # new left max: no water here\n            else:\n                water += left_max - height[left]\n            left += 1\n        else:\n            if height[right] >= right_max:\n                right_max = height[right]\n            else:\n                water += right_max - height[right]\n            right -= 1\n    return water\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(1)$ space.\n\n**Why it works:** if \\texttt{height[left] < height[right]}, then \\texttt{right_max} $\\geq$ \\texttt{height[right]} $>$ \\texttt{height[left]}, so the binding constraint for the left pointer is \\texttt{left_max} (regardless of what's to the right). We can safely compute the water for the left cell.\n\n**Alternative — monotonic stack:** push indices; when a taller bar is seen, pop the valley and compute the water layer by layer. $O(n)$ time, $O(n)$ space."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 84",
+          "difficulty": "hard",
+          "problemId": "lc_84",
+          "content": "**Largest Rectangle in Histogram.** Given bar heights, find the area of the largest rectangle that fits entirely within the histogram.",
+          "solution": "**Pattern: monotonic increasing stack with left-boundary tracking.**\n\nAppend a sentinel \\texttt{0} at the end to flush the stack. Each bar is popped when a shorter bar appears to its right — at that point we know its full extent.\n\n\\begin{lstlisting}\ndef largestRectangleArea(heights: list[int]) -> int:\n    stack    = []    # (start_index, height)\n    max_area = 0\n    for i, h in enumerate(heights + [0]):   # sentinel 0 flushes stack\n        start = i\n        while stack and stack[-1][1] > h:\n            idx, height = stack.pop()\n            max_area = max(max_area, height * (i - idx))\n            start = idx       # extend left boundary to popped bar's start\n        stack.append((start, h))\n    return max_area\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(n)$ space.\n\n**Example:** \\texttt{[2,1,5,6,2,3]} $\\to$ largest area $= 10$ (bars of height 5 and 6 spanning width 2).\n\n**Key insight:** when we pop bar \\texttt{(idx, height)}, the rectangle with that height extends from \\texttt{idx} to \\texttt{i-1} (exclusive current). By saving \\texttt{start = idx}, we allow the newly pushed bar to claim that left territory."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 85",
+          "difficulty": "hard",
+          "problemId": "lc_85",
+          "content": "**Maximal Rectangle.** Given a binary matrix, find the largest rectangle containing only \\texttt{'1'}s.",
+          "solution": "**Reduction to LC 84:** treat each row as the “ground” of a histogram. \\texttt{heights[j]} = number of consecutive \\texttt{'1'}s ending at the current row in column $j$.\n\n\\begin{lstlisting}\ndef maximalRectangle(matrix: list[list[str]]) -> int:\n    if not matrix or not matrix[0]:\n        return 0\n    n = len(matrix[0])\n    heights = [0] * n\n    best = 0\n    for row in matrix:\n        # Update histogram heights\n        for j in range(n):\n            heights[j] = heights[j] + 1 if row[j] == '1' else 0\n        # Run LC 84 on the current histogram\n        best = max(best, largestRectangleArea(heights))\n    return best\n\n# largestRectangleArea defined above (LC 84)\n\\end{lstlisting}\n\n**Complexity:** $O(R \\cdot C)$ time, $O(C)$ space ($R$ rows, $C$ columns).\n\n**Key insight:** the reduction is the entire insight. Once you see “histogram per row”, the LC 84 solution applies directly. Each row update is $O(C)$ and LC 84 runs in $O(C)$, giving $O(R\\cdot C)$ total.\n\n**Example:** the $4\\times5$ matrix in the problem has maximal rectangle area $= 6$."
+        }
+      ]
+    },
+    {
+      "title": "Pattern Summary and Common Mistakes",
+      "blocks": []
+    }
+  ],
+  "problemIndex": []
+}

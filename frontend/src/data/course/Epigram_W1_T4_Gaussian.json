@@ -1,0 +1,211 @@
+{
+  "weekNum": 1,
+  "topicNum": 4,
+  "topicName": "Gaussian and Multivariate Gaussian Distributions",
+  "subtopics": "Normal Distribution $\\cdot$ Truncation $\\cdot$ Mixtures $\\cdot$ Multivariate Gaussian $\\cdot$ Finance Applications",
+  "freeProblems": 5,
+  "premiumProblems": 4,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "Topic 2 — Conditional Probability; Topic 3 — Distributions",
+  "learningObjectives": [
+    "**Compute truncated expectations** — including $\\mathbb{E}[X \\mid X > c]$ for $X \\sim N(\\mu,\\sigma^{2})$ using the hazard rate identity and the standard normal PDF/CDF.",
+    "**Reason about sums and linear combinations of Gaussians** — recognise that any linear combination of independent normals is normal, and use this to reduce inequality probabilities to standard normal tail probabilities.",
+    "**Construct and analyse Gaussian mixtures** — compute the PDF, CDF, mean, and variance of a mixture distribution as a weighted average of the component distributions.",
+    "**Apply the Gaussian to finance** — translate Sharpe ratio into a loss probability, understand annualised P&L distributions, and interpret the result in trading terms.",
+    "**Work with correlated bivariate normals** — use the decomposition $Y = \\rho X + \\sqrt{1-\\rho^{2}}\\,Z$ to reduce correlated problems to independent ones.",
+    "**Understand Multivariate Gaussian geometry** — interpret the covariance matrix, compute marginal and conditional distributions, and sample from an MVN using Cholesky decomposition.",
+    "**Solve geometric sampling problems** — explain why coordinate-wise uniform sampling fails for the $n$-ball and implement a correct sampling algorithm."
+  ],
+  "sections": [
+    {
+      "title": "Introduction: Why Gaussians Dominate Quantitative Finance",
+      "blocks": [
+        {
+          "type": "text",
+          "content": "TheGaussian(Normal)distributionisthebackboneofquantitativefinance,fromoptionpricingandportfoliotheorytofactormodelsandriskmanagement.Itsubiquityrestsonthreepillars:the**Central Limit Theorem**,itsclosureunderlinearoperations,anditscompletecharacterisationbyjusttwoparameters.Masteringitmeansmasteringbothitsformulasanditsgeometry."
+        },
+        {
+          "type": "conceptbox",
+          "title": "Essential Gaussian Facts",
+          "content": "If $X \\sim N(\\mu, \\sigma^{2})$, then: \\begin{itemize}\\item **Standardisation:** $Z = (X-\\mu)/\\sigma \\sim N(0,1)$.\n\n\\item **Linear transforms:** $aX + b \\sim N(a\\mu+b,\\ a^{2}\\sigma^{2})$.\n\n\\item **Sums:** If $X_{i} \\sim N(\\mu_{i}, \\sigma_{i}^{2})$ independent, then $\\sum X_{i} \\sim N(\\sum\\mu_{i}, \\sum\\sigma_{i}^{2})$.\n\n\\item **Tail probabilities:** $\\mathbb{P}(X > \\mu + k\\sigma) = 1-\\Phi(k)$ where $\\Phi$ is the standard normal CDF.\n\n\\item **68-95-99.7 rule:** $\\mathbb{P}(|X-\\mu| \\leq \\sigma) \\approx 68\\%$,\\; $\\mathbb{P}(|X-\\mu| \\leq 2\\sigma) \\approx 95\\%$,\\; $\\mathbb{P}(|X-\\mu| \\leq 3\\sigma) \\approx 99.7\\%$.\\end{itemize}"
+        },
+        {
+          "type": "conceptbox",
+          "title": "Standard Normal PDF and CDF",
+          "content": "\\[\\phi(x) = \\frac{1}{\\sqrt{2\\pi}}e^{-x^2/2}, \\qquad \\Phi(x) = \\int_{-\\infty}^{x} \\phi(t)\\,dt\\] Key identities: $\\phi'(x) = -x\\phi(x)$;\\quad $1-\\Phi(x) = \\Phi(-x)$;\\quad $\\mathbb{E}[Z\\mathbf{1}_{Z>c}] = \\phi(c)$ for $Z\\sim N(0,1)$."
+        }
+      ]
+    },
+    {
+      "title": "Truncated Gaussians and Conditional Expectations",
+      "blocks": [
+        {
+          "type": "techniquebox",
+          "title": "Truncated Normal Expectation",
+          "content": "For $X \\sim N(0,1)$ and threshold $c$: \\[\\mathbb{E}[X \\mid X > c] = \\frac{\\mathbb{E}[X\\,\\mathbf{1}_{X>c}]}{\\mathbb{P}(X>c)}= \\frac{\\phi(c)}{1-\\Phi(c)}\\] The ratio $\\phi(c)/(1-\\Phi(c))$ is called the **inverse Mills ratio** (or hazard rate). For $c=0$: $\\mathbb{E}[X\\mid X>0] = \\phi(0)/(1/2) = 2\\phi(0) = \\sqrt{2/\\pi}$."
+        },
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "easy",
+          "tier": "free",
+          "content": "**Conditional Mean of a Truncated Standard Normal.** Let $X \\sim N(0,1)$. Compute $\\mathbb{E}[X \\mid X > 0]$.",
+          "solution": "**Step 1: Apply the truncated expectation formula.** \\[\\mathbb{E}[X \\mid X > 0] = \\frac{\\mathbb{E}[X\\,\\mathbf{1}_{X>0}]}{\\mathbb{P}(X>0)}\\]\n\n**Step 2: Compute $\\mathbb{E}[X\\,\\mathbf{1**_{X>0}]$.} \\[\\mathbb{E}[X\\,\\mathbf{1}_{X>0}] = \\int_{0}^{\\infty} x \\cdot \\frac{1}{\\sqrt{2\\pi}}e^{-x^2/2}\\,dx = \\frac{1}{\\sqrt{2\\pi}}\\Big[-e^{-x^2/2}\\Big]_{0}^{\\infty} = \\frac{1}{\\sqrt{2\\pi}}= \\phi(0)\\]\n\n**Step 3: Compute $\\mathbb{P}(X>0) = 1/2$.**\n\n\\[\\mathbb{E}[X \\mid X > 0] = \\frac{\\phi(0)}{1/2}= 2\\phi(0) = \\frac{2}{\\sqrt{2\\pi}}= \\sqrt{\\frac{2}{\\pi}}\\approx 0.798\\]\n\n**Generalisation.** For $X \\sim N(\\mu, \\sigma^{2})$ and threshold $c$: \\[\\mathbb{E}[X \\mid X > c] = \\mu + \\sigma\\cdot\\frac{\\phi\\!\\left(\\frac{c-\\mu}{\\sigma}\\right)}{1-\\Phi\\!\\left(\\frac{c-\\mu}{\\sigma}\\right)}\\]\n\n**Key takeaway:** $\\mathbb{E}[X\\,\\mathbf{1}_{X>c}] = \\phi(c)$ for $X\\sim N(0,1)$. The inverse Mills ratio $\\phi(c)/\\bigl(1-\\Phi(c)\\bigr)$ is the amount by which the conditional mean exceeds the threshold."
+        }
+      ]
+    },
+    {
+      "title": "Sums and Linear Combinations of Gaussians",
+      "blocks": [
+        {
+          "type": "techniquebox",
+          "title": "Linear Combination Technique",
+          "content": "To compute $\\mathbb{P}(aX + bY > c)$ for independent $X \\sim N(\\mu_{X}, \\sigma_{X}^{2})$, $Y \\sim N(\\mu_{Y}, \\sigma_{Y}^{2})$: \\begin{enumerate}\\item Form $W = aX + bY \\sim N\\!\\left(a\\mu_{X}+b\\mu_{Y},\\\n a^{2}\\sigma_{X}^{2} + b^{2}\\sigma_{Y}^{2}\\right)$.\n\n\\item Standardise: $\\mathbb{P}(W>c) = \\mathbb{P}\\!\\left(Z > \\frac{c - (a\\mu_{X}+b\\mu_{Y})}{\\sqrt{a^{2}\\sigma_{X}^{2}+b^{2}\\sigma_{Y}^{2}}}\\right)$.\\end{enumerate}"
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "squarepoint_capital_qdsi_p3",
+          "content": "**Conditional Probability for Sum of Independent Gaussians.** Let $X \\sim N(0, \\sigma_{x}^{2})$ and $Y \\sim N(0, \\sigma_{y}^{2})$ be independent. Compute $\\mathbb{P}(X + Y > 0 \\mid Y > 0)$.",
+          "solution": "**Step 1: Write out the conditional probability.** \\[\\mathbb{P}(X+Y>0 \\mid Y>0) = \\frac{\\mathbb{P}(X+Y>0,\\ Y>0)}{\\mathbb{P}(Y>0)}= 2\\,\\mathbb{P}(X+Y>0,\\ Y>0)\\] since $\\mathbb{P}(Y>0)=1/2$.\n\n**Step 2: Compute the joint probability.** Since $X \\perp\\!\\!\\!\\perp Y$, we condition on $Y=y$ and integrate: \\[\\mathbb{P}(X+Y>0,\\ Y>0) = \\int_{0}^{\\infty} \\mathbb{P}(X > -y)\\,f_{Y}(y)\\,dy = \\int_{0}^{\\infty} \\Phi\\!\\left(\\frac{y}{\\sigma_{x}}\\right) \\frac{1}{\\sigma_{y}}\\phi\\!\\left(\\frac{y}{\\sigma_{y}}\\right)dy\\]\n\n**Step 3: Exploit symmetry.**\n\nNote that $X+Y \\sim N(0,\\sigma_{x}^{2}+\\sigma_{y}^{2})$. By symmetry of the joint distribution of $(X+Y,Y)$ around the origin, the events $\\{X+Y>0, Y>0\\}$ and $\\{X+Y<0, Y<0\\}$ are equally likely, while $\\{X+Y>0\\}$ and $\\{X+Y<0\\}$ each have probability $1/2$.\n\nDefine $S=X+Y$ and note $\\text{Cov}(S,Y) = \\text{Cov}(X+Y,Y) = \\sigma_{y}^{2}$. $(S,Y)$ is bivariate normal with correlation $\\rho = \\sigma_{y}/\\!\\sqrt{\\sigma_{x}^{2}+\\sigma_{y}^{2}}$.\n\nUsing the bivariate normal orthant probability: \\[\\mathbb{P}(S>0,\\ Y>0) = \\frac{1}{4}+ \\frac{1}{2\\pi}\\arcsin(\\rho) = \\frac{1}{4}+ \\frac{1}{2\\pi}\\arcsin\\!\\left(\\frac{\\sigma_{y}}{\\sqrt{\\sigma_{x}^{2}+\\sigma_{y}^{2}}}\\right)\\]\n\nTherefore: \\[\\boxed{\\mathbb{P}(X+Y>0 \\mid Y>0) = \\frac{1}{2} + \\frac{1}{\\pi}\\arcsin\\!\\left(\\frac{\\sigma_{y}}{\\sqrt{\\sigma_{x}^{2}+\\sigma_{y}^{2}}}\\right)}\\]\n\n**Verify:** $\\sigma_{x} \\to \\infty$: $\\arcsin(0) = 0$, so probability $\\to 1/2$. ✓\\quad $\\sigma_{x}=0$: $\\arcsin(1)=\\pi/2$, so probability $\\to 1$. ✓\n\n**Key takeaway:** For bivariate normals with zero means, the orthant probability $\\mathbb{P}(U>0, V>0) = \\frac{1}{4}+\\frac{1}{2\\pi}\\arcsin(\\rho_{UV})$. Memorise this formula."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "medium",
+          "problemId": "citadel_qdsi_p27",
+          "content": "**PDF and CDF of a Coin-Flip Gaussian Mixture.** Let $X \\sim N(0,1)$ and $Y \\sim N(0,4)$. Flip a fair coin independently and define: \\[Z = \\begin{cases}X & \\text{Head} \\\\ Y & \\text{Tail}\\end{cases}\\] Find the PDF and CDF of $Z$.",
+          "solution": "$Z$ is a **Gaussian mixture**: with prob $1/2$ it is drawn from $N(0,1)$, and with prob $1/2$ from $N(0,4)$.\n\n**PDF.** By the law of total probability: \\[f_{Z}(z) = \\frac{1}{2}f_{X}(z) + \\frac{1}{2}f_{Y}(z) = \\frac{1}{2}\\phi(z) + \\frac{1}{2}\\cdot\\frac{1}{2}\\phi\\!\\left(\\frac{z}{2}\\right) = \\frac{1}{2}\\phi(z) + \\frac{1}{4}\\phi\\!\\left(\\frac{z}{2}\\right)\\] where $\\phi(z)=e^{-z^2/2}/\\sqrt{2\\pi}$ is the standard normal PDF.\n\n**CDF.** Similarly: \\[F_{Z}(z) = \\frac{1}{2}\\Phi(z) + \\frac{1}{2}\\Phi\\!\\left(\\frac{z}{2}\\right)\\]\n\n**Moments.** \\begin{itemize}\\item $\\mathbb{E}[Z] = \\frac{1}{2}\\cdot0 + \\frac{1}{2}\\cdot0 = 0$.\n\n\\item $\\mathbb{E}[Z^{2}] = \\frac{1}{2}\\cdot\\text{Var}(X) + \\frac{1}{2}\\cdot\\text{Var}(Y) = \\frac{1}{2}\\cdot1 + \\frac{1}{2}\\cdot4 = \\frac{5}{2}$.\n\n\\item $\\text{Var}(Z) = \\mathbb{E}[Z^{2}] - (\\mathbb{E}[Z])^{2} = \\frac{5}{2}$.\\end{itemize}\n\n**Key property:** A Gaussian mixture is *not itself Gaussian*. It has heavier tails than any single Gaussian with the same mean and variance (kurtosis $> 3$).\n\n**Key takeaway:** For any mixture: $f_{Z} = \\sum_{i} w_{i} f_{i}$ and $F_{Z} = \\sum_{i} w_{i} F_{i}$ where $w_{i}$ are the mixing weights. Moments are weighted averages of component moments *only for the mean*; for variance use $\\text{Var}(Z) = \\mathbb{E}[\\text{Var}(Z\\mid\\text{coin})] + \\text{Var}(\\mathbb{E}[Z\\mid\\text{coin}])$."
+        }
+      ]
+    },
+    {
+      "title": "Finance Applications of the Gaussian",
+      "blocks": [
+        {
+          "type": "subsection",
+          "title": "Sharpe Ratio and Loss Probability"
+        },
+        {
+          "type": "conceptbox",
+          "title": "Sharpe Ratio and P&L Distribution",
+          "content": "A strategy with annualised Sharpe ratio $S$ generates P&L over $T$ years distributed as: \\[\\text{Cumulative P&L}\\sim N\\!\\left(\\mu T,\\ \\sigma^{2} T\\right) \\quad\\text{with}\\quad S = \\frac{\\mu}{\\sigma}\\] The probability of a loss is $\\mathbb{P}(\\text{P&L}< 0) = \\Phi(-S\\sqrt{T})$. A higher Sharpe ratio or longer track record reduces the probability of looking like a loss-maker."
+        },
+        {
+          "type": "freeproblem",
+          "number": "4",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p58",
+          "content": "**Probability of Loss Given a Sharpe Ratio.** A trading strategy has Sharpe ratio $S=1$ (annualised). After $T=4$ years of trading, what is the probability that the cumulative P&L is negative?",
+          "solution": "**Model.** Annualised mean return $\\mu$, volatility $\\sigma$, with $S = \\mu/\\sigma = 1$, so $\\mu = \\sigma$.\n\nAfter $T=4$ years, cumulative P&L $\\sim N(\\mu T, \\sigma^{2} T) = N(4\\mu, 4\\sigma^{2})$.\n\n**Standardise:** \\[\\mathbb{P}(\\text{P&L}< 0) = \\mathbb{P}\\!\\left(Z < \\frac{0 - 4\\mu}{\\sqrt{4\\sigma^{2}}}\\right) = \\mathbb{P}\\!\\left(Z < \\frac{-4\\mu}{2\\sigma}\\right) = \\Phi(-2S) = \\Phi(-2\\cdot1) = \\Phi(-2)\\] \\[\\Phi(-2) \\approx \\boxed{2.28\\%}\\]\n\n**General formula:** $\\mathbb{P}(\\text{loss after }T\\text{ years}) = \\Phi(-S\\sqrt{T})$.\n\n <table class=\"course-table\"><tr><td>$S$</td><td>$T$</td><td>$-S\\sqrt{T}$</td><td>$\\mathbb{P}(\\text{loss})$</td></tr><tr><td>$0.5$</td><td>4</td><td>$-1$</td><td>$15.9\\%$</td></tr><tr><td>$1.0$</td><td>4</td><td>$-2$</td><td>$2.3\\%$</td></tr><tr><td>$1.0$</td><td>1</td><td>$-1$</td><td>$15.9\\%$</td></tr><tr><td>$2.0$</td><td>4</td><td>$-4$</td><td>$0.003\\%$</td></tr></table>\n\n**Key takeaway:** The loss probability is $\\Phi(-S\\sqrt{T})$. Even a Sharpe-1 strategy looks like a loser 16\\% of the time after just 1 year — highlighting the importance of track record length."
+        },
+        {
+          "type": "subsection",
+          "title": "Gaussian Linear Inequalities"
+        },
+        {
+          "type": "freeproblem",
+          "number": "5",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p51",
+          "content": "**Gaussian Linear Inequality Probabilities.** Let $X, Y \\sim N(0,1)$. \\begin{enumerate}[label=(\\arabic{*})]\\item $X \\perp\\!\\!\\!\\perp Y$. Compute $\\mathbb{P}(X + 3Y > 0)$.\n\n\\item $X \\perp\\!\\!\\!\\perp Y$. Compute $\\mathbb{P}(X > 0,\\ X + 3Y > 0)$.\n\n\\item $X$ and $Y$ have correlation $0.5$. Compute $\\mathbb{P}(X > 3Y \\mid X > 0)$.\\end{enumerate}",
+          "solution": "**(1)** $W = X + 3Y \\sim N(0, 1^{2} + 3^{2}) = N(0,10)$. By symmetry: \\[\\mathbb{P}(X+3Y > 0) = \\mathbb{P}(W > 0) = \\frac{1}{2}\\]\n\n**(2)** We need $\\mathbb{P}(X>0,\\ X+3Y>0)$. Use the bivariate normal orthant formula with $U=X$ and $V=X+3Y$. $\\text{Cov}(U,V) = \\text{Cov}(X, X+3Y) = \\text{Var}(X) = 1$. $\\text{Var}(V) = 10$. $\\rho_{UV}= 1/\\sqrt{10}$. \\[\\mathbb{P}(X>0,\\ X+3Y>0) = \\frac{1}{4}+ \\frac{1}{2\\pi}\\arcsin\\!\\left(\\frac{1}{\\sqrt{10}}\\right) \\approx \\frac{1}{4}+ \\frac{1}{2\\pi}\\cdot0.3217 \\approx 0.25 + 0.0512 \\approx 0.301\\]\n\n**(3)** $X, Y$ correlated with $\\rho=0.5$. Decompose: $Y = 0.5X + \\sqrt{1-0.25}\\,Z = 0.5X + \\frac{\\sqrt{3}}{2}Z$ where $Z \\sim N(0,1) \\perp\\!\\!\\!\\perp X$.\n\n$X > 3Y$ means $X > 3(0.5X + \\frac{\\sqrt{3}}{2}Z) = 1.5X + \\frac{3\\sqrt{3}}{2}Z$, i.e.\\ $-0.5X > \\frac{3\\sqrt{3}}{2}Z$, i.e.\\ $-X > 3\\sqrt{3}\\,Z$.\n\nCondition on $X > 0$: given $X = x > 0$, we need $-x > 3\\sqrt{3}Z$, i.e.\\ $Z < -x/(3\\sqrt{3})$. \\[\\mathbb{P}(X>3Y\\mid X>0) = \\frac{\\mathbb{P}(X>3Y,\\ X>0)}{\\mathbb{P}(X>0)}= 2\\,\\mathbb{P}(X>3Y,\\ X>0)\\] $(X, X-3Y)$ is bivariate normal: $X-3Y = X - 3(0.5X+\\frac{\\sqrt{3}}{2}Z) = -0.5X - \\frac{3\\sqrt{3}}{2}Z$. At this point it is cleaner to use the direct formula. Let $W = X - 3Y \\sim N(0, \\text{Var}(X-3Y))$. $\\text{Var}(X-3Y) = 1 - 6\\rho + 9 = 10 - 6(0.5) = 7$. $\\text{Cov}(X, X-3Y) = \\text{Var}(X) - 3\\text{Cov}(X,Y) = 1 - 3(0.5) = -0.5$. $\\rho_{X,W}= -0.5/\\sqrt{7}$.\n\n\\[\\mathbb{P}(X>3Y,\\ X>0) = \\mathbb{P}(W>0,\\ X>0) = \\frac{1}{4}+ \\frac{1}{2\\pi}\\arcsin\\!\\left(\\frac{-0.5}{\\sqrt{7}}\\right) \\approx 0.25 - 0.0305 \\approx 0.2195\\] \\[\\mathbb{P}(X>3Y\\mid X>0) \\approx 2(0.2195) \\approx \\boxed{0.439}\\]\n\n**Key takeaway:** The bivariate normal orthant formula $\\mathbb{P}(U>0,V>0)=\\frac{1}{4}+\\frac{1}{2\\pi}\\arcsin(\\rho_{UV})$ reduces linear Gaussian inequalities to a single $\\arcsin$ computation."
+        }
+      ]
+    },
+    {
+      "title": "Multivariate Gaussian",
+      "blocks": [
+        {
+          "type": "conceptbox",
+          "title": "\\texorpdfstring{Multivariate Gaussian $\\mathbf{X}\\sim N(\\boldsymbol{\\mu},\\boldsymbol{\\Sigma})$}{Multivariate Gaussian}",
+          "content": "\\[f(\\mathbf{x}) = \\frac{1}{(2\\pi)^{n/2}|\\boldsymbol\\Sigma|^{1/2}}\\exp\\!\\left(-\\tfrac{1}{2}(\\mathbf{x}-\\boldsymbol\\mu)^{\\top} \\boldsymbol\\Sigma^{-1}(\\mathbf{x}-\\boldsymbol\\mu)\\right)\\] \\begin{itemize}\\item $\\boldsymbol\\Sigma$ must be **positive semi-definite**. Diagonal $\\boldsymbol\\Sigma \\Leftrightarrow$ components independent.\n\n\\item **Marginals:** $X_{i} \\sim N(\\mu_{i}, \\Sigma_{ii})$.\n\n\\item **Linear transforms:** $\\mathbf{Y}= A\\mathbf{X}+ \\mathbf{b}\\sim N(A\\boldsymbol\\mu+\\mathbf{b},\\ A\\boldsymbol\\Sigma A^{\\top})$.\n\n\\item **Sampling:** Factorise $\\boldsymbol\\Sigma = LL^{\\top}$ (Cholesky); then $\\mathbf{X}= \\boldsymbol\\mu + L\\mathbf{Z}$ where $\\mathbf{Z}\\sim N(\\mathbf{0},I)$.\n\n\\item **Decorrelation trick:** For bivariate normal with $\\rho$, write $Y = \\rho X + \\sqrt{1-\\rho^{2}}\\,Z$, $Z \\perp\\!\\!\\!\\perp X$.\\end{itemize}"
+        },
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "hard",
+          "problemId": "sig_qdsi_p8",
+          "content": "**Linear Inequality of Correlated Gaussian Variables.** Let $X, Y, Z$ be jointly normal with zero means, unit variances, and known pairwise correlations $\\rho_{XY}$, $\\rho_{XZ}$, $\\rho_{YZ}$. Compute $\\mathbb{P}(X + Y > Z + 2)$.",
+          "solution": "**Step 1: Form the linear combination.** Let $W = X + Y - Z$. Then $W$ is normally distributed with: \\[\\mathbb{E}[W] = 0\\] \\[\\text{Var}(W) = \\text{Var}(X) + \\text{Var}(Y) + \\text{Var}(Z) + 2\\text{Cov}(X,Y) - 2\\text{Cov}(X,Z) - 2\\text{Cov}(Y,Z)\\] \\[= 1 + 1 + 1 + 2\\rho_{XY}- 2\\rho_{XZ}- 2\\rho_{YZ}= 3 + 2\\rho_{XY}- 2\\rho_{XZ}- 2\\rho_{YZ}\\]\n\n**Step 2: Standardise.** Let $\\sigma_{W} = \\sqrt{\\text{Var}(W)}$. Then: \\[\\mathbb{P}(X+Y>Z+2) = \\mathbb{P}(W>2) = \\mathbb{P}\\!\\left(Z_{0} > \\frac{2}{\\sigma_{W}}\\right) = 1 - \\Phi\\!\\left(\\frac{2}{\\sigma_{W}}\\right)\\] where $Z_{0} \\sim N(0,1)$.\n\n**Explicit formula:** \\[\\boxed{ \\mathbb{P}(X+Y>Z+2) = 1 - \\Phi\\!\\left(\\frac{2}{\\sqrt{3+2\\rho_{XY}-2\\rho_{XZ}-2\\rho_{YZ}}}\\right) }\\]\n\n**Numerical example.** If $\\rho_{XY}=0.5$, $\\rho_{XZ}=\\rho_{YZ}=0$: $\\sigma_{W} = \\sqrt{3+1}=2$, so $\\mathbb{P} = 1-\\Phi(1)\\approx15.9\\%$.\n\n**Key takeaway:** Any linear combination of jointly normal variables is normal. Compute the variance of the linear combination carefully (including all cross-covariance terms), then standardise."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "hard",
+          "problemId": "citadel_qdsi_p9",
+          "content": "**Uniform Sampling in the $n$-Ball.** \\begin{enumerate}[label=(\\alph{*})]\\item How do you sample uniformly in the unit disk $\\{(x,y): x^{2}+y^{2}\\leq1\\}$?\n\n\\item How do you sample uniformly in the unit $n$-ball $\\{x\\in\\mathbb{R}^{n}: \\|x\\|\\leq1\\}$?\n\n\\item Explain why sampling each coordinate uniformly on $[-1,1]$ and rejecting points outside the ball fails badly for large $n$.\\end{enumerate}",
+          "solution": "**(a) Unit disk — two correct methods.**\n\n**Method 1 (Rejection sampling):** Sample $(U,V)\\sim\\mathrm{Unif}[-1,1]^{2}$. Accept if $U^{2}+V^{2}\\leq1$. Acceptance probability $=\\pi/4\\approx78.5\\%$. Efficient in 2D.\n\n**Method 2 (Polar coordinates — correct version):** Sample $\\theta\\sim\\mathrm{Unif}[0,2\\pi)$ and $R=\\sqrt{U}$ where $U\\sim\\mathrm{Unif}[0,1]$. Then $(R\\cos\\theta, R\\sin\\theta)$ is uniform in the disk. The $\\sqrt{U}$ transform is crucial: it corrects for the fact that area grows as $r^{2}$, so the CDF of $R$ should be $r^{2}$, not $r$.\n\n**Warning:** Sampling $R\\sim\\mathrm{Unif}[0,1]$ directly (without the square root) concentrates too many points near the origin — area is proportional to $r$, not constant in $r$.\n**(b) Unit $n$-ball — Muller's method.**\n\n\\begin{enumerate}\\item Sample $Z_{1},…,Z_{n}\\stackrel{\\text{iid}}{\\sim}N(0,1)$.\n\n\\item Normalise: $\\hat{Z}= Z/\\|Z\\|$ (uniform on the sphere $S^{n-1}$).\n\n\\item Sample $R = U^{1/n}$ where $U\\sim\\mathrm{Unif}[0,1]$.\n\n\\item Return $R\\cdot\\hat{Z}$.\\end{enumerate} The Gaussian normalisation gives a uniform direction; $U^{1/n}$ accounts for the $n$-dimensional radial density $f_{R}(r) = nr^{n-1}$ for $r\\in[0,1]$.\n\n**(c) Why rejection fails in high dimensions.**\n\nThe volume of the $n$-ball is $V_{n} = \\pi^{n/2}/\\Gamma(n/2+1)$, while the volume of the enclosing $[-1,1]^{n}$ hypercube is $2^{n}$. The ratio: \\[\\frac{V_{n}}{2^{n}}\\approx \\frac{1}{\\sqrt{n\\pi}}\\left(\\frac{\\pi e}{2n}\\right)^{n/2}\\xrightarrow{n\\to\\infty}0\\] For $n=10$: acceptance rate $\\approx 0.25\\%$. For $n=100$: astronomically small. Almost all of a high-dimensional hypercube's volume is in its “corners”, outside the ball.\n\n**Key takeaway:** In high dimensions, rejection sampling from the bounding box is useless. Use the Gaussian normalisation method for any $n$-ball."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "8",
+          "difficulty": "hard",
+          "problemId": "citadel_qdsi_p7",
+          "content": "**Expected Maximum of Two Correlated Gaussian Variables.** Let $(X,Y)$ be bivariate normal with mean $\\mathbf{0}$ and covariance $\\Sigma = \\begin{pmatrix}1&\\rho\\\\\\rho&1\\end{pmatrix}$, $-1\\leq\\rho\\leq1$. Compute $\\mathbb{E}[\\max(X,Y)]$ as a function of $\\rho$.",
+          "solution": "**Step 1: Decompose.** $\\mathbb{E}[\\max(X,Y)] = \\mathbb{E}\\!\\left[\\frac{X+Y}{2}+ \\frac{|X-Y|}{2}\\right] = \\frac{1}{2}\\mathbb{E}[X+Y] + \\frac{1}{2}\\mathbb{E}[|X-Y|]$.\n\nSince $\\mathbb{E}[X]=\\mathbb{E}[Y]=0$: $\\mathbb{E}[\\max(X,Y)] = \\frac{1}{2}\\mathbb{E}[|X-Y|]$.\n\n**Step 2: Distribution of $X-Y$.** $X-Y \\sim N(0,\\ \\text{Var}(X-Y))$ and $\\text{Var}(X-Y) = \\text{Var}(X)+\\text{Var}(Y)-2\\text{Cov}(X,Y) = 1+1-2\\rho = 2(1-\\rho)$.\n\nSo $X-Y \\sim N(0,\\ 2(1-\\rho))$, with standard deviation $\\sigma_{D} = \\sqrt{2(1-\\rho)}$.\n\n**Step 3: Expected absolute value.** For $W\\sim N(0,\\sigma^{2})$: $\\mathbb{E}[|W|] = \\sigma\\sqrt{2/\\pi}$.\n\nTherefore: \\[\\mathbb{E}[|X-Y|] = \\sqrt{2(1-\\rho)}\\cdot\\sqrt{\\frac{2}{\\pi}}= \\frac{2}{\\sqrt{\\pi}}\\sqrt{1-\\rho}\\]\n\n\\[\\boxed{\\mathbb{E}[\\max(X,Y)] = \\frac{1}{2}\\cdot\\frac{2}{\\sqrt{\\pi}}\\sqrt{1-\\rho} = \\sqrt{\\frac{1-\\rho}{\\pi}}}\\]\n\n**Verify:** \\begin{itemize}\\item $\\rho=0$ (independent): $\\mathbb{E}[\\max]=1/\\sqrt{\\pi}\\approx0.564$. Matches the known result for two independent $N(0,1)$. ✓\n\n\\item $\\rho=1$ (identical): $\\mathbb{E}[\\max]=\\mathbb{E}[X]=0$. ✓\n\n\\item $\\rho=-1$ (opposite): $X=-Y$, $\\mathbb{E}[\\max(X,-X)]=\\mathbb{E}[|X|]=\\sqrt{2/\\pi}$ and our formula gives $\\sqrt{2/\\pi}$. ✓\\end{itemize}\n\n**Key takeaway:** $\\mathbb{E}[\\max(X,Y)]=\\frac{1}{2}\\mathbb{E}[|X-Y|]$ for zero-mean symmetric distributions. For bivariate normals this becomes $\\sqrt{(1-\\rho)/\\pi}$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "9",
+          "difficulty": "hard",
+          "problemId": "citadel_qdsi_p22",
+          "content": "**Optimal Aim for Two Small Targets Under Gaussian Error.** Two identical circular targets have centres $20\\,\\mathrm{cm}$ apart on a board. Target diameter $\\delta\\to0$. Shot location is an isotropic Gaussian: $(X,Y)\\sim N(\\boldsymbol\\mu,\\sigma^{2} I_{2})$ centred at our aim point $\\boldsymbol\\mu\\in\\mathbb{R}^{2}$. Where should we aim to maximise $\\mathbb{P}(\\text{hit at least one target})$?",
+          "solution": "**Setup.** Place targets at $A=(-10,0)$ and $B=(10,0)$ (WLOG on the $x$-axis, $20\\,\\mathrm{cm}$ apart). We aim at $\\boldsymbol\\mu=(m,0)$ for $m\\in\\mathbb{R}$ (by symmetry, the optimal aim is on the $x$-axis).\n\n**Hitting probability as $\\delta\\to0$.** The probability of hitting a tiny disk of radius $\\delta/2$ centred at $P$ when shot is $\\sim N(\\boldsymbol\\mu,\\sigma^{2} I_{2})$ is approximately $\\pi(\\delta/2)^{2} \\cdot f(P;\\boldsymbol\\mu)$, where $f$ is the Gaussian PDF. The $\\delta^{2}$ factor cancels in the optimisation.\n\n\\[\\mathbb{P}(\\text{hit at least one}) \\approx C\\,\\delta^{2}\\cdot \\bigl[f(A;\\boldsymbol\\mu) + f(B;\\boldsymbol\\mu)\\bigr]\\] (since targets are disjoint and $\\mathbb{P}(\\text{hit both})\\sim\\delta^{4}\\to0$).\n\n**Objective.** Maximise over $m\\in\\mathbb{R}$: \\[g(m) = f(A;\\boldsymbol\\mu) + f(B;\\boldsymbol\\mu) = \\frac{1}{2\\pi\\sigma^{2}}\\left( e^{-(m+10)^2/(2\\sigma^2)}+ e^{-(m-10)^2/(2\\sigma^2)}\\right)\\]\n\n**Optimise.** Taking the derivative and setting to zero: \\[g'(m) \\propto (m+10)\\,e^{-(m+10)^2/(2\\sigma^2)}+ (m-10)\\,e^{-(m-10)^2/(2\\sigma^2)}= 0\\] By symmetry, $m=0$ is always a critical point. It is a maximum if the targets are close relative to $\\sigma$, and a local minimum if the targets are far apart relative to $\\sigma$.\n\n**Phase transition.** Let $d=10$ (half the separation). The midpoint $m=0$ is optimal when $d\\leq\\sigma$ (targets close). When $d>\\sigma$, aiming directly at one target is better because the Gaussian is too narrow to cover both.\n\nCheck the second derivative condition: $m=0$ is a maximum iff: \\[\\frac{d^{2}}{\\sigma^{2}}< 1 \\quad\\Longleftrightarrow\\quad d < \\sigma\\]\n\n**Conclusion:** \\[\\text{Optimal aim}= \\begin{cases}\\text{midpoint between targets}&\\text{if }\\sigma \\geq d = 10\\,\\mathrm{cm}\\\\ \\text{directly at either target}&\\text{if }\\sigma < d = 10\\,\\mathrm{cm}\\end{cases}\\]\n\n**Key takeaway:** When the Gaussian spread $\\sigma$ is large relative to the target separation, aim at the midpoint to cover both. When $\\sigma$ is small, aim precisely at one target. The phase transition occurs at $\\sigma = d$."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 4 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>Truncated normal</th><th>$\\mathbb{E}[X\\mid X>c]=\\mu+\\sigma\\cdot\\phi(c^{*})/[1-\\Phi(c^{*})]$ where $c^{*}=(c-\\mu)/\\sigma$.</th></tr><tr><td>Inverse Mills ratio</td><td>$\\phi(c)/(1-\\Phi(c))$; key identity $\\mathbb{E}[Z\\mathbf{1}_{Z>c}]=\\phi(c)$.</td></tr><tr><td>Linear combinations</td><td>$aX+bY\\sim N(a\\mu_{X}+b\\mu_{Y},\\ a^{2}\\sigma_{X}^{2}+b^{2}\\sigma_{Y}^{2})$ if independent.</td></tr><tr><td>Orthant probability</td><td>$\\mathbb{P}(U>0,V>0)=\\tfrac{1}{4}+\\tfrac{1}{2\\pi}\\arcsin(\\rho_{UV})$ for zero-mean normals.</td></tr><tr><td>Decorrelation</td><td>$Y=\\rho X+\\sqrt{1-\\rho^{2}}Z$, $Z\\perp\\!\\!\\!\\perp X$; converts bivariate to independent.</td></tr><tr><td>Gaussian mixtures</td><td>$f_{Z}=\\sum w_{i} f_{i}$; $\\mathbb{E}[Z]=\\sum w_{i}\\mu_{i}$; $\\text{Var}(Z)=\\mathbb{E}[\\text{Var}]+\\text{Var}[\\mathbb{E}]$.</td></tr><tr><td>**Sharpe \\</td><td>loss prob**</td><td>$\\mathbb{P}(\\text{loss after }T\\text{ yrs})=\\Phi(-S\\sqrt{T})$.</td></tr><tr><td>MVN linear transform</td><td>$A\\mathbf{X}+\\mathbf{b}\\sim N(A\\boldsymbol\\mu+\\mathbf{b},\\\n A\\boldsymbol\\Sigma A^{\\top})$.</td></tr><tr><td>$\\mathbb{E}[\\max(X,Y)]$</td><td>$=\\frac{1}{2}\\mathbb{E}[|X-Y|]=\\sqrt{(1-\\rho)/\\pi}$ for unit bivariate normal.</td></tr><tr><td>$n$-ball sampling</td><td>Gaussian normalise for direction; $U^{1/n}$ for radius.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Conditional Mean of a Truncated Standard Normal",
+      "problemId": "quant_interview_fundamental_qdsi_p82"
+    },
+    {
+      "number": "2",
+      "name": "Conditional Probability for Sum of Independent Gaussians",
+      "problemId": "squarepoint_capital_qdsi_p3"
+    },
+    {
+      "number": "3",
+      "name": "PDF and CDF of a Coin-Flip Gaussian Mixture",
+      "problemId": "citadel_qdsi_p27"
+    },
+    {
+      "number": "4",
+      "name": "Probability of Loss Given a Sharpe Ratio",
+      "problemId": "quant_interview_fundamental_qdsi_p58"
+    },
+    {
+      "number": "5",
+      "name": "Gaussian Linear Inequality Probabilities",
+      "problemId": "quant_interview_fundamental_qdsi_p51"
+    },
+    {
+      "number": "6",
+      "name": "Linear Inequality of Correlated Gaussian Variables",
+      "problemId": "sig_qdsi_p8"
+    },
+    {
+      "number": "7",
+      "name": "Uniform Sampling in the n-Ball",
+      "problemId": "citadel_qdsi_p9"
+    },
+    {
+      "number": "8",
+      "name": "Expected Maximum of Two Correlated Gaussian Variables",
+      "problemId": "citadel_qdsi_p7"
+    },
+    {
+      "number": "9",
+      "name": "Optimal Aim for Two Small Targets Under Gaussian Error",
+      "problemId": "citadel_qdsi_p22"
+    }
+  ]
+}

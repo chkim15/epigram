@@ -1,0 +1,105 @@
+{
+  "weekNum": 3,
+  "topicNum": 22,
+  "topicName": "Coding Session 6: BFS and DFS",
+  "subtopics": "Grid DFS $\\cdot$ Multi-source BFS $\\cdot$ Cycle Detection $\\cdot$ BFS on Graphs $\\cdot$ Memoised DFS $\\cdot$ Weighted Graph BFS",
+  "freeProblems": 4,
+  "premiumProblems": 5,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "LC 200, 102, 994, 207, 130, 417, 127, 329, 399",
+  "learningObjectives": [],
+  "sections": [
+    {
+      "title": "Grid DFS: Islands and Flood Fill",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "LC 200",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Number of Islands.** Given a 2-D binary grid of \\texttt{'1'} (land) and \\texttt{'0'} (water), return the number of islands. An island is a maximal connected component of land (4-directionally connected).",
+          "solution": "**DFS flood-fill:** for each unvisited land cell, DFS to mark the entire island as visited, then increment the count.\n\n\\begin{lstlisting}\ndef numIslands(grid: list[list[str]]) -> int:\n    if not grid: return 0\n    rows, cols, count = len(grid), len(grid[0]), 0\n\n    def dfs(r: int, c: int) -> None:\n        if r < 0 or r >= rows or c < 0 or c >= cols or grid[r][c] != '1':\n            return\n        grid[r][c] = '0'                    # mark visited in-place\n        for dr, dc in [(1,0),(-1,0),(0,1),(0,-1)]:\n            dfs(r + dr, c + dc)\n\n    for r in range(rows):\n        for c in range(cols):\n            if grid[r][c] == '1':\n                count += 1\n                dfs(r, c)                   # sink the entire island\n    return count\n\\end{lstlisting}\n\n**Complexity:** $O(R\\cdot C)$ time and space.\n\n**BFS alternative:** replace the recursive \\texttt{dfs} with a \\texttt{deque} and a \\texttt{while} loop — identical logic, avoids recursion-depth limits on large grids.\n\n**Key insight:** in-place marking (\\texttt{'0'}) avoids a separate \\texttt{visited} set. Each cell is processed at most once $\\Rightarrow$ $O(RC)$ total."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 102",
+          "difficulty": "medium",
+          "problemId": "lc_102",
+          "content": "**Binary Tree Level-Order Traversal.** Return the level-order traversal of a binary tree's node values (level by level, left to right).",
+          "solution": "**BFS with level batching:** snapshot the current queue size at the start of each level to process exactly one level per iteration.\n\n\\begin{lstlisting}\nfrom collections import deque\n\ndef levelOrder(root) -> list[list[int]]:\n    if not root: return []\n    res, q = [], deque([root])\n    while q:\n        level = []\n        for _ in range(len(q)):         # process exactly this level\n            node = q.popleft()\n            level.append(node.val)\n            if node.left:  q.append(node.left)\n            if node.right: q.append(node.right)\n        res.append(level)\n    return res\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time and space.\n\n**Key insight:** snapshotting \\texttt{len(q)} at the start of each outer iteration separates levels. This pattern recurs in LC 103 (zigzag), LC 111 (min depth), LC 116 (next pointers), etc."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 994",
+          "difficulty": "medium",
+          "problemId": "lc_994",
+          "content": "**Rotting Oranges.** A grid contains \\texttt{0} (empty), \\texttt{1} (fresh orange), or \\texttt{2} (rotten orange). Each minute, every fresh orange 4-adjacent to a rotten one becomes rotten. Return the minimum minutes until all oranges are rotten, or $-1$ if impossible.",
+          "solution": "**Multi-source BFS:** seed the queue with *all* initially rotten oranges simultaneously. BFS naturally computes the shortest spreading time.\n\n\\begin{lstlisting}\nfrom collections import deque\n\ndef orangesRotting(grid: list[list[int]]) -> int:\n    rows, cols = len(grid), len(grid[0])\n    q, fresh = deque(), 0\n    for r in range(rows):\n        for c in range(cols):\n            if grid[r][c] == 2: q.append((r, c, 0))  # (row, col, time)\n            elif grid[r][c] == 1: fresh += 1\n    time = 0\n    while q:\n        r, c, t = q.popleft()\n        for dr, dc in [(1,0),(-1,0),(0,1),(0,-1)]:\n            nr, nc = r + dr, c + dc\n            if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 1:\n                grid[nr][nc] = 2\n                fresh -= 1\n                time = t + 1\n                q.append((nr, nc, t + 1))\n    return time if fresh == 0 else -1\n\\end{lstlisting}\n\n**Complexity:** $O(R\\cdot C)$ time and space.\n\n**Key insight:** multi-source BFS is equivalent to adding a virtual super-source connected to all initial rotten oranges. The answer is the BFS level of the last freshly infected orange."
+        }
+      ]
+    },
+    {
+      "title": "Graph DFS: Cycle Detection and Boundary Marking",
+      "blocks": [
+        {
+          "type": "freeproblem",
+          "number": "LC 207",
+          "difficulty": "medium",
+          "problemId": "lc_207",
+          "content": "**Course Schedule.** Given $n$ courses and a list of prerequisites \\texttt{[a, b]} (take $b$ before $a$), return \\texttt{True} iff you can finish all courses (i.e.\\ the prerequisite graph has no cycle).",
+          "solution": "**DFS cycle detection with 3-colour marking:** \\begin{itemize}\\item **0** (white): unvisited.\n\n\\item **1** (grey): currently in the DFS stack — a back edge to a grey node means a cycle.\n\n\\item **2** (black): fully processed — safe.\\end{itemize}\n\n\\begin{lstlisting}\nfrom collections import defaultdict\n\ndef canFinish(n: int, prerequisites: list[list[int]]) -> bool:\n    graph = defaultdict(list)\n    for a, b in prerequisites:\n        graph[b].append(a)          # b must come before a\n    state = [0] * n                 # 0=unvisited, 1=visiting, 2=done\n\n    def dfs(u: int) -> bool:\n        if state[u] == 1: return False   # back edge: cycle found\n        if state[u] == 2: return True    # already safe\n        state[u] = 1\n        if not all(dfs(v) for v in graph[u]):\n            return False\n        state[u] = 2\n        return True\n\n    return all(dfs(i) for i in range(n))\n\\end{lstlisting}\n\n**Complexity:** $O(V+E)$ time and space.\n\n**LC 210 extension (topological order):** collect nodes in the order they finish (when set to state 2) and reverse the list.\n\n**Key insight:** grey $=$ “currently on the DFS path”. A back edge into a grey node proves a cycle. Black $=$ “safe to use as a dependency”; skip it immediately."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 130",
+          "difficulty": "medium",
+          "problemId": "lc_130",
+          "content": "**Surrounded Regions.** Given a board of \\texttt{'X'} and \\texttt{'O'}, capture all \\texttt{'O'} regions not connected to the border by flipping them to \\texttt{'X'}.",
+          "solution": "**Reverse thinking:** instead of finding surrounded \\texttt{'O'}s directly, mark the *safe* ones (border-connected) first, then flip the rest.\n\n\\begin{lstlisting}\ndef solve(board: list[list[str]]) -> None:\n    if not board: return\n    rows, cols = len(board), len(board[0])\n\n    def dfs(r: int, c: int) -> None:\n        if r < 0 or r >= rows or c < 0 or c >= cols or board[r][c] != 'O':\n            return\n        board[r][c] = 'S'               # mark safe (border-connected)\n        for dr, dc in [(1,0),(-1,0),(0,1),(0,-1)]:\n            dfs(r + dr, c + dc)\n\n    # Step 1: mark all border-connected 'O's as safe\n    for r in range(rows):\n        for c in range(cols):\n            if (r in (0, rows-1) or c in (0, cols-1)) and board[r][c] == 'O':\n                dfs(r, c)\n\n    # Step 2: flip remaining 'O' -> 'X'; restore 'S' -> 'O'\n    for r in range(rows):\n        for c in range(cols):\n            if   board[r][c] == 'O': board[r][c] = 'X'\n            elif board[r][c] == 'S': board[r][c] = 'O'\n\\end{lstlisting}\n\n**Complexity:** $O(R\\cdot C)$ time and space.\n\n**Key insight:** the “mark safe, then flip” reversal avoids having to determine connectivity from interior cells to the border — always easier to work outward from the known boundary."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 417",
+          "difficulty": "medium",
+          "problemId": "lc_417",
+          "content": "**Pacific Atlantic Water Flow.** Water can flow to the Pacific (top/left border) and Atlantic (bottom/right border). Return all cells from which water can reach *both* oceans.",
+          "solution": "**Reverse BFS from both borders simultaneously:** instead of checking each cell's flow, reverse the direction — ask which cells can be *reached* from each ocean by flowing uphill.\n\n\\begin{lstlisting}\nfrom collections import deque\n\ndef pacificAtlantic(heights: list[list[int]]) -> list[list[int]]:\n    rows, cols = len(heights), len(heights[0])\n\n    def bfs(starts):\n        visited = set(starts)\n        q = deque(starts)\n        while q:\n            r, c = q.popleft()\n            for dr, dc in [(1,0),(-1,0),(0,1),(0,-1)]:\n                nr, nc = r + dr, c + dc\n                if (0 <= nr < rows and 0 <= nc < cols\n                        and (nr, nc) not in visited\n                        and heights[nr][nc] >= heights[r][c]):\n                    visited.add((nr, nc))\n                    q.append((nr, nc))\n        return visited\n\n    pacific  = [(0, c) for c in range(cols)] + [(r, 0) for r in range(rows)]\n    atlantic = [(rows-1, c) for c in range(cols)] + [(r, cols-1) for r in range(rows)]\n\n    return [[r, c] for r, c in\n            bfs(pacific) & bfs(atlantic)]  # intersection\n\\end{lstlisting}\n\n**Complexity:** $O(R\\cdot C)$ time and space.\n\n**Key insight:** reversing the flow direction (uphill from ocean) and taking the *intersection* of reachable sets is cleaner and more efficient than simulating downhill flow from each cell."
+        }
+      ]
+    },
+    {
+      "title": "BFS on Word/Graph Problems and Memoised DFS",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "LC 127",
+          "difficulty": "hard",
+          "problemId": "lc_127",
+          "content": "**Word Ladder.** Given \\texttt{beginWord}, \\texttt{endWord}, and a \\texttt{wordList}, return the length of the shortest transformation sequence from \\texttt{beginWord} to \\texttt{endWord} (changing one letter at a time, each intermediate word in the list).",
+          "solution": "**BFS on an implicit graph:** nodes are words; edges connect words differing by one letter. BFS finds the shortest path.\n\n\\begin{lstlisting}\nfrom collections import deque\n\ndef ladderLength(beginWord: str, endWord: str, wordList: list[str]) -> int:\n    words = set(wordList)\n    if endWord not in words:\n        return 0\n    q = deque([(beginWord, 1)])\n    visited = {beginWord}\n    while q:\n        word, steps = q.popleft()\n        for i in range(len(word)):\n            for c in 'abcdefghijklmnopqrstuvwxyz':\n                new_word = word[:i] + c + word[i+1:]\n                if new_word == endWord:\n                    return steps + 1\n                if new_word in words and new_word not in visited:\n                    visited.add(new_word)\n                    q.append((new_word, steps + 1))\n    return 0\n\\end{lstlisting}\n\n**Complexity:** $O(M^{2}\\cdot N)$ where $M$ = word length, $N$ = wordList size.\n\n**Bidirectional BFS optimisation:** start BFS from both \\texttt{beginWord} and \\texttt{endWord} simultaneously, expanding the smaller frontier each step. Reduces complexity to $O(M^{2}\\cdot\\sqrt{N})$ in practice.\n\n**Key insight:** the implicit graph has $26M$ possible neighbours per node. Storing words in a \\texttt{set} ensures $O(1)$ membership check; removing visited words from the set (rather than using a separate \\texttt{visited} set) also works and saves space."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 329",
+          "difficulty": "hard",
+          "problemId": "lc_329",
+          "content": "**Longest Increasing Path in a Matrix.** Return the length of the longest strictly increasing path in a matrix (4-directional movement).",
+          "solution": "**DFS with memoisation on a DAG:** the “strictly increasing” constraint means there are no cycles — the graph is a DAG. Memoised DFS computes the longest path from each cell exactly once.\n\n\\begin{lstlisting}\ndef longestIncreasingPath(matrix: list[list[int]]) -> int:\n    rows, cols = len(matrix), len(matrix[0])\n    memo = {}                           # (r, c) -> longest path from here\n\n    def dfs(r: int, c: int) -> int:\n        if (r, c) in memo:\n            return memo[(r, c)]\n        best = 1                        # path of length 1 (just this cell)\n        for dr, dc in [(1,0),(-1,0),(0,1),(0,-1)]:\n            nr, nc = r + dr, c + dc\n            if (0 <= nr < rows and 0 <= nc < cols\n                    and matrix[nr][nc] > matrix[r][c]):\n                best = max(best, 1 + dfs(nr, nc))\n        memo[(r, c)] = best\n        return best\n\n    return max(dfs(r, c) for r in range(rows) for c in range(cols))\n\\end{lstlisting}\n\n**Complexity:** $O(R\\cdot C)$ time and space (each cell computed once).\n\n**Alternative — topological sort BFS:** build the DAG explicitly (edges point to larger neighbours), compute in-degrees, process in topological order tracking path lengths.\n\n**Key insight:** no \\texttt{visited} set needed because the DAG structure (strictly increasing) guarantees no revisiting. Memo transforms the $O(4^{RC})$ naive DFS into $O(RC)$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 399",
+          "difficulty": "medium",
+          "problemId": "lc_399",
+          "content": "**Evaluate Division.** Given equations $a/b = k$ and queries $p/q$, return the value of each query using the given ratios (or $-1$ if not computable).",
+          "solution": "**Weighted graph BFS:** model each variable as a node; each equation $a/b=k$ adds edges $a\\to b$ (weight $k$) and $b\\to a$ (weight $1/k$). A query $p/q$ asks for the product of weights along any path from $p$ to $q$.\n\n\\begin{lstlisting}\nfrom collections import defaultdict, deque\n\ndef calcEquation(equations, values, queries):\n    graph = defaultdict(dict)\n    for (a, b), v in zip(equations, values):\n        graph[a][b] = v\n        graph[b][a] = 1.0 / v\n\n    def bfs(src: str, dst: str) -> float:\n        if src not in graph or dst not in graph:\n            return -1.0\n        if src == dst:\n            return 1.0\n        visited = {src}\n        q = deque([(src, 1.0)])          # (node, accumulated product)\n        while q:\n            node, prod = q.popleft()\n            if node == dst:\n                return prod\n            for nb, weight in graph[node].items():\n                if nb not in visited:\n                    visited.add(nb)\n                    q.append((nb, prod * weight))\n        return -1.0\n\n    return [bfs(s, d) for s, d in queries]\n\\end{lstlisting}\n\n**Complexity:** $O(Q\\cdot(V+E))$ where $Q$ = number of queries, $V$ = variables, $E$ = equations.\n\n**Union-Find alternative:** maintain path-compressed groups with ratio offsets. $O(\\alpha(V))$ per query after preprocessing.\n\n**Key insight:** division is a ratio, and ratios compose multiplicatively along paths. BFS accumulates the product while searching — the first time \\texttt{dst} is dequeued gives the unique value (since edge weights are positive and consistent)."
+        }
+      ]
+    },
+    {
+      "title": "Pattern Summary and Common Mistakes",
+      "blocks": []
+    }
+  ],
+  "problemIndex": []
+}

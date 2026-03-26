@@ -1,0 +1,97 @@
+{
+  "weekNum": 2,
+  "topicNum": 12,
+  "topicName": "Coding Session 2: Dynamic Programming II",
+  "subtopics": "2-D String DP $\\cdot$ 0/1 Knapsack $\\cdot$ State Machines $\\cdot$ Interval DP $\\cdot$ Regex Matching",
+  "freeProblems": 4,
+  "premiumProblems": 4,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "LC 1143, 72, 416, 97, 309, 312, 10, 115",
+  "learningObjectives": [],
+  "sections": [
+    {
+      "title": "2-D String DP",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "LC 1143",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Longest Common Subsequence.** Given strings \\texttt{text1} and \\texttt{text2}, return the length of their longest common subsequence (LCS). A subsequence need not be contiguous.",
+          "solution": "**State:** $dp[i][j]$ = LCS length of \\texttt{text1[:i]} and \\texttt{text2[:j]}.\n\n**Recurrence:** \\[dp[i][j] = \\begin{cases}dp[i-1][j-1]+1&\\text{if }\\texttt{text1}[i-1]=\\texttt{text2}[j-1] \\\\ \\max(dp[i-1][j],\\;dp[i][j-1])&\\text{otherwise}\\end{cases}\\]\n\n**Base cases:** $dp[0][j]=dp[i][0]=0$ (empty prefix).\n\n\\begin{lstlisting}\ndef longestCommonSubsequence(text1: str, text2: str) -> int:\n    m, n = len(text1), len(text2)\n    dp = [[0] * (n + 1) for _ in range(m + 1)]\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            if text1[i-1] == text2[j-1]:\n                dp[i][j] = dp[i-1][j-1] + 1\n            else:\n                dp[i][j] = max(dp[i-1][j], dp[i][j-1])\n    return dp[m][n]\n\\end{lstlisting}\n\n**Complexity:** $O(mn)$ time, $O(mn)$ space; reduce to $O(\\min(m,n))$ by keeping only the previous row.\n\n**Key insight:** LCS is the foundation for many other 2-D string problems. Characters match $\\to$ extend diagonal; otherwise take the better of “skip one from either string”."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 72",
+          "difficulty": "medium",
+          "problemId": "lc_72",
+          "content": "**Edit Distance.** Return the minimum number of insert, delete, or replace operations to convert \\texttt{word1} into \\texttt{word2}.",
+          "solution": "**State:** $dp[i][j]$ = edit distance between \\texttt{word1[:i]} and \\texttt{word2[:j]}.\n\n**Recurrence:** \\[dp[i][j] = \\begin{cases}dp[i-1][j-1]&\\text{if }w_{1}[i-1]=w_{2}[j-1] \\\\ 1 + \\min(dp[i-1][j],\\;dp[i][j-1],\\;dp[i-1][j-1])&\\text{otherwise (delete, insert, replace)}\\end{cases}\\]\n\n**Base cases:** $dp[i][0]=i$ (delete all), $dp[0][j]=j$ (insert all).\n\n\\begin{lstlisting}\ndef minDistance(word1: str, word2: str) -> int:\n    m, n = len(word1), len(word2)\n    dp = [[0] * (n + 1) for _ in range(m + 1)]\n    for i in range(m + 1): dp[i][0] = i   # delete i chars\n    for j in range(n + 1): dp[0][j] = j   # insert j chars\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            if word1[i-1] == word2[j-1]:\n                dp[i][j] = dp[i-1][j-1]\n            else:\n                dp[i][j] = 1 + min(dp[i-1][j],    # delete from word1\n                                   dp[i][j-1],    # insert into word1\n                                   dp[i-1][j-1])  # replace\n    return dp[m][n]\n\\end{lstlisting}\n\n**Complexity:** $O(mn)$ time, $O(mn)$ space.\n\n**Visualise the recurrence:** Think of a grid where moving *down* = delete, moving *right* = insert, and moving *diagonally* = replace (or free if chars match)."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 97",
+          "difficulty": "medium",
+          "problemId": "lc_97",
+          "content": "**Interleaving String.** Given \\texttt{s1}, \\texttt{s2}, \\texttt{s3}, return \\texttt{True} iff \\texttt{s3} is formed by interleaving \\texttt{s1} and \\texttt{s2} (preserving each string's character order).",
+          "solution": "**State:** $dp[i][j]$ = \\texttt{True} iff \\texttt{s3[:i+j]} can be formed by interleaving \\texttt{s1[:i]} and \\texttt{s2[:j]}.\n\n**Recurrence:** \\[dp[i][j] = \\bigl(dp[i-1][j] \\wedge s_{1}[i-1]=s_{3}[i+j-1]\\bigr) \\;\\vee\\; \\bigl(dp[i][j-1] \\wedge s_{2}[j-1]=s_{3}[i+j-1]\\bigr)\\]\n\n\\begin{lstlisting}\ndef isInterleave(s1: str, s2: str, s3: str) -> bool:\n    m, n = len(s1), len(s2)\n    if m + n != len(s3): return False\n    dp = [[False] * (n + 1) for _ in range(m + 1)]\n    dp[0][0] = True\n    for i in range(1, m + 1):\n        dp[i][0] = dp[i-1][0] and s1[i-1] == s3[i-1]\n    for j in range(1, n + 1):\n        dp[0][j] = dp[0][j-1] and s2[j-1] == s3[j-1]\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            dp[i][j] = (dp[i-1][j] and s1[i-1] == s3[i+j-1]) or \\\n                       (dp[i][j-1] and s2[j-1] == s3[i+j-1])\n    return dp[m][n]\n\\end{lstlisting}\n\n**Complexity:** $O(mn)$ time, $O(mn)$ space (reducible to $O(n)$ with a 1-D rolling array).\n\n**Key insight:** At each cell $(i,j)$, we consumed $i$ chars from \\texttt{s1} and $j$ from \\texttt{s2}, so we've consumed $i+j$ chars of \\texttt{s3}. The next char of \\texttt{s3} is at index $i+j-1$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 416",
+          "difficulty": "medium",
+          "problemId": "lc_416",
+          "content": "**Partition Equal Subset Sum.** Given an integer array \\texttt{nums}, return \\texttt{True} iff it can be split into two subsets with equal sum.",
+          "solution": "**Reduction to 0/1 knapsack:** Total sum must be even; target $= \\text{total}/2$. Find if any subset sums to \\texttt{target}. Each element used at most once (0/1).\n\n**State:** $dp[j]$ = \\texttt{True} iff a subset of elements seen so far sums to $j$.\n\n**Key:** Iterate $j$ *backwards* (right to left) to ensure each element is used at most once.\n\n\\begin{lstlisting}\ndef canPartition(nums: list[int]) -> bool:\n    total = sum(nums)\n    if total % 2:\n        return False\n    target = total // 2\n    dp = [False] * (target + 1)\n    dp[0] = True                           # empty subset sums to 0\n    for n in nums:\n        for j in range(target, n - 1, -1): # BACKWARDS: 0/1 knapsack\n            dp[j] = dp[j] or dp[j - n]\n    return dp[target]\n\\end{lstlisting}\n\n**Complexity:** $O(n\\cdot\\text{target})$ time, $O(\\text{target})$ space.\n\n**0/1 vs unbounded knapsack (the critical loop direction):**  <table class=\"course-table\"><tr><td>Type</td><td>Inner loop direction</td><td>Effect</td></tr><tr><td>0/1 knapsack (each item once)</td><td>$j$ decreasing</td><td>item used at most once</td></tr><tr><td>Unbounded knapsack (reuse ok)</td><td>$j$ increasing</td><td>item reusable</td></tr></table>"
+        }
+      ]
+    },
+    {
+      "title": "State Machine DP and Interval DP",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "LC 309",
+          "difficulty": "medium",
+          "problemId": "lc_309",
+          "content": "**Best Time to Buy and Sell Stock with Cooldown.** After selling, you must wait 1 day before buying again. Find the maximum profit.",
+          "solution": "**State machine:** At each day, you are in one of three states: \\begin{itemize}\\item **held**: currently holding a stock\n\n\\item **sold**: just sold today (must cooldown tomorrow)\n\n\\item **rest**: in cooldown or idle (can buy tomorrow)\\end{itemize}\n\n**Transitions:** \\[\\texttt{held}= \\max(\\texttt{held},\\;\\texttt{rest}- \\texttt{price})\\] \\[\\texttt{sold}= \\texttt{held}+ \\texttt{price}\\] \\[\\texttt{rest}= \\max(\\texttt{rest},\\;\\texttt{sold})\\]\n\n\\begin{lstlisting}\ndef maxProfit(prices: list[int]) -> int:\n    held = float('-inf')   # max profit while holding\n    sold = 0               # max profit just after selling\n    rest = 0               # max profit while resting/idle\n    for price in prices:\n        held, sold, rest = (max(held, rest - price),  # buy or hold\n                            held + price,             # sell today\n                            max(rest, sold))          # cooldown or stay idle\n    return max(sold, rest)\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(1)$ space.\n\n**Key insight:** State machine DP explicitly names each “mode” and writes transitions between them. The initial \\texttt{held = -inf} prevents buying before any day exists. This pattern generalises to LC 121–188 (stock problems with various constraints: at most $k$ transactions, transaction fee, etc.)."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 312",
+          "difficulty": "hard",
+          "problemId": "lc_312",
+          "content": "**Burst Balloons.** Given balloon values \\texttt{nums}, bursting balloon $i$ earns $\\texttt{nums}[i-1]\\times\\texttt{nums}[i]\\times\\texttt{nums}[i+1]$ coins. Maximise total coins.",
+          "solution": "**Key insight:** Think in reverse. Instead of choosing which balloon to burst *first*, ask: which balloon is burst *last* in the range $(\\texttt{left}, \\texttt{right})$?\n\n**Padding:** Prepend and append 1: $\\texttt{nums}= [1] + \\texttt{nums}+ [1]$.\n\n**State:** $dp[\\texttt{left}][\\texttt{right}]$ = max coins from bursting all balloons strictly between indices \\texttt{left} and \\texttt{right} (exclusive endpoints are never burst in this subproblem).\n\n**Recurrence:** For each candidate “last balloon” $k$ in $(\\texttt{left}, \\texttt{right})$: \\[dp[l][r] = \\max_{k}\\bigl(\\texttt{nums}[l]\\times\\texttt{nums}[k] \\times\\texttt{nums}[r] + dp[l][k] + dp[k][r]\\bigr)\\]\n\n\\begin{lstlisting}\ndef maxCoins(nums: list[int]) -> int:\n    nums = [1] + nums + [1]        # sentinel boundaries\n    n = len(nums)\n    dp = [[0] * n for _ in range(n)]\n    # iterate over window sizes\n    for length in range(2, n):     # window length (at least 1 interior)\n        for left in range(0, n - length):\n            right = left + length\n            for k in range(left + 1, right):   # k is last burst\n                coins = (nums[left] * nums[k] * nums[right]\n                         + dp[left][k] + dp[k][right])\n                dp[left][right] = max(dp[left][right], coins)\n    return dp[0][n - 1]\n\\end{lstlisting}\n\n**Complexity:** $O(n^{3})$ time, $O(n^{2})$ space.\n\n**Why “last burst” works:** When $k$ is burst last in $(\\texttt{left}, \\texttt{right})$, its neighbours are exactly \\texttt{left} and \\texttt{right} (all others already gone). This avoids the dependency problem of “burst first” reasoning."
+        }
+      ]
+    },
+    {
+      "title": "Regex and Subsequence Counting",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "LC 10",
+          "difficulty": "hard",
+          "problemId": "lc_10",
+          "content": "**Regular Expression Matching.** Implement matching for \\texttt{.} (any char) and \\texttt{*} (zero or more of preceding element). Return \\texttt{True} iff \\texttt{p} matches the entire string \\texttt{s}.",
+          "solution": "**State:** $dp[i][j]$ = \\texttt{True} iff \\texttt{p[:j]} matches \\texttt{s[:i]}.\n\n**Recurrence:** \\begin{itemize}\\item If $p[j-1]$ is a literal or \\texttt{.}: match single char. $dp[i][j] = dp[i-1][j-1]$ if $p[j-1]$ matches $s[i-1]$.\n\n\\item If $p[j-1]$ is \\texttt{*}: consider two sub-cases: \\begin{itemize}\\item Use *zero* copies of $p[j-2]$: $dp[i][j] = dp[i][j-2]$.\n\n\\item Use *one or more* copies: valid only if $p[j-2]$ matches $s[i-1]$. Then $dp[i][j] \\mathrel{|}= dp[i-1][j]$ (“consume one more char of \\texttt{s}”).\\end{itemize}\\end{itemize}\n\n\\begin{lstlisting}\ndef isMatch(s: str, p: str) -> bool:\n    m, n = len(s), len(p)\n    dp = [[False] * (n + 1) for _ in range(m + 1)]\n    dp[0][0] = True\n    # Handle patterns like a*, a*b*, a*b*c* matching empty string\n    for j in range(2, n + 1):\n        if p[j-1] == '*':\n            dp[0][j] = dp[0][j-2]\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            if p[j-1] == '*':\n                dp[i][j] = dp[i][j-2]                    # zero occurrences\n                if p[j-2] == '.' or p[j-2] == s[i-1]:\n                    dp[i][j] = dp[i][j] or dp[i-1][j]    # one+ occurrences\n            elif p[j-1] == '.' or p[j-1] == s[i-1]:\n                dp[i][j] = dp[i-1][j-1]\n    return dp[m][n]\n\\end{lstlisting}\n\n**Complexity:** $O(mn)$ time, $O(mn)$ space.\n\n**Key insight:** The \\texttt{*} case has two branches: zero uses (skip two pattern chars) or one-or-more uses (consume one source char). The “one or more” branch uses $dp[i-1][j]$ (not $dp[i-1][j-2]$) because the \\texttt{*} remains active."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 115",
+          "difficulty": "hard",
+          "problemId": "lc_115",
+          "content": "**Distinct Subsequences.** Return the number of distinct ways \\texttt{t} appears as a subsequence of \\texttt{s}.",
+          "solution": "**State:** $dp[i][j]$ = number of ways \\texttt{t[:j]} appears as a subsequence of \\texttt{s[:i]}.\n\n**Recurrence:** \\begin{itemize}\\item Always: $dp[i][j] \\mathrel{+}= dp[i-1][j]$ (skip $s[i-1]$: all ways using only $s[:i-1]$).\n\n\\item If $s[i-1]=t[j-1]$: additionally $dp[i][j] \\mathrel{+}= dp[i-1][j-1]$ (match $s[i-1]$ with $t[j-1]$).\\end{itemize}\n\n**Base cases:** $dp[i][0]=1$ for all $i$ (empty \\texttt{t} is always a subsequence).\n\n\\begin{lstlisting}\ndef numDistinct(s: str, t: str) -> int:\n    m, n = len(s), len(t)\n    dp = [[0] * (n + 1) for _ in range(m + 1)]\n    for i in range(m + 1):\n        dp[i][0] = 1          # empty t is always a subsequence\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            dp[i][j] = dp[i-1][j]              # skip s[i-1]\n            if s[i-1] == t[j-1]:\n                dp[i][j] += dp[i-1][j-1]       # match s[i-1] with t[j-1]\n    return dp[m][n]\n\\end{lstlisting}\n\n**Complexity:** $O(mn)$ time, $O(mn)$ space (reducible to $O(n)$).\n\n**Key insight:** At each cell, you always have the option to *skip* the current character of \\texttt{s}. If it matches, you also have the option to *use* it. Summing both options counts all distinct ways."
+        }
+      ]
+    },
+    {
+      "title": "Pattern Summary and Common Mistakes",
+      "blocks": []
+    }
+  ],
+  "problemIndex": []
+}

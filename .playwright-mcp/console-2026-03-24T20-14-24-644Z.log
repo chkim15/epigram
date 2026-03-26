@@ -1,0 +1,79 @@
+[     560ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <ClientPageRoot Component={function TopicPage} searchParams={{}} params={{weekId:"we...", ...}}>
+      <TopicPage params={Promise} searchParams={Promise}>
+        <div className="h-screen f..." style={{...}}>
+          <UnifiedHeader>
+          <TopicNavBar>
+          <div className="flex-1 fle...">
+            <CourseSidebar>
+            <CourseContent topicData={{weekNum:1, ...}}>
+              <div className="flex-1 ove...">
+                <div className="max-w-3xl ...">
+                  <div>
+                  <LearningObjectives>
+                  <div>
+                  <div>
+                    <div>
+                    <BlockRenderer>
+                    <BlockRenderer block={{type:"conc...", ...}}>
+                      <ConceptBox title="Key Formulas" content={"\\begin{..."}>
+                        <div className="rounded-lg..." style={{...}}>
+                          <div>
+                          <div className="px-4 pb-3 ..." style={{color:"var..."}}>
+                            <MathContent content={"\\begin{..."}>
+                              <div
+                                className="math-content"
+                                dangerouslySetInnerHTML={{
++                                 __html: "<div style=\"margin: 15px 0;\"><span class=\"katex-display\"><span class=\"..."
+-                                 __html: "<div style=\"margin: 15px 0;\"><span class=\"katex-display\"><span class=\"..."
+                                }}
+                              >
+                    ...
+                  <div>
+                  <div>
+                  <div>
+                    <div>
+                    <BlockRenderer block={{type:"conc...", ...}}>
+                      <ConceptBox title="Inclusion-..." content={"\\[\n  \..."}>
+                        <div className="rounded-lg..." style={{...}}>
+                          <div>
+                          <div className="px-4 pb-3 ..." style={{color:"var..."}}>
+                            <MathContent content={"\\[\n  \..."}>
+                              <div
+                                className="math-content"
+                                dangerouslySetInnerHTML={{
++                                 __html: "\\[\n  \\mathbb{P}\\!\\Bigl(\\bigcup_{i=1}^n A_i\\Bigr)\n  = \\sum_i\\mathb..."
+-                                 __html: "<span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mat..."
+                                }}
+                              >
+                    ...
+                  <div>
+                  <div>
+                  <div>
+                    <div>
+                    <BlockRenderer block={{type:"tech...", ...}}>
+                      <TechniqueSummary content={"\\textbf..."}>
+                        <div className="rounded-lg..." style={{...}}>
+                          <div>
+                          <div className="px-4 pb-3 ..." style={{color:"var..."}}>
+                            <MathContent content={"\\textbf..."}>
+                              <div
+                                className="math-content"
+                                dangerouslySetInnerHTML={{
++                                 __html: "<strong>Topic 1 Technique Toolkit</strong>\n\np{4.4cm}p{9.6cm}@{}}\nUniform..."
+-                                 __html: "<strong>Topic 1 Technique Toolkit</strong>\n\n<table class=\"course-table\"..."
+                                }}
+                              >
+ @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56

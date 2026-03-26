@@ -1,0 +1,304 @@
+{
+  "weekNum": 1,
+  "topicNum": 1,
+  "topicName": "Foundations of Probability Modeling",
+  "subtopics": "Counting $\\cdot$ Inclusion-Exclusion $\\cdot$ Geometric Probability $\\cdot$ Combinatorics",
+  "freeProblems": 6,
+  "premiumProblems": 7,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "None",
+  "learningObjectives": [
+    "**Set up any probability problem** from scratch — define the sample space $\\Omega$, identify the event $A$, and compute $\\mathbb{P}(A)$ for uniform probability spaces.",
+    "**Apply complementary counting** to handle “at least one” problems, including the Birthday Paradox and its generalisation.",
+    "**Use the Inclusion-Exclusion Principle** to compute probabilities involving overlapping events and consecutive patterns.",
+    "**Count arrangements under constraints** — circular permutations, non-adjacent selections, and the block trick for consecutive groups.",
+    "**Derive and apply the derangement formula**, and know that $\\mathbb{P}(\\text{derangement}) \\approx 1/e$ for $n \\geq 5$.",
+    "**Solve geometric probability problems** by mapping events onto regions and computing areas — including chord intersection and semicircle containment.",
+    "**Recognise and exploit symmetry** as the fastest path to an answer in interview settings."
+  ],
+  "sections": [
+    {
+      "title": "Introduction: What Is Probability?",
+      "blocks": [
+        {
+          "type": "text",
+          "content": "Probabilityisthemathematicsofuncertainty.Inquantitativefinanceandtrading,everymodel,everybet,andeveryriskestimaterestsonprobabilisticfoundations.Thegoalofthistopicistobuildthe*problem-solving toolkit*thatletsyoucrackinterviewquestionsunderpressurein5–10minutes."
+        },
+        {
+          "type": "conceptbox",
+          "title": "The Three Ingredients of Any Probability Problem",
+          "content": "\\begin{enumerate}\\item **Sample space** $\\Omega$: the set of all possible outcomes.\n\n\\item **Event** $A \\subseteq \\Omega$: outcomes you care about.\n\n\\item **Probability measure** $\\mathbb{P}$: $\\mathbb{P}(\\Omega)=1$, $\\mathbb{P}(\\emptyset)=0$, countable additivity.\\end{enumerate} For **uniform** spaces: $\\mathbb{P}(A) = |A|/|\\Omega| = \\text{favourable}/\\text{total}$."
+        },
+        {
+          "type": "text",
+          "content": "**Interview strategy:**(1)Identify$\\Omega$.(2)Count$|A|$—directlyorviacomplementarycounting/IEP.(3)Sanity-checkboundarycases."
+        }
+      ]
+    },
+    {
+      "title": "Counting Fundamentals",
+      "blocks": [
+        {
+          "type": "subsection",
+          "title": "Permutations and Combinations"
+        },
+        {
+          "type": "conceptbox",
+          "title": "Key Formulas",
+          "content": "\\begin{align*}\\text{Permutations (ordered):}\\quad&P(n,k) = \\frac{n!}{(n-k)!}\\\\[4pt] \\text{Combinations (unordered):}\\quad&\\dbinom{n}{k}= \\frac{n!}{k!\\,(n-k)!}\\end{align*} *Order matters $\\Rightarrow$ permutation. Order doesn't $\\Rightarrow$ combination.*"
+        },
+        {
+          "type": "subsection",
+          "title": "Warm-Up"
+        },
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "easy",
+          "tier": "free",
+          "content": "**Majority Heads in Three Coin Tosses.** Flip a fair coin three times. What is the probability of getting more heads than tails?",
+          "solution": "$|\\Omega|=8$. Favourable (\\#H $\\geq 2$): $\\{$HHH, HHT, HTH, THH$\\}$ = 4 outcomes. \\[\\mathbb{P} = \\frac{4}{8}= \\frac{1}{2}\\] **Slick:** Odd tosses $\\Rightarrow$ no ties $\\Rightarrow$ by symmetry $\\mathbb{P}(\\#H>\\#T)=\\mathbb{P}(\\#T>\\#H)=\\tfrac{1}{2}$.\n\n**Key takeaway:** For any odd number of fair coin tosses, majority heads has probability $\\tfrac{1}{2}$ by symmetry — no calculation needed."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p40",
+          "content": "**Parity of Heads in Coin Tosses.** Flip 10 fair coins. What is the probability the number of heads is even?\n\n*Hint: try the algebraic trick $(p+(1-p))^{n* \\pm ((1-p)-p)^{n}$.}",
+          "solution": "**Method 1 — Direct:** $|A|=\\dbinom{10}{0}+\\dbinom{10}{2}+\\cdots+\\dbinom{10}{10}=512$, $\\mathbb{P}=512/1024=\\tfrac{1}{2}$.\n\n**Method 2 — Algebraic trick:** $\\mathbb{P}(\\text{even heads}) = \\dfrac{1+(1-2p)^n}{2}\\Big|_{p=1/2}= \\dfrac{1}{2}$ for all $n\\geq1$.\n\n**Method 3 — Recurrence:** $a_{n} = \\tfrac{1}{2}$ satisfies $a_{n} = p(1-a_{n-1})+(1-p)a_{n-1}$ when $a_{n-1}=\\tfrac{1}{2}$.\n\n**Key takeaway:** Parity of heads is always $\\tfrac{1}{2}$ for any $n\\geq1$ fair coin tosses."
+        }
+      ]
+    },
+    {
+      "title": "Complementary Counting",
+      "blocks": [
+        {
+          "type": "techniquebox",
+          "title": "Complementary Counting",
+          "content": "$\\mathbb{P}(A)=1-\\mathbb{P}(A^{c})$. Use when “at least one” appears and the complement (“none” / “all different”) is easier to count."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p26",
+          "content": "**The Birthday Paradox.** Assume 365 equally likely birthdays. Find the smallest $n$ such that $\\mathbb{P}(\\text{at least two people share a birthday})>\\tfrac{1}{2}$.",
+          "solution": "$\\mathbb{P}(\\text{all distinct})=\\prod_{k=0}^{n-1}(1-k/365)$. Approximation $\\ln(1-x)\\approx-x$: threshold at $n(n-1)>730\\ln2\\approx506$, so $\\mathbf{n=23}$.\n\n**Key takeaway:** Pairs grow as $\\dbinom{n}{2}$, reaching $\\sim365$ when $n\\approx23$. General threshold: $n\\approx1.18\\sqrt{m}$ for pool size $m$."
+        }
+      ]
+    },
+    {
+      "title": "Combinatorial Techniques",
+      "blocks": [
+        {
+          "type": "techniquebox",
+          "title": "Non-Adjacent Selection",
+          "content": "Choose $k$ from $\\{1,…,n\\}$ with no two adjacent: $\\dbinom{n-k+1}{k}$ ways. (Substitute $y_{i}=x_{i}-(i-1)$ to absorb gap constraints.)"
+        },
+        {
+          "type": "freeproblem",
+          "number": "4",
+          "difficulty": "medium",
+          "problemId": "citadel_qdsi_p26",
+          "content": "**Probability of Choosing Three Non-Consecutive Integers.** From $\\{1,…,10\\}$, pick 3 distinct numbers uniformly at random. What is the probability no two are adjacent?",
+          "solution": "Total: $\\dbinom{10}{3}=120$. Favourable: $\\dbinom{8}{3}=56$. $\\mathbb{P} = 56/120 = \\mathbf{7/15}$.\n\n**Key takeaway:** Memorise $\\dbinom{n-k+1}{k}$ — it turns a constrained adjacency problem into an unconstrained one."
+        }
+      ]
+    },
+    {
+      "title": "Inclusion-Exclusion Principle",
+      "blocks": [
+        {
+          "type": "conceptbox",
+          "title": "Inclusion-Exclusion Principle (IEP)",
+          "content": "\\[\\mathbb{P}\\!\\Bigl(\\bigcup_{i=1}^{n} A_{i}\\Bigr) = \\sum_{i}\\mathbb{P}(A_{i}) - \\sum_{i<j}\\mathbb{P}(A_{i}\\cap A_{j}) + \\sum_{i<j<k}\\mathbb{P}(A_{i}\\cap A_{j}\\cap A_{k}) - \\cdots\\] Signal phrase: **“at least one”**."
+        },
+        {
+          "type": "freeproblem",
+          "number": "5",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p3",
+          "content": "**Probability of Consecutive Sixes in Three Dice Rolls.** Roll a fair six-sided die 3 times. What is the probability of getting at least one occurrence of the consecutive pattern $66$?",
+          "solution": "Let $A=\\{\\text{rolls 1,2 both 6}\\}$, $B=\\{\\text{rolls 2,3 both 6}\\}$. \\[\\mathbb{P}(A\\cup B)=\\frac{1}{36}+\\frac{1}{36}-\\frac{1}{216}=\\frac{11}{216}\\approx5.1\\%\\] **Key takeaway:** Define $A_{i}=\\{\\text{pattern starts at }i\\}$, apply IEP. Intersection $A_{i}\\cap A_{i+1}$ is the longer overlapping pattern."
+        }
+      ]
+    },
+    {
+      "title": "Circular Arrangements",
+      "blocks": [
+        {
+          "type": "conceptbox",
+          "title": "Circular Permutations",
+          "content": "Fix one person: $(n-1)!$ total. Block of $k$ friends: $(n-k)!\\cdot k!$ arrangements. \\[\\mathbb{P}(\\text{$k$ friends consecutive}) = \\frac{k!\\,(n-k)!}{(n-1)!}\\]"
+        },
+        {
+          "type": "freeproblem",
+          "number": "6",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p70",
+          "content": "**Adjacent Friends Around a Round Table.** **Part 1.** 5 people, 2 friends. $\\mathbb{P}(\\text{friends adjacent})$? **Part 2.** Generalise to $n$ people, $k$ friends all consecutive.",
+          "solution": "**Part 1.** Fix one friend; 4 positions, 2 adjacent: $\\mathbb{P}=\\mathbf{1/2}$.\n\n**Part 2.** $\\mathbb{P} = \\dfrac{k!\\,(n-k)!}{(n-1)!}$. Verify $n=5, k=2$: $12/24=1/2$. ✓\n\n**Key takeaway:** Always fix one person first. The block trick handles all consecutive-group problems."
+        }
+      ]
+    },
+    {
+      "title": "Advanced Counting and Geometric Probability",
+      "blocks": [
+        {
+          "type": "subsection",
+          "title": "Card Dealing"
+        },
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p17",
+          "content": "**Probability Each Player Receives an Ace.** A 52-card deck is dealt to 4 players (13 cards each). What is the probability every player receives at least one ace?",
+          "solution": "**Step 1: Total number of equally likely deals.** A deal assigns 13 cards to each of 4 labeled players: \\[|\\Omega| = \\binom{52}{13}\\binom{39}{13}\\binom{26}{13}\\binom{13}{13}= \\frac{52!}{(13!)^{4}}\\]\n\n**Step 2: Each player must receive exactly 1 ace.** There is no other way to give all 4 players at least one ace (only 4 aces exist). The number of ways to assign the 4 distinct aces to the 4 labeled players is: \\[4!\\]\n\n**Step 3: Deal the remaining 48 non-ace cards.** Each player already has 1 ace and needs 12 more cards from the 48 non-aces: \\[\\binom{48}{12}\\binom{36}{12}\\binom{24}{12}\\binom{12}{12}= \\frac{48!}{(12!)^{4}}\\]\n\n**Step 4: Favorable deals.** \\[|\\text{favorable}| = 4!\\cdot\\frac{48!}{(12!)^{4}}\\]\n\n**Step 5: Compute the probability.** \\[\\mathbb{P}(\\text{each player has an ace}) = \\frac{4!\\cdot\\dfrac{48!}{(12!)^4}}{\\dfrac{52!}{(13!)^4}}= 4!\\cdot\\frac{48!}{52!}\\cdot\\frac{(13!)^{4}}{(12!)^{4}}\\]\n\n**Step 6: Simplify.** \\[\\frac{48!}{52!}= \\frac{1}{52\\cdot51\\cdot50\\cdot49}, \\qquad \\left(\\frac{13!}{12!}\\right)^{4} = 13^{4}\\] \\[\\mathbb{P}(\\text{each player has an ace}) = \\frac{4!\\cdot 13^{4}}{52\\cdot51\\cdot50\\cdot49}\\] Using $52 = 4\\cdot13$ to cancel with $4! = 24$: \\[= \\frac{24\\cdot13^{4}}{4\\cdot13\\cdot51\\cdot50\\cdot49}= \\frac{6\\cdot13^{3}}{51\\cdot50\\cdot49}\\]\n\n\\[\\boxed{ \\mathbb{P}(\\text{each player has an ace}) = \\frac{24\\cdot 13^{4}}{52\\cdot 51\\cdot 50\\cdot 49} = \\frac{6\\cdot 13^{3}}{51\\cdot 50\\cdot 49} = \\frac{2197}{20825} \\approx 10.5\\% }\\]\n\n**Key takeaway:** The direct-counting approach — assign aces first, then deal non-aces — is cleaner than IEP here. Despite 4 aces for 4 players, the probability each receives one is only $\\approx 1$ in $9.5$, because most deals concentrate two or more aces in the same hand."
+        },
+        {
+          "type": "subsection",
+          "title": "Derangements"
+        },
+        {
+          "type": "keyresult",
+          "title": "Derangement Formula",
+          "content": "$D_{n} = n!\\sum_{k=0}^{n}(-1)^{k}/k!\\approx n!/e$. For $n\\geq5$: $\\mathbb{P}(\\text{derangement})\\approx1/e\\approx36.8\\%$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "8",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p25",
+          "content": "**The Derangement Problem.** 5 firms, 5 cover letters placed randomly. Probability no letter goes to the correct firm?",
+          "solution": "\\[\\mathbb{P} = \\sum_{k=0}^{5}\\frac{(-1)^{k}}{k!}= 1-1+\\tfrac{1}{2}-\\tfrac{1}{6}+\\tfrac{1}{24}-\\tfrac{1}{120}= \\frac{44}{120}=\\frac{11}{30}\\approx36.7\\%\\] **Key takeaway:** $\\approx1/e$ for $n\\geq5$. Recurrence: $D_{n}=(n-1)(D_{n-1}+D_{n-2})$."
+        },
+        {
+          "type": "subsection",
+          "title": "Geometric Probability"
+        },
+        {
+          "type": "techniquebox",
+          "title": "Geometric Probability",
+          "content": "$\\mathbb{P}(A)=\\text{measure of favourable region}/\\text{total measure}$. Identify the right sample space, map the event geometrically, then compute. **Always draw the picture.**"
+        },
+        {
+          "type": "premiumproblem",
+          "number": "9",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p24",
+          "content": "**Probability All Random Points Lie in a Semicircle.** Pick $N$ points uniformly on a circle's circumference. What is the probability all $N$ lie within some semicircle?",
+          "solution": "Let $A_{i}=\\{\\text{all other }N-1\\text{ points in the semicircle clockwise from }i\\}$. Events are mutually exclusive, $\\mathbb{P}(A_{i})=(1/2)^{N-1}$. \\[\\boxed{\\mathbb{P} = \\frac{N}{2^{N-1}}}\\] **Key takeaway:** Mutual exclusivity of $A_{1},…,A_{N}$ is the key step."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "10",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p10",
+          "content": "**Probability Two Random Chords Intersect.** Choose chords by picking four endpoints uniformly on a circle. What is the probability the chords intersect?",
+          "solution": "4 random points $\\to$ 3 equally likely pairings. Chords intersect iff endpoints alternate; exactly 1 of 3 pairings does this. \\[\\boxed{\\mathbb{P} = \\frac{1}{3}}\\]\n\n**Warning:** Different chord-sampling methods give different answers (Bertrand's paradox). Always clarify the sampling method in an interview."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "11",
+          "difficulty": "veryhard",
+          "problemId": "quant_interview_fundamental_qdsi_p86",
+          "content": "**Triangle Formation from Random Stick Breaks.** **(1)** Unit stick cut at two uniform points. $\\mathbb{P}(\\text{triangle})$? **(2)** First cut uniform; break the longer piece at a uniform point. $\\mathbb{P}(\\text{triangle})$?",
+          "solution": "**(1)** Event = each piece $<1/2$ = two triangles in $[0,1]^{2}$, total area $1/4$. $\\boxed{\\mathbb{P}_1=1/4}$.\n\n**(2)** Condition on first cut $U\\sim\\mathrm{Unif}(0,\\tfrac{1}{2})$, second $V\\sim\\mathrm{Unif}(U,1)$. Need $V>1/2$ and $V<U+1/2$: \\[\\mathbb{P}_{2} = 2\\int_{0}^{1/2}\\frac{U}{1-U}\\,dU = 2\\ln2-1\\approx38.6\\%\\] **Key takeaway:** Breaking the longer piece raises the probability from 25\\% to $\\approx$38.6\\%."
+        }
+      ]
+    },
+    {
+      "title": "Additional Exercises",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "A1",
+          "difficulty": "hard",
+          "problemId": "citadel_qdsi_p24",
+          "content": "**Average Chord Length of the Unit Circle.** What is the expected distance between two randomly chosen points on a unit circle?\n\n*Hint: chord length $= 2|\\sin(\\Delta\\theta/2)|$; integrate over $\\Delta\\theta\\sim\\mathrm{Unif*(0,\\pi)$.}",
+          "solution": ""
+        },
+        {
+          "type": "premiumproblem",
+          "number": "A2",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p69",
+          "content": "**Balanced Assignment of Seniors Across Teams.** 16 people (4 seniors, 12 juniors) partitioned into 4 labeled groups of 4. $\\mathbb{P}(\\text{each group has exactly 1 senior})$?\n\n*Hint: count ways to assign 4 seniors to 4 groups, one per group.*",
+          "solution": ""
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 1 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>Uniform probability</th><th>Count favourable / count total.</th></tr><tr><td>Complementary</td><td>$\\mathbb{P}(A)=1-\\mathbb{P}(A^{c})$. Use for “at least one”.</td></tr><tr><td>Symmetry</td><td>Fair coin/dice: use symmetry before computing.</td></tr><tr><td>IEP</td><td>$\\mathbb{P}(\\bigcup A_{i})=\\sum\\mathbb{P}(A_{i})-\\sum\\mathbb{P}(A_{i}\\cap A_{j})+\\cdots$</td></tr><tr><td>Non-adjacent</td><td>$k$ from $n$, no two adjacent: $\\dbinom{n-k+1}{k}$.</td></tr><tr><td>Circular</td><td>Fix one; block of $k$: $(n-k)!\\cdot k!$.</td></tr><tr><td>Derangement</td><td>$\\mathbb{P}\\approx1/e\\approx36.8\\%$ for $n\\geq5$.</td></tr><tr><td>Geometric</td><td>Map to region; compute area. Draw it.</td></tr><tr><td>Chord intersection</td><td>4 pts $\\to$ 3 pairings, 1 crosses: $\\mathbb{P}=1/3$.</td></tr><tr><td>Semicircle containment</td><td>$\\mathbb{P}=N/2^{N-1}$.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Majority Heads in Three Coin Tosses",
+      "problemId": "citadel_qdsi_p28"
+    },
+    {
+      "number": "2",
+      "name": "Parity of Heads in Coin Tosses",
+      "problemId": "quant_interview_fundamental_qdsi_p40"
+    },
+    {
+      "number": "3",
+      "name": "The Birthday Paradox",
+      "problemId": "quant_interview_fundamental_qdsi_p26"
+    },
+    {
+      "number": "4",
+      "name": "Three Non-Consecutive Integers",
+      "problemId": "citadel_qdsi_p26"
+    },
+    {
+      "number": "5",
+      "name": "Consecutive Sixes in Three Dice Rolls",
+      "problemId": "quant_interview_fundamental_qdsi_p3"
+    },
+    {
+      "number": "6",
+      "name": "Adjacent Friends Around a Round Table",
+      "problemId": "quant_interview_fundamental_qdsi_p70"
+    },
+    {
+      "number": "7",
+      "name": "Each Player Receives an Ace",
+      "problemId": "quant_interview_fundamental_qdsi_p17"
+    },
+    {
+      "number": "8",
+      "name": "The Derangement Problem",
+      "problemId": "quant_interview_fundamental_qdsi_p25"
+    },
+    {
+      "number": "9",
+      "name": "All Points in a Semicircle",
+      "problemId": "quant_interview_fundamental_qdsi_p24"
+    },
+    {
+      "number": "10",
+      "name": "Two Random Chords Intersect",
+      "problemId": "quant_interview_fundamental_qdsi_p10"
+    },
+    {
+      "number": "11",
+      "name": "Triangle Formation from Stick Breaks",
+      "problemId": "quant_interview_fundamental_qdsi_p86"
+    },
+    {
+      "number": "A1",
+      "name": "Average Chord Length of the Unit Circle",
+      "problemId": "citadel_qdsi_p24"
+    },
+    {
+      "number": "A2",
+      "name": "Balanced Assignment of Seniors Across Teams",
+      "problemId": "quant_interview_fundamental_qdsi_p69"
+    }
+  ]
+}

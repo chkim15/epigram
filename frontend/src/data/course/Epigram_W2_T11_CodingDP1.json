@@ -1,0 +1,94 @@
+{
+  "weekNum": 2,
+  "topicNum": 11,
+  "topicName": "Coding Session 1: Dynamic Programming I",
+  "subtopics": "1-D DP $\\cdot$ Unbounded Knapsack $\\cdot$ LIS $\\cdot$ Tracking Min/Max Simultaneously",
+  "freeProblems": 4,
+  "premiumProblems": 4,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "LC 70, 198, 213, 322, 518, 139, 300, 152",
+  "learningObjectives": [],
+  "sections": [
+    {
+      "title": "Fibonacci-Style 1-D DP",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "LC 70",
+          "difficulty": "easy",
+          "tier": "free",
+          "content": "**Climbing Stairs.** You can climb 1 or 2 steps at a time. How many distinct ways to reach step $n$?",
+          "solution": "**State:** $dp[i]$ = number of ways to reach step $i$.\n\n**Recurrence:** The last step was either 1 or 2 steps back: \\[dp[i] = dp[i-1] + dp[i-2]\\] **Base cases:** $dp[1]=1$, $dp[2]=2$.\n\nThis is the Fibonacci sequence shifted by one index.\n\n\\begin{lstlisting}\ndef climbStairs(n: int) -> int:\n    if n <= 2:\n        return n\n    a, b = 1, 2\n    for _ in range(n - 2):\n        a, b = b, a + b\n    return b\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(1)$ space.\n\n**Key insight:** Any problem of the form “reach state $i$ from states $i-1$ or $i-2$” maps to Fibonacci. Reduce space to $O(1)$ by keeping only the previous two values."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 198",
+          "difficulty": "easy",
+          "problemId": "lc_198",
+          "content": "**House Robber.** Given an array of non-negative integers \\texttt{nums}, you cannot rob two adjacent houses. Return the maximum amount you can rob.",
+          "solution": "**State:** $dp[i]$ = max rob amount using the first $i$ houses.\n\n**Recurrence:** \\[dp[i] = \\max(dp[i-1],\\; dp[i-2] + \\text{nums}[i])\\] Either skip house $i$ (take $dp[i-1]$) or rob it (take $dp[i-2]$ + current).\n\n\\begin{lstlisting}\ndef rob(nums: list[int]) -> int:\n    prev2, prev1 = 0, 0\n    for n in nums:\n        prev2, prev1 = prev1, max(prev1, prev2 + n)\n    return prev1\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(1)$ space.\n\n**LC 213 extension (circular street):** Houses 0 and $n-1$ are adjacent. Run \\texttt{rob} twice — once on \\texttt{nums[0..n-2]}, once on \\texttt{nums[1..n-1]} — and take the max.\n\n\\begin{lstlisting}\ndef robCircular(nums: list[int]) -> int:\n    if len(nums) == 1:\n        return nums[0]\n    return max(rob(nums[:-1]), rob(nums[1:]))\n\\end{lstlisting}\n\n**Key insight:** When adding a constraint (adjacency), ask which *previous* states are still valid. Circular constraint $\\Rightarrow$ fix one endpoint and solve the linear subproblem twice."
+        }
+      ]
+    },
+    {
+      "title": "Unbounded Knapsack DP",
+      "blocks": [
+        {
+          "type": "freeproblem",
+          "number": "LC 322",
+          "difficulty": "medium",
+          "problemId": "lc_322",
+          "content": "**Coin Change.** Given coin denominations and a target \\texttt{amount}, return the minimum number of coins to make the amount, or $-1$ if impossible.",
+          "solution": "**State:** $dp[i]$ = minimum coins to make amount $i$.\n\n**Recurrence:** \\[dp[i] = \\min_{c\\,\\in\\,\\text{coins},\\;c\\leq i}\\bigl(dp[i-c] + 1\\bigr)\\]\n\n**Base case:** $dp[0]=0$; $dp[i]=\\infty$ initially.\n\n\\begin{lstlisting}\ndef coinChange(coins: list[int], amount: int) -> int:\n    dp = [float('inf')] * (amount + 1)\n    dp[0] = 0\n    for i in range(1, amount + 1):\n        for c in coins:\n            if c <= i:\n                dp[i] = min(dp[i], dp[i - c] + 1)\n    return dp[amount] if dp[amount] != float('inf') else -1\n\\end{lstlisting}\n\n**Complexity:** $O(\\text{amount}\\times|\\text{coins}|)$ time, $O(\\text{amount})$ space.\n\n**Key insight:** Each coin can be reused (unbounded knapsack). Iterate *amounts* in the outer loop and *coins* in the inner loop. Contrast with 0/1 knapsack where each item is used at most once."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 518",
+          "difficulty": "medium",
+          "problemId": "lc_518",
+          "content": "**Coin Change 2.** Return the number of distinct combinations of coins that sum to \\texttt{amount} (coins can be reused; order does not matter).",
+          "solution": "**State:** $dp[i]$ = number of ways to make amount $i$.\n\n**Recurrence:** \\[dp[i] = \\sum_{c\\,\\in\\,\\text{coins},\\;c\\leq i}dp[i-c]\\]\n\n**Key:** To count *combinations* (not permutations), iterate coins in the *outer* loop and amounts in the *inner* loop. This ensures each coin denomination is only “introduced” once.\n\n\\begin{lstlisting}\ndef change(amount: int, coins: list[int]) -> int:\n    dp = [0] * (amount + 1)\n    dp[0] = 1                    # one way to make 0: use nothing\n    for c in coins:              # outer: coin (fixes ordering)\n        for i in range(c, amount + 1):\n            dp[i] += dp[i - c]\n    return dp[amount]\n\\end{lstlisting}\n\n**Complexity:** $O(\\text{amount}\\times|\\text{coins}|)$ time, $O(\\text{amount})$ space.\n\n**LC 322 vs LC 518 — the loop order trick:**  <table class=\"course-table\"><tr><td></td><td>Outer loop</td><td>Counts</td></tr><tr><td>LC 322 (min coins)</td><td>amounts</td><td>min over all orderings</td></tr><tr><td>LC 518 (num combos)</td><td>coins</td><td>combinations only (no duplicates)</td></tr><tr><td>*Permutations*</td><td>amounts</td><td>would count \\{1,2\\} and \\{2,1\\} separately</td></tr></table>"
+        }
+      ]
+    },
+    {
+      "title": "String and Sequence DP",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "LC 139",
+          "difficulty": "medium",
+          "problemId": "lc_139",
+          "content": "**Word Break.** Given a string \\texttt{s} and a list of words \\texttt{wordDict}, return \\texttt{True} if \\texttt{s} can be segmented into a sequence of dictionary words.",
+          "solution": "**State:** $dp[i]$ = \\texttt{True} iff \\texttt{s[:i]} can be segmented.\n\n**Recurrence:** \\[dp[i] = \\bigvee_{j<i}\\bigl(dp[j] \\;\\wedge\\; s[j{:}i]\\in\\texttt{wordDict}\\bigr)\\]\n\n\\begin{lstlisting}\ndef wordBreak(s: str, wordDict: list[str]) -> bool:\n    words = set(wordDict)       # O(1) lookup\n    n = len(s)\n    dp = [False] * (n + 1)\n    dp[0] = True                # empty prefix is always valid\n    for i in range(1, n + 1):\n        for j in range(i):\n            if dp[j] and s[j:i] in words:\n                dp[i] = True\n                break           # found one valid split; stop early\n    return dp[n]\n\\end{lstlisting}\n\n**Complexity:** $O(n^{2})$ time (or $O(n\\cdot W)$ where $W$ is max word length), $O(n)$ space.\n\n**Key insight:** $dp[i]$ depends on all prior $dp[j]$ — this is a “reachability” DP. Using a \\texttt{set} for $O(1)$ word lookup avoids repeatedly scanning the dictionary."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 300",
+          "difficulty": "medium",
+          "problemId": "lc_300",
+          "content": "**Longest Increasing Subsequence (LIS).** Return the length of the longest strictly increasing subsequence of \\texttt{nums}. Achieve $O(n\\log n)$ time.",
+          "solution": "**$O(n^{2**)$ DP approach} (intuitive):\n\n$dp[i]$ = length of LIS ending at index $i$. $dp[i] = 1 + \\max(dp[j])$ for all $j<i$ with $\\texttt{nums}[j] < \\texttt{nums}[i]$.\n\n**$O(n\\log n)$ patience sorting** (optimal):\n\nMaintain a list \\texttt{tails} where \\texttt{tails[k]} is the smallest tail element of all increasing subsequences of length $k+1$. For each new element, binary search for its position in \\texttt{tails} and replace (or append).\n\n\\begin{lstlisting}\nimport bisect\n\ndef lengthOfLIS(nums: list[int]) -> int:\n    tails = []                          # tails[k] = smallest tail of LIS len k+1\n    for n in nums:\n        pos = bisect.bisect_left(tails, n)   # find leftmost >= n\n        if pos == len(tails):\n            tails.append(n)             # extend LIS\n        else:\n            tails[pos] = n              # replace to keep tails small\n    return len(tails)\n\\end{lstlisting}\n\n**Complexity:** $O(n\\log n)$ time, $O(n)$ space.\n\n**Key insight:** \\texttt{tails} is always sorted (invariant). Replacing $\\texttt{tails}[\\texttt{pos}]$ doesn't change LIS length for previous elements but enables longer sequences later. The final \\texttt{len(tails)} is the LIS length."
+        }
+      ]
+    },
+    {
+      "title": "Tracking Min and Max Simultaneously",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "LC 152",
+          "difficulty": "medium",
+          "problemId": "lc_152",
+          "content": "**Maximum Product Subarray.** Return the maximum product of a contiguous subarray of \\texttt{nums}.",
+          "solution": "**Why you need to track both max and min:** A negative number can flip the minimum product to the maximum. So the current maximum could come from multiplying the previous *minimum* (which may be large and negative) by a new negative number.\n\n**State:** At each index, maintain: \\begin{itemize}\\item \\texttt{max_p}: maximum product ending here\n\n\\item \\texttt{min_p}: minimum product ending here (most negative)\\end{itemize}\n\n**Recurrence:** \\[\\texttt{max_p}= \\max(\\texttt{nums}[i],\\; \\texttt{max_p}\\times\\texttt{nums}[i],\\; \\texttt{min_p}\\times\\texttt{nums}[i])\\] \\[\\texttt{min_p}= \\min(\\texttt{nums}[i],\\; \\texttt{max_p}\\times\\texttt{nums}[i],\\; \\texttt{min_p}\\times\\texttt{nums}[i])\\] (Use old \\texttt{max_p} and \\texttt{min_p} before updating both.)\n\n\\begin{lstlisting}\ndef maxProduct(nums: list[int]) -> int:\n    max_p = min_p = res = nums[0]\n    for n in nums[1:]:\n        # Compute both new values before updating (use temp)\n        new_max = max(n, max_p * n, min_p * n)\n        new_min = min(n, max_p * n, min_p * n)\n        max_p, min_p = new_max, new_min\n        res = max(res, max_p)\n    return res\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(1)$ space.\n\n**Edge cases:** \\begin{itemize}\\item Zeros reset both \\texttt{max_p} and \\texttt{min_p} to \\texttt{nums[i]=0} (a subarray containing 0 has product 0).\n\n\\item Single negative: the max product may be a single element (\\texttt{max(n, ...)}).\\end{itemize}\n\n**Key insight:** When the optimal state depends on *two* competing predecessors (here: max and min), track both. This pattern recurs in problems involving sign flips or direction reversals."
+        }
+      ]
+    },
+    {
+      "title": "Pattern Summary and Common Mistakes",
+      "blocks": []
+    }
+  ],
+  "problemIndex": []
+}

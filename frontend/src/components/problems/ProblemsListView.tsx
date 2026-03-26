@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, CheckCircle, Circle, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, CheckCircle, Circle, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { MathContent } from "@/lib/utils/katex";
 import { slugify } from "@/lib/utils/slugify";
 
@@ -29,6 +29,12 @@ interface ProblemsListViewProps {
   onDifficultyChange: (difficulty: string | null) => void;
   selectedMainTopic: string | null;
   onMainTopicChange: (topic: string | null) => void;
+  selectedTag: string | null;
+  onTagChange: (tag: string | null) => void;
+  selectedStatus: string | null;
+  onStatusChange: (status: string | null) => void;
+  bookmarkedSet: Set<string>;
+  onToggleBookmark: (problemId: string) => void;
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -45,6 +51,15 @@ const DIFFICULTY_LABELS: Record<string, string> = {
   very_hard: 'Very Hard',
 };
 
+const TAG_LABELS: Record<string, string> = {
+  'must-do': 'Must Do',
+  'frequently-tested': 'Frequently Tested',
+  'conceptual': 'Conceptual',
+  'mental math': 'Mental Math',
+  'multiple solution paths': 'Multiple Solution Paths',
+  'open-ended': 'Open-Ended',
+};
+
 export default function ProblemsListView({
   problems,
   completedSet,
@@ -57,6 +72,12 @@ export default function ProblemsListView({
   onDifficultyChange,
   selectedMainTopic,
   onMainTopicChange,
+  selectedTag,
+  onTagChange,
+  selectedStatus,
+  onStatusChange,
+  bookmarkedSet,
+  onToggleBookmark,
 }: ProblemsListViewProps) {
   const router = useRouter();
   const [topicsExpanded, setTopicsExpanded] = useState(false);
@@ -78,7 +99,7 @@ export default function ProblemsListView({
           Probability, Stochastic Processes, Statistics, and Brain Teasers
         </p>
         <button
-          onClick={() => router.push('/practice')}
+          onClick={() => router.push('/course')}
           className="px-4 py-1.5 text-sm font-medium rounded-xl border cursor-pointer transition-opacity"
           style={{
             borderColor: 'rgba(255,255,255,0.3)',
@@ -201,6 +222,38 @@ export default function ProblemsListView({
           <option value="very_hard">Very Hard</option>
         </select>
 
+        {/* Tag Dropdown */}
+        <select
+          value={selectedTag || ''}
+          onChange={(e) => onTagChange(e.target.value || null)}
+          className="h-9 px-3 text-sm rounded-xl border bg-white cursor-pointer focus:outline-none"
+          style={{
+            borderColor: 'var(--border)',
+            color: 'var(--foreground)',
+          }}
+        >
+          <option value="">All Tags</option>
+          {Object.entries(TAG_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+
+        {/* Status Dropdown */}
+        <select
+          value={selectedStatus || ''}
+          onChange={(e) => onStatusChange(e.target.value || null)}
+          className="h-9 px-3 text-sm rounded-xl border bg-white cursor-pointer focus:outline-none"
+          style={{
+            borderColor: 'var(--border)',
+            color: 'var(--foreground)',
+          }}
+        >
+          <option value="">All Status</option>
+          <option value="not_started">Not Started</option>
+          <option value="completed">Completed</option>
+          <option value="bookmarked">Bookmarked</option>
+        </select>
+
         {/* Solved Count */}
         <div className="flex-shrink-0 ml-auto">
           <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
@@ -219,6 +272,7 @@ export default function ProblemsListView({
           <div className="w-8" />
           <div className="flex-1">Title</div>
           <div className="w-20 text-right">Difficulty</div>
+          <div className="w-10" />
         </div>
 
         {/* Rows */}
@@ -231,6 +285,7 @@ export default function ProblemsListView({
         ) : (
           problems.map((problem) => {
             const isCompleted = completedSet.has(problem.id);
+            const isBookmarked = bookmarkedSet.has(problem.id);
             const diffColor = DIFFICULTY_COLORS[problem.difficulty || ''] || 'var(--muted-foreground)';
             const diffLabel = DIFFICULTY_LABELS[problem.difficulty || ''] || problem.difficulty || '—';
 
@@ -238,7 +293,7 @@ export default function ProblemsListView({
               <div
                 key={problem.id}
                 onClick={() => router.push(`/problems/${problem.problem_name ? slugify(problem.problem_name) : problem.id}`)}
-                className="flex items-center py-3 px-2 border-b cursor-pointer transition-colors"
+                className="group flex items-center py-3 px-2 border-b cursor-pointer transition-colors"
                 style={{ borderColor: 'var(--border)' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--sidebar-background)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -268,6 +323,33 @@ export default function ProblemsListView({
                   <span className="text-sm font-medium" style={{ color: diffColor }}>
                     {diffLabel}
                   </span>
+                </div>
+
+                {/* Bookmark Star */}
+                <div className="w-10 flex justify-center flex-shrink-0">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleBookmark(problem.id);
+                    }}
+                    className={`p-1 rounded-md cursor-pointer transition-colors ${
+                      isBookmarked ? '' : 'opacity-0 group-hover:opacity-100'
+                    }`}
+                    onMouseEnter={(e) => {
+                      if (!isBookmarked) e.currentTarget.style.backgroundColor = 'var(--sidebar-accent)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <Star
+                      className="h-4 w-4"
+                      style={{
+                        color: isBookmarked ? '#eab308' : 'var(--muted-foreground)',
+                        fill: isBookmarked ? '#eab308' : 'none',
+                      }}
+                    />
+                  </button>
                 </div>
               </div>
             );

@@ -1,0 +1,315 @@
+::: learningobjectives
+
+| **Pattern** | **Problems in this session** |
+|---|---|
+| **2-D string DP** | LC 1143 (LCS), LC 72 (Edit Distance), LC 97 (Interleave), LC 115 (Distinct Subseq.) |
+| **0/1 Knapsack** | LC 416 (Partition Equal Subset Sum) |
+| **State machine DP** | LC 309 (Stock + Cooldown) |
+| **Interval DP** | LC 312 (Burst Balloons) |
+| **Regex / wildcard** | LC 10 (Regular Expression Matching) |
+
+
+**2-D DP template:** `dp[i][j]` represents a relationship between prefixes $s_1[:i]$ and $s_2[:j]$. Fill row-by-row. Space can often be reduced to $O(\min(m,n))$ by keeping only the previous row.
+:::
+
+# 2-D String DP
+
+::: {.workedbox number="LC 1143" difficulty="medium" problemid=""}
+**Longest Common Subsequence.** Given strings `text1` and `text2`, return the length of their longest common subsequence (LCS). A subsequence need not be contiguous.
+:::
+
+::: solutionbox
+**State:** $dp[i][j]$ = LCS length of `text1[:i]` and `text2[:j]`.
+
+**Recurrence:** $$dp[i][j] =
+  \begin{cases}
+    dp[i-1][j-1]+1 & \text{if } \texttt{text1}[i-1]=\texttt{text2}[j-1] \\
+    \max(dp[i-1][j],\;dp[i][j-1]) & \text{otherwise}
+  \end{cases}$$
+
+**Base cases:** $dp[0][j]=dp[i][0]=0$ (empty prefix).
+
+    def longestCommonSubsequence(text1: str, text2: str) -> int:
+        m, n = len(text1), len(text2)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if text1[i-1] == text2[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                else:
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+        return dp[m][n]
+
+**Complexity:** $O(mn)$ time, $O(mn)$ space; reduce to $O(\min(m,n))$ by keeping only the previous row.
+
+**Key insight:** LCS is the foundation for many other 2-D string problems. Characters match $\to$ extend diagonal; otherwise take the better of "skip one from either string".
+:::
+
+::: {.freeproblem number="LC 72" difficulty="medium" problemId="lc_72"}
+**Edit Distance.** Return the minimum number of insert, delete, or replace operations to convert `word1` into `word2`.
+:::
+
+::: solutionbox
+**State:** $dp[i][j]$ = edit distance between `word1[:i]` and `word2[:j]`.
+
+**Recurrence:** $$dp[i][j] =
+  \begin{cases}
+    dp[i-1][j-1] & \text{if } w_1[i-1]=w_2[j-1] \\
+    1 + \min(dp[i-1][j],\;dp[i][j-1],\;dp[i-1][j-1])
+      & \text{otherwise (delete, insert, replace)}
+  \end{cases}$$
+
+**Base cases:** $dp[i][0]=i$ (delete all), $dp[0][j]=j$ (insert all).
+
+    def minDistance(word1: str, word2: str) -> int:
+        m, n = len(word1), len(word2)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        for i in range(m + 1): dp[i][0] = i   # delete i chars
+        for j in range(n + 1): dp[0][j] = j   # insert j chars
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if word1[i-1] == word2[j-1]:
+                    dp[i][j] = dp[i-1][j-1]
+                else:
+                    dp[i][j] = 1 + min(dp[i-1][j],    # delete from word1
+                                       dp[i][j-1],    # insert into word1
+                                       dp[i-1][j-1])  # replace
+        return dp[m][n]
+
+**Complexity:** $O(mn)$ time, $O(mn)$ space.
+
+**Visualise the recurrence:** Think of a grid where moving *down* = delete, moving *right* = insert, and moving *diagonally* = replace (or free if chars match).
+:::
+
+::: {.freeproblem number="LC 97" difficulty="medium" problemId="lc_97"}
+**Interleaving String.** Given `s1`, `s2`, `s3`, return `True` iff `s3` is formed by interleaving `s1` and `s2` (preserving each string's character order).
+:::
+
+::: solutionbox
+**State:** $dp[i][j]$ = `True` iff `s3[:i+j]` can be formed by interleaving `s1[:i]` and `s2[:j]`.
+
+**Recurrence:** $$dp[i][j] =
+  \bigl(dp[i-1][j] \wedge s_1[i-1]=s_3[i+j-1]\bigr)
+  \;\vee\;
+  \bigl(dp[i][j-1] \wedge s_2[j-1]=s_3[i+j-1]\bigr)$$
+
+    def isInterleave(s1: str, s2: str, s3: str) -> bool:
+        m, n = len(s1), len(s2)
+        if m + n != len(s3): return False
+        dp = [[False] * (n + 1) for _ in range(m + 1)]
+        dp[0][0] = True
+        for i in range(1, m + 1):
+            dp[i][0] = dp[i-1][0] and s1[i-1] == s3[i-1]
+        for j in range(1, n + 1):
+            dp[0][j] = dp[0][j-1] and s2[j-1] == s3[j-1]
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                dp[i][j] = (dp[i-1][j] and s1[i-1] == s3[i+j-1]) or \
+                           (dp[i][j-1] and s2[j-1] == s3[i+j-1])
+        return dp[m][n]
+
+**Complexity:** $O(mn)$ time, $O(mn)$ space (reducible to $O(n)$ with a 1-D rolling array).
+
+**Key insight:** At each cell $(i,j)$, we consumed $i$ chars from `s1` and $j$ from `s2`, so we've consumed $i+j$ chars of `s3`. The next char of `s3` is at index $i+j-1$.
+:::
+
+::: {.freeproblem number="LC 416" difficulty="medium" problemId="lc_416"}
+**Partition Equal Subset Sum.** Given an integer array `nums`, return `True` iff it can be split into two subsets with equal sum.
+:::
+
+::: solutionbox
+**Reduction to 0/1 knapsack:** Total sum must be even; target $= \text{total}/2$. Find if any subset sums to `target`. Each element used at most once (0/1).
+
+**State:** $dp[j]$ = `True` iff a subset of elements seen so far sums to $j$.
+
+**Key:** Iterate $j$ *backwards* (right to left) to ensure each element is used at most once.
+
+    def canPartition(nums: list[int]) -> bool:
+        total = sum(nums)
+        if total % 2:
+            return False
+        target = total // 2
+        dp = [False] * (target + 1)
+        dp[0] = True                           # empty subset sums to 0
+        for n in nums:
+            for j in range(target, n - 1, -1): # BACKWARDS: 0/1 knapsack
+                dp[j] = dp[j] or dp[j - n]
+        return dp[target]
+
+**Complexity:** $O(n\cdot\text{target})$ time, $O(\text{target})$ space.
+
+**0/1 vs unbounded knapsack (the critical loop direction):**
+:::
+
+# State Machine DP and Interval DP
+
+::: {.premiumproblem number="LC 309" difficulty="medium" problemId="lc_309"}
+**Best Time to Buy and Sell Stock with Cooldown.** After selling, you must wait 1 day before buying again. Find the maximum profit.
+:::
+
+::: solutionbox
+**State machine:** At each day, you are in one of three states:
+
+- **held**: currently holding a stock
+
+- **sold**: just sold today (must cooldown tomorrow)
+
+- **rest**: in cooldown or idle (can buy tomorrow)
+
+**Transitions:** $$\texttt{held} = \max(\texttt{held},\;\texttt{rest} - \texttt{price})$$ $$\texttt{sold} = \texttt{held} + \texttt{price}$$ $$\texttt{rest} = \max(\texttt{rest},\;\texttt{sold})$$
+
+    def maxProfit(prices: list[int]) -> int:
+        held = float('-inf')   # max profit while holding
+        sold = 0               # max profit just after selling
+        rest = 0               # max profit while resting/idle
+        for price in prices:
+            held, sold, rest = (max(held, rest - price),  # buy or hold
+                                held + price,             # sell today
+                                max(rest, sold))          # cooldown or stay idle
+        return max(sold, rest)
+
+**Complexity:** $O(n)$ time, $O(1)$ space.
+
+**Key insight:** State machine DP explicitly names each "mode" and writes transitions between them. The initial `held = -inf` prevents buying before any day exists. This pattern generalises to LC 121--188 (stock problems with various constraints: at most $k$ transactions, transaction fee, etc.).
+:::
+
+::: {.premiumproblem number="LC 312" difficulty="hard" problemId="lc_312"}
+**Burst Balloons.** Given balloon values `nums`, bursting balloon $i$ earns $\texttt{nums}[i-1]\times\texttt{nums}[i]\times\texttt{nums}[i+1]$ coins. Maximise total coins.
+:::
+
+::: solutionbox
+**Key insight:** Think in reverse. Instead of choosing which balloon to burst *first*, ask: which balloon is burst *last* in the range $(\texttt{left}, \texttt{right})$?
+
+**Padding:** Prepend and append 1: $\texttt{nums} = [1] +
+\texttt{nums} + [1]$.
+
+**State:** $dp[\texttt{left}][\texttt{right}]$ = max coins from bursting all balloons strictly between indices `left` and `right` (exclusive endpoints are never burst in this subproblem).
+
+**Recurrence:** For each candidate "last balloon" $k$ in $(\texttt{left}, \texttt{right})$: $$dp[l][r] = \max_k\bigl(\texttt{nums}[l]\times\texttt{nums}[k]
+  \times\texttt{nums}[r] + dp[l][k] + dp[k][r]\bigr)$$
+
+    def maxCoins(nums: list[int]) -> int:
+        nums = [1] + nums + [1]        # sentinel boundaries
+        n = len(nums)
+        dp = [[0] * n for _ in range(n)]
+        # iterate over window sizes
+        for length in range(2, n):     # window length (at least 1 interior)
+            for left in range(0, n - length):
+                right = left + length
+                for k in range(left + 1, right):   # k is last burst
+                    coins = (nums[left] * nums[k] * nums[right]
+                             + dp[left][k] + dp[k][right])
+                    dp[left][right] = max(dp[left][right], coins)
+        return dp[0][n - 1]
+
+**Complexity:** $O(n^3)$ time, $O(n^2)$ space.
+
+**Why "last burst" works:** When $k$ is burst last in $(\texttt{left}, \texttt{right})$, its neighbours are exactly `left` and `right` (all others already gone). This avoids the dependency problem of "burst first" reasoning.
+:::
+
+# Regex and Subsequence Counting
+
+::: {.premiumproblem number="LC 10" difficulty="hard" problemId="lc_10"}
+**Regular Expression Matching.** Implement matching for `.` (any char) and `*` (zero or more of preceding element). Return `True` iff `p` matches the entire string `s`.
+:::
+
+::: solutionbox
+**State:** $dp[i][j]$ = `True` iff `p[:j]` matches `s[:i]`.
+
+**Recurrence:**
+
+- If $p[j-1]$ is a literal or `.`: match single char. $dp[i][j] = dp[i-1][j-1]$ if $p[j-1]$ matches $s[i-1]$.
+
+- If $p[j-1]$ is `*`: consider two sub-cases:
+
+  - Use *zero* copies of $p[j-2]$: $dp[i][j] = dp[i][j-2]$.
+
+  - Use *one or more* copies: valid only if $p[j-2]$ matches $s[i-1]$. Then $dp[i][j] \mathrel{|}= dp[i-1][j]$ ("consume one more char of `s`").
+
+<!-- -->
+
+    def isMatch(s: str, p: str) -> bool:
+        m, n = len(s), len(p)
+        dp = [[False] * (n + 1) for _ in range(m + 1)]
+        dp[0][0] = True
+        # Handle patterns like a*, a*b*, a*b*c* matching empty string
+        for j in range(2, n + 1):
+            if p[j-1] == '*':
+                dp[0][j] = dp[0][j-2]
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if p[j-1] == '*':
+                    dp[i][j] = dp[i][j-2]                    # zero occurrences
+                    if p[j-2] == '.' or p[j-2] == s[i-1]:
+                        dp[i][j] = dp[i][j] or dp[i-1][j]    # one+ occurrences
+                elif p[j-1] == '.' or p[j-1] == s[i-1]:
+                    dp[i][j] = dp[i-1][j-1]
+        return dp[m][n]
+
+**Complexity:** $O(mn)$ time, $O(mn)$ space.
+
+**Key insight:** The `*` case has two branches: zero uses (skip two pattern chars) or one-or-more uses (consume one source char). The "one or more" branch uses $dp[i-1][j]$ (not $dp[i-1][j-2]$) because the `*` remains active.
+:::
+
+::: {.premiumproblem number="LC 115" difficulty="hard" problemId="lc_115"}
+**Distinct Subsequences.** Return the number of distinct ways `t` appears as a subsequence of `s`.
+:::
+
+::: solutionbox
+**State:** $dp[i][j]$ = number of ways `t[:j]` appears as a subsequence of `s[:i]`.
+
+**Recurrence:**
+
+- Always: $dp[i][j] \mathrel{+}= dp[i-1][j]$ (skip $s[i-1]$: all ways using only $s[:i-1]$).
+
+- If $s[i-1]=t[j-1]$: additionally $dp[i][j] \mathrel{+}= dp[i-1][j-1]$ (match $s[i-1]$ with $t[j-1]$).
+
+**Base cases:** $dp[i][0]=1$ for all $i$ (empty `t` is always a subsequence).
+
+    def numDistinct(s: str, t: str) -> int:
+        m, n = len(s), len(t)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        for i in range(m + 1):
+            dp[i][0] = 1          # empty t is always a subsequence
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                dp[i][j] = dp[i-1][j]              # skip s[i-1]
+                if s[i-1] == t[j-1]:
+                    dp[i][j] += dp[i-1][j-1]       # match s[i-1] with t[j-1]
+        return dp[m][n]
+
+**Complexity:** $O(mn)$ time, $O(mn)$ space (reducible to $O(n)$).
+
+**Key insight:** At each cell, you always have the option to *skip* the current character of `s`. If it matches, you also have the option to *use* it. Summing both options counts all distinct ways.
+:::
+
+# Pattern Summary and Common Mistakes
+
+::: tcolorbox
+**DP II Pattern Toolkit**
+
+
+| **Problem** | **State** | **Key idea** |
+|---|---|---|
+| LC 1143 LCS | $dp[i][j]$ = LCS length | match: diagonal; else: max of skip |
+| LC 72 Edit dist | $dp[i][j]$ = edit ops | 3-way min: delete/insert/replace |
+| LC 97 Interleave | $dp[i][j]$ = reachable | next char is at $s_3[i+j-1]$ |
+| LC 416 Partition | $dp[j]$ = reachable sum | iterate $j$ *backwards* (0/1) |
+| LC 309 Cooldown | 3 states: held/sold/rest | state machine transitions |
+| LC 312 Balloons | $dp[l][r]$ = max coins | "last burst" avoids dependency |
+| LC 10 Regex | $dp[i][j]$ = match? | `*`: two branches (0 or 1+) |
+| LC 115 Subseq | $dp[i][j]$ = count | always skip; also match if equal |
+
+
+**Common Mistakes**
+
+- **LC 416 (0/1 knapsack):** iterating $j$ forwards allows reusing the same element --- always go backwards.
+
+- **LC 312 (balloons):** trying to reason about which balloon to burst *first* creates overlapping subproblems. Always think "last burst".
+
+- **LC 10 (`*` case):** the "one or more" branch is $dp[i-1][j]$, not $dp[i-1][j-2]$. The pattern index $j$ stays fixed because `*` can still match more characters.
+
+- **LC 97 (interleave):** forgetting the early-exit check $m+n\neq|s_3|$ leads to incorrect results on length mismatches.
+
+- **LC 309 (cooldown):** using old `held` to update `sold`. Compute all three new values simultaneously (Python tuple assignment handles this automatically).
+:::

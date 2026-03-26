@@ -1,0 +1,226 @@
+{
+  "weekNum": 2,
+  "topicNum": 8,
+  "topicName": "Markov Chains",
+  "subtopics": "Stationary Distributions $\\cdot$ Absorbing Chains $\\cdot$ Pattern Waiting Times $\\cdot$ Random Walks on Graphs",
+  "freeProblems": 6,
+  "premiumProblems": 6,
+  "timeEstimate": "120–150 minutes",
+  "prerequisites": "Week 1 — Topics 1–3 (Probability foundations & distributions)",
+  "learningObjectives": [
+    "**Define and classify Markov chains** — write the transition matrix, identify whether a chain is irreducible and aperiodic, and state the conditions for a unique stationary distribution.",
+    "**Find the stationary distribution** by solving $\\pi P = \\pi$ with $\\sum_{i} \\pi_{i} = 1$, and interpret it as the long-run fraction of time spent in each state.",
+    "**Use the stationary distribution to find expected return times**: $m_{i} = 1/\\pi_{i}$ for any state $i$ in an irreducible aperiodic chain.",
+    "**Set up and solve absorbing chain problems** using the fundamental matrix $N = (I-Q)^{-1}$, including Gambler's Ruin and other stopping problems.",
+    "**Compute pattern waiting times** by designing a Markov chain whose states track progress toward the target pattern, then solving the resulting linear system.",
+    "**Compare pattern waiting times intuitively** — understand why HH takes longer than HT despite both having the same “naive” probability of occurring at each step.",
+    "**Analyse random walks on graphs** by setting up transition matrices and solving systems of equations for hitting probabilities."
+  ],
+  "sections": [
+    {
+      "title": "Introduction: Markov Chains in Quant Finance",
+      "blocks": [
+        {
+          "type": "text",
+          "content": "A**Markov chain**isastochasticprocesswherethefuturedependsonthepresentstatealone,notonthehistory.Inquantfinance,Markovchainsmodelcreditratings,regimeswitches,orderbookstates,andmarketmicrostructure.Ininterviews,theyappearbothdirectly(“findthestationarydistribution”)anddisguised(“expectedtimetoseepatternHH”)."
+        },
+        {
+          "type": "conceptbox",
+          "title": "Markov Chain Fundamentals",
+          "content": "A (time-homogeneous, discrete-time) Markov chain on state space $\\mathcal{S}$ is defined by the **transition matrix** $P$ with $P_{ij}= \\mathbb{P}(X_{t+1}=j \\mid X_{t}=i)$.\n\n**Key properties:** \\begin{itemize}\\item **Irreducible:** every state is reachable from every other state. A finite irreducible chain has a *unique* stationary distribution.\n\n\\item **Aperiodic:** the GCD of return times to state $i$ is 1 for all $i$. Irreducible + aperiodic $\\Rightarrow$ $P^{n} \\to \\mathbf{1}\\pi^{\\top}$ as $n\\to\\infty$.\n\n\\item **Stationary distribution** $\\pi$: satisfies $\\pi P = \\pi$ and $\\sum_{i} \\pi_{i} = 1$.\n\n\\item **Expected return time:** for irreducible chains, $m_{i} = \\mathbb{E}[\\text{return time to }i] = 1/\\pi_{i}$.\\end{itemize}"
+        },
+        {
+          "type": "conceptbox",
+          "title": "Absorbing Chains and the Fundamental Matrix",
+          "content": "A state is **absorbing** if $P_{ii}=1$. Order states as transient first, absorbing last: \\[P = \\begin{pmatrix}Q & R \\\\ 0 & I\\end{pmatrix}\\] **Fundamental matrix:** $N = (I-Q)^{-1}$. \\begin{itemize}\\item $N_{ij}$ = expected number of times in transient state $j$ starting from transient state $i$.\n\n\\item Expected steps until absorption from state $i$: $t_{i} = (N\\mathbf{1})_{i}$ where $\\mathbf{1}$ is the all-ones vector.\n\n\\item Absorption probabilities into absorbing state $k$: $B = NR$.\\end{itemize}"
+        }
+      ]
+    },
+    {
+      "title": "Stationary Distributions",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "easy",
+          "tier": "free",
+          "content": "**Weather Chain: Stationary Distribution.** The weather is Sunny (S) or Rainy (R). From Sunny: stay Sunny with prob 0.8. From Rainy: become Sunny with prob 0.4. \\begin{enumerate}[label=(\\alph{*})]\\item Write the transition matrix $P$.\n\n\\item Find the stationary distribution $\\pi$.\n\n\\item Starting Sunny, find the expected days until the first Rainy day.\\end{enumerate}",
+          "solution": "**(a) Transition matrix** (rows = current state, cols = next state): \\[P = \\bordermatrix{ & S & R \\cr S & 0.8 & 0.2 \\cr R & 0.4 & 0.6 }\\]\n\n**(b) Stationary distribution.** Solve $\\pi P = \\pi$, $\\pi_{S} + \\pi_{R} = 1$: \\[\\pi_{S} = 0.8\\pi_{S} + 0.4\\pi_{R} \\implies 0.2\\pi_{S} = 0.4\\pi_{R} \\implies \\pi_{S} = 2\\pi_{R}\\] With $\\pi_{S} + \\pi_{R} = 1$: $2\\pi_{R} + \\pi_{R} = 1 \\Rightarrow \\pi_{R} = 1/3$, $\\pi_{S} = 2/3$. \\[\\boxed{\\pi = (2/3,\\; 1/3)}\\] **Interpretation:** In the long run, $2/3$ of days are Sunny and $1/3$ are Rainy.\n\n**(c) Expected first passage time from S to R.** Let $h$ = expected days from Sunny until first Rainy day. Condition on the next day: \\[h = 1 + 0.8\\,h + 0.4\\cdot0 \\implies h - 0.8h = 1 \\implies 0.2h = 1 \\implies h = 5\\] Starting Sunny, the expected wait for the first Rainy day is **5 days**.\n\n**Note:** The expected return time to R from R is $1/\\pi_{R} = 3$ days. Since R is visited on average every 3 days and sunny spells last on average 5 days (geometric with success prob $0.2$), these are consistent.\n\n**Key takeaway:** For a 2-state chain with $P_{SR}=\\alpha$ and $P_{RS}=\\beta$: $\\pi_{S} = \\beta/(\\alpha+\\beta)$, $\\pi_{R} = \\alpha/(\\alpha+\\beta)$. Expected first passage from $S\\to R$ is $1/\\alpha$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p103",
+          "content": "**3-State Markov Chain: Expected Return Time.** States $\\{1,2,3\\}$ with transition matrix: \\[P = \\begin{pmatrix}0 & 1 & 0 \\\\ 1/2 & 0 & 1/2 \\\\ 0 & 1 & 0\\end{pmatrix}\\] \\begin{enumerate}[label=(\\alph{*})]\\item Find the stationary distribution.\n\n\\item Find the expected return time to each state.\n\n\\item Is this chain aperiodic? Irreducible?\\end{enumerate}",
+          "solution": "**(a) Stationary distribution.** Solve $\\pi P = \\pi$: \\begin{align*}\\pi_{1}&= \\tfrac{1}{2}\\pi_{2} \\\\ \\pi_{2}&= \\pi_{1} + \\pi_{3} \\\\ \\pi_{3}&= \\tfrac{1}{2}\\pi_{2}\\end{align*} From the first and third equations: $\\pi_{1} = \\pi_{3} = \\frac{1}{2}\\pi_{2}$. With $\\pi_{1}+\\pi_{2}+\\pi_{3}=1$: $\\frac{1}{2}\\pi_{2} + \\pi_{2} + \\frac{1}{2}\\pi_{2}=1 \\Rightarrow 2\\pi_{2}=1 \\Rightarrow \\pi_{2} = 1/2$. \\[\\boxed{\\pi = (1/4,\\; 1/2,\\; 1/4)}\\]\n\n**(b) Expected return times.** $m_{i} = 1/\\pi_{i}$: \\begin{itemize}\\item $m_{1} = 4$ (state 1 is visited every 4 steps on average)\n\n\\item $m_{2} = 2$ (state 2 is visited every 2 steps)\n\n\\item $m_{3} = 4$\\end{itemize}\n\n**(c) Classification.** \\begin{itemize}\\item **Irreducible?** Yes: $1\\to2\\to3$ and $3\\to2\\to1$, so all states communicate.\n\n\\item **Aperiodic?** No. From state 1: the only way to return to 1 is $1\\to2\\to1$ (2 steps) or $1\\to2\\to3\\to2\\to1$ (4 steps), all even. So state 1 has period 2. The chain is **periodic with period 2**.\\end{itemize}\n\n**Consequence:** Despite being periodic, the unique stationary distribution still exists for this irreducible chain, and $m_{i} = 1/\\pi_{i}$ still holds. However, $P^{n}$ does *not* converge to $\\mathbf{1}\\pi^{\\top}$.\n\n**Key takeaway:** Irreducibility guarantees a unique $\\pi$ and the return-time formula. Aperiodicity is additionally needed for $P^{n}\\to\\mathbf{1}\\pi^{\\top}$."
+        }
+      ]
+    },
+    {
+      "title": "Absorbing Chains and Gambler's Ruin",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "3",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p104",
+          "content": "**Absorbing Markov Chain: Gambler's Ruin via Matrices.** A gambler has \\$2. Each step: win \\$1 (prob $1/3$) or lose \\$1 (prob $2/3$). Stop at \\$0 (ruin) or \\$5 (success). \\begin{enumerate}[label=(\\alph{*})]\\item Set up the absorbing Markov chain.\n\n\\item Find the probability of reaching \\$5 before ruin from \\$2.\n\n\\item Find the expected steps until the game ends from \\$2.\\end{enumerate}",
+          "solution": "**(a) Setup.** States: $\\{0,1,2,3,4,5\\}$. Absorbing: $\\{0,5\\}$. Transient: $\\{1,2,3,4\\}$.\n\nTransition matrix (transient block $Q$, absorption block $R$): \\[Q = \\begin{pmatrix}0 & 1/3 & 0 & 0 \\\\ 2/3 & 0 & 1/3 & 0 \\\\ 0 & 2/3 & 0 & 1/3 \\\\ 0 & 0 & 2/3 & 0\\end{pmatrix},\\quad R = \\begin{pmatrix}2/3 & 0 \\\\ 0 & 0 \\\\ 0 & 0 \\\\ 0 & 1/3\\end{pmatrix}\\]\n\n**(b) Absorption probability via Gambler's Ruin formula.**\n\nFor $p\\neq q$, the Gambler's Ruin formula gives the probability of reaching $N$ before 0, starting from $k$, with win prob $p$ per step: \\[\\mathbb{P}(\\text{reach }N\\text{ before }0 \\mid X_{0}=k) = \\frac{1-(q/p)^{k}}{1-(q/p)^{N}}\\] Here $p=1/3$, $q=2/3$, $q/p=2$, $k=2$, $N=5$: \\[\\mathbb{P}(\\text{ruin}^{c} \\mid X_{0}=2) = \\frac{1-2^{2}}{1-2^{5}}= \\frac{1-4}{1-32}= \\frac{-3}{-31}= \\frac{3}{31}\\approx 9.7\\%\\]\n\n**(c) Expected duration.**\n\nFor the biased Gambler's Ruin, the expected duration from state $k$ is: \\[\\mathbb{E}[T \\mid X_{0}=k] = \\frac{N}{q-p}\\cdot\\frac{1-(q/p)^{k}}{1-(q/p)^{N}}- \\frac{k}{q-p}\\] With $p=1/3$, $q=2/3$, $q-p=1/3$, $N=5$, $k=2$: \\[\\mathbb{E}[T\\mid X_{0}=2] = 3N\\cdot\\frac{3}{31}- 3k = 15\\cdot\\frac{3}{31}- 6 = \\frac{45}{31}- 6 = \\frac{45-186}{31}= -\\frac{141}{31}\\] This is negative, indicating a sign error. Let us use the matrix approach:\n\n$N = (I-Q)^{-1}$. Computing $I-Q$ and inverting (numerically): $t = N\\mathbf{1}$ gives the expected absorption time from each state.\n\nFor the biased random walk, the correct formula is: $\\mathbb{E}[T\\mid X_{0}=k] = \\frac{k}{q-p}- \\frac{N}{q-p}\\cdot \\frac{1-(q/p)^{k}}{1-(q/p)^{N}}$. \\[= 3k - 3N\\cdot\\frac{3}{31}= 6 - \\frac{45}{31}= \\frac{186-45}{31}= \\frac{141}{31}\\approx \\boxed{4.55 \\text{ steps}}\\]\n\n**Key takeaway:** The Gambler's Ruin formula $P_{k} = (1-(q/p)^{k})/(1-(q/p)^{N})$ is the go-to for biased random walks. The matrix approach $(I-Q)^{-1}$ is more general but requires computation. With $q>p$ (unfair game), the probability of success is very low and the expected duration is short."
+        }
+      ]
+    },
+    {
+      "title": "Pattern Waiting Times",
+      "blocks": [
+        {
+          "type": "text",
+          "content": "ThemostcommonMarkovchaininterviewproblemsinvolvewaitingforaspecificpatterninasequenceofcoinflips.Thekeytechniqueisdesigningachainwhosestatestrack*progress toward the pattern*."
+        },
+        {
+          "type": "techniquebox",
+          "title": "Pattern Waiting Time via Markov Chain",
+          "content": "To find the expected number of flips until pattern $W$ first appears: \\begin{enumerate}\\item Define states as the length of the longest suffix of the sequence so far that is also a prefix of $W$.\n\n\\item Write the transition equations $e_{i} = 1 + \\sum_{j} P_{ij}e_{j}$ where state “done” has $e = 0$.\n\n\\item Solve the linear system.\\end{enumerate} Alternatively, use the **optional stopping theorem** with a martingale."
+        },
+        {
+          "type": "workedproblem",
+          "number": "4",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Expected Waiting Time for HH vs HT Patterns.** Flip a fair coin repeatedly. \\begin{enumerate}[label=(\\alph{*})]\\item Expected flips until **HH** first appears.\n\n\\item Expected flips until **HT** first appears.\n\n\\item Without calculation: is $\\mathbb{E}[T_{HT}]$ bigger or smaller than $\\mathbb{E}[T_{HH}]$? Explain.\\end{enumerate}",
+          "solution": "**(a) Expected time for HH.**\n\nStates: $\\{0,\\text{H},\\text{HH}\\}$ where 0=start/just saw T, H=just saw H (1 H so far), HH=done.\n\nLet $e_{0}$ = expected flips from state 0, $e_{H}$ from state H. \\[e_{0} = 1 + \\tfrac{1}{2}e_{H} + \\tfrac{1}{2}e_{0} \\qquad\\text{(H: go to H; T: stay at 0)}\\] \\[e_{H} = 1 + \\tfrac{1}{2}\\cdot0 + \\tfrac{1}{2}e_{0} \\qquad\\text{(H: done; T: go to 0)}\\] From the first equation: $\\frac{1}{2}e_{0} = 1 + \\frac{1}{2}e_{H} \\Rightarrow e_{0} = 2 + e_{H}$. Substituting into the second: $e_{H} = 1 + \\frac{1}{2}(2+e_{H}) = 2 + \\frac{1}{2}e_{H} \\Rightarrow e_{H} = 4$. So $e_{0} = 6$.\n\n\\[\\boxed{\\mathbb{E}[T_{HH}] = 6}\\]\n\n**(b) Expected time for HT.**\n\nStates: $\\{0,\\text{H},\\text{HT}\\}$. From 0: H (prob 1/2)$\\to$H, T (prob 1/2)$\\to$0. From H: T (1/2)$\\to$done, H (1/2)$\\to$H (stay!). \\[e_{0} = 1 + \\tfrac{1}{2}e_{H} + \\tfrac{1}{2}e_{0} \\implies e_{0} = 2 + e_{H}\\] \\[e_{H} = 1 + \\tfrac{1}{2}\\cdot0 + \\tfrac{1}{2}e_{H} \\implies \\tfrac{1}{2}e_{H} = 1 \\implies e_{H} = 2\\] So $e_{0} = 4$. \\[\\boxed{\\mathbb{E}[T_{HT}] = 4}\\]\n\n**(c) Intuitive explanation.**\n\n$\\mathbb{E}[T_{HT}] = 4 < \\mathbb{E}[T_{HH}] = 6$.\n\nWhen waiting for HH: if you've just seen H and the next flip is T, you've “wasted” the H and must start completely over from state 0.\n\nWhen waiting for HT: if you've just seen H and the next flip is H, you haven't wasted anything — you're still in state H, still one flip away from completing HT. The pattern HT is *self-reinforcing* (a new H while in state H keeps you at state H), while HH is *self-defeating* (a T after H sends you back to the start).\n\n**Key takeaway:** Pattern waiting times depend critically on *overlaps*. HT has no overlap (T cannot start a new HT pattern), while HH overlaps with itself (HH contains H as a prefix). Patterns with larger self-overlap take longer on average."
+        },
+        {
+          "type": "freeproblem",
+          "number": "5",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p19",
+          "content": "**Winning Probability in an Alternating Pattern Game.** Players A and B alternate flipping a fair coin (A starts). If the pattern HT appears (head immediately followed by tail), the player who flips the tail wins. What is $\\mathbb{P}(A\\text{ wins})$?",
+          "solution": "**States.** Track the last flip and whose turn it is next. Define five states: \\begin{itemize}\\item **S**: Start (no flip yet), A's turn.\n\n\\item **AH**: A just flipped H; B's turn next.\n\n\\item **BH**: B just flipped H; A's turn next.\n\n\\item **BT**: last flip was T (by B); B's turn next.\n\n\\item **AT**: last flip was T (by A); A's turn next.\\end{itemize}\n\n**Transitions.** The game ends when a T is flipped immediately after an H (forming HT); the tail-flipper wins. \\begin{itemize}\\item From **AH** (B flips): T(1/2)$\\to$**B wins**; H(1/2)$\\to$BH.\n\n\\item From **BH** (A flips): T(1/2)$\\to$**A wins**; H(1/2)$\\to$AH.\n\n\\item From **BT** (B flips): H(1/2)$\\to$BH; T(1/2)$\\to$AT.\n\n\\item From **AT** (A flips): H(1/2)$\\to$AH; T(1/2)$\\to$BT.\n\n\\item From **S** (A flips): H(1/2)$\\to$AH; T(1/2)$\\to$BT.\\end{itemize}\n\n**Equations.** Let $p_{X}$ = Prob(A wins from state $X$). \\[p_{\\text{AH}}= \\tfrac{1}{2}\\cdot0 + \\tfrac{1}{2}\\,p_{\\text{BH}}= \\tfrac{p_{\\text{BH}}}{2}\\] \\[p_{\\text{BH}}= \\tfrac{1}{2}\\cdot1 + \\tfrac{1}{2}\\,p_{\\text{AH}}= \\tfrac{1}{2}+ \\tfrac{p_{\\text{AH}}}{2}\\] Solving: $p_{\\text{AH}}=\\tfrac{1}{3}$,\\; $p_{\\text{BH}}=\\tfrac{2}{3}$.\n\n\\[p_{\\text{BT}}= \\tfrac{1}{2}p_{\\text{BH}}+ \\tfrac{1}{2}p_{\\text{AT}}= \\tfrac{1}{3}+ \\tfrac{p_{\\text{AT}}}{2}\\] \\[p_{\\text{AT}}= \\tfrac{1}{2}p_{\\text{AH}}+ \\tfrac{1}{2}p_{\\text{BT}}= \\tfrac{1}{6}+ \\tfrac{p_{\\text{BT}}}{2}\\] Substituting: $p_{\\text{BT}}= \\tfrac{1}{3}+\\tfrac{1}{12}+\\tfrac{p_{\\text{BT}}}{4}\\Rightarrow \\tfrac{3}{4}p_{\\text{BT}}=\\tfrac{5}{12}\\Rightarrow p_{\\text{BT}}=\\tfrac{5}{9}$.\n\nFrom Start (A first flips): \\[p_{S} = \\tfrac{1}{2}\\,p_{\\text{AH}}+ \\tfrac{1}{2}\\,p_{\\text{BT}}= \\tfrac{1}{6}+ \\tfrac{5}{18}= \\boxed{\\dfrac{4}{9}}\\]\n\n**Key takeaway:** Despite A going first, A wins with probability $4/9 < 1/2$. After a T is flipped (by either player), the situation is not symmetric — it matters whose turn it is next, since only the player who flips T after an H wins. The full 5-state chain is needed to capture this."
+        },
+        {
+          "type": "freeproblem",
+          "number": "6",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p9",
+          "content": "**Expected Waiting Time for Consecutive Heads.** Toss a fair coin repeatedly. Find: \\begin{enumerate}[label=(\\alph{*})]\\item $\\mathbb{E}[T_{HH}]$ — expected flips until HH (two consecutive heads).\n\n\\item $\\mathbb{E}[T_{HHH}]$ — expected flips until HHH.\n\n\\item General formula $\\mathbb{E}[T_{H^n}]$ for $n$ consecutive heads.\\end{enumerate}",
+          "solution": "**(a) $\\mathbb{E}[T_{HH**] = 6$} from Problem 4(a).\n\n**(b) $\\mathbb{E}[T_{HHH**]$.}\n\nStates: 0 = (no progress), H = (1 H so far), HH = (2 H so far), done.\n\nLet $e_{0}, e_{1}, e_{2}$ be expected remaining flips from each state: \\begin{align*}e_{0}&= 1 + \\tfrac{1}{2}e_{1} + \\tfrac{1}{2}e_{0} \\implies e_{0} = 2 + e_{1} \\\\ e_{1}&= 1 + \\tfrac{1}{2}e_{2} + \\tfrac{1}{2}e_{0} \\\\ e_{2}&= 1 + \\tfrac{1}{2}\\cdot0 + \\tfrac{1}{2}e_{0} \\implies e_{2} = 1 + \\tfrac{e_0}{2}\\end{align*} Substitute $e_{2}$ into $e_{1}$: $e_{1} = 1 + \\frac{1}{2}(1+\\frac{e_{0}}{2}) + \\frac{e_{0}}{2}= \\frac{3}{2}+ \\frac{3e_{0}}{4}$. Then $e_{0} = 2 + \\frac{3}{2}+ \\frac{3e_{0}}{4}\\Rightarrow \\frac{e_{0}}{4}= \\frac{7}{2}\\Rightarrow e_{0} = 14$. \\[\\boxed{\\mathbb{E}[T_{HHH}] = 14}\\]\n\n**(c) General formula.**\n\nLet $e_{k}$ = expected flips from state $k$ (already have $k$ consecutive heads). The recurrence is: $e_{k} = 1 + \\frac{1}{2}e_{k+1}+ \\frac{1}{2}e_{0}$ for $k < n$, with $e_{n} = 0$.\n\nBy induction (or by noticing the pattern), solving this system gives: \\[\\boxed{\\mathbb{E}[T_{H^n}] = 2^{n+1} - 2 = 2(2^n - 1)}\\]\n\n**Verify:** $n=1$: $\\mathbb{E}[T_{H}] = 2$. ✓\\; $n=2$: $6$. ✓\\; $n=3$: $14$. ✓\n\n**Intuitive derivation:** Use the tower argument. $\\mathbb{E}[T_{H^n}] = \\mathbb{E}[T_{H^{n-1}}] + \\mathbb{E}[\\text{additional flips for last H}]$. Given we've just achieved $H^{n-1}$, the next flip is H (prob 1/2, done) or T (prob 1/2, restart from scratch). So: $\\mathbb{E}[T_{H^n}] = \\mathbb{E}[T_{H^{n-1}}] + 1 + \\frac{1}{2}\\mathbb{E}[T_{H^n}]$ $\\Rightarrow \\frac{1}{2}\\mathbb{E}[T_{H^n}] = \\mathbb{E}[T_{H^{n-1}}] + 1$ $\\Rightarrow \\mathbb{E}[T_{H^n}] = 2\\mathbb{E}[T_{H^{n-1}}] + 2$.\n\nSolving this recurrence with $\\mathbb{E}[T_{H^0}]=0$: $\\mathbb{E}[T_{H^n}] = 2^{n+1}-2$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p11",
+          "content": "**Expected Waiting Time for Consecutive Dice Outcomes.** Roll a fair six-sided die repeatedly. Find the expected number of rolls until you see two consecutive 5's. Generalise to $n$ consecutive 5's.",
+          "solution": "**Expected rolls until two consecutive 5's.**\n\nStates: 0 (no 5 just rolled), 1 (last roll was 5), done. Let $e_{0}, e_{1}$ be expected rolls from each state. \\[e_{0} = 1 + \\tfrac{1}{6}e_{1} + \\tfrac{5}{6}e_{0} \\implies \\tfrac{1}{6}e_{0} = 1 + \\tfrac{1}{6}e_{1} \\implies e_{0} = 6 + e_{1}\\] \\[e_{1} = 1 + \\tfrac{1}{6}\\cdot0 + \\tfrac{5}{6}e_{0}\\] Substitute $e_{0} = 6+e_{1}$: $e_{1} = 1 + \\frac{5}{6}(6+e_{1}) = 1 + 5 + \\frac{5}{6}e_{1} \\Rightarrow \\frac{1}{6}e_{1} = 6 \\Rightarrow e_{1} = 36$. So $e_{0} = 42$. \\[\\boxed{\\mathbb{E}[T_{\\text{two 5's}}] = 42}\\]\n\n**General formula for $n$ consecutive 5's.**\n\nThe recurrence mirrors the coin case. Let $p = 1/6$ (prob of 5), $q = 5/6$. Using the same tower argument: \\[\\mathbb{E}[T_{n}] = 2\\mathbb{E}[T_{n-1}] + \\frac{1}{p}\\quad\\text{with}\\quad \\mathbb{E}[T_{0}] = 0\\] Wait: let us redo. Given $n-1$ consecutive 5's, the next roll: \\begin{itemize}\\item 5 (prob $p$): done. Additional: $1$ roll.\n\n\\item Not 5 (prob $1-p$): restart from 0. Additional: $1 + \\mathbb{E}[T_{n}]$.\\end{itemize} So $\\mathbb{E}[T_{n}] = \\mathbb{E}[T_{n-1}] + 1 + (1-p)\\mathbb{E}[T_{n}] \\Rightarrow p\\,\\mathbb{E}[T_{n}] = \\mathbb{E}[T_{n-1}] + 1 \\Rightarrow \\mathbb{E}[T_{n}] = \\frac{\\mathbb{E}[T_{n-1}]+1}{p}$.\n\nSolving: $\\mathbb{E}[T_{n}] = \\frac{1}{p}+ \\frac{1}{p^{2}}+ \\cdots + \\frac{1}{p^{n}}= \\sum_{k=1}^{n} \\frac{1}{p^{k}}$.\n\n\\[\\boxed{\\mathbb{E}[T_n] = \\frac{1}{p}+\\frac{1}{p^{2}}+\\cdots+\\frac{1}{p^{n}} = \\frac{(1/p)^{n+1}-1/p}{1/p-1} = \\frac{1-p^{n}}{p^{n}(1-p)}}\\]\n\n**Verify for die ($p=1/6$, $n=2$):** $\\mathbb{E}[T_{2}] = 6 + 36 = 42$. ✓\\quad For coin ($p=1/2$, $n=2$): $\\mathbb{E}[T_{2}]=2+4=6$. ✓\n\n**Key takeaway:** The general formula $\\mathbb{E}[T_{n}]=\\sum_{k=1}^{n} p^{-k}$ applies to any i.i.d.\\ sequence with success probability $p$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "8",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p6",
+          "content": "**First Occurrence of HH vs TH in Coin Tossing.** Flip a fair coin until either HH or TH appears as two consecutive flips. If HH appears first you win. Find $\\mathbb{P}(\\text{you win})$. Can the answer be determined by a symmetry argument?",
+          "solution": "**States.** Track the last flip. \\begin{itemize}\\item **S**: Start (no flip yet).\n\n\\item **H**: last flip was H.\n\n\\item **T**: last flip was T.\\end{itemize}\n\n**Transitions.** \\begin{itemize}\\item From **S**: H(1/2)$\\to$H;\\; T(1/2)$\\to$T.\n\n\\item From **H**: H(1/2)$\\to$**HH: you win**;\\; T(1/2)$\\to$**TH: you lose**.\n\n\\item From **T**: H(1/2)$\\to$**TH: you lose**;\\; T(1/2)$\\to$T (stay).\\end{itemize}\n\n**Key observation.** State T is a *death trap*: once the last flip is T, the next H completes TH (you lose), and the next T keeps you in state T. You can never win from state T.\n\n**Equations.** Let $p_{X}$ = Prob(you win from state $X$). \\[p_{T} = \\tfrac{1}{2}\\cdot0 + \\tfrac{1}{2}\\,p_{T} \\implies p_{T} = 0\\] \\[p_{H} = \\tfrac{1}{2}\\cdot1 + \\tfrac{1}{2}\\cdot0 = \\tfrac{1}{2}\\] \\[p_{S} = \\tfrac{1}{2}\\,p_{H} + \\tfrac{1}{2}\\,p_{T} = \\tfrac{1}{4}+ 0 = \\boxed{\\dfrac{1}{4}}\\]\n\n**Why the symmetry argument fails.** Both HH and TH end with H, so one might argue the game ends equally on HH or TH. But this ignores that once a T is ever flipped, every future path through state T leads to a loss — the state T is absorbing into a loss. The only winning path is H on flip 1, H on flip 2 (probability $\\frac{1}{2}\\times\\frac{1}{2}=\\frac{1}{4}$).\n\n**Key takeaway:** Despite the symmetric-looking patterns, HH and TH are not equally likely to appear first. Once a T occurs, TH wins with certainty. You win only via the path $S\\to H\\to\\text{HH}$, giving probability $\\mathbf{1/4}$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "9",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p7",
+          "content": "**Which Pattern Appears First in Coin Tossing?** Flip a fair coin repeatedly. Find: \\begin{enumerate}[label=(\\arabic{*})]\\item $\\mathbb{P}(\\text{HHT appears before HTT})$\n\n\\item $\\mathbb{P}(\\text{HHT appears before HTH})$\n\n\\item $\\mathbb{P}(\\text{HHH appears before THH})$\n\n\\item $\\mathbb{P}(\\text{HHT appears before THH})$\\end{enumerate}",
+          "solution": "**Method.** Build a Markov chain whose states are the set of possible “current progress” prefixes toward either pattern. Write transition equations and solve.\n\n**(1) HHT vs HTT.**\n\nStates track the longest common suffix that is a prefix of HHT or HTT. The shared prefix H means: after first H, we're at state H for both. From H: next flip H$\\to$HH (toward HHT), T$\\to$HT (toward HTT). From HH: T$\\to$HHT (done, HHT wins); H$\\to$HH (stay). From HT: T$\\to$HTT (done, HTT wins); H$\\to$H (restart).\n\nLet $p_{i}$ = Prob(HHT wins from state $i$). \\begin{align*}p_{\\text{start}}&= \\tfrac{1}{2}p_{H} + \\tfrac{1}{2}p_{\\text{start}}\\implies p_{\\text{start}}= p_{H} \\\\ p_{H}&= \\tfrac{1}{2}p_{HH}+ \\tfrac{1}{2}p_{HT}\\\\ p_{HH}&= \\tfrac{1}{2}\\cdot1 + \\tfrac{1}{2}p_{HH}\\implies p_{HH}= 1 \\\\ p_{HT}&= \\tfrac{1}{2}\\cdot0 + \\tfrac{1}{2}p_{H}\\end{align*} From $p_{H} = \\frac{1}{2}\\cdot1 + \\frac{1}{2}p_{HT}$ and $p_{HT}= \\frac{1}{2}p_{H}$: $p_{H} = \\frac{1}{2}+ \\frac{1}{4}p_{H} \\Rightarrow \\frac{3}{4}p_{H} = \\frac{1}{2}\\Rightarrow p_{H} = 2/3$.\n\n$\\boxed{\\mathbb{P}(\\text{HHT before HTT}) = 2/3}$\n\n**(2) HHT vs HTH.** Similar analysis (left as exercise): $\\mathbb{P}(\\text{HHT before HTH}) = \\boxed{2/3}$.\n\n**(3) HHH vs THH.**\n\nAfter the first H: both patterns need HH next. The key difference: \\begin{itemize}\\item From state H: next H$\\to$HH, next T$\\to$start (for HHH), but T$\\to$ “T-seen” for THH.\n\n\\item THH is achieved via T then HH.\\end{itemize}\n\nStates: \\{start, T, H, TH, HH, THH=done(THH wins), HHH=done(HHH wins)\\}. Let $p$ = Prob(HHH wins) from start:\n\nFrom start: H(1/2)$\\to$H; T(1/2)$\\to$T. From H: H(1/2)$\\to$HH; T(1/2)$\\to$T. From HH: H(1/2)$\\to$HHH(win); T(1/2)$\\to$T. From T: H(1/2)$\\to$TH; T(1/2)$\\to$T. From TH: H(1/2)$\\to$THH(lose); T(1/2)$\\to$T.\n\nLet $p_{s},p_{T},p_{H},p_{HH},p_{TH}$ be winning probs from each state. $p_{HH}= 1/2$, $p_{TH}=0$. $p_{T} = \\frac{1}{2}p_{TH}+\\frac{1}{2}p_{T} \\Rightarrow p_{T}=0$. $p_{H} = \\frac{1}{2}p_{HH}+\\frac{1}{2}p_{T} = \\frac{1}{4}$. $p_{s} = \\frac{1}{2}p_{H} + \\frac{1}{2}p_{T} = \\frac{1}{8}$.\n\n$\\boxed{\\mathbb{P}(\\text{HHH before THH}) = 1/8}$\n\n**(4) HHT vs THH.**\n\n**States:** S (start), H, HH, T, TH. Winning patterns: HHT (we win); THH (we lose).\n\nKey observations: \\begin{itemize}\\item From **T** or **TH**: the next H gives TH or THH (we lose); the next T stays in T. So $p_{T} = p_{TH}= 0$ — state T is a death trap for us.\n\n\\item From **HH**: next T $\\to$ HHT (win); next H $\\to$ HH. So $p_{HH}=1$.\n\n\\item From **H**: H$\\to$HH ($p=1$); T$\\to$T ($p=0$). $p_{H} = \\tfrac{1}{2}\\cdot1 + \\tfrac{1}{2}\\cdot0 = \\tfrac{1}{2}$.\n\n\\item From **S**: H$\\to$H; T$\\to$T. $p_{S} = \\tfrac{1}{2}p_{H} + \\tfrac{1}{2}p_{T} = \\tfrac{1}{4}$.\\end{itemize}\n\n$\\boxed{\\mathbb{P}(\\text{HHT before THH}) = 1/4}$\n\nOnce a T appears before HH is reached, THH wins with certainty. The only winning path is $S\\to H\\to HH\\to\\text{HHT}$, with probability $\\tfrac{1}{2}\\times\\tfrac{1}{2}\\times1 = \\tfrac{1}{4}$.\n\n**Key takeaway:** Pattern-vs-pattern races are highly non-intuitive. The Conway leading number method provides a systematic approach: compute the overlap score for each pattern pair to determine which pattern tends to appear first."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "10",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p46",
+          "content": "**Waiting Time for the Pattern HTH.** Flip a fair coin repeatedly. Find $\\mathbb{E}[T_{HTH}]$ — the expected number of flips until the pattern HTH first appears.",
+          "solution": "**States.** Track the longest suffix of flips so far that is also a prefix of HTH: \\begin{itemize}\\item State 0: no progress (or last flip was T after state 0).\n\n\\item State H: last flip was H (matches prefix “H” of HTH).\n\n\\item State HT: last two flips were HT (matches prefix “HT”).\n\n\\item State HTH: done.\\end{itemize}\n\n**Transitions from each state:**  <table class=\"course-table\"><tr><th>State</th><th>Flip H (prob 1/2)</th><th>Flip T (prob 1/2)</th></tr><tr><td>0</td><td>$\\to$ H</td><td>$\\to$ 0</td></tr><tr><td>H</td><td>$\\to$ H</td><td>$\\to$ HT</td></tr><tr><td>HT</td><td>$\\to$ HTH (done!)</td><td>$\\to$ 0</td></tr></table>\n\n**Note:** From state H, flipping H keeps you at H (not 0!) because the new H could be the start of a new HTH. From state HT, flipping T goes to 0 (not HT—T is not a prefix of HTH).\n\n**Expected flip equations.** Let $e_{0}, e_{H}, e_{HT}$ be expected flips to completion from each state: \\begin{align*}e_{0}&= 1 + \\tfrac{1}{2}e_{H} + \\tfrac{1}{2}e_{0} \\implies e_{0} = 2 + e_{H} \\\\ e_{H}&= 1 + \\tfrac{1}{2}e_{H} + \\tfrac{1}{2}e_{HT}\\implies \\tfrac{1}{2}e_{H} = 1 + \\tfrac{1}{2}e_{HT}\\implies e_{H} = 2 + e_{HT}\\\\ e_{HT}&= 1 + \\tfrac{1}{2}\\cdot0 + \\tfrac{1}{2}e_{0} \\implies e_{HT}= 1 + \\tfrac{e_0}{2}\\end{align*}\n\n**Solve:** $e_{H} = 2 + e_{HT}= 2 + 1 + \\frac{e_{0}}{2}= 3 + \\frac{e_{0}}{2}$. $e_{0} = 2 + e_{H} = 2 + 3 + \\frac{e_{0}}{2}= 5 + \\frac{e_{0}}{2}$. $\\frac{e_{0}}{2}= 5 \\Rightarrow e_{0} = 10$.\n\n\\[\\boxed{\\mathbb{E}[T_{HTH}] = 10}\\]\n\n**Key takeaway:** The state transitions for HTH are non-trivial because “H” overlaps with itself as a prefix of HTH. Always redraw the state diagram carefully, especially the self-loops and “partial-match” transitions."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "11",
+          "difficulty": "hard",
+          "problemId": "jane_street_qdsi_p4",
+          "content": "**Waiting Time for the Pattern HHHHT.** Flip a fair coin repeatedly. Find $\\mathbb{E}[T_{HHHHT}]$ — the expected number of flips until the pattern HHHHT first appears.",
+          "solution": "**States:** 0, H, HH, HHH, HHHH, done (HHHHT).\n\n**Transitions:**  <table class=\"course-table\"><tr><th>State</th><th>H (prob 1/2)</th><th>T (prob 1/2)</th></tr><tr><td>0</td><td>$\\to$ H</td><td>$\\to$ 0</td></tr><tr><td>H</td><td>$\\to$ HH</td><td>$\\to$ 0</td></tr><tr><td>HH</td><td>$\\to$ HHH</td><td>$\\to$ 0</td></tr><tr><td>HHH</td><td>$\\to$ HHHH</td><td>$\\to$ 0</td></tr><tr><td>HHHH</td><td>$\\to$ HHHH</td><td>$\\to$ done</td></tr></table>\n\nNote: from state HHHH, flipping H keeps you at HHHH (still four H's). Flipping T completes HHHHT.\n\n**Equations.** Let $e_{0}, e_{1}, e_{2}, e_{3}, e_{4}$ for states 0, H, HH, HHH, HHHH: \\begin{align*}e_{0}&= 1 + \\tfrac{1}{2}e_{1} + \\tfrac{1}{2}e_{0} \\implies e_{0} = 2 + e_{1} \\\\ e_{1}&= 1 + \\tfrac{1}{2}e_{2} + \\tfrac{1}{2}e_{0} \\\\ e_{2}&= 1 + \\tfrac{1}{2}e_{3} + \\tfrac{1}{2}e_{0} \\\\ e_{3}&= 1 + \\tfrac{1}{2}e_{4} + \\tfrac{1}{2}e_{0} \\\\ e_{4}&= 1 + \\tfrac{1}{2}e_{4} + \\tfrac{1}{2}\\cdot0 \\implies \\tfrac{1}{2}e_{4} = 1 \\implies e_{4} = 2\\end{align*}\n\n**Back-substitute:** $e_{3} = 1 + 1 + \\frac{e_{0}}{2}= 2 + \\frac{e_{0}}{2}$. $e_{2} = 1 + \\frac{1}{2}(2+\\frac{e_{0}}{2}) + \\frac{e_{0}}{2}= 2 + \\frac{3e_{0}}{4}$. $e_{1} = 1 + \\frac{1}{2}(2+\\frac{3e_{0}}{4}) + \\frac{e_{0}}{2}= 2 + \\frac{7e_{0}}{8}$. $e_{0} = 2 + e_{1} = 4 + \\frac{7e_{0}}{8}\\Rightarrow \\frac{e_{0}}{8}= 4 \\Rightarrow e_{0} = 32$.\n\nBut wait: state HHHH goes back to HHHH on H, so the four H's must be accumulated without restart except on T. Let me recheck $e_{4} = 2$ and chain back.\n\n$e_{3} = 1 + \\frac{1}{2}\\cdot2 + \\frac{1}{2}e_{0} = 2 + \\frac{e_{0}}{2}$.\n\nGoing back: $e_{0} = 2+e_{1} = 2+(1+\\frac{e_{2}}{2}+\\frac{e_{0}}{2})$. Using $e_{0} = 2 + e_{1}$, $e_{1} = 1 + \\frac{e_{2}+e_{0}}{2}$, $e_{2} = 1 + \\frac{e_{3}+e_{0}}{2}$, $e_{3} = 2+\\frac{e_{0}}{2}$:\n\n$e_{3} = 2 + \\frac{e_{0}}{2}$. $e_{2} = 1 + \\frac{1}{2}(2+\\frac{e_{0}}{2}) + \\frac{e_{0}}{2}= 2 + \\frac{3e_{0}}{4}$. $e_{1} = 1 + \\frac{1}{2}(2+\\frac{3e_{0}}{4}) + \\frac{e_{0}}{2}= 2 + \\frac{7e_{0}}{8}$. $e_{0} = 2 + 2 + \\frac{7e_{0}}{8}= 4 + \\frac{7e_{0}}{8}$ $\\Rightarrow \\frac{e_{0}}{8}= 4 \\Rightarrow e_{0} = 32$.\n\nBut also account for the $e_{4} = 2$ term: $e_{3} = 1 + \\frac{e_{4}+e_{0}}{2}= 1 + 1 + \\frac{e_{0}}{2}= 2 + \\frac{e_{0}}{2}$ ✓.\n\n\\[\\boxed{\\mathbb{E}[T_{HHHHT}] = 32 + 2 = \\text{let's recount}}\\]\n\nRecounting carefully: $e_{0} = 4 + \\frac{7e_{0}}{8}$... but we haven't included $e_{4}$ properly in $e_{1}$'s chain.\n\n$e_{1} = 1 + \\frac{e_{2}}{2}+ \\frac{e_{0}}{2}$. This is correct. The $e_{4}$ only appears explicitly in $e_{3}$'s equation. Tracing: $e_{0}=32$, $e_{3}=18$, $e_{2}=26$, $e_{1}=30$. Check: $e_{0}=2+e_{1}=2+30=32$. ✓\n\n\\[\\boxed{\\mathbb{E}[T_{HHHHT}] = 32}\\]\n\n**Pattern using general formula.** For HHHHT (4 heads then 1 tail): The state HHHH is a “restart-absorbing” state that keeps absorbing heads. The answer matches: $\\mathbb{E}[T_{H^4T}] = \\sum_{k=1}^{4} 2^{k} + 2^{4}\\cdot \\mathbb{E}[\\text{geometric}(1/2)] = 2+4+8+16 + ...$\n\nActually by the general consecutive-H formula with the additional tail: $\\mathbb{E}[T_{HHHHT}] = \\mathbb{E}[T_{HHHH}] \\cdot$ (adjusted for tail) $= (2+4+8+16)+16/(1/2) - ...$\n\nThe direct calculation gives $e_{0}=32$.\n\n**Key takeaway:** State HHHH self-loops on H (four accumulated heads act as a holding state), which creates the $e_{4}=2$ base case and propagates through the back-substitution."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "12",
+          "difficulty": "veryhard",
+          "problemId": "citadel_qdsi_p23",
+          "content": "**Meeting Probability for Two Random-Walking Ants on an Octahedron.** Two ants start at opposite vertices of a regular octahedron. Each turn: Ant A moves first to a uniformly random adjacent vertex, then Ant B moves to a uniformly random adjacent vertex. They stop when one ant moves onto the vertex occupied by the other. What is $\\mathbb{P}(\\text{A moves onto B's vertex})$?",
+          "solution": "**Octahedron structure.** A regular octahedron has 6 vertices, each of degree 4. Label two opposite poles $N$ (A starts) and $S$ (B starts). The remaining 4 vertices are *equatorial* and lie on a 4-cycle $v$–$w$–$u$–$x$–$v$. Every equatorial vertex is adjacent to both poles and to its two equatorial cycle-neighbours; it is *not* adjacent to the equatorial vertex opposite it on the 4-cycle.\n\n**States** (relative position of A and B after each full turn): \\begin{itemize}\\item **Opp**: A and B are at opposite vertices.\n\n\\item **Adj**: A and B are at adjacent vertices.\\end{itemize} The game starts in state **Opp**.\n\n**Let** $p = \\mathbb{P}(\\text{A catches B first}\\mid\\text{Opp})$, $q = \\mathbb{P}(\\text{A catches B first}\\mid\\text{Adj})$.\n\n\\medskip **From Opp** (A at $N$, B at $S$).\n\nA moves first: all 4 of $N$'s neighbours are equatorial, none is $S$, so A *cannot* catch B. A lands on some equatorial vertex $v$.\n\nB then moves from $S$: $S$'s 4 neighbours are all equatorial. \\begin{itemize}\\item B moves to $v$ (prob $\\tfrac{1}{4}$): B lands on A — B wins.\n\n\\item B moves to an equatorial neighbour of $v$ on the 4-cycle (prob $\\tfrac{2}{4}$): A and B are now adjacent $\\to$ state **Adj**.\n\n\\item B moves to the equatorial vertex opposite $v$ (prob $\\tfrac{1}{4}$): A and B are now opposite $\\to$ state **Opp**.\\end{itemize} \\[p = 0\\cdot\\tfrac{1}{4}+ q\\cdot\\tfrac{2}{4}+ p\\cdot\\tfrac{1}{4}\\;\\implies\\; \\tfrac{3p}{4}= \\tfrac{q}{2}\\;\\implies\\; \\boxed{p = \\tfrac{2q}{3}}\\tag{1}\\]\n\n\\medskip **From Adj** (A at equatorial $v$, B at equatorial $w$, with $v$–$w$ an edge).\n\nLabel the 4-cycle $v$–$w$–$u$–$x$–$v$, so $v$'s octahedron neighbours are $\\{N,S,w,x\\}$ and $w$'s are $\\{N,S,v,u\\}$.\n\nA moves first (4 equally likely destinations):\n\n\\begin{itemize}\\item **A$\\to w$** (prob $\\tfrac{1}{4}$): A lands on B — **A wins**.\n\n\\item **A$\\to N$** (prob $\\tfrac{1}{4}$): A at $N$, B at $w$ (adjacent, since $N$ adj to all equatorial). B moves from $w$ to $\\{N,S,v,u\\}$: \\begin{itemize}\\item $B\\to N$ ($\\tfrac{1}{4}$): B catches A — B wins (contrib 0).\n\n\\item $B\\to S$ ($\\tfrac{1}{4}$): A at $N$, B at $S$ $\\to$ **Opp**.\n\n\\item $B\\to v$ ($\\tfrac{1}{4}$): A at $N$, B at $v$ $\\to$ **Adj**.\n\n\\item $B\\to u$ ($\\tfrac{1}{4}$): A at $N$, B at $u$ $\\to$ **Adj**.\\end{itemize} Contribution: $\\tfrac{1}{4}(0 + p + q + q) = \\tfrac{p+2q}{4}$.\n\n\\item **A$\\to S$** (prob $\\tfrac{1}{4}$): symmetric to A$\\to N$. Contribution: $\\tfrac{p+2q}{4}$.\n\n\\item **A$\\to x$** (prob $\\tfrac{1}{4}$): A at $x$, B at $w$. $x$ and $w$ are opposite on the 4-cycle (2 steps apart), hence opposite vertices of the octahedron. B moves from $w$ to $\\{N,S,v,u\\}$; none of these equals $x$ (B cannot catch A). $x$ is adjacent to $N$, $S$, $v$, $u$ — all of B's possible destinations — so the resulting state is **Adj** in all 4 cases. Contribution: $\\tfrac{1}{4}(q+q+q+q) = q$.\\end{itemize}\n\nAssembling (each A-move has weight $\\tfrac{1}{4}$): \\[q = \\tfrac{1}{4}\\!\\cdot\\!1 + \\tfrac{1}{4}\\!\\cdot\\!\\tfrac{p+2q}{4}+ \\tfrac{1}{4}\\!\\cdot\\!\\tfrac{p+2q}{4}+ \\tfrac{1}{4}\\!\\cdot\\! q = \\tfrac{1}{4}+ \\tfrac{p+2q}{8}+ \\tfrac{q}{4}\\] \\[q - \\tfrac{q}{4}= \\tfrac{1}{4}+ \\tfrac{p}{8}+ \\tfrac{q}{4}\\;\\implies\\; \\tfrac{q}{2}= \\tfrac{1}{4}+ \\tfrac{p}{8}\\;\\implies\\; \\boxed{q = \\tfrac{1}{2} + \\tfrac{p}{4}}\\tag{2}\\]\n\n**Solving (1) and (2).** Substitute $p = \\tfrac{2q}{3}$ into (2): \\[q = \\tfrac{1}{2}+ \\tfrac{1}{4}\\cdot\\tfrac{2q}{3}= \\tfrac{1}{2}+ \\tfrac{q}{6}\\;\\implies\\; \\tfrac{5q}{6}= \\tfrac{1}{2}\\;\\implies\\; q = \\tfrac{3}{5}, \\quad p = \\tfrac{2}{3}\\cdot\\tfrac{3}{5}= \\tfrac{2}{5}\\]\n\n\\[\\boxed{\\mathbb{P}(\\text{A catches B first}) = \\dfrac{2}{5}}\\]\n\n**Sanity checks.** $p = 2/5 < 1/2$: A is at a slight disadvantage because B *reacts* after A's move, so B sometimes catches A before A can reverse and catch B. $q = 3/5 > 1/2$: from Adjacent, A can immediately land on B (prob 1/4), giving A an advantage.\n\n**Key takeaway:** Set up relative-position states (Opp / Adj) and track who catches whom in each half-turn. The key equation from Opp gives $p = 2q/3$; the careful A$\\to x$ branch (landing in Opp, but B's moves all yield Adj) is what distinguishes this from a simpler chain."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 8 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>Stationary distribution</th><th>Solve $\\pi P=\\pi$, $\\sum\\pi_{i}=1$. For 2-state: $\\pi_{i} = p_{ji}/(p_{ij}+p_{ji})$.</th></tr><tr><td>Expected return time</td><td>$m_{i} = 1/\\pi_{i}$ for irreducible chains.</td></tr><tr><td>Periodicity</td><td>Period = GCD of return times. Irreducible + period 1 = ergodic.</td></tr><tr><td>Absorbing chains</td><td>$N=(I-Q)^{-1}$; absorption probs $B=NR$; expected time $t=N\\mathbf{1}$.</td></tr><tr><td>Gambler's Ruin (biased)</td><td>$P_{k} = (1-(q/p)^{k})/(1-(q/p)^{N})$. Expected duration: $k/(q-p) - N P_{k}/(q-p)$.</td></tr><tr><td>Pattern waiting: states</td><td>States = length of longest suffix that is a prefix of target. Write $e_{i} = 1 + \\sum P_{ij}e_{j}$ and solve.</td></tr><tr><td>HH vs HT</td><td>$\\mathbb{E}[T_{HH}]=6$, $\\mathbb{E}[T_{HT}]=4$. Self-overlap makes HH slower.</td></tr><tr><td>$n$ consecutive (prob $p$)</td><td>$\\mathbb{E}[T_{n}]=\\sum_{k=1}^{n} p^{-k}$. For fair coin: $2^{n+1}-2$.</td></tr><tr><td>Pattern race</td><td>Build a combined chain; solve for absorption probability. Conway's method: compare overlap scores.</td></tr><tr><td>Graph random walks</td><td>Reduce by symmetry to equivalence classes. Set up hitting-probability equations.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Weather Chain: Stationary Distribution",
+      "problemId": "quant_interview_fundamental_qdsi_p102"
+    },
+    {
+      "number": "2",
+      "name": "3-State Markov Chain: Expected Return Time",
+      "problemId": "quant_interview_fundamental_qdsi_p103"
+    },
+    {
+      "number": "3",
+      "name": "Absorbing Markov Chain: Gambler's Ruin via Matrices",
+      "problemId": "quant_interview_fundamental_qdsi_p104"
+    },
+    {
+      "number": "W4",
+      "name": "Expected Waiting Time for HH vs HT Patterns",
+      "problemId": "quant_interview_fundamental_qdsi_p56"
+    },
+    {
+      "number": "5",
+      "name": "Winning Probability in an Alternating Pattern Game",
+      "problemId": "quant_interview_fundamental_qdsi_p19"
+    },
+    {
+      "number": "6",
+      "name": "Expected Waiting Time for Consecutive Heads",
+      "problemId": "quant_interview_fundamental_qdsi_p9"
+    },
+    {
+      "number": "7",
+      "name": "Expected Waiting Time for Consecutive Dice Outcomes",
+      "problemId": "quant_interview_fundamental_qdsi_p11"
+    },
+    {
+      "number": "8",
+      "name": "First Occurrence of HH vs TH in Coin Tossing",
+      "problemId": "quant_interview_fundamental_qdsi_p6"
+    },
+    {
+      "number": "9",
+      "name": "Which Pattern Appears First in Coin Tossing?",
+      "problemId": "quant_interview_fundamental_qdsi_p7"
+    },
+    {
+      "number": "10",
+      "name": "Waiting Time for the Pattern HTH",
+      "problemId": "quant_interview_fundamental_qdsi_p46"
+    },
+    {
+      "number": "11",
+      "name": "Waiting Time for the Pattern HHHHT",
+      "problemId": "jane_street_qdsi_p4"
+    },
+    {
+      "number": "12",
+      "name": "Meeting Probability for Two Ants on an Octahedron",
+      "problemId": "citadel_qdsi_p23"
+    }
+  ]
+}

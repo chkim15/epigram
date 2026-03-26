@@ -1,0 +1,86 @@
+{
+  "weekNum": 3,
+  "topicNum": 20,
+  "topicName": "Monte Carlo Simulation",
+  "subtopics": "Rejection Sampling $\\cdot$ Estimating $\\pi$ and $e$ $\\cdot$ Confidence Intervals $\\cdot$ Geometric Sampling",
+  "freeProblems": 2,
+  "premiumProblems": 2,
+  "timeEstimate": "60–90 minutes",
+  "prerequisites": "Topic 15 — CLT; Topic 4 — Gaussian Distributions",
+  "learningObjectives": [
+    "**Implement rejection sampling** for non-standard distributions and compute the acceptance probability and expected number of trials.",
+    "**Design Monte Carlo estimators for mathematical constants** ($\\pi$, $e$) by identifying the underlying probabilistic identity and analysing convergence via the CLT.",
+    "**Determine the required sample size** for a Monte Carlo estimate to achieve a specified precision and confidence level, using the CLT binomial confidence interval.",
+    "**Sample uniformly from a geometric region in 3D** using barycentric coordinates and the square-root trick."
+  ],
+  "sections": [
+    {
+      "title": "Monte Carlo Foundations",
+      "blocks": [
+        {
+          "type": "conceptbox",
+          "title": "Monte Carlo Estimation and Convergence",
+          "content": "**Basic estimator.** To estimate $\\mu = \\mathbb{E}[f(X)]$ for $X\\sim p$: \\begin{enumerate}\\item Draw $X_{1},…,X_{n}\\stackrel{\\text{iid}}{\\sim}p$.\n\n\\item Compute $\\hat{\\mu}_{n} = \\frac{1}{n}\\sum_{i=1}^{n} f(X_{i})$.\\end{enumerate} By the CLT: $\\hat{\\mu}_{n}\\approx N(\\mu,\\sigma^{2}/n)$ where $\\sigma^{2}=\\text{Var}(f(X))$.\n\n**Convergence rate:** Standard error $= \\sigma/\\sqrt{n}$. To halve the error, quadruple $n$. This is the “$1/\\sqrt{n}$ law”.\n\n**Rejection sampling.** To sample from a target $p$ using a proposal $q$ with $p(x)\\leq M\\cdot q(x)$: \\begin{enumerate}\\item Draw $X\\sim q$ and $U\\sim\\mathrm{Unif}(0,1)$.\n\n\\item Accept if $U \\leq p(X)/(M\\cdot q(X))$.\\end{enumerate} Acceptance probability $= 1/M$."
+        },
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "easy",
+          "tier": "free",
+          "content": "**Uniform Sampling in a Unit Disk.** How do you generate a uniformly distributed point in the unit disk $\\{(x,y): x^{2}+y^{2}\\leq1\\}$? Compare rejection sampling with a polar coordinate approach.",
+          "solution": "**Method 1: Rejection Sampling (Accept/Reject).**\n\n\\begin{enumerate}\\item Draw $X\\sim\\mathrm{Unif}(-1,1)$ and $Y\\sim\\mathrm{Unif}(-1,1)$ independently.\n\n\\item If $X^{2}+Y^{2}\\leq1$: accept $(X,Y)$ as the sample. Else: reject and repeat.\\end{enumerate}\n\n**Why it works.** The accepted points $(X,Y)$ are uniform on the disk because (i) they are uniform on $[-1,1]^{2}$, and (ii) we retain only those in the disk. Conditioning on acceptance is equivalent to conditioning on $x^{2}+y^{2}\\leq1$, which makes the distribution uniform on the disk.\n\n**Efficiency.** $\\mathbb{P}(\\text{accept}) = \\frac{\\text{Area of disk}}{\\text{Area of square}}= \\frac{\\pi}{4}\\approx 78.5\\%$. Expected number of trials per accepted point $= 4/\\pi \\approx 1.27$.\n\n**Method 2: Polar Coordinates (Naive — incorrect).** Naive approach: draw $R\\sim\\mathrm{Unif}(0,1)$ and $\\Theta\\sim\\mathrm{Unif}(0,2\\pi)$, set $X=R\\cos\\Theta$, $Y=R\\sin\\Theta$. *This is wrong!* Points near the centre are over-represented because small $r$ values cover less area.\n\n**Method 3: Polar Coordinates (Correct).** The area element in polar coordinates is $r\\,dr\\,d\\theta$. For $(X,Y)$ to be uniform on the disk, we need $f_{R}(r)\\propto r$, i.e.\\ $f_{R}(r)=2r$ for $r\\in[0,1]$.\n\nSample via the inverse CDF: $F_{R}(r)=r^{2}$, so $r=\\sqrt{U}$ for $U\\sim\\mathrm{Unif}(0,1)$. Algorithm: \\begin{enumerate}\\item Draw $U\\sim\\mathrm{Unif}(0,1)$, $\\Theta\\sim\\mathrm{Unif}(0,2\\pi)$.\n\n\\item Set $R=\\sqrt{U}$, $X=R\\cos\\Theta$, $Y=R\\sin\\Theta$.\\end{enumerate} No rejection needed — 100\\% efficient.\n\n**Comparison:**  <table class=\"course-table\"><tr><td>Method</td><td>Efficiency</td><td>Notes</td></tr><tr><td>Rejection (box)</td><td>$78.5\\%$ ($4/\\pi$ trials/point)</td><td>Simple, generalisable</td></tr><tr><td>Naive polar</td><td>N/A (incorrect)</td><td>Over-samples near centre</td></tr><tr><td>Correct polar ($\\sqrt{U}$)</td><td>$100\\%$</td><td>No wasted draws</td></tr></table>\n\n**Key takeaway:** The $\\sqrt{U}$ transform corrects for the Jacobian in polar coordinates. Rejection sampling is simpler to implement but wastes $\\sim21.5\\%$ of draws. Both produce exact uniform samples on the disk."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "sig_qdsi_p9",
+          "content": "**Monte Carlo Estimation of $\\pi$ and $e$.** Describe Monte Carlo methods to estimate $\\pi$ and $e$. For each: explain the underlying identity, give pseudocode, and analyse convergence.",
+          "solution": "**Estimating $\\pi$.**\n\n*Identity:* $\\pi = 4\\times\\mathbb{P}(X^{2}+Y^{2}\\leq1)$ for $(X,Y)\\sim\\mathrm{Unif}(-1,1)^{2}$.\n\n*Algorithm:* \\begin{enumerate}\\item For $i=1,…,n$: draw $X_{i},Y_{i}\\sim\\mathrm{Unif}(-1,1)$.\n\n\\item $\\hat{\\pi}_{n} = 4\\times\\frac{1}{n}\\sum_{i=1}^{n} \\mathbf{1}[X_{i}^{2}+Y_{i}^{2}\\leq1]$.\\end{enumerate}\n\n*Convergence:* Let $p=\\pi/4$. Each $\\mathbf{1}[\\cdot]\\sim \\mathrm{Bern}(p)$, so $\\text{Var}(\\hat{p}_{n})=p(1-p)/n$. Then: \\[\\text{SE}(\\hat{\\pi}_{n}) = 4\\sqrt{\\frac{p(1-p)}{n}}= 4\\sqrt{\\frac{(\\pi/4)(1-\\pi/4)}{n}}\\approx \\frac{1.64}{\\sqrt{n}}\\] For $\\pm0.01$ accuracy: $n\\approx(1.64/0.01)^{2}\\approx27{,}000$.\n\n**Estimating $e$.**\n\n*Identity:* $e = \\mathbb{E}[N]$ where $N = \\min\\{k:\\sum_{i=1}^{k} U_{i} > 1\\}$ and $U_{i}\\stackrel{\\text{iid}}{\\sim}\\mathrm{Unif}(0,1)$.\n\n*Proof:* Let $M =$ number of uniform$(0,1)$ variables needed for their sum to exceed 1. Then: $\\mathbb{P}(N>k)=\\mathbb{P}(U_{1}+\\cdots+U_{k}\\leq1)=1/k!$ (volume of $k$-simplex). So: \\[\\mathbb{E}[N] = \\sum_{k=0}^{\\infty}\\mathbb{P}(N>k) = \\sum_{k=0}^{\\infty}\\frac{1}{k!}= e\\]\n\n*Algorithm:* \\begin{enumerate}\\item For $i=1,…,n$: initialise $s=0$, $k=0$; while $s\\leq1$: draw $U\\sim\\mathrm{Unif}(0,1)$, $s\\mathrel{+}=U$, $k\\mathrel{+}=1$. Record $N_{i}=k$.\n\n\\item $\\hat{e}_{n} = \\frac{1}{n}\\sum_{i=1}^{n} N_{i}$.\\end{enumerate}\n\n*Convergence:* $\\text{Var}(N) = e-e^{2}+... \\approx e(e-2)/...$ More precisely, $\\text{Var}(N)=3-e\\approx 0.282$. SE$(\\hat{e}_{n}) = \\sqrt{(3-e)/n}\\approx 0.531/\\sqrt{n}$. For $\\pm0.01$ accuracy: $n\\approx(0.531/0.01)^{2}\\approx2{,}820$.\n\n**Key comparison:**  <table class=\"course-table\"><tr><td>Constant</td><td>Identity used</td><td>SE formula</td><td>$n$ for $\\pm0.01$</td></tr><tr><td>$\\pi$</td><td>$\\pi/4=\\mathbb{P}(U^{2}+V^{2}\\leq1)$</td><td>$1.64/\\sqrt{n}$</td><td>$\\sim$27{,}000</td></tr><tr><td>$e$</td><td>$e=\\mathbb{E}[\\text{count until sum}>1]$</td><td>$0.531/\\sqrt{n}$</td><td>$\\sim$2{,}820</td></tr></table>\n\n**Key takeaway:** Both converge at rate $1/\\sqrt{n}$ (CLT). The $e$ estimator is more efficient (smaller variance) because $\\text{Var}(N)\\approx0.28$ while the $\\pi$ estimator has variance $\\approx16p(1-p)\\approx2.69$. The $\\pi$ estimator requires $\\sim10\\times$ more samples for the same precision."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "3",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p78",
+          "content": "**Monte Carlo Estimation of a Gaussian Interval Probability.** $X\\sim N(0,\\sigma^{2})$. Estimate $p=\\mathbb{P}(-2\\sigma\\leq X\\leq2\\sigma)$ using Monte Carlo. Find the required sample size for $\\pm0.001$ precision at 95\\% confidence.",
+          "solution": "**Experiment design.** Standardise: $Z=X/\\sigma\\sim N(0,1)$. We want $p = \\mathbb{P}(-2\\leq Z\\leq2) = 2\\Phi(2)-1\\approx0.9545$.\n\n\\begin{enumerate}\\item Draw $Z_{1},…,Z_{n}\\stackrel{\\text{iid}}{\\sim}N(0,1)$.\n\n\\item Let $I_{i} = \\mathbf{1}[-2\\leq Z_{i}\\leq2]$.\n\n\\item Estimate $\\hat{p}_{n} = \\frac{1}{n}\\sum_{i=1}^{n} I_{i}$.\\end{enumerate}\n\n**Sample size calculation.**\n\nEach $I_{i}\\sim\\mathrm{Bern}(p)$ with $\\text{Var}(I_{i})=p(1-p)$. A 95\\% confidence interval for $p$ is: \\[\\hat{p}_{n} \\pm 1.96\\sqrt{\\frac{p(1-p)}{n}}\\] For half-width $\\leq\\varepsilon=0.001$: \\[n \\geq \\frac{(1.96)^{2}\\,p(1-p)}{\\varepsilon^{2}}\\] With $p\\approx0.9545$: $p(1-p)\\approx0.9545\\times0.0455=0.0434$. \\[n \\geq \\frac{3.8416\\times0.0434}{(0.001)^{2}}= \\frac{0.1667}{10^{-6}}\\approx \\boxed{166{,}841}\\] Round up to $n = 167{,}000$.\n\n**Wilson confidence interval.** In practice, the Wilson interval is preferred for proportions: \\[\\left(\\frac{\\hat{p}+z^{2}/(2n)\\pm z\\sqrt{\\hat{p}(1-\\hat{p})/n+z^2/(4n^2)}}{1+z^{2}/n}\\right)\\] where $z=1.96$. This is more accurate than the Wald interval $\\hat{p}\\pm1.96\\sqrt{\\hat{p}(1-\\hat{p})/n}$ for extreme probabilities.\n\n**Observation.** The required $n\\approx167{,}000$ is large because $p\\approx0.9545$ is close to 1 — the binomial variance $p(1-p)$ is not maximised here, but the relative precision requirement is demanding. For comparison, estimating $\\mathbb{P}(|Z|\\leq1)\\approx0.683$ to the same absolute precision $\\pm0.001$ requires only: $n\\geq3.84\\times0.683\\times0.317/10^{-6}\\approx832{,}000$ — more, because $p(1-p)$ is larger near $p=0.5$.\n\n**Key takeaway:** Required $n = (z_{\\alpha/2})^{2} p(1-p)/\\varepsilon^{2}$. The hardest case to estimate (largest $n$) is $p=0.5$ since that maximises $p(1-p)$. For $p\\approx0.95$, $n\\approx167{,}000$ for $\\pm0.001$ precision."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "4",
+          "difficulty": "hard",
+          "problemId": "sig_qdsi_p26",
+          "content": "**Uniform Sampling on a 3D Triangle.** Randomly sample a point uniformly within the triangle with vertices $A=(3,0,0)$, $B=(0,4,0)$, $C=(0,0,2)$.",
+          "solution": "**Barycentric coordinate representation.** Any point in the triangle can be written as: \\[P = \\lambda_{1} A + \\lambda_{2} B + \\lambda_{3} C\\] where $\\lambda_{1},\\lambda_{2},\\lambda_{3}\\geq0$ and $\\lambda_{1}+\\lambda_{2}+\\lambda_{3}=1$. The $\\lambda_{i}$ are called **barycentric coordinates**.\n\n**How to sample uniformly in barycentric coordinates.** We need $(\\lambda_{1},\\lambda_{2},\\lambda_{3})$ uniform on the 2-simplex $\\{\\lambda\\geq0: \\sum\\lambda_{i}=1\\}$.\n\n**Method: Broken-stick (correct).** \\begin{enumerate}\\item Draw $r_{1},r_{2}\\sim\\mathrm{Unif}(0,1)$ independently.\n\n\\item If $r_{1}+r_{2}>1$: replace $(r_{1},r_{2})\\to(1-r_{1},1-r_{2})$.\n\n\\item Set $\\lambda_{1}=r_{1}$, $\\lambda_{2}=r_{2}$, $\\lambda_{3}=1-r_{1}-r_{2}$.\n\n\\item Output $P=\\lambda_{1} A+\\lambda_{2} B+\\lambda_{3} C$.\\end{enumerate}\n\n**Why this works.** After the reflection step, $(r_{1},r_{2})$ is uniform on the triangle $\\{r_{1},r_{2}\\geq0,r_{1}+r_{2}\\leq1\\}$ (half the unit square). The reflection maps the other half of the square into this triangle bijectively, preserving uniformity.\n\n**Explicit coordinates.** With $A=(3,0,0)$, $B=(0,4,0)$, $C=(0,0,2)$: \\[P = (3\\lambda_{1},\\;4\\lambda_{2},\\;2\\lambda_{3}) = (3r_{1},\\;4r_{2},\\;2(1-r_{1}-r_{2}))\\] (after the reflection if needed).\n\n**Triangle geometry check.** $\\overrightarrow{AB}= (-3,4,0)$, $\\overrightarrow{AC}=(-3,0,2)$. $\\overrightarrow{AB}\\times\\overrightarrow{AC}=(4\\cdot2-0\\cdot0,\\;0\\cdot(-3)-(-3)\\cdot2,\\;(-3)\\cdot0-4\\cdot(-3)) =(8,6,12)$. Area $= \\tfrac{1}{2}\\|(8,6,12)\\|=\\tfrac{1}{2}\\sqrt{64+36+144}=\\tfrac{1}{2}\\sqrt{244}\\approx7.81$.\n\n**Alternative: Order-statistics method.** Draw $r_{1},r_{2}\\sim\\mathrm{Unif}(0,1)$ and sort: $u=\\min(r_{1},r_{2})$, $v=\\max(r_{1},r_{2})$. Set $\\lambda_{1}=u$, $\\lambda_{2}=v-u$, $\\lambda_{3}=1-v$. This produces the same uniform distribution on the simplex.\n\n**Key takeaway:** To uniformly sample a triangle, draw two uniform random variables and apply the broken-stick/reflection trick. The reflection step is essential — naive use of $(r_{1},r_{2})$ without reflection biases toward the $\\lambda_{1}+\\lambda_{2}$ edge. The output point is $P = r_{1} A + r_{2} B + (1-r_{1}-r_{2})C$ after reflection."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 20 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>MC convergence rate</th><th>SE $= \\sigma/\\sqrt{n}$. To halve error: $4\\times$ samples.</th></tr><tr><td>Rejection sampling</td><td>Draw from proposal, accept with prob $\\propto$ target/proposal. Acceptance rate $= 1/M$.</td></tr><tr><td>Disk sampling</td><td>Rejection (box): $78.5\\%$ efficient. Polar: $r=\\sqrt{U}$ (100\\%).</td></tr><tr><td>MC $\\pi$</td><td>$\\hat{\\pi}=4\\times\\mathbb{P}(X^{2}+Y^{2}\\leq1)$. SE $\\approx 1.64/\\sqrt{n}$.</td></tr><tr><td>MC $e$</td><td>$e=\\mathbb{E}[N]$, $N=\\min k:\\sum U_{i}>1$. $\\mathbb{P}(N>k)=1/k!$. SE $\\approx 0.53/\\sqrt{n}$.</td></tr><tr><td>Binomial MC sample size</td><td>$n\\geq(z_{\\alpha/2})^{2} p(1-p)/\\varepsilon^{2}$. For $\\varepsilon=0.001$, 95\\% CI: $n\\approx167{,}000$.</td></tr><tr><td>Triangle sampling</td><td>Draw $r_{1},r_{2}\\sim U(0,1)$; if $r_{1}+r_{2}>1$ reflect. $P=r_{1}A+r_{2}B+(1-r_{1}-r_{2})C$.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Uniform Sampling in a Unit Disk",
+      "problemId": "sig_qdsi_p23"
+    },
+    {
+      "number": "2",
+      "name": "Monte Carlo Estimation of pi and e",
+      "problemId": "sig_qdsi_p9"
+    },
+    {
+      "number": "3",
+      "name": "Monte Carlo Estimation of a Gaussian Interval Probability",
+      "problemId": "quant_interview_fundamental_qdsi_p78"
+    },
+    {
+      "number": "4",
+      "name": "Uniform Sampling on a 3D Triangle",
+      "problemId": "sig_qdsi_p26"
+    }
+  ]
+}

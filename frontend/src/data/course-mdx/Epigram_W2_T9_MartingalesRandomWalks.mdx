@@ -1,0 +1,199 @@
+::: learningobjectives
+1.  **Define a martingale** and verify the martingale property $\mathbb{E}[X_{t+1}\mid\mathcal{F}_t]=X_t$, including for transformed processes such as $S_n^2 - n$ and $(q/p)^{S_n}$.
+
+2.  **Apply the Optional Stopping Theorem (OST)** to extract hitting probabilities and expected stopping times from martingale equations, and state the conditions under which OST is valid.
+
+3.  **Solve Gambler's Ruin** for both symmetric and biased random walks using the appropriate martingales, and recover the classical formulas as special cases.
+
+4.  **Identify the Catalan number** $C_n = \frac{1}{n+1}\binom{2n}{n}$ as the count of valid ballot sequences, and apply it to the ticket-change problem.
+
+5.  **Compute the expected value and variance of a trading strategy** applied to a symmetric random walk, using the independent-increments structure.
+
+6.  **Recognise martingale-based optimal stopping problems** --- when the process of interest is itself a martingale, the optimal strategy is trivial and the value equals the initial value.
+
+*Problems 1--3 cover Gambler's Ruin and the ballot problem. Problems 4--5 are at Citadel / Squarepoint final-round level.*
+:::
+
+# Introduction: Martingales as Pricing Tools
+
+A **martingale** is a process with no expected drift. In finance, risk-neutral pricing is built on martingales: asset prices discounted at the risk-free rate are martingales under the risk-neutral measure. In interviews, martingales appear as problem-solving tools --- the key is recognising which function of a random walk is a martingale, then invoking the Optional Stopping Theorem to extract information.
+
+::: {.conceptbox title="Martingale Definitions and Key Examples"}
+A process $(X_t)_{t\geq0}$ adapted to $(\mathcal{F}_t)$ is a **martingale** if $\mathbb{E}[|X_t|]<\infty$ and $\mathbb{E}[X_{t+1}\mid\mathcal{F}_t]=X_t$ for all $t$.
+
+**Key martingales for simple random walks** ($S_n = \sum_{i=1}^n\xi_i$, $\xi_i\in\{+1,-1\}$, $\mathbb{P}(\xi=+1)=p$, $\mathbb{P}(\xi=-1)=q=1-p$):
+
+| Process | Condition | Use |
+|---|---|---|
+| $S_n$ | $p=1/2$ (symmetric) | Expected hitting position |
+| $S_n^2 - n$ | $p=1/2$ | Expected hitting time |
+| $(q/p)^{S_n}$ | any $p\neq 1/2$ | Hitting probability (biased) |
+| $S_n - (p-q)n$ | any $p$ | Expected hitting position |
+
+:::
+
+::: {.conceptbox title="Optional Stopping Theorem (OST)"}
+Let $\tau$ be a stopping time and $(X_t)$ a martingale. Under suitable conditions (e.g. $\tau$ is bounded, or $X$ is bounded, or $\mathbb{E}[\tau]<\infty$ and $X$ has bounded increments): $$\mathbb{E}[X_\tau] = \mathbb{E}[X_0]$$ **Applying OST:** (1) Identify a martingale $M_t$ that encodes the quantity of interest. (2) Apply $\mathbb{E}[M_\tau]=\mathbb{E}[M_0]$. (3) Condition on the two possible absorption events to solve for the unknown.
+:::
+
+# Gambler's Ruin
+
+::: {.workedbox number="1" difficulty="medium" problemid="five_rings_qdsi_p11"}
+**Gambler's Ruin Hitting Probability (Symmetric).** Consider a simple symmetric random walk $\{S_n\}$ with $S_0=0$. What is the probability the walk hits $+10$ before $-5$?
+:::
+
+::: solutionbox
+**Method 1: OST with the martingale $S_n$.**
+
+Since $p=1/2$, $(S_n)$ is a martingale. Let $\tau=\min\{n: S_n=10
+\text{ or } S_n=-5\}$. By OST: $$\mathbb{E}[S_\tau] = S_0 = 0$$ Let $p_+$ = probability of hitting $+10$ first. Then $\mathbb{P}(\text{hit }-5\text{ first}) = 1-p_+$, and: $$\mathbb{E}[S_\tau] = 10\cdot p_+ + (-5)\cdot(1-p_+) = 0$$ $$10p_+ - 5 + 5p_+ = 0 \implies 15p_+ = 5 \implies p_+ = \frac{1}{3}$$
+
+**Method 2: Classical Gambler's Ruin formula.**
+
+Shift: let $T_n = S_n + 5$, so $T_0=5$ and the walk hits $15$ or $0$. For a symmetric walk starting at $k=5$ with barriers at $0$ and $N=15$: $$\mathbb{P}(\text{reach }15 \mid T_0=5) = \frac{k}{N} = \frac{5}{15}
+  = \boxed{\frac{1}{3}}$$
+
+**Key takeaway:** For a symmetric random walk, the probability of hitting $+a$ before $-b$ starting from $0$ is $\dfrac{b}{a+b}$. Here: $\dfrac{5}{10+5}=\dfrac{1}{3}$. Intuitively, the closer barrier ($-5$) is more likely to be hit.
+:::
+
+::: {.freeproblem number="2" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p31"}
+**Biased Gambler's Ruin Problem.** Player A starts with \$1, player B starts with \$2. Each game: A wins \$1 from B with probability $p=2/3$, loses \$1 to B with probability $q=1/3$. Play until someone is bankrupt. What is $\mathbb{P}(A\text{ wins})$?
+:::
+
+::: solutionbox
+**Setup.** Total wealth $N=3$. A starts at $k=1$. Win prob $p=2/3$, lose prob $q=1/3$, so $r=q/p=1/2$.
+
+**Method 1: OST with the martingale $(q/p)^{S_n}$.**
+
+Since $p\neq 1/2$, $(q/p)^{S_n}$ is a martingale. Let $\tau$ be the ruin time. A wins iff $S_\tau=N=3$; A loses iff $S_\tau=0$. By OST: $$\mathbb{E}\!\left[\left(\frac{q}{p}\right)^{S_\tau}\right]
+  = \left(\frac{q}{p}\right)^{S_0}
+  = \left(\frac{1}{2}\right)^1 = \frac{1}{2}$$ $$\left(\frac{1}{2}\right)^3 \cdot\mathbb{P}(A\text{ wins})
+  + \left(\frac{1}{2}\right)^0\cdot\mathbb{P}(A\text{ loses})
+  = \frac{1}{2}$$ $$\frac{1}{8}\,p_+ + 1\cdot(1-p_+) = \frac{1}{2}
+  \implies 1 - \frac{7p_+}{8} = \frac{1}{2}
+  \implies p_+ = \frac{4}{7}$$
+
+**Method 2: Classical formula.** $$\mathbb{P}(A\text{ wins}) = \frac{1-(q/p)^k}{1-(q/p)^N}
+  = \frac{1-(1/2)^1}{1-(1/2)^3}
+  = \frac{1/2}{7/8} = \boxed{\frac{4}{7}}$$
+
+**Key takeaway:** With $p=2/3 > 1/2$ (favourable game), A wins $4/7 \approx 57\%$ of the time despite starting with only \$1 vs B's \$2. The advantage from $p>1/2$ outweighs the capital disadvantage. The martingale $(q/p)^{S_n}$ is the key tool for biased walks.
+:::
+
+# The Ballot Problem and Catalan Numbers
+
+::: {.conceptbox title="Catalan Numbers"}
+The $n$-th Catalan number is: $$C_n = \frac{1}{n+1}\binom{2n}{n}$$ $C_n$ counts the number of sequences of $n$ steps right and $n$ steps left that never go negative (Dyck paths), equivalently: valid ballot sequences, valid parenthesisations, and valid change-making orderings.
+
+**Ballot Problem:** Among all $\binom{2n}{n}$ orderings of $n$ favourable and $n$ unfavourable votes, the fraction that keep the running total non-negative throughout is $\dfrac{C_n}{\binom{2n}{n}}
+= \dfrac{1}{n+1}$.
+:::
+
+::: {.freeproblem number="3" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p21"}
+**The Ticket Booth Change Problem.** There are $2n$ people in a fixed line: $n$ have only \$5 bills and $n$ have only \$10 bills. Each ticket costs \$5. The seller starts with no change. What is the probability that everyone can buy a ticket without the seller ever being unable to make change?
+:::
+
+::: solutionbox
+**Modelling as a random walk.** Label each \$5-person as $+1$ and each \$10-person as $-1$. A transaction is feasible iff the seller's running surplus (number of \$5 bills held) is always $\geq 0$. The \$10-person requires change, consuming one \$5 bill.
+
+The problem is: over all $\binom{2n}{n}$ orderings (which we take as equally likely), what fraction keeps the running sum always $\geq 0$?
+
+**Ballot Problem / Reflection Principle.** This is exactly the ballot problem. The number of valid sequences is the Catalan number $C_n = \dfrac{1}{n+1}\dbinom{2n}{n}$.
+
+The total number of orderings is $\dbinom{2n}{n}$. Therefore: $$\mathbb{P}(\text{valid ordering})
+  = \frac{C_n}{\dbinom{2n}{n}}
+  = \frac{\dfrac{1}{n+1}\dbinom{2n}{n}}{\dbinom{2n}{n}}
+  = \boxed{\frac{1}{n+1}}$$
+
+**Proof via the Cycle Lemma.** Consider the $2n$ people arranged in a circle (equivalently, the $2n$ cyclic rotations of any linear ordering). Exactly $n$ of the $2n$ rotations are valid (start at a \$5-person and never go negative). Wait --- the Cycle Lemma says exactly $n$ out of $2n+1$\... let us use the Reflection Principle.
+
+**Reflection Principle proof.** Let $p_k$ = position after $k$ people (running count of surplus \$5 bills). A bad path is one that first hits $-1$ at some step $k$. By the reflection principle, the number of bad paths from $(0,0)$ to $(2n,0)$ equals the number of all paths from $(0,-2)$ to $(2n,0)$, which is $\dbinom{2n}{n-1}$.
+
+$$\mathbb{P}(\text{valid}) = 1 - \frac{\dbinom{2n}{n-1}}{\dbinom{2n}{n}}
+  = 1 - \frac{n}{n+1} = \frac{1}{n+1} \checkmark$$
+
+**Numerical examples:**
+
+**Key takeaway:** The Catalan structure $1/(n+1)$ appears whenever you need "balanced paths that never go negative." Recognise it immediately --- this saves derivation time. The reflection principle gives a clean proof.
+:::
+
+# Trading Strategies and Martingale Analysis
+
+::: {.premiumproblem number="4" difficulty="hard" problemId="citadel_qdsi_p21"}
+**Trading Against a Symmetric Random Walk.** A stock price $S_n$ follows a symmetric simple random walk ($S_0=0$, increments $\pm1$ with equal probability). A trader uses the strategy: if $S_n - S_{n-1} = +1$ (price went up), buy one share after the move; if $S_n - S_{n-1} = -1$ (price went down), sell one share after the move. The trader holds a position for exactly one period then closes it. Find the expected value and variance of the profit from a single trade.
+:::
+
+::: solutionbox
+**Setup.** At each step $n$, the trader observes the move $\xi_n = S_n - S_{n-1} \in\{+1,-1\}$ and takes a position of $+1$ share (long) if $\xi_n=+1$ or $-1$ share (short) if $\xi_n=-1$. The position is held for one period: the P&L from step $n$ is: $$\Pi_n = \text{position}_n \times \xi_{n+1}
+  = \xi_n \cdot \xi_{n+1}$$
+
+**Expected P&L.** Since $\xi_n$ and $\xi_{n+1}$ are independent (random walk has independent increments) and each is $\pm1$ with equal probability: $$\mathbb{E}[\Pi_n] = \mathbb{E}[\xi_n\cdot\xi_{n+1}]
+  = \mathbb{E}[\xi_n]\cdot\mathbb{E}[\xi_{n+1}] = 0\cdot0 = \boxed{0}$$
+
+**Variance of P&L.** $$\mathop{\mathrm{Var}}(\Pi_n) = \mathbb{E}[\Pi_n^2] - (\mathbb{E}[\Pi_n])^2
+  = \mathbb{E}[(\xi_n\xi_{n+1})^2] - 0
+  = \mathbb{E}[\xi_n^2]\cdot\mathbb{E}[\xi_{n+1}^2]
+  = 1\cdot1 = \boxed{1}$$ (since $\xi_n^2=1$ always, and $\xi_n \perp\!\!\!\perp \xi_{n+1}$).
+
+**Distribution of $\Pi_n$.** $\Pi_n=\xi_n\xi_{n+1}=+1$ iff both increments have the same sign (prob $1/2$); $\Pi_n=-1$ iff they have opposite signs (prob $1/2$). So $\Pi_n\sim\mathrm{Rademacher}(1/2)$ --- a fair $\pm1$ coin flip.
+
+**Interpretation.**
+
+- **Expected value = 0:** This strategy (momentum-following: buy after up-move, sell after down-move) has zero expected profit on a symmetric random walk. There is no edge.
+
+- **Variance = 1:** The P&L is maximally volatile relative to its range --- each trade is a coin flip.
+
+- **For $N$ independent trades:** Total P&L has mean 0 and variance $N$ (by independence of increments). This is a random walk itself.
+
+**Key takeaway:** Momentum strategies have zero expected return on a symmetric random walk. The increments $\xi_n$ and $\xi_{n+1}$ are independent, so knowing the direction of the last move gives no information about the next. This is the mathematical content of the *efficient market hypothesis* (in its weak form).
+:::
+
+::: {.premiumproblem number="5" difficulty="hard" problemId="squarepoint_capital_qdsi_p10"}
+**Optimal Stopping with Red-Black Cards.** A deck has 50 red and 50 black cards. Cards are revealed one at a time. At any point you may stop; your payoff is $100\times\dfrac{\text{red cards remaining}}{\text{cards remaining}}$. What is the optimal expected payoff?
+:::
+
+:::: solutionbox
+**Setup.** After $t$ cards have been revealed, let $r_t$ = red cards remaining and $c_t$ = total cards remaining ($c_0=100$, $r_0=50$). The payoff if you stop at time $\tau$ is $100\cdot r_\tau/c_\tau$.
+
+**Step 1: Show $X_t = r_t/c_t$ is a martingale.**
+
+Given $\mathcal{F}_t$, the next card drawn is red with probability $r_t/c_t$ and black with probability $(c_t-r_t)/c_t$: $$\mathbb{E}[X_{t+1}\mid\mathcal{F}_t]
+  = \frac{r_t}{c_t}\cdot\frac{r_t-1}{c_t-1}
+  + \frac{c_t-r_t}{c_t}\cdot\frac{r_t}{c_t-1}$$ $$= \frac{r_t}{c_t(c_t-1)}\bigl[(r_t-1)+(c_t-r_t)\bigr]
+  = \frac{r_t}{c_t(c_t-1)}\cdot(c_t-1)
+  = \frac{r_t}{c_t} = X_t$$ So $X_t$ is a martingale.
+
+**Step 2: Apply the martingale optimal stopping principle.**
+
+For any stopping time $\tau$: $$\mathbb{E}[X_\tau] = \mathbb{E}[X_0] = \frac{r_0}{c_0} = \frac{50}{100} = \frac{1}{2}$$ Since the payoff $100\cdot X_\tau$ is a constant multiple of a martingale evaluated at a stopping time, its expectation equals: $$\mathbb{E}[100\cdot X_\tau] = 100\cdot\mathbb{E}[X_0] = 100\cdot\frac{1}{2}
+  = \boxed{\$50}$$ for *any* stopping rule, including the optimal one.
+
+**Step 3: Optimal strategy.**
+
+Since the payoff has the same expectation $\$50$ regardless of when you stop, **every stopping time is equally optimal**. You may stop immediately, at the end, or by any other rule --- the expected payoff is always $\$50$.
+
+**Why doesn't the optimal strategy depend on the current state?** Because $X_t = r_t/c_t$ is a martingale: the current fraction of red cards is already the "best estimate" of the future fraction. No matter how many red cards you have seen, $X_t$ is unbiased for $X_\tau$ at any future time.
+
+::: {.warningbox title=""}
+Common mistake: "If I see many blacks, the remaining deck is red-heavy, so I should keep going." But this is already priced in --- if you've seen many blacks, $r_t/c_t$ is already high, so the current payoff is already high. Stopping now captures this advantage.
+:::
+
+**Key takeaway:** When the payoff process is a martingale, the optimal stopping value equals $\mathbb{E}[X_0]$ --- the initial value. No strategy outperforms stopping immediately. This is one of the deepest applications of the OST in interview problems.
+::::
+
+# Technique Summary
+
+::: {.techniquesummary title="Topic 9 Technique Toolkit"}
+
+| Technique | Description |
+|---|---|
+| **Martingale check** | Verify $\mathbb{E}[X_{t+1}\mid\mathcal{F}_t]=X_t$. For $f(S_n)$ on a RW, use conditional on next step. |
+| **OST** | $\mathbb{E}[X_\tau]=\mathbb{E}[X_0]$ when $\tau$ is bounded or OST conditions hold. Apply by conditioning on the two absorption events. |
+| **Symmetric Gambler's Ruin** | $\mathbb{P}(\text{hit }+a\text{ before }-b)=b/(a+b)$. Use martingale $S_n$. |
+| **Biased Gambler's Ruin** | $\mathbb{P}(\text{hit }N)=(1-r^k)/(1-r^N)$ where $r=q/p$. Use martingale $(q/p)^{S_n}$. |
+| **Catalan / Ballot** | $\mathbb{P}(\text{path stays non-negative})=1/(n+1)$ for $n$ up-steps and $n$ down-steps. |
+| **Reflection Principle** | $\#\text{bad paths}=\dbinom{2n}{n-1}$; valid paths $=\dbinom{2n}{n}-\dbinom{2n}{n-1}=C_n$. |
+| **Independent increments** | $\mathbb{E}[\xi_n\xi_{n+1}]=\mathbb{E}[\xi_n]\mathbb{E}[\xi_{n+1}]=0$. Momentum strategies have zero expected return. |
+| **Martingale optimal stopping** | If payoff $= X_\tau$ and $X_t$ is a martingale: optimal value $=\mathbb{E}[X_0]$; every stopping time is optimal. |
+
+:::

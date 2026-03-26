@@ -1,0 +1,102 @@
+{
+  "weekNum": 4,
+  "topicNum": 28,
+  "topicName": "Coding Session 7: Sorting Algorithms",
+  "subtopics": "Merge Sort $\\cdot$ Quick Select $\\cdot$ Dutch Flag $\\cdot$ Intervals $\\cdot$ Custom Comparators $\\cdot$ Merge Sort on Lists $\\cdot$ Bucket Sort $\\cdot$ BIT/Merge Sort Inversions",
+  "freeProblems": 4,
+  "premiumProblems": 5,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "LC 912, 75, 56, 57, 179, 148, 315, 493, 164",
+  "learningObjectives": [],
+  "sections": [
+    {
+      "title": "Core Sorting Implementations",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "LC 912",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Sort an Array.** Sort an integer array without using built-in sort. Implement merge sort *and* outline quick sort with random pivot selection.",
+          "solution": "**Merge sort** — stable, $O(n\\log n)$ guaranteed:\n\n\\begin{lstlisting}\ndef sortArray(nums: list[int]) -> list[int]:\n    if len(nums) <= 1:\n        return nums\n    mid = len(nums) // 2\n    L = sortArray(nums[:mid])\n    R = sortArray(nums[mid:])\n    # merge two sorted halves\n    i = j = 0; res = []\n    while i < len(L) and j < len(R):\n        if L[i] <= R[j]: res.append(L[i]); i += 1\n        else:             res.append(R[j]); j += 1\n    return res + L[i:] + R[j:]\n\\end{lstlisting}\n\n**Quick sort with random pivot** — $O(n\\log n)$ average, $O(n^{2})$ worst case:\n\n\\begin{lstlisting}\nimport random\n\ndef quickSort(nums: list[int], lo: int, hi: int) -> None:\n    if lo >= hi: return\n    pivot_idx = random.randint(lo, hi)\n    nums[pivot_idx], nums[hi] = nums[hi], nums[pivot_idx]\n    pivot = nums[hi]; wall = lo\n    for i in range(lo, hi):\n        if nums[i] <= pivot:\n            nums[wall], nums[i] = nums[i], nums[wall]\n            wall += 1\n    nums[wall], nums[hi] = nums[hi], nums[wall]\n    quickSort(nums, lo, wall - 1)\n    quickSort(nums, wall + 1, hi)\n\\end{lstlisting}\n\n**Complexities:**  <table class=\"course-table\"><tr><td></td><td>Best</td><td>Average</td><td>Worst</td></tr><tr><td>Merge sort</td><td>$O(n\\log n)$</td><td>$O(n\\log n)$</td><td>$O(n\\log n)$</td></tr><tr><td>Quick sort</td><td>$O(n\\log n)$</td><td>$O(n\\log n)$</td><td>$O(n^{2})$ (bad pivot)</td></tr></table>\n\n**Key insight:** prefer merge sort when stability or worst-case guarantee matters; prefer quick sort (with random pivot) in practice for better cache performance. Interviews often ask you to implement merge sort from scratch."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 75",
+          "difficulty": "medium",
+          "problemId": "lc_75",
+          "content": "**Sort Colors (Dutch National Flag).** Given an array with values 0, 1, 2, sort it in-place in $O(n)$ time and $O(1)$ space.",
+          "solution": "**Dutch National Flag (3-pointer):** maintain three regions: $[\\,0,\\texttt{lo})$ = all 0s, $[\\texttt{lo},\\texttt{mid})$ = all 1s, $(\\texttt{hi},n)$ = all 2s. The range $[\\texttt{mid},\\texttt{hi}]$ is unexplored.\n\n\\begin{lstlisting}\ndef sortColors(nums: list[int]) -> None:\n    lo, mid, hi = 0, 0, len(nums) - 1\n    while mid <= hi:\n        if nums[mid] == 0:\n            nums[lo], nums[mid] = nums[mid], nums[lo]\n            lo += 1; mid += 1\n        elif nums[mid] == 1:\n            mid += 1\n        else:                           # nums[mid] == 2\n            nums[mid], nums[hi] = nums[hi], nums[mid]\n            hi -= 1                     # don't advance mid: swap from hi is unknown\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time, $O(1)$ space.\n\n**Why not advance \\texttt{mid** after swapping with \\texttt{hi}?} The element swapped from \\texttt{hi} is unknown — it could be 0, 1, or 2. We must examine it before moving forward.\n\n**Key insight:** the Dutch flag problem is the inner step of 3-way quicksort. The pattern generalises to any 3-category partition."
+        }
+      ]
+    },
+    {
+      "title": "Interval Problems and Custom Comparators",
+      "blocks": [
+        {
+          "type": "freeproblem",
+          "number": "LC 56",
+          "difficulty": "medium",
+          "problemId": "lc_56",
+          "content": "**Merge Intervals.** Given a list of intervals, merge all overlapping intervals and return the non-overlapping result.",
+          "solution": "**Sort then scan:** sort by start time; greedily extend the last interval or start a new one.\n\n\\begin{lstlisting}\ndef merge(intervals: list[list[int]]) -> list[list[int]]:\n    intervals.sort(key=lambda x: x[0])    # sort by start\n    res = [intervals[0]]\n    for start, end in intervals[1:]:\n        if start <= res[-1][1]:            # overlaps with last interval\n            res[-1][1] = max(res[-1][1], end)\n        else:\n            res.append([start, end])\n    return res\n\\end{lstlisting}\n\n**Complexity:** $O(n\\log n)$ (dominated by sort), $O(n)$ space.\n\n**LC 57 (Insert Interval):** given a sorted non-overlapping list and a new interval, insert and re-merge. Three phases: collect intervals entirely before, merge overlapping, collect entirely after.\n\n\\begin{lstlisting}\ndef insert(intervals, newInterval):\n    res = []\n    i, n = 0, len(intervals)\n    # Phase 1: add all intervals ending before newInterval starts\n    while i < n and intervals[i][1] < newInterval[0]:\n        res.append(intervals[i]); i += 1\n    # Phase 2: merge all overlapping intervals\n    while i < n and intervals[i][0] <= newInterval[1]:\n        newInterval[0] = min(newInterval[0], intervals[i][0])\n        newInterval[1] = max(newInterval[1], intervals[i][1])\n        i += 1\n    res.append(newInterval)\n    # Phase 3: add remaining intervals\n    return res + intervals[i:]\n\\end{lstlisting}\n\n**Key insight:** after sorting, a single linear scan suffices. Overlap condition: \\texttt{next.start <= last.end}."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 179",
+          "difficulty": "medium",
+          "problemId": "lc_179",
+          "content": "**Largest Number.** Given a list of non-negative integers, arrange them to form the largest possible number.",
+          "solution": "**Custom comparator:** for two strings $a$ and $b$, prefer $a$ before $b$ if $ab > ba$ (lexicographic comparison of concatenations).\n\n\\begin{lstlisting}\nfrom functools import cmp_to_key\n\ndef largestNumber(nums: list[int]) -> str:\n    strs = [str(n) for n in nums]\n\n    def compare(a: str, b: str) -> int:\n        if a + b > b + a: return -1   # a should come first\n        if a + b < b + a: return  1   # b should come first\n        return 0\n\n    strs.sort(key=cmp_to_key(compare))\n    result = ”.join(strs)\n    return '0' if result[0] == '0' else result   # edge case: all zeros\n\\end{lstlisting}\n\n**Complexity:** $O(n\\log n \\cdot L)$ where $L$ = max digit length.\n\n**Why is this comparator transitive?** The ordering defined by $a \\succ b \\Leftrightarrow ab > ba$ is a valid total order — it can be proved using properties of string concatenation. Python's \\texttt{cmp_to_key} converts a 3-way comparator to a key function.\n\n**Edge case:** if the largest element is 0, all elements are 0; return \\texttt{'0'} not \\texttt{'000...'}."
+        }
+      ]
+    },
+    {
+      "title": "Merge Sort on Linked Lists and Counting Inversions",
+      "blocks": [
+        {
+          "type": "freeproblem",
+          "number": "LC 148",
+          "difficulty": "medium",
+          "problemId": "lc_148",
+          "content": "**Sort List.** Sort a linked list in $O(n\\log n)$ time and $O(1)$ space (i.e.\\\niterative bottom-up merge sort).",
+          "solution": "**Top-down merge sort** (simpler, $O(\\log n)$ stack space):\n\n\\begin{lstlisting}\ndef sortList(head):\n    if not head or not head.next:\n        return head\n    # Find middle using slow/fast pointers\n    slow, fast = head, head.next\n    while fast and fast.next:\n        slow = slow.next; fast = fast.next.next\n    mid = slow.next; slow.next = None  # split into two halves\n    L = sortList(head)\n    R = sortList(mid)\n    return mergeLists(L, R)\n\ndef mergeLists(l1, l2):\n    dummy = cur = ListNode(0)\n    while l1 and l2:\n        if l1.val <= l2.val: cur.next = l1; l1 = l1.next\n        else:                 cur.next = l2; l2 = l2.next\n        cur = cur.next\n    cur.next = l1 or l2\n    return dummy.next\n\\end{lstlisting}\n\n**Complexity:** $O(n\\log n)$ time, $O(\\log n)$ space (recursion).\n\n**Key insight:** finding the middle of a linked list uses the slow/fast pointer pattern. Split the list by setting \\texttt{slow.next = None}, recurse on each half, then merge.\n\n**$O(1)$ space (bottom-up):** process sublists of length $1, 2, 4, 8,…$, merging adjacent pairs in each pass. Avoids recursion entirely."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 315",
+          "difficulty": "hard",
+          "problemId": "lc_315",
+          "content": "**Count of Smaller Numbers After Self.** For each element in \\texttt{nums}, count how many elements to its right are smaller than it. Return the counts array.",
+          "solution": "**Merge sort approach:** augment the merge step to count right-to-left inversions. Track original indices throughout.\n\n\\begin{lstlisting}\ndef countSmaller(nums: list[int]) -> list[int]:\n    n = len(nums)\n    counts = [0] * n\n    indexed = list(enumerate(nums))   # (original_index, value)\n\n    def merge_sort(arr):\n        if len(arr) <= 1:\n            return arr\n        mid = len(arr) // 2\n        L = merge_sort(arr[:mid])\n        R = merge_sort(arr[mid:])\n        merged = []; j = 0\n        for i, item in enumerate(L):\n            # advance j while R[j] < current L element\n            while j < len(R) and R[j][1] < item[1]:\n                merged.append(R[j]); j += 1\n            # all j elements from R that came before item are smaller\n            counts[item[0]] += j\n            merged.append(item)\n        return merged + R[j:]\n\n    merge_sort(indexed)\n    return counts\n\\end{lstlisting}\n\n**Complexity:** $O(n\\log n)$ time, $O(n)$ space.\n\n**How the counting works:** when merging, every element from $R$ that is placed before an element from $L$ is smaller than that $L$ element and appears to its right in the original array. The count of such $R$ elements when we place $L[i]$ is exactly \\texttt{j}.\n\n**Alternative — Binary Indexed Tree (BIT/Fenwick):** process right-to-left; for each element, query the BIT for count of elements smaller, then insert. $O(n\\log n)$ time with simpler code."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 493",
+          "difficulty": "hard",
+          "problemId": "lc_493",
+          "content": "**Reverse Pairs.** Count pairs $(i, j)$ with $i < j$ and $\\texttt{nums}[i] > 2\\cdot \\texttt{nums}[j]$.",
+          "solution": "**Modified merge sort:** *before* merging two sorted halves, count valid pairs across the split. Then merge normally.\n\nThe key: for each element $L[i]$ in the left half, find how many elements $R[j]$ satisfy $R[j] < L[i]/2$. Since both halves are sorted, use a two-pointer to advance $j$.\n\n\\begin{lstlisting}\ndef reversePairs(nums: list[int]) -> int:\n    count = [0]\n\n    def merge_sort(arr: list[int]) -> list[int]:\n        if len(arr) <= 1:\n            return arr\n        mid = len(arr) // 2\n        L = merge_sort(arr[:mid])\n        R = merge_sort(arr[mid:])\n        # Count reverse pairs BEFORE merging (both halves are sorted)\n        j = 0\n        for l_val in L:\n            while j < len(R) and l_val > 2 * R[j]:\n                j += 1\n            count[0] += j\n        # Standard merge\n        merged = []; i = k = 0\n        while i < len(L) and k < len(R):\n            if L[i] <= R[k]: merged.append(L[i]); i += 1\n            else:             merged.append(R[k]); k += 1\n        return merged + L[i:] + R[k:]\n\n    merge_sort(nums)\n    return count[0]\n\\end{lstlisting}\n\n**Complexity:** $O(n\\log n)$ time, $O(n)$ space.\n\n**Key insight:** count first, merge second. The condition $L[i] > 2R[j]$ uses a two-pointer that advances monotonically because both halves are sorted. Separating counting from merging avoids double-counting."
+        }
+      ]
+    },
+    {
+      "title": "Bucket Sort and Linear-Time Gaps",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "LC 164",
+          "difficulty": "hard",
+          "problemId": "lc_164",
+          "content": "**Maximum Gap.** Given an unsorted array, return the maximum difference between successive elements in its sorted form. Solve in $O(n)$ time.",
+          "solution": "**Pigeonhole / bucket sort argument:** With $n$ elements, there are $n-1$ gaps. The average gap is $(\\texttt{max}-\\texttt{min})/(n-1)$. By the pigeonhole principle, the maximum gap is $\\geq$ the average — so the maximum gap must span at least one empty bucket.\n\n**Algorithm:** \\begin{enumerate}\\item Create $n-1$ buckets, each of width $w = \\lceil(\\texttt{max}-\\texttt{min})/(n-1)\\rceil$.\n\n\\item Assign each element to a bucket; track only the min and max per bucket.\n\n\\item The maximum gap is the maximum over all consecutive *non-empty* buckets of $(\\texttt{next.min}- \\texttt{prev.max})$.\\end{enumerate}\n\n\\begin{lstlisting}\ndef maximumGap(nums: list[int]) -> int:\n    if len(nums) < 2: return 0\n    mn, mx = min(nums), max(nums)\n    if mn == mx: return 0\n    n = len(nums)\n    bucket_size  = max(1, (mx - mn) // (n - 1))\n    bucket_count = (mx - mn) // bucket_size + 1\n    # Each bucket: [min_val, max_val]\n    buckets = [[None, None] for _ in range(bucket_count)]\n    for num in nums:\n        idx = (num - mn) // bucket_size\n        b = buckets[idx]\n        b[0] = num if b[0] is None else min(b[0], num)\n        b[1] = num if b[1] is None else max(b[1], num)\n    # Scan non-empty buckets for maximum gap\n    max_gap, prev_max = 0, mn\n    for b in buckets:\n        if b[0] is None: continue          # empty bucket: skip\n        max_gap  = max(max_gap, b[0] - prev_max)\n        prev_max = b[1]\n    return max_gap\n\\end{lstlisting}\n\n**Complexity:** $O(n)$ time and space.\n\n**Why the max gap cannot be within a bucket:** each bucket has width $\\leq w \\leq$ average gap. So any two elements in the same bucket differ by at most $w$, which is $\\leq$ the average. The maximum gap must therefore be between elements in *different* (non-adjacent) buckets — captured by the scan over non-empty buckets."
+        }
+      ]
+    },
+    {
+      "title": "Pattern Summary and Common Mistakes",
+      "blocks": []
+    }
+  ],
+  "problemIndex": []
+}

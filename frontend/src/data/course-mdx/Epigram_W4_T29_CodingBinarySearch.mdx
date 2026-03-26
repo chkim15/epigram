@@ -1,0 +1,358 @@
+::: learningobjectives
+**Template 1 --- find exact value** (`lo <= hi`, returns index or $-1$):
+
+``` {numbers="none"}
+lo, hi = 0, len(nums) - 1
+while lo <= hi:
+    mid = (lo + hi) // 2
+    if nums[mid] == target: return mid
+    elif nums[mid] < target: lo = mid + 1
+    else: hi = mid - 1
+return -1
+```
+
+**Template 2 --- find leftmost valid value** (`lo < hi`, returns boundary):
+
+``` {numbers="none"}
+lo, hi = LEFT_BOUND, RIGHT_BOUND    # answer is in [lo, hi]
+while lo < hi:
+    mid = (lo + hi) // 2
+    if feasible(mid): hi = mid      # mid might be the answer; shrink right
+    else: lo = mid + 1              # mid is too small; shrink left
+return lo                           # lo == hi: the answer
+```
+
+Template 2 is the workhorse for **binary search on the answer** (LC 875, 1011, 410) and for finding left boundaries (LC 35, 153).
+:::
+
+# Classic Binary Search
+
+::: {.workedbox number="LC 704" difficulty="easy" problemid=""}
+**Binary Search.** Given a sorted array and a target, return the index of target or $-1$ if not found. Required complexity: $O(\log n)$.
+:::
+
+::: solutionbox
+    def search(nums: list[int], target: int) -> int:
+        lo, hi = 0, len(nums) - 1
+        while lo <= hi:
+            mid = (lo + hi) // 2           # no overflow in Python
+            if nums[mid] == target:
+                return mid
+            elif nums[mid] < target:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+        return -1
+
+**Complexity:** $O(\log n)$ time, $O(1)$ space.
+
+**Loop invariant:** target is in `nums[lo..hi]` if it exists. When `lo > hi` the interval is empty and target is absent.
+
+**Common pitfall:** `mid = (lo + hi) // 2` never overflows in Python. In C/Java use `lo + (hi - lo) / 2`.
+
+**Key insight:** at every step, at least one of `lo` and `hi` moves --- so the loop terminates in $O(\log n)$ steps.
+:::
+
+::: {.freeproblem number="LC 35" difficulty="easy" problemId="lc_35"}
+**Search Insert Position.** Given a sorted array and a target, return the index where target is found, or the index where it would be inserted to keep the array sorted.
+:::
+
+::: solutionbox
+**Leftmost lower-bound search** (Template 2):
+
+    def searchInsert(nums: list[int], target: int) -> int:
+        lo, hi = 0, len(nums)          # hi = len: target may go at the end
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if nums[mid] < target:
+                lo = mid + 1
+            else:
+                hi = mid               # nums[mid] >= target: mid might be the answer
+        return lo
+
+**Why `hi = len(nums)`?** If target is larger than all elements, the correct answer is `len(nums)` --- so the search space must include it.
+
+**Result:** `lo` is the leftmost index where `nums[lo] >= target`. This equals the insertion point.
+
+**Key insight:** "find leftmost position satisfying $\texttt{nums[i]} \geq \texttt{target}$" is the canonical lower-bound search. Python's `bisect.bisect_left(nums, target)` does exactly this.
+:::
+
+::: {.freeproblem number="LC 74" difficulty="medium" problemId="lc_74"}
+**Search a 2-D Matrix.** Each row is sorted left-to-right; the first element of each row is greater than the last element of the previous row. Search for target in $O(\log(mn))$.
+:::
+
+::: solutionbox
+**Flatten to 1-D:** treat the $m\times n$ matrix as a sorted array of length $mn$. Map index $k$ to row $k//n$, column $k\%n$.
+
+    def searchMatrix(matrix: list[list[int]], target: int) -> bool:
+        m, n = len(matrix), len(matrix[0])
+        lo, hi = 0, m * n - 1
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            val = matrix[mid // n][mid % n]   # 1-D to 2-D mapping
+            if val == target:
+                return True
+            elif val < target:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+        return False
+
+**Complexity:** $O(\log(mn))$ time, $O(1)$ space.
+
+**Key insight:** the row-sorted + row-start-greater-than-row-end property makes the matrix equivalent to one long sorted array. The index mapping `mid // n, mid % n` is the only extra step.
+:::
+
+# Rotated Arrays
+
+::: {.freeproblem number="LC 33" difficulty="medium" problemId="lc_33"}
+**Search in Rotated Sorted Array.** A sorted array has been rotated at an unknown pivot. Find target in $O(\log n)$.
+:::
+
+::: solutionbox
+**Key observation:** after splitting at `mid`, at least one half is always sorted. Check which half contains the target and discard the other.
+
+    def search(nums: list[int], target: int) -> int:
+        lo, hi = 0, len(nums) - 1
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            if nums[mid] == target:
+                return mid
+            if nums[lo] <= nums[mid]:          # left half [lo..mid] is sorted
+                if nums[lo] <= target < nums[mid]:
+                    hi = mid - 1              # target in sorted left
+                else:
+                    lo = mid + 1
+            else:                             # right half [mid..hi] is sorted
+                if nums[mid] < target <= nums[hi]:
+                    lo = mid + 1              # target in sorted right
+                else:
+                    hi = mid - 1
+        return -1
+
+**Complexity:** $O(\log n)$ time, $O(1)$ space.
+
+**Key insight:** the condition `nums[lo] <= nums[mid]` identifies the sorted half. Use *strict* range checks (`nums[lo] <= target < nums[mid]`) to decide which half to keep. Handle duplicates (LC 81) by incrementing `lo` when `nums[lo] == nums[mid]`.
+:::
+
+::: {.freeproblem number="LC 153" difficulty="medium" problemId="lc_153"}
+**Find Minimum in Rotated Sorted Array.** Find the minimum element of a rotated sorted array in $O(\log n)$.
+:::
+
+::: solutionbox
+**Invariant:** the minimum lies in the half that is *not* sorted, i.e. the half where the boundary condition breaks. Compare `nums[mid]` to `nums[hi]`: if `nums[mid] > nums[hi]`, the minimum is to the right.
+
+    def findMin(nums: list[int]) -> int:
+        lo, hi = 0, len(nums) - 1
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if nums[mid] > nums[hi]:
+                lo = mid + 1               # minimum is in the right half
+            else:
+                hi = mid                   # mid could be the minimum; keep it
+        return nums[lo]
+
+**Complexity:** $O(\log n)$ time, $O(1)$ space.
+
+**Why compare to `nums[hi]`, not `nums[lo]`?** After rotation, `nums[hi]` is the reference: if `nums[mid] > nums[hi]`, we've crossed the pivot and the min is to the right. If `nums[mid] <= nums[hi]`, mid could be the min (or it's to the left of mid).
+
+**LC 162 (Find Peak):** symmetric logic --- compare `nums[mid]` to `nums[mid+1]`. If ascending, peak is to the right; if descending, peak is at or to the left.
+:::
+
+# Binary Search on the Answer
+
+::: tcolorbox
+**Pattern: Binary Search on the Answer.** When you need to find the minimum (or maximum) value $x$ such that some predicate `feasible(x)` is true:
+
+1.  Identify the search space $[\texttt{lo}, \texttt{hi}]$.
+
+2.  Define `feasible(mid)`: can we achieve the goal with capacity/speed/limit $= \texttt{mid}$?
+
+3.  Apply Template 2: `hi = mid` if feasible, else `lo = mid + 1`.
+
+`feasible` is *monotone*: if `feasible(x)` is true, then `feasible(x+1)` is also true (or vice versa). This is the key condition that makes binary search valid.
+:::
+
+::: {.premiumproblem number="LC 875" difficulty="medium" problemId="lc_875"}
+**Koko Eating Bananas.** $n$ piles of bananas; Koko can eat $k$ bananas/hour. Find the minimum $k$ such that all bananas can be eaten in $h$ hours.
+:::
+
+::: solutionbox
+**Search space:** $k\in[1,\max(\texttt{piles})]$. **Feasibility:** total hours $= \sum\lceil p_i/k\rceil \leq h$.
+
+    import math
+
+    def minEatingSpeed(piles: list[int], h: int) -> int:
+        def feasible(k: int) -> bool:
+            return sum(math.ceil(p / k) for p in piles) <= h
+
+        lo, hi = 1, max(piles)
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if feasible(mid):
+                hi = mid          # mid works; try smaller
+            else:
+                lo = mid + 1      # mid too slow; must go faster
+        return lo
+
+**Complexity:** $O(n\log(\max p))$ time, $O(1)$ space.
+
+**Key insight:** `feasible` is monotone increasing in $k$ (faster eating always works if slower eating works). Binary search finds the minimum $k$ where `feasible` first becomes true.
+:::
+
+::: {.premiumproblem number="LC 1011" difficulty="medium" problemId="lc_1011"}
+**Capacity To Ship Packages Within D Days.** Find the minimum ship weight capacity to ship all packages within `days` days (packages must be shipped in order).
+:::
+
+::: solutionbox
+**Search space:** $[\max(\texttt{weights}),\;\sum\texttt{weights}]$ (must fit the heaviest package; at most one package per day at the upper bound).
+
+    def shipWithinDays(weights: list[int], days: int) -> int:
+        def feasible(cap: int) -> bool:
+            day_count, current = 1, 0
+            for w in weights:
+                if current + w > cap:
+                    day_count += 1
+                    current = 0
+                current += w
+            return day_count <= days
+
+        lo, hi = max(weights), sum(weights)
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if feasible(mid): hi = mid
+            else: lo = mid + 1
+        return lo
+
+**Complexity:** $O(n\log(\sum w))$ time, $O(1)$ space.
+
+**LC 410 (Split Array Largest Sum)** is *identical*: replace "days" with "$k$ subarrays", "weights" with `nums`, and "ship capacity" with "largest subarray sum". Same template, same `feasible` function.
+:::
+
+::: {.premiumproblem number="LC 410" difficulty="hard" problemId="lc_410"}
+**Split Array Largest Sum.** Split `nums` into $k$ non-empty subarrays to minimise the largest subarray sum.
+:::
+
+::: solutionbox
+**Same pattern as LC 1011** with "subarrays" instead of "days":
+
+    def splitArray(nums: list[int], k: int) -> int:
+        def feasible(cap: int) -> bool:
+            parts, current = 1, 0
+            for n in nums:
+                if current + n > cap:
+                    parts += 1
+                    current = 0
+                current += n
+            return parts <= k
+
+        lo, hi = max(nums), sum(nums)
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if feasible(mid): hi = mid
+            else: lo = mid + 1
+        return lo
+
+**Complexity:** $O(n\log(\sum \texttt{nums}))$ time, $O(1)$ space.
+
+**Why it works:** `feasible(cap)` asks "can we split into $\leq k$ parts each summing to $\leq \texttt{cap}$?" This is monotone in `cap`: larger cap means fewer parts needed.
+
+**Note:** this problem also has an $O(nk)$ DP solution (`dp[i][j]` = min largest sum for first $i$ elements in $j$ parts), but $O(n\log S)$ binary search is faster for large inputs.
+:::
+
+# Median of Two Sorted Arrays
+
+::: {.premiumproblem number="LC 4" difficulty="hard" problemId="lc_4"}
+**Median of Two Sorted Arrays.** Find the median of two sorted arrays `nums1` and `nums2` in $O(\log(\min(m,n)))$ time.
+:::
+
+::: solutionbox
+**Key idea: binary search on the partition.**
+
+We want to split `nums1` at position $i$ and `nums2` at position $j = \lfloor(m+n)/2\rfloor - i$ such that:
+
+- All elements left of the partition $\leq$ all elements right.
+
+- The two left halves together have size $\lfloor(m+n)/2\rfloor$.
+
+The valid partition satisfies: `nums1[i-1] <= nums2[j]` and `nums2[j-1] <= nums1[i]`.
+
+Binary search on $i\in[0,m]$ (binary search on the shorter array).
+
+    def findMedianSortedArrays(nums1: list[int], nums2: list[int]) -> float:
+        # Ensure nums1 is the shorter array
+        if len(nums1) > len(nums2):
+            nums1, nums2 = nums2, nums1
+        m, n = len(nums1), len(nums2)
+        half = (m + n) // 2
+        lo, hi = 0, m
+
+        while True:
+            i = (lo + hi) // 2      # partition in nums1
+            j = half - i            # partition in nums2
+
+            # Left and right boundary values (use -inf/+inf at edges)
+            l1 = nums1[i-1] if i > 0 else float('-inf')
+            r1 = nums1[i]   if i < m else float('inf')
+            l2 = nums2[j-1] if j > 0 else float('-inf')
+            r2 = nums2[j]   if j < n else float('inf')
+
+            if l1 <= r2 and l2 <= r1:          # valid partition found
+                if (m + n) % 2:
+                    return float(min(r1, r2))  # odd total: smaller of right halves
+                return (max(l1, l2) + min(r1, r2)) / 2  # even total
+            elif l1 > r2:
+                hi = i - 1                     # move left in nums1
+            else:
+                lo = i + 1                     # move right in nums1
+
+**Complexity:** $O(\log(\min(m,n)))$ time, $O(1)$ space.
+
+**Intuition:** the median splits the combined array into two equal halves. We binary search for the partition in `nums1` (the shorter one). Once the left halves of both arrays contain exactly $\lfloor(m+n)/2\rfloor$ elements and the cross-partition conditions hold, the median is determined by the boundary elements.
+
+**Edge cases:**
+
+- Empty partition ($i=0$ or $j=0$): use $-\infty$ as the left boundary.
+
+- Full partition ($i=m$ or $j=n$): use $+\infty$ as the right boundary.
+
+- Odd total: median $= \min(r_1, r_2)$ (smaller of right boundaries).
+
+- Even total: median $= (\max(l_1,l_2)+\min(r_1,r_2))/2$.
+
+**Key insight:** this is a binary search on the partition *index*, not on a value. The "feasibility" condition is `l1 <= r2 and l2 <= r1`. Unlike the other problems in this session, the search space is positions (0 to $m$), not values.
+:::
+
+# Pattern Summary and Common Mistakes
+
+::: tcolorbox
+**Binary Search Pattern Toolkit**
+
+
+| **Problem** | **Template** | **Key** |
+|---|---|---|
+| LC 704 classic BS | T1: `lo<=hi` | exact match |
+| LC 35 insert pos | T2: `lo<hi` | leftmost $\geq$ target |
+| LC 74 2-D matrix | T1 | flatten: `mid//n, mid%n` |
+| LC 33 rotated | T1 | identify sorted half first |
+| LC 153 min rotated | T2 | compare `mid` to `hi` |
+| LC 162 peak element | T2 | compare `mid` to `mid+1` |
+| LC 875 Koko | T2 on answer | `feasible`: $\sum\lceil p/k\rceil\leq h$ |
+| LC 1011 ship | T2 on answer | greedy simulator in `feasible` |
+| LC 410 split array | T2 on answer | identical to LC 1011 |
+| LC 4 median | T2 on partition | `l1<=r2 and l2<=r1` |
+
+
+**Common Mistakes**
+
+- **Template confusion:** use T1 (`lo<=hi`) for exact search; T2 (`lo<hi`, `hi=mid`) for left-boundary / binary-search-on-answer. Mixing them causes infinite loops or off-by-one errors.
+
+- **LC 35/153 `hi` initialisation:** set `hi = len(nums)` (not `len(nums)-1`) when the answer can be one past the end.
+
+- **LC 33 rotated search:** use `<=` not `<` in `nums[lo] <= nums[mid]` to handle the case `lo == mid`.
+
+- **LC 875/1011 search space:** lower bound $=
+          \max(\texttt{piles/weights})$, not 0. A speed/capacity of 0 is nonsensical.
+
+- **LC 4 partition:** always binary search on the shorter array. Forgetting to swap `nums1` and `nums2` causes `j` to go negative.
+:::

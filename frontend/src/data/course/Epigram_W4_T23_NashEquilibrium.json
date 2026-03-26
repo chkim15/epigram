@@ -1,0 +1,124 @@
+{
+  "weekNum": 4,
+  "topicNum": 23,
+  "topicName": "Nash Equilibrium",
+  "subtopics": "Prisoner's Dilemma $\\cdot$ Battle of the Sexes $\\cdot$ Cournot $\\cdot$ Mixed Strategies $\\cdot$ Weighted RPS $\\cdot$ Unique Number Game",
+  "freeProblems": 3,
+  "premiumProblems": 3,
+  "timeEstimate": "120–150 minutes",
+  "prerequisites": "Basic probability; Topic 2 — Conditional Probability",
+  "learningObjectives": [
+    "**Find all Nash equilibria in finite normal-form games** — both pure-strategy and mixed-strategy — using the best response correspondence and indifference conditions.",
+    "**Explain inefficiency in the Prisoner's Dilemma**: why the unique NE is Pareto-dominated, and under what conditions cooperation can emerge.",
+    "**Solve the Cournot duopoly** by deriving best-response functions, finding the symmetric NE, and comparing to monopoly and perfect competition.",
+    "**Find the unique mixed NE in zero-sum games** by making the opponent indifferent, and recognise that zero-sum games always have a mixed-strategy NE.",
+    "**Derive the optimal mixed strategy in asymmetric zero-sum games** by setting up the indifference conditions correctly — accounting for asymmetric payoffs.",
+    "**Characterise symmetric Nash equilibria** in multi-player games with a continuum of actions."
+  ],
+  "sections": [
+    {
+      "title": "Core Definitions",
+      "blocks": [
+        {
+          "type": "conceptbox",
+          "title": "Nash Equilibrium",
+          "content": "A **Nash Equilibrium** is a strategy profile $(s_{1}^{*},…,s_{n}^{*})$ such that no player can unilaterally increase their payoff: \\[u_{i}(s_{i}^{*}, s_{-i}^{*}) \\geq u_{i}(s_{i}, s_{-i}^{*}) \\quad\\text{for all }s_{i},\\;\\text{for all }i\\]\n\n**Mixed strategy NE:** Players randomise. The key condition — *each player is indifferent among all strategies in their support*: \\[\\text{If player }i\\text{ mixes over }\\{A,B\\}:\\quad u_{i}(A,\\sigma_{-i}^{*}) = u_{i}(B,\\sigma_{-i}^{*})\\] **Existence:** Every finite game has at least one NE (possibly in mixed strategies) — Nash's theorem."
+        }
+      ]
+    },
+    {
+      "title": "Canonical Two-Player Games",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Prisoner's Dilemma: Analysis and Inefficiency.** Two suspects. Payoffs (years in prison, lower is better): cooperate/cooperate: (1,1); defect/cooperate: (0,3); cooperate/defect: (3,0); defect/defect: (2,2). \\begin{enumerate}[label=(\\alph{*})]\\item Write the payoff matrix.\n\n\\item Find all Nash equilibria.\n\n\\item Why is the outcome Pareto-dominated?\n\n\\item When might cooperation emerge?\\end{enumerate}",
+          "solution": "**(a) Payoff matrix** (entries: years for Player 1, Player 2 — lower is better; rewrite as utility $=-\\text{years}$):\n\n <table class=\"course-table\"><tr><th></th><th>Cooperate</th><th>Defect</th></tr><tr><td>Cooperate</td><td>$(-1,-1)$</td><td>$(-3,\\phantom{-}0)$</td></tr><tr><td>Defect</td><td>$(\\phantom{-}0,-3)$</td><td>$(-2,-2)$</td></tr></table>\n\n**(b) Nash equilibrium.**\n\nDefect is a **strictly dominant strategy** for each player: regardless of the opponent's action, Defect gives a strictly higher payoff (0 vs $-1$ against Cooperate; $-2$ vs $-3$ against Defect).\n\nThe unique NE is **(Defect, Defect)**, giving payoffs $(-2,-2)$.\n\n**(c) Pareto inefficiency.** The outcome $(-2,-2)$ is Pareto-dominated by $(-1,-1)$ (mutual cooperation): both players would be strictly better off cooperating. The NE is inefficient because individual rationality leads to a collectively suboptimal outcome — the essence of the “dilemma”.\n\n**(d) When does cooperation emerge?** \\begin{itemize}\\item **Repeated game (indefinite):** If the game is repeated infinitely (or with probability $\\delta$ of continuation), the Folk Theorem says cooperation can be sustained as a NE for high enough $\\delta$, via “grim trigger” or “tit-for-tat” strategies.\n\n\\item **Communication / binding contracts:** If players can commit to cooperate before playing.\n\n\\item **Altruism / social preferences:** If players care about each other's payoffs (non-standard preferences).\\end{itemize}\n\n**Key takeaway:** The Prisoner's Dilemma illustrates that rational individual behaviour can be collectively irrational. Defect dominates $\\Rightarrow$ unique NE $=$ (Defect, Defect) $\\Rightarrow$ Pareto-dominated. Repeated interaction is the primary mechanism for sustaining cooperation."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p125",
+          "content": "**Battle of the Sexes: Multiple Equilibria.** Payoff matrix: (Opera,Opera): $(2,1)$; (Football,Football): $(1,2)$; (Opera,Football) or (Football,Opera): $(0,0)$. \\begin{enumerate}[label=(\\alph{*})]\\item Find all pure strategy Nash equilibria.\n\n\\item Find the mixed strategy Nash equilibrium.\n\n\\item What is each player's expected payoff at the mixed NE?\\end{enumerate}",
+          "solution": "**(a) Pure strategy NE.**\n\nCheck each cell for mutual best responses: \\begin{itemize}\\item **(Opera, Opera):** Alice gets 2 (best against Bob=Opera); Bob gets 1 (best against Alice=Opera). **NE.** ✓\n\n\\item **(Football, Football):** Alice gets 1 (best against Bob=Football); Bob gets 2 (best against Alice=Football). **NE.** ✓\n\n\\item (Opera, Football), (Football, Opera): both give (0,0) — either player would deviate unilaterally. Not NE.\\end{itemize}\n\n**Two pure NE: (Opera, Opera) and (Football, Football).**\n\n**(b) Mixed strategy NE.**\n\nLet $p$ = Prob(Alice plays Opera) and $q$ = Prob(Bob plays Opera).\n\n**Bob's mixing condition** (Alice must be indifferent): \\[\\mathbb{E}[\\text{Alice}|\\text{Opera}] = \\mathbb{E}[\\text{Alice}|\\text{Football}]\\] \\[2q + 0(1-q) = 0\\cdot q + 1\\cdot(1-q) \\implies 2q = 1-q \\implies q = \\frac{1}{3}\\]\n\n**Alice's mixing condition** (Bob must be indifferent): \\[1\\cdot p + 0(1-p) = 0\\cdot p + 2(1-p) \\implies p = 2-2p \\implies p = \\frac{2}{3}\\]\n\n**Mixed NE:** Alice plays Opera with probability $2/3$; Bob plays Opera with probability $1/3$.\n\n**(c) Expected payoffs at mixed NE.** \\[\\mathbb{E}[\\text{Alice}] = 2\\cdot\\tfrac{2}{3}\\cdot\\tfrac{1}{3}+ 0 + 0 + 1\\cdot\\tfrac{1}{3}\\cdot\\tfrac{2}{3}= \\tfrac{4}{9}+\\tfrac{2}{9}= \\frac{2}{3}\\] \\[\\mathbb{E}[\\text{Bob}] = 1\\cdot\\tfrac{2}{3}\\cdot\\tfrac{1}{3}+ 0 + 0 + 2\\cdot\\tfrac{1}{3}\\cdot\\tfrac{2}{3}= \\tfrac{2}{9}+\\tfrac{4}{9}= \\frac{2}{3}\\] Both players get expected payoff $2/3$ at the mixed NE — *worse* than either pure NE payoff.\n\n**Key takeaway:** Battle of the Sexes has 3 NE: two pure (players coordinate) and one mixed (players fail to coordinate with positive probability, getting lower expected payoff). The mixed NE is often dismissed as “less reasonable” because it yields lower payoffs than either pure NE."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p126",
+          "content": "**Cournot Duopoly.** Two firms, $P = 100-Q$, $Q=q_{1}+q_{2}$, zero marginal cost. \\begin{enumerate}[label=(\\alph{*})]\\item Find each firm's best response function.\n\n\\item Find the NE quantities and price.\n\n\\item Compare to monopoly and perfect competition.\\end{enumerate}",
+          "solution": "**(a) Best response functions.**\n\nFirm 1 maximises $\\pi_{1} = P\\cdot q_{1} = (100-q_{1}-q_{2})q_{1}$. First-order condition: $\\partial\\pi_{1}/\\partial q_{1} = 100-2q_{1}-q_{2}=0$: \\[q_{1}^{*}(q_{2}) = \\frac{100-q_{2}}{2}\\] By symmetry: $q_{2}^{*}(q_{1}) = \\dfrac{100-q_1}{2}$.\n\n**(b) Nash equilibrium.**\n\nSolving $q_{1}=q_{2}=q$ by symmetry: $q = (100-q)/2 \\Rightarrow 2q=100-q \\Rightarrow 3q=100$: \\[\\boxed{q_1^* = q_2^* = \\frac{100}{3} \\approx 33.3}\\] \\[Q^{*} = \\frac{200}{3},\\qquad P^{*} = 100-\\frac{200}{3}= \\frac{100}{3}\\approx33.3\\] \\[\\pi_{i}^{*} = P^{*}\\cdot q_{i}^{*} = \\frac{100}{3}\\cdot\\frac{100}{3}= \\frac{10{,}000}{9}\\approx 1{,}111\\]\n\n**(c) Comparison.**\n\n <table class=\"course-table\"><tr><td>Outcome</td><td>$Q$</td><td>$P$</td><td>$\\pi$ per firm</td></tr><tr><td>Monopoly ($Q=50$, $P=50$)</td><td>50</td><td>50</td><td>1{,}250</td></tr><tr><td>Cournot NE</td><td>$\\approx66.7$</td><td>$\\approx33.3$</td><td>$\\approx1{,}111$</td></tr><tr><td>Perfect Competition ($P=0$)</td><td>100</td><td>0</td><td>0</td></tr></table>\n\nCournot lies between monopoly (high price, low output) and perfect competition (zero price). Each firm would prefer to produce the monopoly share ($q=25$), but deviating to $q=100/3$ is rational since the best response to $q_{j}=25$ is $q_{i}=(100-25)/2=37.5>25$.\n\n**Key takeaway:** Cournot NE: $q_{i}=a/(n+1)$, $P=a/(n+1)$ for $n$ symmetric firms with demand $P=a-Q$ and zero costs. As $n\\to\\infty$, the outcome approaches perfect competition."
+        }
+      ]
+    },
+    {
+      "title": "Zero-Sum and Multi-Player Games",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "4",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p127",
+          "content": "**Matching Pennies: No Pure Strategy NE.** Player 1 wins \\$1 on match; Player 2 wins \\$1 on mismatch. \\begin{enumerate}[label=(\\alph{*})]\\item Show no pure strategy NE exists.\n\n\\item Find the mixed strategy NE.\n\n\\item What is each player's expected payoff?\n\n\\item What general principle does this illustrate?\\end{enumerate}",
+          "solution": "**Payoff matrix** (Player 1's payoff; zero-sum so Player 2 gets the negative):\n\n <table class=\"course-table\"><tr><th></th><th>H</th><th>T</th></tr><tr><td>H</td><td>$+1$</td><td>$-1$</td></tr><tr><td>T</td><td>$-1$</td><td>$+1$</td></tr></table>\n\n**(a) No pure strategy NE.** \\begin{itemize}\\item (H,H): Player 2 gets $-1$, deviates to T. Not NE.\n\n\\item (H,T): Player 1 gets $-1$, deviates to T. Not NE.\n\n\\item (T,H): Player 1 gets $-1$, deviates to H. Not NE.\n\n\\item (T,T): Player 2 gets $-1$, deviates to H. Not NE.\\end{itemize} No pure NE exists.\n\n**(b) Mixed strategy NE.**\n\nLet Player 1 play H with prob $p$. Player 2 is indifferent between H and T: \\[\\mathbb{E}_{2}[\\text{H}] = \\mathbb{E}_{2}[\\text{T}] \\implies -p + (1-p) = p - (1-p) \\implies 1-2p = 2p-1 \\implies p=\\tfrac{1}{2}\\] By symmetry, Player 2 also plays H with $q=1/2$.\n\n**Mixed NE: each player plays H and T each with probability $1/2$.**\n\n**(c) Expected payoffs.** Each player's expected payoff $= 0$. (Zero-sum game with symmetric mixed NE: the value is 0.)\n\n**(d) General principle.** Matching Pennies illustrates that **zero-sum games with no pure NE have a unique mixed NE**, given by the minimax strategy. By the **Minimax Theorem** (von Neumann 1928): every finite two-player zero-sum game has a value $v$ and optimal mixed strategies such that each player can guarantee at least $v$ (Player 1) or at most $v$ (Player 2) in expectation.\n\n**Key takeaway:** In Matching Pennies, any predictable strategy is exploitable. The unique NE forces both players to be unpredictable (50/50). This underpins the value of randomisation in adversarial settings: poker, sports strategy, financial market making."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "5",
+          "difficulty": "hard",
+          "problemId": "sig_qdsi_p24",
+          "content": "**Optimal Strategy in Weighted Rock-Paper-Scissors.** Winning by Rock $= +2$ points; winning by Paper or Scissors $= +1$ point. Tie $= 0$. Provide a mixed strategy that guarantees at least 0 expected points against any opponent.",
+          "solution": "**Payoff matrix** (row player's score when winning; losses and ties $=0$):\n\n <table class=\"course-table\"><tr><th></th><th>R</th><th>P</th><th>S</th></tr><tr><td>R</td><td>$0$</td><td>$0$</td><td>$2$</td></tr><tr><td>P</td><td>$1$</td><td>$0$</td><td>$0$</td></tr><tr><td>S</td><td>$0$</td><td>$1$</td><td>$0$</td></tr></table>\n\n**Key:** winning with Rock $=2$; winning with Paper or Scissors $=1$; losing or tying $=0$.\n\n**Expected payoff against each opponent pure action.** Let your mixed strategy be $(x,y,z)$ for (R, P, S): \\[u(\\text{vs R}) = y, \\qquad u(\\text{vs P}) = z, \\qquad u(\\text{vs S}) = 2x\\]\n\n**Minimax optimisation.** You want to maximise your guaranteed payoff: \\[\\max_{x+y+z=1,\\;x,y,z\\geq0}\\;\\min\\{y,\\;z,\\;2x\\}\\] At the optimum, all three quantities must be equal (otherwise shift weight to increase the minimum): \\[y = z = 2x\\] With $x+y+z=1$: $x + 2x + 2x = 5x = 1 \\Rightarrow x = 1/5$.\n\n\\[\\boxed{x = \\Pr(R) = \\frac{1}{5},\\quad y = \\Pr(P) = \\frac{2}{5},\\quad z = \\Pr(S) = \\frac{2}{5}}\\]\n\n**Verify guaranteed payoff:** $u(\\text{vs R}) = 2/5$,\\quad $u(\\text{vs P}) = 2/5$,\\quad $u(\\text{vs S}) = 2(1/5) = 2/5$.✓\n\nAgainst any opponent mixed strategy, by linearity, your expected payoff is still $\\geq 2/5$.\n\n**Why does Rock get the lowest probability?** Rock has the highest reward ($+2$), which makes it attractive for the opponent to counter with Paper. To prevent the opponent from profitably playing Paper, Rock must be played *less* often. Counterintuitively, the strongest individual move gets the lowest weight.\n\n\\[\\boxed{\\text{Guaranteed expected score per round} = \\frac{2}{5}}\\]\n\n**Key takeaway:** In an asymmetric zero-sum game, make the opponent indifferent by setting $u(\\text{vs each pure}) = v$ (the game value). The minimax strategy here is $(1/5, 2/5, 2/5)$, not the naive $(1/3, 1/3, 1/3)$. Rock's higher reward means it must be played less frequently."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "veryhard",
+          "problemId": "game_theory_qdsi_p4",
+          "content": "**Nash Equilibrium in the Smallest Unique Number Game.** Three players simultaneously choose a positive integer. A player wins iff they choose the *smallest* integer chosen by *exactly one* player. Find an optimal symmetric Nash equilibrium strategy.",
+          "solution": "**Win condition.** You win iff you chose the *smallest* integer held by *exactly one* player. If you choose $k$, you win in exactly two mutually exclusive cases: \\begin{itemize}\\item **Case A:** Both other players chose $j>k$ — then $k$ is unique and is the smallest.\n\n\\item **Case B:** Both other players chose the *same* $j<k$ — then $j$ is not unique (two players hold it), $k$ is unique, and no smaller unique exists.\\end{itemize}\n\n**Win probability formula.** Let $F(k)=\\sum_{j=1}^{k} q_{j}$ and $S(k-1)=\\sum_{j=1}^{k-1}q_{j}^{2}$. Then: \\[u(k) = \\underbrace{(1-F(k))^2}_{\\text{Case A}}+ \\underbrace{S(k-1)}_{\\text{Case B}}\\]\n\n**Equilibrium condition.** In a symmetric NE, all $k$ in the support give equal win probability $v$: $u(k) = v$ for all $k$ with $q_{k}>0$.\n\nThe support must be infinite: if the support ended at $K$, choosing $K+1$ would win whenever the other two tie on any $j\\leq K$ (Case B), giving $u(K+1)>u(K)$ — profitable deviation. So every positive integer is played.\n\n**Characterisation via tail sums.** Let $T_{k} = \\sum_{j\\geq k}q_{j}$ (tail probability, $T_{1}=1$). Note $1-F(k)=T_{k+1}$ and $S(k-1)=U_{1}-U_{k}$ where $U_{k}=\\sum_{j\\geq k}q_{j}^{2}$.\n\nTaking $k\\to\\infty$ in $u(k)=v$ gives $v=U_{1}$. Substituting back: \\[\\boxed{U_k = T_{k+1}^2 \\quad\\text{for all }k\\geq1}\\] This single identity fully characterises the NE distribution.\n\n**Recursion for probabilities.** Since $q_{k}^{2} = U_{k} - U_{k+1}= T_{k+1}^{2} - T_{k+2}^{2}$ and $q_{k} = T_{k} - T_{k+1}$: \\[T_{k+2}= \\sqrt{T_{k+1}^{2} - (T_{k}-T_{k+1})^{2}}, \\qquad T_{1}=1\\] with $T_{2}$ determined by requiring $\\sum q_{k}=1$, giving $T_{2}\\approx0.5437$.\n\n**First few equilibrium probabilities:**  <table class=\"course-table\"><tr><td>$k$</td><td>$q_{k}$</td><td>$k$</td><td>$q_{k}$</td></tr><tr><td>1</td><td>$\\approx0.4563$</td><td>6</td><td>$\\approx0.0217$</td></tr><tr><td>2</td><td>$\\approx0.2481$</td><td>7</td><td>$\\approx0.0118$</td></tr><tr><td>3</td><td>$\\approx0.1349$</td><td>8</td><td>$\\approx0.0064$</td></tr><tr><td>4</td><td>$\\approx0.0733$</td><td>9</td><td>$\\approx0.0035$</td></tr><tr><td>5</td><td>$\\approx0.0399$</td><td>10</td><td>$\\approx0.0019$</td></tr></table>\n\n**Equilibrium value.** Each player wins with probability $v = T_{2}^{2} \\approx (0.5437)^{2} \\approx 0.296$ at the NE. (Slightly less than $1/3$, since ties — nobody wins — occur with positive probability.)\n\n**Key takeaway:** The symmetric NE is the unique distribution satisfying $U_{k} = T_{k+1}^{2}$. Play smaller numbers more often. The exact probabilities decrease faster than geometric (approximately $q_{k+1}/q_{k} \\approx 0.54$ for small $k$, then faster). Do not play any fixed pure strategy — any predictable choice is exploitable."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 23 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>Finding NE</th><th>Pure: check each strategy profile for mutual best responses. Mixed: set opponents' payoffs equal (indifference).</th></tr><tr><td>Dominant strategy</td><td>If one strategy always dominates, it is played in every NE. Iterate elimination: IESDS.</td></tr><tr><td>Zero-sum mixed NE</td><td>Make the opponent indifferent. Minimax theorem guarantees existence. Game value $= 0$ if symmetric.</td></tr><tr><td>Asymmetric payoffs</td><td>Higher-reward actions get *lower* mixed probability (to discourage opponents from countering them).</td></tr><tr><td>Cournot NE</td><td>$q_{i}^{*} = a/((n+1)c)$ for linear demand $P=a-Q$, marginal cost $c$, $n$ symmetric firms.</td></tr><tr><td>Battle of the Sexes</td><td>3 NE: 2 pure (coordinate), 1 mixed (payoff $=2/3$ each). Mixed NE payoff $<$ pure NE payoffs.</td></tr><tr><td>Smallest unique number</td><td>NE characterised by $U_{k}=T_{k+1}^{2}$. Probabilities decrease: $q_{1}\\approx0.456$, $q_{2}\\approx0.248$, …; value $v\\approx0.296$.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Prisoner's Dilemma: Analysis and Inefficiency",
+      "problemId": "quant_interview_fundamental_qdsi_p124"
+    },
+    {
+      "number": "2",
+      "name": "Battle of the Sexes: Multiple Equilibria",
+      "problemId": "quant_interview_fundamental_qdsi_p125"
+    },
+    {
+      "number": "3",
+      "name": "Cournot Duopoly",
+      "problemId": "quant_interview_fundamental_qdsi_p126"
+    },
+    {
+      "number": "4",
+      "name": "Matching Pennies: No Pure Strategy NE",
+      "problemId": "quant_interview_fundamental_qdsi_p127"
+    },
+    {
+      "number": "5",
+      "name": "Optimal Strategy in Weighted Rock-Paper-Scissors",
+      "problemId": "sig_qdsi_p24"
+    },
+    {
+      "number": "6",
+      "name": "Nash Equilibrium in the Smallest Unique Number Game",
+      "problemId": "game_theory_qdsi_p4"
+    }
+  ]
+}

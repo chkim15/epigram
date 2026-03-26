@@ -1,6 +1,6 @@
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import type { GraphData } from '@/components/ai/GraphRenderer';
 
@@ -105,6 +105,12 @@ export function renderMath(text: string, documentId?: string): string {
 
   // NOW process text formatting and line breaks (after math is done)
   
+  // Safety net: strip LaTeX commands that shouldn't appear in rendered output
+  processed = processed.replace(/\\color\{[^}]+\}/g, '');
+  processed = processed.replace(/\\(small|large|footnotesize|normalsize|Large|LARGE|huge|Huge)\b/g, '');
+  processed = processed.replace(/\\begin\{center\}/g, '');
+  processed = processed.replace(/\\end\{center\}/g, '');
+
   // Process common LaTeX text commands that might appear outside math mode
   // Handle \textbf{...}, \textit{...}, \emph{...}, etc.
   processed = processed.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
@@ -202,7 +208,7 @@ export function renderMath(text: string, documentId?: string): string {
   // Handle markdown lists before processing bold text
   // Convert bullet points (* at the start of a line or after line break)
   // Handle both "* text" and "*text" formats
-  processed = processed.replace(/^\*\s*(.+)$/gm, '<li>$1</li>');
+  processed = processed.replace(/^\*(?!\*)\s*(.+)$/gm, '<li>$1</li>');
   
   // Convert numbered lists (1. 2. etc at the start of a line)
   processed = processed.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
@@ -283,6 +289,12 @@ export function renderMath(text: string, documentId?: string): string {
 }
 
 export function MathContent({ content, documentId }: { content: string; documentId?: string }) {
+  // Defer rendering to client only to avoid hydration mismatch.
+  // renderMath uses document.createElement (browser-only) and KaTeX
+  // produces different output on server vs client.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   // Parse content for graph blocks and regular content
   const { segments, hasGraphs } = useMemo(() => {
     const graphRegex = /```graph\s*\n([\s\S]*?)```/g;
@@ -346,10 +358,15 @@ export function MathContent({ content, documentId }: { content: string; document
     return { segments, hasGraphs };
   }, [content, documentId]);
 
+  // Show empty container during SSR to avoid hydration mismatch
+  if (!mounted) {
+    return <div className="math-content" />;
+  }
+
   // If no graphs, render as before
   if (!hasGraphs) {
     return (
-      <div 
+      <div
         className="math-content"
         dangerouslySetInnerHTML={{ __html: segments[0]?.content as string }}
       />

@@ -1,0 +1,97 @@
+{
+  "weekNum": 2,
+  "topicNum": 13,
+  "topicName": "Coding Session 3: Backtracking",
+  "subtopics": "Subsets $\\cdot$ Permutations $\\cdot$ Combinations $\\cdot$ Duplicate Pruning $\\cdot$ Grid DFS $\\cdot$ Constraint Satisfaction",
+  "freeProblems": 4,
+  "premiumProblems": 4,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "LC 78, 46, 39, 40, 47, 79, 51, 37",
+  "learningObjectives": [],
+  "sections": [
+    {
+      "title": "Subsets and Combinations",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "LC 78",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Subsets.** Given an integer array \\texttt{nums} with distinct elements, return all possible subsets (the power set). Do not include duplicates.",
+          "solution": "**Key idea:** at each recursive call, add the current path to the result (every prefix is a valid subset), then explore extending it with each remaining element.\n\n\\begin{lstlisting}\ndef subsets(nums: list[int]) -> list[list[int]]:\n    res = []\n    def bt(start: int, path: list[int]):\n        res.append(path[:])          # every path is a valid subset\n        for i in range(start, len(nums)):\n            path.append(nums[i])\n            bt(i + 1, path)          # only elements after i (no repeats)\n            path.pop()\n    bt(0, [])\n    return res\n\\end{lstlisting}\n\n**Complexity:** $O(2^{n} \\cdot n)$ time (generate all $2^{n}$ subsets, each takes $O(n)$ to copy), $O(n)$ extra space for the recursion stack.\n\n**Visualise the recursion tree** for \\texttt{[1,2,3]}:  \\texttt{[]} $\\to$ \\texttt{[1]} $\\to$ \\texttt{[1,2]} $\\to$ \\texttt{[1,2,3]} $\\nearrow$ \\texttt{[1,3]} $\\to$ \\texttt{[2]} $\\to$ \\texttt{[2,3]} $\\to$ \\texttt{[3]}\n\n**Key insight:** The \\texttt{start} parameter prevents going backward, so each subset appears exactly once. Recording the path at the *top* of the call (before the loop) captures the empty subset and every partial prefix."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 39",
+          "difficulty": "medium",
+          "problemId": "lc_39",
+          "content": "**Combination Sum.** Given distinct candidates and a target, return all combinations that sum to target. Candidates may be reused unlimited times.",
+          "solution": "**Difference from LC 78:** record only when \\texttt{rem == 0} (not at every node), and pass \\texttt{i} (not \\texttt{i+1}) to allow reuse.\n\n\\begin{lstlisting}\ndef combinationSum(candidates: list[int], target: int) -> list[list[int]]:\n    candidates.sort()   # enables early break\n    res = []\n    def bt(start: int, path: list[int], rem: int):\n        if rem == 0:\n            res.append(path[:])\n            return\n        for i in range(start, len(candidates)):\n            if candidates[i] > rem:\n                break           # sorted: all further elements too large\n            path.append(candidates[i])\n            bt(i, path, rem - candidates[i])   # i, not i+1: reuse allowed\n            path.pop()\n    bt(0, [], target)\n    return res\n\\end{lstlisting}\n\n**Complexity:** $O(N^{T/M})$ where $N$ = number of candidates, $T$ = target, $M$ = min candidate value.\n\n**Key insight:** Two critical choices vs LC 78: (1) pass \\texttt{i} (not \\texttt{i+1}) to allow reuse of the current element; (2) sort and \\texttt{break} early when the candidate exceeds the remaining target."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 40",
+          "difficulty": "medium",
+          "problemId": "lc_40",
+          "content": "**Combination Sum II.** Each candidate may only be used *once*. Candidates may contain duplicates. Return all unique combinations summing to target.",
+          "solution": "**Duplicate pruning rule:** Sort the array. Within the same recursive level (same \\texttt{start}), skip a candidate if it equals the previous candidate at that level: \\texttt{i > start and candidates[i] == candidates[i-1]}.\n\n\\begin{lstlisting}\ndef combinationSum2(candidates: list[int], target: int) -> list[list[int]]:\n    candidates.sort()\n    res = []\n    def bt(start: int, path: list[int], rem: int):\n        if rem == 0:\n            res.append(path[:])\n            return\n        for i in range(start, len(candidates)):\n            if candidates[i] > rem:\n                break\n            # skip duplicate at the same recursion level\n            if i > start and candidates[i] == candidates[i-1]:\n                continue\n            path.append(candidates[i])\n            bt(i + 1, path, rem - candidates[i])  # i+1: no reuse\n            path.pop()\n    bt(0, [], target)\n    return res\n\\end{lstlisting}\n\n**Why \\texttt{i > start**, not \\texttt{i > 0}?} The condition \\texttt{i > start} skips a duplicate only at the *same* level of the recursion tree. Duplicates at *different* levels are fine — they correspond to choosing the same value in different positions of the combination, which can produce distinct valid results.\n\n**Key insight:** The canonical duplicate-pruning pattern: \\begin{enumerate}\\item Sort the array.\n\n\\item In the loop: \\texttt{if i > start and a[i] == a[i-1]: continue}.\\end{enumerate} This appears in LC 40, 47, 90 (Subsets II), and many other problems."
+        }
+      ]
+    },
+    {
+      "title": "Permutations with and without Duplicates",
+      "blocks": [
+        {
+          "type": "freeproblem",
+          "number": "LC 46",
+          "difficulty": "medium",
+          "problemId": "lc_46",
+          "content": "**Permutations.** Given distinct integers, return all permutations.",
+          "solution": "**Difference from subsets:** every element must appear exactly once. Track which elements are *used* with a boolean array.\n\n\\begin{lstlisting}\ndef permute(nums: list[int]) -> list[list[int]]:\n    res = []\n    used = [False] * len(nums)\n    def bt(path: list[int]):\n        if len(path) == len(nums):\n            res.append(path[:])\n            return\n        for i, n in enumerate(nums):\n            if used[i]:\n                continue\n            used[i] = True\n            path.append(n)\n            bt(path)\n            path.pop()\n            used[i] = False\n    bt([])\n    return res\n\\end{lstlisting}\n\n**Complexity:** $O(n!\\cdot n)$ time, $O(n)$ extra space.\n\n**Alternative (swap-based):** Swap \\texttt{nums[start]} with each \\texttt{nums[i]} for \\texttt{i >= start}, recurse with \\texttt{start+1}, then swap back. Avoids the \\texttt{used} array but modifies the input.\n\n**Key insight:** Unlike subsets/combinations, permutations have no \\texttt{start} index — every unused element is a valid next choice at every level."
+        },
+        {
+          "type": "freeproblem",
+          "number": "LC 47",
+          "difficulty": "medium",
+          "problemId": "lc_47",
+          "content": "**Permutations II.** Given integers that may contain duplicates, return all unique permutations.",
+          "solution": "**Duplicate pruning for permutations:** sort the array and add a condition: skip element $i$ if it equals the previous element *and* the previous element is not currently used. This ensures that among duplicate elements, we always pick the leftmost one first.\n\n\\begin{lstlisting}\ndef permuteUnique(nums: list[int]) -> list[list[int]]:\n    nums.sort()\n    res = []\n    used = [False] * len(nums)\n    def bt(path: list[int]):\n        if len(path) == len(nums):\n            res.append(path[:])\n            return\n        for i in range(len(nums)):\n            if used[i]:\n                continue\n            # skip duplicate: nums[i] == nums[i-1] and nums[i-1] not used at this level\n            if i > 0 and nums[i] == nums[i-1] and not used[i-1]:\n                continue\n            used[i] = True\n            path.append(nums[i])\n            bt(path)\n            path.pop()\n            used[i] = False\n    bt([])\n    return res\n\\end{lstlisting}\n\n**Why \\texttt{not used[i-1]**?} If \\texttt{used[i-1]} is \\texttt{True}, then $i-1$ is an ancestor in the current path — picking $i$ is fine (different position). If \\texttt{used[i-1]} is \\texttt{False}, $i-1$ was already tried and abandoned at this level; picking $i$ would duplicate that branch.\n\n**Key insight:** LC 40 pruning: \\texttt{i > start and a[i] == a[i-1]}. LC 47 pruning: \\texttt{i > 0 and a[i] == a[i-1] and not used[i-1]}. Both ensure the leftmost duplicate is always chosen first, so each unique outcome appears exactly once."
+        }
+      ]
+    },
+    {
+      "title": "Grid DFS and Constraint Satisfaction",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "LC 79",
+          "difficulty": "medium",
+          "problemId": "lc_79",
+          "content": "**Word Search.** Given a 2-D board of characters and a word, return \\texttt{True} iff the word exists in the board as a sequence of horizontally or vertically adjacent cells. Each cell may be used at most once.",
+          "solution": "**Key idea:** DFS from every cell that matches the first character. Mark visited cells by temporarily overwriting them (avoids a separate \\texttt{visited} array); restore on backtrack.\n\n\\begin{lstlisting}\ndef exist(board: list[list[str]], word: str) -> bool:\n    rows, cols = len(board), len(board[0])\n    def dfs(r: int, c: int, k: int) -> bool:\n        if k == len(word):\n            return True                          # matched all characters\n        if r < 0 or r >= rows or c < 0 or c >= cols:\n            return False\n        if board[r][c] != word[k]:\n            return False\n        tmp, board[r][c] = board[r][c], '#'     # mark visited\n        found = (dfs(r+1, c, k+1) or dfs(r-1, c, k+1) or\n                 dfs(r, c+1, k+1) or dfs(r, c-1, k+1))\n        board[r][c] = tmp                        # restore\n        return found\n    return any(dfs(r, c, 0)\n               for r in range(rows)\n               for c in range(cols))\n\\end{lstlisting}\n\n**Complexity:** $O(R\\cdot C\\cdot 4^{L})$ worst case where $L$ = word length; in practice much faster due to early termination.\n\n**Optimisation:** If the last character of \\texttt{word} is rarer than the first, reverse the word — this reduces the branching factor early.\n\n**Key insight:** In-place marking (\\texttt{'\\#'}) is cleaner than a separate \\texttt{visited} set and avoids the cost of set operations. Always restore the cell on backtrack."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 51",
+          "difficulty": "hard",
+          "problemId": "lc_51",
+          "content": "**N-Queens.** Place $n$ non-attacking queens on an $n\\times n$ chessboard. Return all distinct solutions.",
+          "solution": "**Constraint encoding:** a queen attacks along columns, and two diagonals. Track three sets: \\begin{itemize}\\item \\texttt{cols}: occupied columns.\n\n\\item \\texttt{diag1}: occupied “$\\backslash$” diagonals (identified by \\texttt{row - col}).\n\n\\item \\texttt{diag2}: occupied “$/$” diagonals (identified by \\texttt{row + col}).\\end{itemize}\n\nPlace one queen per row; a cell $(r, c)$ is valid iff $c$, $r-c$, and $r+c$ are all free.\n\n\\begin{lstlisting}\ndef solveNQueens(n: int) -> list[list[str]]:\n    res = []\n    cols, diag1, diag2 = set(), set(), set()\n    board = [['.' ] * n for _ in range(n)]\n    def bt(row: int):\n        if row == n:\n            res.append([”.join(r) for r in board])\n            return\n        for col in range(n):\n            if col in cols or (row-col) in diag1 or (row+col) in diag2:\n                continue\n            # place queen\n            cols.add(col); diag1.add(row-col); diag2.add(row+col)\n            board[row][col] = 'Q'\n            bt(row + 1)\n            # remove queen\n            cols.remove(col); diag1.remove(row-col); diag2.remove(row+col)\n            board[row][col] = '.'\n    bt(0)\n    return res\n\\end{lstlisting}\n\n**Complexity:** $O(n!)$ worst case; $O(n)$ extra space.\n\n**Results:** $n=4\\to2$ solutions; $n=8\\to92$ solutions.\n\n**Key insight:** Using sets for $O(1)$ conflict checking is essential. The diagonal trick (\\texttt{row-col} and \\texttt{row+col}) is a standard encoding that avoids iterating over the board to check attacks."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "LC 37",
+          "difficulty": "hard",
+          "problemId": "lc_37",
+          "content": "**Sudoku Solver.** Fill in a $9\\times9$ Sudoku board so that each row, column, and $3\\times3$ box contains every digit 1–9.",
+          "solution": "**State:** track which digits are used in each row, column, and box. Place digits in the first empty cell and recurse.\n\n\\begin{lstlisting}\ndef solveSudoku(board: list[list[str]]) -> None:\n    rows  = [set() for _ in range(9)]\n    cols  = [set() for _ in range(9)]\n    boxes = [set() for _ in range(9)]\n    empties = []\n    # Initialize from given clues\n    for r in range(9):\n        for c in range(9):\n            if board[r][c] != '.':\n                d = board[r][c]\n                rows[r].add(d); cols[c].add(d); boxes[(r//3)*3+c//3].add(d)\n            else:\n                empties.append((r, c))\n    def bt(idx: int) -> bool:\n        if idx == len(empties):\n            return True              # all empty cells filled\n        r, c = empties[idx]\n        b = (r // 3) * 3 + c // 3\n        for d in '123456789':\n            if d in rows[r] or d in cols[c] or d in boxes[b]:\n                continue\n            # place digit\n            board[r][c] = d\n            rows[r].add(d); cols[c].add(d); boxes[b].add(d)\n            if bt(idx + 1):\n                return True\n            # remove digit\n            board[r][c] = '.'\n            rows[r].remove(d); cols[c].remove(d); boxes[b].remove(d)\n        return False\n    bt(0)\n\\end{lstlisting}\n\n**Complexity:** $O(9^{m})$ worst case where $m$ = number of empty cells; in practice very fast due to pruning.\n\n**Optimisation (MRV heuristic):** Instead of filling cells in order, always pick the empty cell with the *fewest* valid choices (Minimum Remaining Values). This dramatically reduces backtracking.\n\n**Key insight:** Precompute \\texttt{empties} once upfront to avoid scanning the board repeatedly. The box index formula $(r//3)\\times3 + c//3$ maps each cell to its $3\\times3$ box (0–8)."
+        }
+      ]
+    },
+    {
+      "title": "Pattern Summary and Common Mistakes",
+      "blocks": []
+    }
+  ],
+  "problemIndex": []
+}

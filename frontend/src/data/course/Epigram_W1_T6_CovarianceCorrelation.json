@@ -1,0 +1,147 @@
+{
+  "weekNum": 1,
+  "topicNum": 6,
+  "topicName": "Covariance and Correlation",
+  "subtopics": "Covariance $\\cdot$ Correlation $\\cdot$ PSD Matrices $\\cdot$ Portfolio Theory $\\cdot$ Order Statistics",
+  "freeProblems": 4,
+  "premiumProblems": 3,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "Topic 4 — Gaussian Distributions; Topic 5 — Expectation & Variance",
+  "learningObjectives": [
+    "**Compute covariance and correlation from first principles** using $\\text{Cov}(X,Y)=\\mathbb{E}[XY]-\\mathbb{E}[X]\\mathbb{E}[Y]$ and the bilinearity of covariance, including cases involving Multinomial components.",
+    "**Construct correlated normal random variables** via the decomposition $Y=\\rho X+\\sqrt{1-\\rho^{2}}\\,Z$ and generalise to $n$ correlated normals using the Cholesky factorisation.",
+    "**Understand what makes a covariance matrix valid** — the positive semi-definiteness (PSD) condition — and use it to derive feasibility constraints on correlation triples.",
+    "**Identify the equicorrelation lower bound** $\\rho\\geq -1/(n-1)$ for $n$ variables with all pairwise correlations equal to $\\rho$, and construct an explicit model achieving any $\\rho$ in the valid range.",
+    "**Apply covariance to portfolio construction** — derive the optimal portfolio weights for maximum Sharpe ratio and interpret the role of correlation in diversification.",
+    "**Explain the time-scale correlation paradox** — how the sign of correlation between two assets can depend on the measurement frequency.",
+    "**Compute the covariance of order statistics** for i.i.d.\\\n Uniform$(0,1)$ samples, using the joint distribution of extremes."
+  ],
+  "sections": [
+    {
+      "title": "Introduction: Beyond Expectation",
+      "blocks": [
+        {
+          "type": "text",
+          "content": "Expectationtellsyouthecentre;covarianceandcorrelationtellyouhowtworandomvariables*move together*.Infinance,thisdistinctioniseverything:aportfoliooftwoperfectlycorrelatedassetsoffersnodiversification,whiletwoindependentassetsreducevariancebyhalf.Understandingwhencorrelationsare*feasible*isthedeeperskill."
+        },
+        {
+          "type": "conceptbox",
+          "title": "Core Definitions and Properties",
+          "content": "**Covariance:** $\\text{Cov}(X,Y) = \\mathbb{E}[XY] - \\mathbb{E}[X]\\mathbb{E}[Y] = \\mathbb{E}[(X-\\mathbb{E}[X])(Y-\\mathbb{E}[Y])]$.\n\n**Correlation:** $\\text{Corr}(X,Y) = \\rho_{XY}= \\dfrac{\\text{Cov}(X,Y)}{\\sqrt{\\text{Var}(X)\\text{Var}(Y)}}\\in [-1,1]$.\n\n**Bilinearity of Covariance:** $\\text{Cov}(aX+bY, Z) = a\\text{Cov}(X,Z)+b\\text{Cov}(Y,Z)$.\n\n$\\text{Var}(X+Y) = \\text{Var}(X)+\\text{Var}(Y)+2\\text{Cov}(X,Y)$.\n\n$\\text{Var}\\!\\left(\\sum_{i} a_{i} X_{i}\\right) = \\sum_{i} a_{i}^{2}\\text{Var}(X_{i}) + 2\\sum_{i<j}a_{i} a_{j}\\text{Cov}(X_{i},X_{j})$.\n\n**Cauchy–Schwarz:** $|\\text{Cov}(X,Y)|\\leq\\sqrt{\\text{Var}(X)\\text{Var}(Y)}$, so $|\\rho_{XY}|\\leq1$.\n\n**$\\rho=\\pm1$:** $Y=aX+b$ almost surely for some $a\\neq0$."
+        },
+        {
+          "type": "conceptbox",
+          "title": "Covariance Matrix and Positive Semi-Definiteness",
+          "content": "For a random vector $(X_{1},…,X_{n})^{\\top}$, the covariance matrix $\\Sigma$ has entries $\\Sigma_{ij}=\\text{Cov}(X_{i},X_{j})$. The correlation matrix $C$ has $C_{ij}=\\text{Corr}(X_{i},X_{j})$ (diagonal entries all 1).\n\nA covariance or correlation matrix **must be positive semi-definite (PSD)**: $\\mathbf{v}^{\\top}\\Sigma\\mathbf{v}\\geq0$ for all $\\mathbf{v}\\in\\mathbb{R}^{n}$.\n\nEquivalently, all eigenvalues are $\\geq0$.\n\n**Test in 2D:** $\\begin{pmatrix}1&\\rho\\\\\\rho&1\\end{pmatrix}$ is PSD iff $|\\rho|\\leq1$.\n\n**Test in 3D:** $\\begin{pmatrix}1&a&c\\\\a&1&b\\\\c&b&1\\end{pmatrix}$ is PSD iff $1+2abc - a^{2}-b^{2}-c^{2}\\geq0$."
+        }
+      ]
+    },
+    {
+      "title": "Computing Covariance and Correlation",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**Covariance of Face Counts in Repeated Dice Rolls.** Roll a fair die 5 times. Let $X$ = number of rolls equal to 1 and $Y$ = number of rolls equal to 2. Find $\\text{Cov}(X,Y)$ and $\\text{Corr}(X,Y)$.",
+          "solution": "**Distributions.** $(X,Y,…)$ follows a $\\mathrm{Multinomial}(5;\\, \\tfrac{1}{6},\\tfrac{1}{6},…)$ distribution. $X\\sim\\mathrm{Binomial}(5,\\tfrac{1}{6})$ and $Y\\sim\\mathrm{Binomial}(5,\\tfrac{1}{6})$ marginally.\n\n**Means and variances:** $\\mathbb{E}[X]=\\mathbb{E}[Y]=5\\cdot\\tfrac{1}{6}=\\tfrac{5}{6}$. $\\text{Var}(X)=\\text{Var}(Y)=5\\cdot\\tfrac{1}{6}\\cdot\\tfrac{5}{6}=\\tfrac{25}{36}$.\n\n**$\\mathbb{E}[XY]$ via indicator variables.** Write $X=\\sum_{i=1}^{5} I_{i}$ and $Y=\\sum_{j=1}^{5} J_{j}$ where $I_{i}=\\mathbf{1}[\\text{roll }i=1]$ and $J_{j}=\\mathbf{1}[\\text{roll }j=2]$. \\[\\mathbb{E}[XY] = \\sum_{i=1}^{5}\\sum_{j=1}^{5} \\mathbb{E}[I_{i} J_{j}]\\] For $i=j$: $\\mathbb{E}[I_{i} J_{i}]=\\mathbb{P}(\\text{roll }i=1\\text{ and }=2)=0$.\n\nFor $i\\neq j$: $\\mathbb{E}[I_{i} J_{j}]=\\mathbb{P}(\\text{roll }i=1)\\cdot \\mathbb{P}(\\text{roll }j=2)=\\tfrac{1}{6}\\cdot\\tfrac{1}{6}=\\tfrac{1}{36}$.\n\nThere are $5^{2}-5=20$ pairs with $i\\neq j$, so: $\\mathbb{E}[XY] = 20\\cdot\\tfrac{1}{36}= \\tfrac{20}{36}$.\n\n**Covariance:** \\[\\text{Cov}(X,Y) = \\mathbb{E}[XY]-\\mathbb{E}[X]\\mathbb{E}[Y] = \\frac{20}{36}- \\frac{5}{6}\\cdot\\frac{5}{6}= \\frac{20}{36}- \\frac{25}{36}= -\\frac{5}{36}\\]\n\n**Correlation:** \\[\\text{Corr}(X,Y) = \\frac{-5/36}{25/36}= -\\frac{1}{5}\\]\n\n**Multinomial shortcut.** For $\\mathrm{Multinomial}(n;p_{1},…,p_{k})$, $\\text{Cov}(X_{i},X_{j})=-np_{i}p_{j}$ for $i\\neq j$. Here: $-5\\cdot\\tfrac{1}{6}\\cdot \\tfrac{1}{6}=-\\tfrac{5}{36}$. ✓\n\n**Intuition:** More 1s means fewer 2s (they compete for the same 5 rolls), so the covariance is *negative*.\n\n**Key takeaway:** For Multinomial components, $\\text{Cov}(X_{i},X_{j})=-np_{i}p_{j}$ always negative. Decompose into indicators to derive it from scratch."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "quant_interview_market_finance_qdsi_p6",
+          "content": "**Constructing Correlated Normal Random Variables.** Construct a normal $X$ and a second normal $Y$ such that $\\text{Corr}(X,Y)=\\rho$ for a specified $\\rho\\in[-1,1]$. How does this generalise to a vector of $n$ correlated normals?",
+          "solution": "**Two-variable construction.** Let $X\\sim N(0,1)$ and $Z\\sim N(0,1)$ with $X\\perp\\!\\!\\!\\perp Z$. Define: \\[Y = \\rho X + \\sqrt{1-\\rho^{2}}\\,Z\\] Then: $Y\\sim N(0,1)$ (since it is a linear combination of independent normals with coefficients summing to 1 in squared terms), $\\text{Cov}(X,Y) = \\rho\\text{Cov}(X,X)+\\sqrt{1-\\rho^{2}}\\text{Cov}(X,Z) = \\rho\\cdot1+0=\\rho$, and $\\text{Corr}(X,Y)=\\rho$. ✓\n\n**$n$-variable generalisation via Cholesky decomposition.** Given a target correlation matrix $C$ (which must be PSD), factorise: $C = LL^{\\top}$ where $L$ is lower-triangular (Cholesky factor).\n\nThen if $\\mathbf{Z}=(Z_{1},…,Z_{n})^{\\top}$ with $Z_{i}\\stackrel{\\text{iid}}{\\sim}N(0,1)$, the vector $\\mathbf{X}=L\\mathbf{Z}$ has covariance matrix $\\mathbb{E}[\\mathbf{X}\\mathbf{X}^{\\top}]=L\\mathbb{E}[\\mathbf{Z}\\mathbf{Z}^{\\top}]L^{\\top}=LIL^{\\top}=C$.\n\n**Example: $n=2$.** $C=\\begin{pmatrix}1&\\rho\\\\\\rho&1\\end{pmatrix}$. Cholesky: $L=\\begin{pmatrix}1&0\\\\\\rho&\\sqrt{1-\\rho^{2}}\\end{pmatrix}$. Then $X_{1}=Z_{1}$ and $X_{2}=\\rho Z_{1}+\\sqrt{1-\\rho^{2}}Z_{2}$. Matches the two-variable formula above. ✓\n\n**Key takeaway:** The decomposition $Y=\\rho X+\\sqrt{1-\\rho^{2}}Z$ is the two-variable Cholesky. For $n$ variables, Cholesky of the correlation matrix produces the construction. This is the standard method for Monte Carlo simulation of correlated assets."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "medium",
+          "problemId": "quant_interview_market_finance_qdsi_p10",
+          "content": "**Time-Scale Dependent Correlation Paradox.** Can two stocks be positively correlated day-by-day yet negatively correlated over a year? Provide a concrete example or proof.",
+          "solution": "**Yes.** This is possible and is a real phenomenon in financial markets (it relates to the difference between short-run co-movement and long-run mean-reversion).\n\n**Concrete construction.** Let $\\varepsilon_{t}, \\eta_{t} \\stackrel{\\text{iid}}{\\sim}N(0,1)$ for $t=1,…,T$ and let $\\mu_{t}$ be a common factor. Define: \\[X_{t} = \\mu_{t} + \\varepsilon_{t}, \\qquad Y_{t} = -\\mu_{t} + \\eta_{t} + cX_{t-1}\\] with a suitable choice of $c$. A simpler example:\n\nLet $r_{X,t}=Z_{t}+\\varepsilon_{t}$ and $r_{Y,t}=Z_{t}+\\eta_{t}$ be daily returns of stocks $X$ and $Y$, where $Z_{t}$ is a common daily factor and $\\varepsilon_{t},\\eta_{t}$ are independent noise. Clearly the *daily* correlation is positive: $\\text{Corr}(r_{X,t},r_{Y,t})=\\text{Var}(Z_{t})/ (\\text{Var}(Z_{t})+\\sigma_{\\varepsilon}^{2})>0$.\n\nNow suppose the log-price of $X$ is mean-reverting to the log-price of $Y$ over long horizons: \\[P_{X,T}= \\sum_{t=1}^{T} r_{X,t},\\quad P_{Y,T}= \\sum_{t=1}^{T} r_{Y,t}\\] Add a long-run correction term: $r_{X,t}= Z_{t} + \\varepsilon_{t} - \\alpha(P_{X,t-1}-P_{Y,t-1})$ with $\\alpha>0$. This creates mean-reversion (when $X$ gets far above $Y$ it tends to fall back), making annual cumulative returns *negatively* correlated even though daily returns are positively correlated.\n\n**Minimal clean example.** Two-period model: Day 1: $(X_{1},Y_{1})$ have correlation $\\rho_{1}>0$ (positive shock). Day 2: each corrects in the *opposite* direction with magnitude $M$. If $M$ is large enough, the annual cumulative returns $(X_{1}+X_{2}, Y_{1}+Y_{2})$ become negatively correlated.\n\n**Key takeaway:** Correlation depends on the time horizon. Positive short-run co-movement can be dominated by long-run mean reversion, flipping the sign of annual correlation. This is the basis of *pairs trading*: two stocks that positively co-move daily but mean-revert annually can be traded on their annual spread."
+        },
+        {
+          "type": "freeproblem",
+          "number": "4",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p100",
+          "content": "**Correlation Bounds for Three Random Variables.** Let $X,Y,Z$ be random variables with $\\text{Corr}(X,Y)=a$, $\\text{Corr}(Y,Z)=b$, $\\text{Corr}(X,Z)=c$. \\begin{enumerate}[label=(\\alph{*})]\\item Derive the constraint $(a,b,c)$ must satisfy for the correlation matrix to be positive semi-definite.\n\n\\item Suppose $a=b=0.9$. What is the range of possible values for $c$?\\end{enumerate}",
+          "solution": "**(a) PSD constraint.**\n\nThe correlation matrix is: $C = \\begin{pmatrix}1&a&c\\\\a&1&b\\\\c&b&1\\end{pmatrix}$.\n\nFor $C$ to be PSD, all principal minors must be $\\geq0$ (Sylvester's criterion): \\begin{itemize}\\item $1\\times1$: $1\\geq0$. ✓\n\n\\item $2\\times2$: $1-a^{2}\\geq0$ (and similarly for other pairs). Requires $|a|,|b|,|c|\\leq1$. ✓\n\n\\item $3\\times3$ (determinant $\\geq0$):\\end{itemize} \\[\\det(C) = 1+2abc - a^{2}-b^{2}-c^{2} \\geq 0\\]\n\n**The PSD constraint:** \\[\\boxed{a^2 + b^2 + c^2 - 2abc \\leq 1}\\] with all pairwise $|a|,|b|,|c|\\leq1$.\n\nThis defines an ellipsoidal region in $(a,b,c)$-space.\n\n**(b) Range of $c$ when $a=b=0.9$.**\n\nSubstitute into $\\det(C)\\geq0$: \\[1 + 2(0.9)(0.9)c - (0.9)^{2} - (0.9)^{2} - c^{2} \\geq 0\\] \\[1 + 1.62c - 0.81 - 0.81 - c^{2} \\geq 0\\] \\[-c^{2} + 1.62c - 0.62 \\geq 0\\] \\[c^{2} - 1.62c + 0.62 \\leq 0\\] Discriminant: $1.62^{2} - 4(0.62) = 2.6244 - 2.48 = 0.1444$. $\\sqrt{0.1444}=0.38$. \\[c \\in \\left[\\frac{1.62-0.38}{2},\\, \\frac{1.62+0.38}{2}\\right] = [0.62,\\, 1.00]\\]\n\n**Interpretation:** If $X,Y$ and $Y,Z$ are each 90\\% correlated, then $X,Z$ must also be at least 62\\% correlated — transitivity forces high correlation. The intuition: if $X\\approx Y$ and $Y\\approx Z$, then $X\\approx Z$.\n\n**Key takeaway:** The PSD constraint $\\det(C)\\geq0$ translates to $c\\in[ab-\\sqrt{(1-a^{2})(1-b^{2})},\\; ab+\\sqrt{(1-a^{2})(1-b^{2})}]$ in general. High pairwise correlations constrain the third correlation tightly."
+        }
+      ]
+    },
+    {
+      "title": "Portfolio Theory and Equicorrelation",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "5",
+          "difficulty": "hard",
+          "problemId": "quant_interview_market_finance_qdsi_p2",
+          "content": "**Maximum Sharpe Ratio Portfolio Construction.** Two assets $A$ and $B$: $\\mu_{A}=1\\%$, $\\mu_{B}=2\\%$, $\\sigma_{A}=\\sigma_{B}=1\\%$, correlation $\\rho=0.5$. Construct a portfolio $w=(w_{A},1-w_{A})$ maximising the Sharpe ratio (assume zero risk-free rate).",
+          "solution": "**Portfolio return and variance.** For weights $(w, 1-w)$: \\[\\mu_{P} = w\\mu_{A} + (1-w)\\mu_{B} = w\\cdot1\\% + (1-w)\\cdot2\\% = 2\\% - w\\cdot1\\%\\] \\[\\sigma_{P}^{2} = w^{2}\\sigma_{A}^{2} + (1-w)^{2}\\sigma_{B}^{2} + 2w(1-w)\\rho\\sigma_{A}\\sigma_{B}\\] \\[= w^{2} + (1-w)^{2} + 2w(1-w)(0.5) \\quad (\\text{in units of }\\%^{2})\\] \\[= w^{2} + 1 - 2w + w^{2} + w(1-w) = 1 - w + w^{2} \\cdot(2-1) \\cdots\\] More carefully: $\\sigma_{P}^{2} = w^{2} + (1-w)^{2} + w(1-w) = w^{2} + 1 - 2w + w^{2} + w - w^{2} = w^{2} - w + 1$.\n\n**Sharpe ratio:** $S(w) = \\mu_{P}/\\sigma_{P} = (2-w)/\\sqrt{w^{2}-w+1}$ (in \\%).\n\n**Maximise:** Set $dS/dw=0$. Differentiating and setting numerator to zero: \\[\\frac{d}{dw}\\left[\\frac{2-w}{\\sqrt{w^{2}-w+1}}\\right] = \\frac{-\\sqrt{w^{2}-w+1}-(2-w)\\cdot\\frac{2w-1}{2\\sqrt{w^{2}-w+1}}}{w^{2}-w+1}= 0\\] Numerator = 0: $-(w^{2}-w+1)\\cdot2 - (2-w)(2w-1)=0$. $-2w^{2}+2w-2 - (4w-2-2w^{2}+w)=0$. $-2w^{2}+2w-2 - 3w+2+2w^{2}=0$. $-w=0\\Rightarrow w=0$.\n\nHmm, $w=0$ gives $S=2/1=2$ at 100\\% B. Check $w=1$: $S=1/1=1$. Check $w=-1$ (short A): $S=3/\\sqrt{3}\\approx1.73$.\n\nThe maximum Sharpe ratio is at $w=0$, i.e., **100\\% in asset B**.\n\n**Intuition:** Asset $B$ has the higher expected return and the same volatility. With positive correlation, there is no diversification benefit that outweighs simply holding the better asset.\n\n**When does diversification help?** Diversification improves the Sharpe ratio only when $(\\mu_{A}/\\sigma_{A}^{2})\\neq(\\mu_{B}/\\sigma_{B}^{2})$ *and* the correlation is sufficiently low. In this problem both have $\\sigma=1\\%$ but $\\mu_{B}>\\mu_{A}$, so $B$ dominates on Sharpe.\n\n**Key takeaway:** The tangency (max Sharpe) portfolio weight in asset $A$ is: \\[w_{A}^{*} = \\frac{(\\mu_{A}\\sigma_{B}^{2} - \\mu_{B}\\rho\\sigma_{A}\\sigma_{B})}{(\\mu_{A}\\sigma_{B}^{2} + \\mu_{B}\\sigma_{A}^{2} - (\\mu_{A}+\\mu_{B})\\rho\\sigma_{A}\\sigma_{B})}\\] When $\\sigma_{A}=\\sigma_{B}$: $w_{A}^{*}=(\\mu_{A}-\\mu_{B}\\rho)/ ((\\mu_{A}+\\mu_{B})(1-\\rho))$. Plugging in: $w_{A}^{*}=(1-0.5\\cdot2)/(3\\cdot0.5)=0$. ✓"
+        },
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p75",
+          "content": "**Equicorrelation: Feasible Bounds and Construction.** Let $X,Y,Z$ have $\\text{Corr}(X,Y)=\\text{Corr}(X,Z)=\\text{Corr}(Y,Z)=\\rho$. \\begin{enumerate}[label=(\\alph{*})]\\item What bounds must $\\rho$ satisfy?\n\n\\item Given $\\rho$ in the valid range, construct explicit random variables achieving this equicorrelation.\n\n\\item How does this generalise to $n$ variables with all pairwise correlations equal to $\\rho$?\\end{enumerate}",
+          "solution": "**(a) Feasibility bounds for $n=3$.**\n\nThe equicorrelation matrix is: $C = (1-\\rho)I + \\rho\\mathbf{1}\\mathbf{1}^{\\top}$.\n\nIts eigenvalues are $1-\\rho$ (with multiplicity $n-1$) and $1+(n-1)\\rho$ (with multiplicity 1). For PSD we need all eigenvalues $\\geq0$: \\[1-\\rho\\geq0 \\implies \\rho\\leq1 \\qquad\\text{and}\\qquad 1+2\\rho\\geq0 \\implies \\rho\\geq-\\tfrac{1}{2}\\] So for $n=3$: $\\boxed{\\rho\\in[-1/2,\\,1]}$.\n\n**(b) Construction for any valid $\\rho$.**\n\nLet $F\\sim N(0,1)$ be a common factor and $\\varepsilon_{X},\\varepsilon_{Y}, \\varepsilon_{Z}\\stackrel{\\text{iid}}{\\sim}N(0,1)$ independent of $F$. Define: \\[X = \\sqrt{\\rho}\\,F + \\sqrt{1-\\rho}\\,\\varepsilon_{X} \\quad ({\\rho\\geq0})\\] Then $\\text{Var}(X)=\\rho+(1-\\rho)=1$ and $\\text{Cov}(X,Y)=\\rho\\text{Var}(F)=\\rho$. So $\\text{Corr}(X,Y)=\\rho$. By symmetry, all three pairwise correlations equal $\\rho$.\n\nFor $\\rho<0$ (down to $-1/2$): use $\\sqrt{|\\rho|}$ with opposite sign.\n\n**Explicit formula:** $X_{i} = \\sqrt{\\rho}\\,F + \\sqrt{1-\\rho}\\,\\varepsilon_{i}$ when $\\rho\\geq0$.\n\nFor $\\rho\\in(-1/(n-1),0)$, a slightly modified construction with multiple factors achieves the target.\n\n**(c) Generalisation to $n$ variables.**\n\nFor $n$ equicorrelated variables, the PSD condition on the equicorrelation matrix gives: \\[\\boxed{\\rho \\in \\left[-\\frac{1}{n-1},\\; 1\\right]}\\] As $n\\to\\infty$, the lower bound $\\to0$: with many variables all mutually negatively correlated, the constraint becomes increasingly tight (you cannot have all pairs strongly negatively correlated).\n\nThe one-factor construction $X_{i}=\\sqrt{\\rho}F+\\sqrt{1-\\rho}\\varepsilon_{i}$ achieves any $\\rho\\in[0,1]$. For negative $\\rho$ down to $-1/(n-1)$, a direct construction uses: $X_{i} = -\\frac{1}{\\sqrt{n-1}}F + \\sqrt{1+\\frac{1}{n-1}}\\varepsilon_{i}$ with appropriate scaling.\n\n**Key takeaway:** The equicorrelation lower bound $-1/(n-1)$ is one of the most important constraints in multi-asset correlation modelling. As $n$ grows, correlations between many assets must approach zero from below."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p101",
+          "content": "**Covariance of Order Statistics.** Let $X_{(1)}\\leq X_{(2)}\\leq\\cdots\\leq X_{(n)}$ be the order statistics of $n$ i.i.d.\\ $\\mathrm{Uniform}(0,1)$ random variables. \\begin{enumerate}[label=(\\alph{*})]\\item Find $\\mathbb{E}[X_{(k)}]$ for the $k$-th order statistic.\n\n\\item Find $\\text{Cov}(X_{(1)}, X_{(n)})$ — the covariance of the minimum and maximum.\n\n\\item Are $X_{(1)}$ and $X_{(n)}$ positively or negatively correlated? Explain intuitively.\\end{enumerate}",
+          "solution": "**(a)** From Topic 3, $\\mathbb{E}[X_{(k)}]=k/(n+1)$.\n\nProof: the joint PDF of $(X_{(1)},…,X_{(n)})$ is $n!$ on the simplex $0<x_{1}<\\cdots<x_{n}<1$. The marginal of $X_{(k)}$ is: $f_{X_{(k)}}(x)=\\frac{n!}{(k-1)!(n-k)!}x^{k-1}(1-x)^{n-k}$, a $\\mathrm{Beta}(k,n-k+1)$ distribution. $\\mathbb{E}[X_{(k)}]=k/(n+1)$. ✓\n\n**(b)** We need $\\text{Cov}(X_{(1)},X_{(n)})=\\mathbb{E}[X_{(1)}X_{(n)}] -\\mathbb{E}[X_{(1)}]\\mathbb{E}[X_{(n)}]$.\n\n$\\mathbb{E}[X_{(1)}]=1/(n+1)$ and $\\mathbb{E}[X_{(n)}]=n/(n+1)$.\n\n**Joint PDF of $(X_{(1)**,X_{(n)})$.} For $0<u<v<1$: \\[f_{X_{(1)},X_{(n)}}(u,v) = n(n-1)(v-u)^{n-2}\\] (Choose which observation is min: $n$ ways; which is max: $n-1$ ways; the remaining $n-2$ observations lie uniformly in $(u,v)$: density $(v-u)^{n-2}$.)\n\n**Compute $\\mathbb{E}[X_{(1)**X_{(n)}]$:} \\[\\mathbb{E}[X_{(1)}X_{(n)}] = n(n-1)\\int_{0}^{1}\\int_{0}^{v} uv(v-u)^{n-2}\\,du\\,dv\\] Let $v$ be fixed, substitute $u=vt$ ($t\\in[0,1]$, $du=v\\,dt$): \\[= n(n-1)\\int_{0}^{1} v\\cdot v^{n}\\int_{0}^{1} t(1-t)^{n-2}\\,dt\\,dv = n(n-1)\\int_{0}^{1} v^{n+1}\\,dv\\cdot\\mathrm{B}(2,n-1)\\] where $\\mathrm{B}(2,n-1)=1!/(n-1)!/(n+1-1+1)…$ More carefully: $\\int_{0}^{1} t(1-t)^{n-2}dt = \\mathrm{B}(2,n-1)= \\frac{1!(n-2)!}{n!}=\\frac{1}{n(n-1)}$.\n\nAnd $\\int_{0}^{1} v^{n+1}dv=1/(n+2)$. \\[\\mathbb{E}[X_{(1)}X_{(n)}] = n(n-1)\\cdot\\frac{1}{n+2}\\cdot\\frac{1}{n(n-1)}= \\frac{1}{n+2}\\]\n\n**Covariance:** \\[\\text{Cov}(X_{(1)},X_{(n)}) = \\frac{1}{n+2}- \\frac{1}{n+1}\\cdot\\frac{n}{n+1}= \\frac{1}{n+2}- \\frac{n}{(n+1)^{2}}\\] \\[= \\frac{(n+1)^{2} - n(n+2)}{(n+2)(n+1)^{2}}= \\frac{n^{2}+2n+1-n^{2}-2n}{(n+2)(n+1)^{2}}= \\frac{1}{(n+1)^{2}(n+2)}\\]\n\n\\[\\boxed{\\text{Cov}(X_{(1)},X_{(n)}) = \\frac{1}{(n+1)^{2}(n+2)}}\\]\n\n**(c)** The covariance is *positive*.\n\n**Intuition:** If the minimum $X_{(1)}$ is large, it pushes all observations upward, including the maximum $X_{(n)}$. Similarly, a small minimum does not prevent the maximum from being large, but a large minimum forces the maximum to be even larger. The two extremes co-vary positively because they are both constrained by the same sample of observations.\n\n**Key takeaway:** Order statistics of uniform i.i.d.\\ data are *positively correlated*, even the most extreme ones. The correlation is: $\\text{Corr}(X_{(1)},X_{(n)})=\\frac{1/[(n+1)^{2}(n+2)]}{1/[(n+1)^{2}(n+2)]\\cdot…}$. For $n=2$: $\\text{Cov}=1/12$, $\\text{Var}(X_{(1)})=\\text{Var}(X_{(2)})=1/12$, so $\\text{Corr}=1/2$."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 6 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>Bilinearity</th><th>$\\text{Cov}(aX+bY,Z)=a\\text{Cov}(X,Z)+b\\text{Cov}(Y,Z)$.</th></tr><tr><td>Multinomial covariance</td><td>$\\text{Cov}(X_{i},X_{j})=-np_{i}p_{j}$ for components of $\\mathrm{Mult}(n;\\mathbf{p})$.</td></tr><tr><td>PSD constraint (3D)</td><td>$\\det(C)\\geq0 \\Leftrightarrow a^{2}+b^{2}+c^{2}-2abc\\leq1$.</td></tr><tr><td>Correlation bounds</td><td>Given $\\text{Corr}(X,Y)=a$ and $\\text{Corr}(Y,Z)=b$: $c\\in[ab\\pm\\sqrt{(1-a^{2})(1-b^{2})}]$.</td></tr><tr><td>Cholesky construction</td><td>$Y=\\rho X+\\sqrt{1-\\rho^{2}}Z$ (2D). For $n$D: $\\mathbf{X}=L\\mathbf{Z}$ where $C=LL^{\\top}$.</td></tr><tr><td>Equicorrelation bound</td><td>$n$ equicorrelated variables: $\\rho\\geq-1/(n-1)$.</td></tr><tr><td>One-factor model</td><td>$X_{i}=\\sqrt{\\rho}F+\\sqrt{1-\\rho}\\varepsilon_{i}$ achieves $\\text{Corr}(X_{i},X_{j})=\\rho$ for all $i\\neq j$.</td></tr><tr><td>Order statistics</td><td>$\\mathbb{E}[X_{(k)}]=k/(n+1)$; $X_{(k)}\\sim\\mathrm{Beta}(k,n-k+1)$.</td></tr><tr><td>Cov of min/max</td><td>$\\text{Cov}(X_{(1)},X_{(n)})=1/[(n+1)^{2}(n+2)]$ for Uniform$(0,1)$; positive.</td></tr><tr><td>Time-scale paradox</td><td>Short-run $\\rho>0$ + long-run mean reversion $\\Rightarrow$ annual $\\rho<0$.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Covariance of Face Counts in Repeated Dice Rolls",
+      "problemId": "quant_interview_fundamental_qdsi_p36"
+    },
+    {
+      "number": "2",
+      "name": "Constructing Correlated Normal Random Variables",
+      "problemId": "quant_interview_market_finance_qdsi_p6"
+    },
+    {
+      "number": "3",
+      "name": "Time-Scale Dependent Correlation Paradox",
+      "problemId": "quant_interview_market_finance_qdsi_p10"
+    },
+    {
+      "number": "4",
+      "name": "Correlation Bounds for Three Random Variables",
+      "problemId": "quant_interview_fundamental_qdsi_p100"
+    },
+    {
+      "number": "5",
+      "name": "Maximum Sharpe Ratio Portfolio Construction",
+      "problemId": "quant_interview_market_finance_qdsi_p2"
+    },
+    {
+      "number": "6",
+      "name": "Equicorrelation: Feasible Bounds and Construction",
+      "problemId": "quant_interview_fundamental_qdsi_p75"
+    },
+    {
+      "number": "7",
+      "name": "Covariance of Order Statistics",
+      "problemId": "quant_interview_fundamental_qdsi_p101"
+    }
+  ]
+}

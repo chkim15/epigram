@@ -1,0 +1,92 @@
+{
+  "weekNum": 4,
+  "topicNum": 24,
+  "topicName": "Bayesian Games",
+  "subtopics": "Incomplete Information $\\cdot$ Two Envelopes $\\cdot$ Estimation $\\cdot$ Auctions $\\cdot$ Revenue Equivalence",
+  "freeProblems": 2,
+  "premiumProblems": 2,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "Topic 23 — Nash Equilibrium; Topic 2 — Bayes' Theorem",
+  "learningObjectives": [
+    "**Resolve the Two Envelopes Paradox** by correctly applying Bayes' theorem to a bounded prior, identifying the threshold switching strategy.",
+    "**Derive the Bayesian optimal estimator** for the maximum of a discrete uniform distribution given a sample.",
+    "**Derive the symmetric Bayes-Nash equilibrium** for the first-price auction using the envelope theorem or direct integration.",
+    "**State and apply the Revenue Equivalence Theorem**: explain the conditions under which all standard auctions generate the same expected revenue.",
+    "**Identify the dominant strategy in second-price auctions** (bid true value) and contrast with first-price shading."
+  ],
+  "sections": [
+    {
+      "title": "Bayesian Reasoning Under Incomplete Information",
+      "blocks": [
+        {
+          "type": "conceptbox",
+          "title": "Bayes-Nash Equilibrium",
+          "content": "A **Bayesian game** has players with private information (types). A **Bayes-Nash equilibrium** is a strategy profile where each player maximises their expected payoff given their type *and* their belief about others' types, and these beliefs are consistent with the equilibrium strategies.\n\nIn auctions: each bidder's *type* is their private valuation $V_{i}$. A **bidding strategy** $b(v)$ maps valuations to bids. The equilibrium condition: for each $v$, $b(v)$ maximises expected profit given that all others bid according to $b(\\cdot)$."
+        },
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**The Two Envelopes Paradox.** Two envelopes contain amounts $x$ and $2x$ where $x\\sim\\mathrm{Uniform}(0,100)$. You open one and see amount $Y$. Find the optimal switching strategy that maximises the probability of ending with the $2x$ envelope.",
+          "solution": "**The faulty argument.** “If I see $Y$, the other envelope contains either $Y/2$ (prob 1/2) or $2Y$ (prob 1/2). Expected value if I switch: $\\frac{1}{2}\\cdot\\frac{Y}{2}+\\frac{1}{2}\\cdot2Y=\\frac{5Y}{4}>Y$. So I should always switch.” This leads to an infinite regress and is *wrong* — the probabilities are not $1/2$ each for all $Y$.\n\n**Correct Bayesian analysis.** Given $Y=y$: \\begin{itemize}\\item You are holding the *small* envelope iff $x=y$, which requires $y\\in(0,100)$.\n\n\\item You are holding the *large* envelope iff $x=y/2$, which requires $y/2\\in(0,100)$, i.e.\\ $y\\in(0,200)$.\\end{itemize}\n\nFor $y\\in(0,100]$: both cases are possible. $\\mathbb{P}(\\text{small}\\mid Y=y) = \\mathbb{P}(\\text{large}\\mid Y=y) = \\frac{1}{2}$. Switching gives the large envelope with probability $1/2$ — no advantage.\n\nFor $y\\in(100,200)$: the large envelope case requires $x=y/2\\in(50,100)$ — valid. The small envelope case requires $x=y>100$ — impossible since $x\\leq100$. **Therefore $Y>100$ implies you are holding the large envelope with certainty.**\n\n**Optimal strategy:** \\[\\text{Switch if }Y\\leq100;\\quad\\text{Keep if }Y>100\\] (Or more precisely: always switch; this gives probability $>1/2$ of ending with $2x$ because switching when $Y>100$ is suboptimal.)\n\nActually: if you *keep* when $Y>100$ (since you're certainly holding $2x$), and do anything when $Y\\leq100$: \\[\\mathbb{P}(\\text{end with }2x) = \\mathbb{P}(Y>100)\\cdot1 + \\mathbb{P}(Y\\leq100)\\cdot\\tfrac{1}{2}\\]\n\n$\\mathbb{P}(Y>100)$: $Y$ is the larger envelope iff $x\\in(50,100)$ (prob 1/2) and $Y=2x\\in(100,200)$. So $\\mathbb{P}(Y>100)=1/2$. $\\mathbb{P}(Y\\leq100)=1/2$.\n\nUnder the **keep-if-large strategy**: \\[\\mathbb{P}(\\text{end with }2x) = \\frac{1}{2}\\cdot1 + \\frac{1}{2}\\cdot\\frac{1}{2}= \\frac{3}{4}\\]\n\nUnder **always switch**: \\[\\mathbb{P}(\\text{end with }2x) = \\underbrace{\\frac{1}{2}}_{\\text{holding small, switch to large}}\\cdot1 + \\underbrace{\\frac{1}{2}}_{\\text{holding large, switch to small}}\\cdot0 = \\frac{1}{2}\\]\n\nSo the optimal strategy (**keep if $Y>100$, switch otherwise**) achieves probability $3/4$ of ending with the larger amount.\n\n**Key takeaway:** The paradox evaporates with a bounded prior. When $Y>100$, the observation reveals you are holding the larger envelope. The correct posterior uses the constraint $x\\leq100$, making the probabilities asymmetric for large $Y$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "game_theory_qdsi_p1",
+          "content": "**Estimating the Maximum of a Discrete Uniform Distribution.** $N\\sim\\mathrm{Uniform}\\{1,…,1000\\}$. Then $X_{1},…,X_{10}\\stackrel{\\text{iid}}{\\sim}\\mathrm{Uniform}\\{1,…,N\\}$. You observe the 10 numbers and guess $N$. Payoff: $+1$ if correct, $-1$ otherwise. What is the optimal strategy?",
+          "solution": "**Optimal strategy:** guess $\\hat{N}= M := \\max(X_{1},…,X_{10})$.\n\n**Proof via MAP estimation.**\n\nThe posterior given $M=m$ (the observed maximum) is: \\[\\mathbb{P}(N=n\\mid M=m) \\propto \\mathbb{P}(M=m\\mid N=n)\\cdot\\mathbb{P}(N=n) = \\frac{m^{10}-(m-1)^{10}}{n^{10}}\\cdot\\frac{1}{1000}\\propto \\frac{1}{n^{10}}\\quad\\text{for }n\\geq m\\] and $\\mathbb{P}(N=n\\mid M=m) = 0$ for $n < m$.\n\nThe posterior is *strictly decreasing* in $n$ for $n\\geq m$. Therefore, the MAP (maximum a posteriori) estimate — which maximises the posterior and hence the $+1/-1$ payoff — is: \\[\\hat{N}_{\\text{MAP}}= \\arg\\max_{n\\geq m}\\mathbb{P}(N=n\\mid M=m) = m\\]\n\n**Intuition.** The smallest value of $N$ consistent with the data is the most likely, because smaller $N$ means the 10 draws are more concentrated (less “room” to miss a large value).\n\n**Alternative via likelihood.** $\\mathbb{P}(M=m\\mid N=n) = [m/n]^{10}- [(m-1)/n]^{10}$. For $n=m$: this equals $1-[(m-1)/m]^{10}$ (the probability of at least one draw equalling $m$ in a $\\{1,…,m\\}$ sample). For $n=m+1$: $[m/(m+1)]^{10}-[(m-1)/(m+1)]^{10}$, which is smaller. The likelihood is maximised at $n=m$.\n\n**Is there a better strategy?**\n\nSince the payoff is $+1$ for exact correctness and $-1$ otherwise, any guess other than the MAP is strictly worse. The MAP is optimal under the $+1/-1$ payoff rule. (Under squared error, the posterior mean $\\mathbb{E}[N\\mid M=m]$ would be optimal, giving a larger estimate.)\n\n**Key takeaway:** Under $+1/-1$ payoff, the optimal guess is always the MAP (mode of the posterior). Here MAP $= M = \\max(X_{1},…,X_{10})$. The fact that $M < N$ with positive probability does not affect the optimality — the posterior assigns the highest mass to $N=M$."
+        }
+      ]
+    },
+    {
+      "title": "Auction Theory",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "3",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p128",
+          "content": "**First-Price Sealed-Bid Auction Equilibrium.** Two bidders, $V_{i}\\stackrel{\\text{iid}}{\\sim}\\mathrm{Uniform}[0,1]$. Higher bidder wins and pays their own bid. \\begin{enumerate}[label=(\\alph{*})]\\item Show the symmetric BNE strategy is $b^{*}(v)=v/2$.\n\n\\item What is each bidder's expected profit?\n\n\\item How does equilibrium change with $n$ bidders?\\end{enumerate}",
+          "solution": "**(a) Deriving $b^{***(v) = v/2$.}\n\n**Method: symmetric equilibrium guess-and-verify.** Suppose all bidders use a strictly increasing strategy $b(\\cdot)$. Bidder 1 with value $v$ chooses bid $b$ to maximise: \\[\\Pi(b,v) = (v-b)\\cdot\\mathbb{P}(\\text{win}) = (v-b)\\cdot\\mathbb{P}(b^{*}(V_{2})<b) = (v-b)\\cdot b^{-1}(b)\\] (since $V_{2} = b^{-1}(\\text{opponent's bid})$ and $V_{2}\\sim U[0,1]$, $\\mathbb{P}(V_{2} < b^{-1}(b)) = b^{-1}(b)$).\n\nIn equilibrium, bidder 1 optimally chooses $b=b^{*}(v)$, so $b^{-1}(b)=v$.\n\nTaking first-order condition: $\\frac{d}{db}[(v-b)\\cdot b^{-1}(b)]=0$ and using the inverse function, we instead set up the differential equation.\n\n**Method: differential equation.** Let $\\phi = (b^{*})^{-1}$, so $\\phi(b)$ = type who bids $b$. FOC at equilibrium: \\[\\frac{d}{db}[(v-b)\\phi(b)] = 0 \\implies -(b)\\phi(b) + (v-b)\\phi'(b) = 0 \\implies \\phi'(b) = \\frac{\\phi(b)}{v-b}\\] Substituting $v = b/\\phi(b)\\cdot\\phi(b) + b = b$ at the symmetric point...\n\n**Cleaner: directly assume $b^{***(v) = \\alpha v$ and find $\\alpha$.}\n\nIf all bidders use $b_{j} = \\alpha V_{j}$: \\[\\Pi(\\alpha v, v) = (v - \\alpha v)\\cdot\\mathbb{P}(\\alpha V_{2} < \\alpha v) = v(1-\\alpha)\\cdot v = v^{2}(1-\\alpha)\\] Bidder 1 wants to optimise over their actual bid $b$: \\[\\Pi(b,v) = (v-b)\\cdot\\mathbb{P}(\\alpha V_{2} < b) = (v-b)\\cdot\\frac{b}{\\alpha}\\] FOC in $b$: $\\frac{d}{db}[(v-b)\\frac{b}{\\alpha}] = \\frac{1}{\\alpha}[v-2b]=0 \\implies b^{*}= v/2$, so $\\alpha = 1/2$. ✓\n\n\\[\\boxed{b^*(v) = \\frac{v}{2}}\\]\n\n**(b) Expected profit.** \\[\\Pi(v) = (v - v/2)\\cdot\\mathbb{P}(V_{2}/2 < v/2) = \\frac{v}{2}\\cdot v = \\frac{v^{2}}{2}\\] Ex-ante expected profit (integrating over $v\\sim U[0,1]$): \\[\\mathbb{E}[\\Pi] = \\int_{0}^{1} \\frac{v^{2}}{2}\\,dv = \\frac{1}{6}\\]\n\n**(c) General $n$ bidders.**\n\nThe symmetric BNE with $n$ bidders, $V_{i}\\stackrel{\\text{iid}}{\\sim}U[0,1]$: \\[\\boxed{b^*(v) = \\frac{n-1}{n}\\,v}\\]\n\n**Intuition:** With more competition, each bidder shades their bid less (bids closer to true value) to avoid losing. As $n\\to\\infty$, $b^{*}(v)\\to v$ (converges to truthful bidding, as in the second-price auction).\n\nExpected revenue: $\\mathbb{E}[P^{(1)}_{(n)}]=\\frac{n-1}{n}\\cdot\\frac{n}{n+1}=\\frac{n-1}{n+1}$ where $P^{(1)}_{(n)}$ is the first-order statistic. For $n=2$: $\\mathbb{E}[\\text{rev}]=1/3$. ✓\n\n**Key takeaway:** First-price BNE = bid $(n-1)/n$ of true value. More bidders $\\Rightarrow$ less shading $\\Rightarrow$ higher revenue."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "4",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p129",
+          "content": "**Revenue Equivalence Theorem.** $n$ bidders, i.i.d.\\ private values from $U[0,1]$. \\begin{enumerate}[label=(\\alph{*})]\\item State the Revenue Equivalence Theorem.\n\n\\item Equilibrium strategy in the second-price (Vickrey) auction.\n\n\\item Conditions for revenue equivalence.\n\n\\item Example where revenue equivalence fails.\\end{enumerate}",
+          "solution": "**(a) Revenue Equivalence Theorem (RET).**\n\n*Any two auction mechanisms that (i) always allocate the object to the highest-value bidder, and (ii) give the same expected utility to the lowest-type bidder (typically zero), generate the same expected payment rule and therefore the same expected seller revenue.*\n\nUnder the IPV model with $n$ risk-neutral bidders and values $V_{i}\\stackrel{\\text{iid}}{\\sim}U[0,1]$, the following four formats all yield the same expected revenue: first-price sealed-bid, second-price (Vickrey), English, and all-pay. \\[\\mathbb{E}[\\text{revenue}] = \\mathbb{E}[V_{(n-1:n)}] = \\frac{n-1}{n+1}\\] For $n=2$: $\\mathbb{E}[\\text{rev}]=1/3$. For $n=3$: $1/2$. For $n=4$: $3/5$.\n\n**(b) Second-price (Vickrey) auction: dominant strategy.**\n\nThe winner pays the *second-highest* bid. Bidding your true value $b_{i} = v_{i}$ is a **weakly dominant strategy**.\n\n*Why:* Your own bid affects whether you win but *not* the price you pay when you win (price $=$ highest competing bid). So your best strategy is simply to win exactly when winning is profitable — i.e.\\ when the highest rival bid is below your value $v$. This is achieved by bidding $v$ truthfully: \\[\\boxed{b^*(v) = v}\\] Overbidding can cause you to win at a loss; underbidding can cause you to miss profitable wins. Both are weakly dominated by truthful bidding.\n\n**(c) Conditions for revenue equivalence.** \\begin{enumerate}\\item **Independent private values (IPV):** each bidder knows their own value and it is independent of others' values.\n\n\\item **Risk neutrality:** bidders maximise expected payoff.\n\n\\item **Symmetric bidders:** values drawn i.i.d.\\ from the same distribution.\n\n\\item **Efficient allocation:** the object always goes to the highest-value bidder.\n\n\\item **Equal participation payoff for the lowest type:** the bidder with value $v=0$ earns zero expected surplus.\n\n\\item **No binding budget constraints or distortions:** bidders can make required payments; no reserve prices or entry asymmetries (unless applied consistently).\\end{enumerate}\n\n**(d) When RET fails: risk-averse bidders.**\n\n**First-price vs second-price with risk-averse bidders:** \\begin{itemize}\\item In a **second-price** auction, truthful bidding remains optimal even with risk aversion (the dominant strategy argument does not rely on risk neutrality).\n\n\\item In a **first-price** auction, a risk-averse bidder dislikes the uncertainty of losing. They bid more aggressively than a risk-neutral bidder — shading less below their true value — to reduce the probability of losing.\n\n\\item Result: first-price revenue $>$ second-price revenue under risk aversion.\\end{itemize}\n\nOther failures of RET: \\begin{itemize}\\item **Common-value / correlated values** (e.g.\\ oil field auctions): the English auction raises more revenue than sealed-bid formats (Milgrom–Weber, 1982).\n\n\\item **Asymmetric bidder distributions**.\n\n\\item **Reserve prices, entry costs, or budget constraints**.\\end{itemize}\n\n**Key takeaway:** RET says all “standard” auction formats are revenue-equivalent under IPV, risk neutrality, symmetry, and efficiency. Second-price $\\Rightarrow$ bid truthfully (dominant strategy). First-price $\\Rightarrow$ shade to $(n-1)/n\\cdot v$. Both give $\\mathbb{E}[\\text{rev}]=(n-1)/(n+1)$. RET breaks most commonly via risk aversion (raises first-price revenue) or correlated values (raises English auction revenue)."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 24 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>Two envelopes</th><th>With bounded prior ($x\\leq M$): $Y>M$ reveals you hold the large amount. Keep it. Optimal $\\mathbb{P}(2x)=3/4$.</th></tr><tr><td>MAP estimation</td><td>Under $+1/-1$ payoff: guess the posterior mode. For max of $U\\{1,…,N\\}$: MAP $=$ observed maximum.</td></tr><tr><td>First-price BNE</td><td>$b^{*}(v)=\\frac{n-1}{n}v$. More bidders $\\Rightarrow$ less shading.</td></tr><tr><td>Second-price BNE</td><td>Bid $b_{i}=v_{i}$ (truthful bidding is weakly dominant).</td></tr><tr><td>Revenue Equivalence</td><td>$\\mathbb{E}[\\text{rev}]=E[V_{(n-1:n)}]=\\frac{n-1}{n+1}$ for $U[0,1]$, $n$ bidders. Holds under private values, symmetry, risk neutrality.</td></tr><tr><td>RET fails when</td><td>Risk aversion (raises first-price rev), correlated values, or resale/budget constraints.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "The Two Envelopes Paradox",
+      "problemId": "quant_interview_fundamental_qdsi_p32"
+    },
+    {
+      "number": "2",
+      "name": "Estimating the Maximum of a Discrete Uniform Distribution",
+      "problemId": "game_theory_qdsi_p1"
+    },
+    {
+      "number": "3",
+      "name": "First-Price Sealed-Bid Auction Equilibrium",
+      "problemId": "quant_interview_fundamental_qdsi_p128"
+    },
+    {
+      "number": "4",
+      "name": "Revenue Equivalence Theorem",
+      "problemId": "quant_interview_fundamental_qdsi_p129"
+    }
+  ]
+}

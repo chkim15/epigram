@@ -1,0 +1,247 @@
+::: learningobjectives
+**DP in 3 steps:** (1) define state $dp[i]$ clearly, (2) write the recurrence, (3) handle base cases and iteration order.
+
+
+| **Pattern** | **Problems in this session** |
+|---|---|
+| **Fibonacci-style 1-D** | LC 70 (Stairs), LC 198/213 (Robber) |
+| **Unbounded knapsack** | LC 322 (Coin Change), LC 518 (Coin Change 2) |
+| **String / sequence DP** | LC 139 (Word Break), LC 300 (LIS) |
+| **Track min and max** | LC 152 (Max Product) |
+
+
+**Time / Space:** Most 1-D DP is $O(n)$ time, $O(n)$ space; reduce to $O(1)$ space by keeping only the last 1--2 values when the recurrence allows.
+:::
+
+# Fibonacci-Style 1-D DP
+
+::: {.workedbox number="LC 70" difficulty="easy" problemid=""}
+**Climbing Stairs.** You can climb 1 or 2 steps at a time. How many distinct ways to reach step $n$?
+:::
+
+::: solutionbox
+**State:** $dp[i]$ = number of ways to reach step $i$.
+
+**Recurrence:** The last step was either 1 or 2 steps back: $$dp[i] = dp[i-1] + dp[i-2]$$ **Base cases:** $dp[1]=1$, $dp[2]=2$.
+
+This is the Fibonacci sequence shifted by one index.
+
+    def climbStairs(n: int) -> int:
+        if n <= 2:
+            return n
+        a, b = 1, 2
+        for _ in range(n - 2):
+            a, b = b, a + b
+        return b
+
+**Complexity:** $O(n)$ time, $O(1)$ space.
+
+**Key insight:** Any problem of the form "reach state $i$ from states $i-1$ or $i-2$" maps to Fibonacci. Reduce space to $O(1)$ by keeping only the previous two values.
+:::
+
+::: {.freeproblem number="LC 198" difficulty="easy" problemId="lc_198"}
+**House Robber.** Given an array of non-negative integers `nums`, you cannot rob two adjacent houses. Return the maximum amount you can rob.
+:::
+
+::: solutionbox
+**State:** $dp[i]$ = max rob amount using the first $i$ houses.
+
+**Recurrence:** $$dp[i] = \max(dp[i-1],\; dp[i-2] + \text{nums}[i])$$ Either skip house $i$ (take $dp[i-1]$) or rob it (take $dp[i-2]$ + current).
+
+    def rob(nums: list[int]) -> int:
+        prev2, prev1 = 0, 0
+        for n in nums:
+            prev2, prev1 = prev1, max(prev1, prev2 + n)
+        return prev1
+
+**Complexity:** $O(n)$ time, $O(1)$ space.
+
+**LC 213 extension (circular street):** Houses 0 and $n-1$ are adjacent. Run `rob` twice --- once on `nums[0..n-2]`, once on `nums[1..n-1]` --- and take the max.
+
+    def robCircular(nums: list[int]) -> int:
+        if len(nums) == 1:
+            return nums[0]
+        return max(rob(nums[:-1]), rob(nums[1:]))
+
+**Key insight:** When adding a constraint (adjacency), ask which *previous* states are still valid. Circular constraint $\Rightarrow$ fix one endpoint and solve the linear subproblem twice.
+:::
+
+# Unbounded Knapsack DP
+
+::: {.freeproblem number="LC 322" difficulty="medium" problemId="lc_322"}
+**Coin Change.** Given coin denominations and a target `amount`, return the minimum number of coins to make the amount, or $-1$ if impossible.
+:::
+
+::: solutionbox
+**State:** $dp[i]$ = minimum coins to make amount $i$.
+
+**Recurrence:** $$dp[i] = \min_{c\,\in\,\text{coins},\;c\leq i}\bigl(dp[i-c] + 1\bigr)$$
+
+**Base case:** $dp[0]=0$; $dp[i]=\infty$ initially.
+
+    def coinChange(coins: list[int], amount: int) -> int:
+        dp = [float('inf')] * (amount + 1)
+        dp[0] = 0
+        for i in range(1, amount + 1):
+            for c in coins:
+                if c <= i:
+                    dp[i] = min(dp[i], dp[i - c] + 1)
+        return dp[amount] if dp[amount] != float('inf') else -1
+
+**Complexity:** $O(\text{amount}\times|\text{coins}|)$ time, $O(\text{amount})$ space.
+
+**Key insight:** Each coin can be reused (unbounded knapsack). Iterate *amounts* in the outer loop and *coins* in the inner loop. Contrast with 0/1 knapsack where each item is used at most once.
+:::
+
+::: {.freeproblem number="LC 518" difficulty="medium" problemId="lc_518"}
+**Coin Change 2.** Return the number of distinct combinations of coins that sum to `amount` (coins can be reused; order does not matter).
+:::
+
+::: solutionbox
+**State:** $dp[i]$ = number of ways to make amount $i$.
+
+**Recurrence:** $$dp[i] = \sum_{c\,\in\,\text{coins},\;c\leq i} dp[i-c]$$
+
+**Key:** To count *combinations* (not permutations), iterate coins in the *outer* loop and amounts in the *inner* loop. This ensures each coin denomination is only "introduced" once.
+
+    def change(amount: int, coins: list[int]) -> int:
+        dp = [0] * (amount + 1)
+        dp[0] = 1                    # one way to make 0: use nothing
+        for c in coins:              # outer: coin (fixes ordering)
+            for i in range(c, amount + 1):
+                dp[i] += dp[i - c]
+        return dp[amount]
+
+**Complexity:** $O(\text{amount}\times|\text{coins}|)$ time, $O(\text{amount})$ space.
+
+**LC 322 vs LC 518 --- the loop order trick:**
+:::
+
+# String and Sequence DP
+
+::: {.premiumproblem number="LC 139" difficulty="medium" problemId="lc_139"}
+**Word Break.** Given a string `s` and a list of words `wordDict`, return `True` if `s` can be segmented into a sequence of dictionary words.
+:::
+
+::: solutionbox
+**State:** $dp[i]$ = `True` iff `s[:i]` can be segmented.
+
+**Recurrence:** $$dp[i] = \bigvee_{j<i}\bigl(dp[j] \;\wedge\; s[j{:}i]\in\texttt{wordDict}\bigr)$$
+
+    def wordBreak(s: str, wordDict: list[str]) -> bool:
+        words = set(wordDict)       # O(1) lookup
+        n = len(s)
+        dp = [False] * (n + 1)
+        dp[0] = True                # empty prefix is always valid
+        for i in range(1, n + 1):
+            for j in range(i):
+                if dp[j] and s[j:i] in words:
+                    dp[i] = True
+                    break           # found one valid split; stop early
+        return dp[n]
+
+**Complexity:** $O(n^2)$ time (or $O(n\cdot W)$ where $W$ is max word length), $O(n)$ space.
+
+**Key insight:** $dp[i]$ depends on all prior $dp[j]$ --- this is a "reachability" DP. Using a `set` for $O(1)$ word lookup avoids repeatedly scanning the dictionary.
+:::
+
+::: {.premiumproblem number="LC 300" difficulty="medium" problemId="lc_300"}
+**Longest Increasing Subsequence (LIS).** Return the length of the longest strictly increasing subsequence of `nums`. Achieve $O(n\log n)$ time.
+:::
+
+::: solutionbox
+**$O(n^2)$ DP approach** (intuitive):
+
+$dp[i]$ = length of LIS ending at index $i$. $dp[i] = 1 + \max(dp[j])$ for all $j<i$ with $\texttt{nums}[j] < \texttt{nums}[i]$.
+
+**$O(n\log n)$ patience sorting** (optimal):
+
+Maintain a list `tails` where `tails[k]` is the smallest tail element of all increasing subsequences of length $k+1$. For each new element, binary search for its position in `tails` and replace (or append).
+
+    import bisect
+
+    def lengthOfLIS(nums: list[int]) -> int:
+        tails = []                          # tails[k] = smallest tail of LIS len k+1
+        for n in nums:
+            pos = bisect.bisect_left(tails, n)   # find leftmost >= n
+            if pos == len(tails):
+                tails.append(n)             # extend LIS
+            else:
+                tails[pos] = n              # replace to keep tails small
+        return len(tails)
+
+**Complexity:** $O(n\log n)$ time, $O(n)$ space.
+
+**Key insight:** `tails` is always sorted (invariant). Replacing $\texttt{tails}[\texttt{pos}]$ doesn't change LIS length for previous elements but enables longer sequences later. The final `len(tails)` is the LIS length.
+:::
+
+# Tracking Min and Max Simultaneously
+
+::: {.premiumproblem number="LC 152" difficulty="medium" problemId="lc_152"}
+**Maximum Product Subarray.** Return the maximum product of a contiguous subarray of `nums`.
+:::
+
+::: solutionbox
+**Why you need to track both max and min:** A negative number can flip the minimum product to the maximum. So the current maximum could come from multiplying the previous *minimum* (which may be large and negative) by a new negative number.
+
+**State:** At each index, maintain:
+
+- `max_p`: maximum product ending here
+
+- `min_p`: minimum product ending here (most negative)
+
+**Recurrence:** $$\texttt{max\_p} = \max(\texttt{nums}[i],\;
+  \texttt{max\_p}\times\texttt{nums}[i],\;
+  \texttt{min\_p}\times\texttt{nums}[i])$$ $$\texttt{min\_p} = \min(\texttt{nums}[i],\;
+  \texttt{max\_p}\times\texttt{nums}[i],\;
+  \texttt{min\_p}\times\texttt{nums}[i])$$ (Use old `max_p` and `min_p` before updating both.)
+
+    def maxProduct(nums: list[int]) -> int:
+        max_p = min_p = res = nums[0]
+        for n in nums[1:]:
+            # Compute both new values before updating (use temp)
+            new_max = max(n, max_p * n, min_p * n)
+            new_min = min(n, max_p * n, min_p * n)
+            max_p, min_p = new_max, new_min
+            res = max(res, max_p)
+        return res
+
+**Complexity:** $O(n)$ time, $O(1)$ space.
+
+**Edge cases:**
+
+- Zeros reset both `max_p` and `min_p` to `nums[i]=0` (a subarray containing 0 has product 0).
+
+- Single negative: the max product may be a single element (`max(n, ...)`).
+
+**Key insight:** When the optimal state depends on *two* competing predecessors (here: max and min), track both. This pattern recurs in problems involving sign flips or direction reversals.
+:::
+
+# Pattern Summary and Common Mistakes
+
+::: tcolorbox
+**DP I Pattern Toolkit**
+
+
+| **Problem** | **State** | **Key recurrence** |
+|---|---|---|
+| LC 70 Stairs | ways to reach $i$ | $dp[i]=dp[i{-}1]+dp[i{-}2]$ |
+| LC 198 Robber | max rob in $[0..i]$ | $\max(dp[i{-}1],\;dp[i{-}2]{+}n)$ |
+| LC 213 Circular | run 198 twice | fix endpoints |
+| LC 322 Min coins | min coins for $i$ | $\min(dp[i{-}c]{+}1)$ |
+| LC 518 Num combos | ways to make $i$ | outer: coins; inner: amounts |
+| LC 139 Word break | can segment $s[:i]$ | check all $j<i$ |
+| LC 300 LIS | patience sort | `bisect_left` on tails |
+| LC 152 Max product | track max + min | 3-way max/min at each step |
+
+
+**Common Mistakes**
+
+- **LC 518 vs permutations:** putting amounts in outer loop counts ordered sequences (permutations), not combinations.
+
+- **LC 152:** forgetting to save old `max_p` before updating `min_p` (or vice versa) --- use a temp variable.
+
+- **LC 300 $O(n^2)$:** accepted, but $O(n\log n)$ expected in interviews. Know both.
+
+- **LC 213 circular:** the two sub-calls to `rob` must exclude one endpoint each; `nums[1:]` and `nums[:-1]`.
+:::

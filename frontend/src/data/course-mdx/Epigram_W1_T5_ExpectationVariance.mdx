@@ -1,0 +1,388 @@
+::: learningobjectives
+1.  **Apply indicator random variables with linearity of expectation** to count expected occurrences of events --- the single most powerful technique for expectation problems in quant interviews.
+
+2.  **Use the Law of the Unconscious Statistician (LOTUS)** to compute $\mathbb{E}[g(X)]$ without finding the distribution of $g(X)$.
+
+3.  **Apply the tail-sum formula** $\mathbb{E}[X]=\sum_{t=0}^{\infty}
+            \mathbb{P}(X>t)$ (discrete) and $\mathbb{E}[X]=\int_0^\infty \mathbb{P}(X>t)\,dt$ (continuous) to non-negative random variables.
+
+4.  **Condition on the first step** to set up recurrences and solve stopping-time expectations for random walks and sequential processes.
+
+5.  **Exploit symmetry** to determine expected values of combinatorial quantities --- including order statistics, permutation cycles, and record values.
+
+6.  **Compute variance** using $\mathop{\mathrm{Var}}(X)=\mathbb{E}[X^2]-(\mathbb{E}[X])^2$, the law of total variance, and the properties of sums of dependent and independent random variables.
+
+7.  **Solve the classical Coupon Collector problem** and recognise the harmonic number $H_N = 1 + 1/2 + \cdots + 1/N$ as the fundamental sum arising in collection problems.
+
+*Problems 1--3 introduce the indicator variable technique. Problems 4--6 cover stopping times and conditioning. Problems 7--15 are firm-specific interview problems at Citadel, Jane Street, and Two Sigma difficulty.*
+:::
+
+# Introduction: The Power of Linearity
+
+Nearly every interview expectation problem reduces to one of two moves: **indicator variables** or **conditioning**. Mastering both --- and knowing which to reach for first --- is the distinguishing skill.
+
+::: {.conceptbox title="Three Core Techniques"}
+**1. Indicator variables + Linearity of Expectation** $$\mathbb{E}\!\left[\sum_{i=1}^n I_i\right] = \sum_{i=1}^n \mathbb{E}[I_i]
+  = \sum_{i=1}^n \mathbb{P}(A_i)$$ Works for *dependent* indicators too. Use whenever you are counting the expected number of "something."
+
+**2. Tail-Sum Formula** (non-negative integer $X$) $$\mathbb{E}[X] = \sum_{t=0}^{\infty} \mathbb{P}(X > t)
+  = \sum_{t=1}^{\infty} \mathbb{P}(X \geq t)$$
+
+**3. Conditioning (Law of Total Expectation)** $$\mathbb{E}[X] = \mathbb{E}\!\left[\mathbb{E}[X \mid Y]\right]
+  = \sum_y \mathbb{P}(Y=y)\,\mathbb{E}[X \mid Y=y]$$ Use whenever there is a natural first step, case split, or hidden state that simplifies the problem.
+:::
+
+::: {.conceptbox title="LOTUS and Variance"}
+**LOTUS:** $\mathbb{E}[g(X)] = \sum_x g(x)\mathbb{P}(X=x)$ (discrete) or $\int_{-\infty}^\infty g(x)f_X(x)\,dx$ (continuous).
+
+**Variance:** $\mathop{\mathrm{Var}}(X) = \mathbb{E}[X^2] - (\mathbb{E}[X])^2 = \mathbb{E}[(X-\mathbb{E}[X])^2]$.
+
+**Law of Total Variance:** $\mathop{\mathrm{Var}}(X) = \mathbb{E}[\mathop{\mathrm{Var}}(X\mid Y)] + \mathop{\mathrm{Var}}(\mathbb{E}[X\mid Y])$.
+:::
+
+# Indicator Variable Technique
+
+::: {.workedbox number="1" difficulty="medium" problemid="quant_interview_fundamental_qdsi_p18"}
+**Expected Number of Empty Boxes in Random Allocation.** Place 18 balls independently and uniformly at random into 10 boxes. What is the expected number of empty boxes?
+:::
+
+::: solutionbox
+**Define indicators.** Let $I_j = \mathbf{1}[\text{box }j\text{ is empty}]$ for $j=1,\ldots,10$. Then $E = \sum_{j=1}^{10} I_j$ counts empty boxes.
+
+**Probability box $j$ is empty.** Each ball independently avoids box $j$ with probability $9/10$. Since balls are independent: $$\mathbb{P}(I_j = 1) = \left(\frac{9}{10}\right)^{18}$$
+
+**Apply linearity.** No independence assumption needed: $$\mathbb{E}[E] = \sum_{j=1}^{10} \mathbb{E}[I_j]
+  = 10 \cdot \left(\frac{9}{10}\right)^{18}
+  = 10 \cdot 0.9^{18}
+  \approx 10 \times 0.150 = \boxed{1.50}$$
+
+**Key takeaway:** Indicator variables + linearity works even when $I_j$ are *dependent* (knowing box 1 is empty makes box 2 slightly more likely to be empty). We never need to check independence. The pattern: $\mathbb{E}[\#\text{ empty boxes}] = n\cdot(1-1/n)^k$ for $n$ boxes and $k$ balls.
+:::
+
+::: {.freeproblem number="2" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p60"}
+**Expected Number of Fox-Dog Adjacent Pairs.** 5 foxes (F) and 7 dogs (D) are arranged uniformly at random in a row of 12 animals. Compute the expected number of adjacent pairs that consist of one fox and one dog (in either order FD or DF).
+:::
+
+::: solutionbox
+**Define indicators.** Let $I_k = \mathbf{1}[\text{positions }k
+\text{ and }k+1\text{ are a fox-dog pair}]$ for $k=1,\ldots,11$.
+
+**Probability of each indicator.** $\mathbb{P}(I_k=1)$ = probability that positions $k$ and $k+1$ are occupied by one fox and one dog. Pick the animal at position $k$: probability $5/12$ it is a fox and $7/12$ it is a dog. Given position $k$ is a fox (prob $5/12$), position $k+1$ is a dog with probability $7/11$. $$\mathbb{P}(I_k=1) = 2\cdot\frac{5}{12}\cdot\frac{7}{11}
+  = \frac{70}{132} = \frac{35}{66}$$ (Factor of 2 for FD or DF order.)
+
+**Linearity:** $$\mathbb{E}\!\left[\sum_{k=1}^{11} I_k\right]
+  = 11 \cdot \frac{35}{66} = \frac{385}{66} = \frac{35}{6}
+  \approx \boxed{5.83}$$
+
+**Key takeaway:** For adjacent-pair counting, define one indicator per adjacent position. The factor of 2 handles the two possible orderings.
+:::
+
+::: {.freeproblem number="3" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p14"}
+**Expected Waiting Time for the First Ace.** Draw cards uniformly at random *without replacement* from a standard 52-card deck. What is the expected number of draws until the first ace appears?
+:::
+
+::: solutionbox
+**Symmetry argument.** There are 4 aces and 48 non-aces. Imagine all 52 cards lined up in a random order. The 4 aces divide the 48 non-aces into 5 gaps. By symmetry, each gap has the same expected number of non-aces: $48/5$.
+
+The number of draws until the first ace = (cards before first ace) + 1 = (size of first gap) + 1.
+
+$$\mathbb{E}[\text{draws to first ace}]
+  = \mathbb{E}[\text{cards before first ace}] + 1
+  = \frac{48}{5} + 1 = \frac{53}{5} = \boxed{10.6}$$
+
+**Alternative:** By the indicator approach, $\mathbb{E}[\text{position of first ace}] = (52+1)/(4+1) = 53/5$.
+
+**General formula:** With $a$ aces and $52-a$ others, the expected position of the first ace is $(52+1)/(a+1)$.
+
+**Key takeaway:** The "spacing" symmetry argument: $k$ special cards divide $n-k$ ordinary cards into $k+1$ equally likely gaps, each with expected size $(n-k)/(k+1)$. Position of first special card $= (n+1)/(k+1)$.
+:::
+
+# The Coupon Collector and Harmonic Numbers
+
+::: {.keyresult title="Harmonic Numbers"}
+$H_n = 1 + \frac{1}{2} + \frac{1}{3} + \cdots + \frac{1}{n}
+\approx \ln n + \gamma$ where $\gamma \approx 0.5772$ (Euler--Mascheroni). Key values: $H_1=1$, $H_2=1.5$, $H_4\approx2.08$, $H_{10}\approx2.93$.
+:::
+
+# Conditioning and Stopping Times
+
+::: {.freeproblem number="4" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p65"}
+**Expected Time to Remove All Red Candies.** A bag contains $R$ red and $B$ blue candies. Each draw: pick one candy uniformly at random. If red, eat it (remove). If blue, return it. Find the expected number of draws until all red candies are eaten.
+:::
+
+::: solutionbox
+**Key insight.** Focus on each red candy individually. When there are $r$ red and $B$ blue candies in the bag, the probability of drawing a *specific* red candy on any given draw is $1/(r+B)$. But the waiting time for *that specific red candy* to be eaten (from when it is first eligible) is geometric with success probability $r/(r+B)$ --- not $1/(r+B)$.
+
+**Cleaner approach: condition on order of removal.** Think of all $R+B$ candies having a random rank. The red candies are removed in order of their first-draw position. The blue candies are returned and create geometric "noise" at each step.
+
+**Linearity of Expectation approach.** Let $W_i$ = number of draws to eat the $i$-th red candy given $i-1$ already eaten ($R-i+1$ red and $B$ blue remain). At this stage, each draw eats a red candy with probability $(R-i+1)/(R-i+1+B)$. $$\mathbb{E}[W_i] = \frac{R-i+1+B}{R-i+1} = 1 + \frac{B}{R-i+1}$$
+
+Total expected draws: $$\mathbb{E}[T] = \sum_{i=1}^{R}\mathbb{E}[W_i]
+  = \sum_{i=1}^{R}\left(1+\frac{B}{R-i+1}\right)
+  = R + B\sum_{j=1}^{R}\frac{1}{j}
+  = R + B \cdot H_R$$
+
+$$\boxed{\mathbb{E}[T] = R + B\, H_R}$$
+
+**Verify:** $B=0$ (no blue): $\mathbb{E}[T]=R$. $R=1$: $\mathbb{E}[T]=1+B$. (one red candy, expected wait $=1+B$ since probability of drawing it each time is $1/(1+B)$).
+
+**Key takeaway:** When returns create geometric phases, condition on which phase you're in. The $B\cdot H_R$ term is the coupon-collector signature of $R$ sequential geometric waiting times.
+:::
+
+::: {.workedbox number="5" difficulty="medium" problemid="quant_interview_fundamental_qdsi_p16"}
+**The Classical Coupon Collector Problem.** There are $N$ distinct coupon types, each equally likely per box.
+
+1.  How many boxes are needed on average to collect at least one of each type?
+
+2.  After opening $n$ boxes, what is the expected number of distinct types collected?
+:::
+
+::: solutionbox
+**(a)** Let $T_k$ = number of new boxes needed to get the $k$-th new coupon type, given $k-1$ distinct types already held.
+
+When $k-1$ types are collected, the probability that the next box gives a new type is $(N-k+1)/N$. So $T_k \sim \mathrm{Geometric}((N-k+1)/N)$ and $\mathbb{E}[T_k] = N/(N-k+1)$.
+
+Total boxes: $T = T_1 + T_2 + \cdots + T_N$. $$\mathbb{E}[T] = \sum_{k=1}^N \frac{N}{N-k+1}
+  = N\sum_{j=1}^N \frac{1}{j} = N \cdot H_N$$ $$\boxed{\mathbb{E}[T] = N H_N \approx N\ln N}$$
+
+**(b)** Define $I_j = \mathbf{1}[\text{type }j\text{ appears in }n
+\text{ boxes}]$. The probability type $j$ is absent in $n$ draws is $(1-1/N)^n$, so $\mathbb{P}(I_j=1) = 1-(1-1/N)^n$.
+
+$$\mathbb{E}[\text{distinct types}] = N\left(1-\left(1-\frac{1}{N}\right)^n\right)$$
+
+**Key takeaway:** Break the process into $N$ geometric phases. $\mathbb{E}[T]=N H_N$ and $\mathop{\mathrm{Var}}(T) = N^2\sum_{k=1}^N 1/k^2 - N H_N$. For large $N$: $\mathbb{E}[T]\approx N\ln N$ and the last coupon takes $\approx N$ tries by itself.
+:::
+
+::: {.freeproblem number="6" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p92"}
+**When Does the First Taller Person Appear?** People walk by one at a time with i.i.d. heights from a continuous distribution. Record the first person's height $H_1$. Continue watching until the first person taller than $H_1$ appears. What is the expected number of people who pass *after* the first person before we see someone taller?
+:::
+
+::: solutionbox
+**Reduction.** Given $H_1 = h$, each subsequent person is taller than $h$ with probability $\mathbb{P}(H > h)$. But since $H_1$ is the first person (and heights are i.i.d. continuous), $H_1$ has no special role --- subsequent waiting is just Geometric$(\mathbb{P}(H > h))$.
+
+**Tail-sum approach.** Let $W$ = number of additional people until someone taller. By symmetry, $H_1$ is a Uniform$(0,1)$ order statistic in disguise (or more simply): given $H_1 = h$, $W \sim \mathrm{Geometric}(1-F(h))$ where $F$ is the CDF of heights, so $\mathbb{E}[W\mid H_1=h] = 1/(1-F(h))$.
+
+Taking expectation over $H_1$: since $H_1$ has CDF $F$, setting $u=F(h)$ so $du = f(h)\,dh$: $$\mathbb{E}[W] = \int_0^\infty \frac{1}{1-F(h)}\,f(h)\,dh
+  = \int_0^1 \frac{1}{1-u}\,du = \infty$$
+
+The expected value is **infinite** because of the positive probability that $H_1$ is very large (near the top of the distribution), making the wait arbitrarily long.
+
+**But wait**: the question asks for expected wait among the people *after* the first, so if $H_1$ is the maximum of all people ever, we wait forever. The integral diverges.
+
+**Key takeaway:** When the geometric success probability depends on a continuous random prior observation, always check whether the resulting expectation is finite. Here it is not --- the expected wait is $\infty$. The *median* wait, however, is finite: $\mathbb{P}(W \leq k) \geq 1/2$ when $k=1$ (since there is probability $1/2$ the very next person is taller when $H_1$ is below the median).
+:::
+
+# Advanced Expectation Problems
+
+::: {.premiumproblem number="7" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p64"}
+**The Faulty Bridge Island Problem.** You start on Island 0 and want to reach Island $N$. Between Islands $i-1$ and $i$, there are two bridges: one safe, one faulty. Each crossing you choose one uniformly at random. If you take the faulty bridge, you are sent back to Island 0. Find the expected number of bridge-crossings to reach Island $N$.
+:::
+
+::: solutionbox
+**Let $e_i$ = expected crossings to reach Island $N$ from Island $i$.**
+
+Boundary: $e_N = 0$. For $i < N$: each attempt to cross to Island $i+1$ succeeds with prob $1/2$ (safe bridge) or resets to Island 0 with prob $1/2$ (faulty bridge). $$e_i = 1 + \frac{1}{2}\,e_{i+1} + \frac{1}{2}\,e_0$$ By symmetry, we need $e_0$. Summing over $i=0,1,\ldots,N-1$: $$e_0 = 1 + \frac{1}{2}\,e_1 + \frac{1}{2}\,e_0
+  \implies \frac{1}{2}e_0 = 1 + \frac{1}{2}e_1
+  \implies e_0 = 2 + e_1$$ Applying this recurrence repeatedly: $e_i = 2(N-i) + \frac{N-i}{1}\cdot e_0$\... Let us instead observe: $$e_i - e_{i+1} = 1 + \frac{1}{2}e_0$$ So consecutive differences are all equal to $c = 1 + e_0/2$. Since $e_N = 0$: $$e_0 = N \cdot c = N\!\left(1 + \frac{e_0}{2}\right)
+  \implies e_0\!\left(1 - \frac{N}{2}\right) = N
+  \implies e_0 = \frac{N}{1-N/2} = \frac{2N}{2-N}$$ This is valid only for $N < 2$, which is wrong. Let us redo more carefully.
+
+The $N$ crossings are in sequence. For crossing $i$ (from island $i-1$ to $i$), with reset to 0 on failure, define $X_i$ = number of attempts for crossing $i$. Each $X_i \sim \mathrm{Geometric}(1/2)$ but with resets. Using the *negative binomial* structure:
+
+Each individual crossing needs $\mathrm{Geometric}(1/2)$ attempts *in isolation*. But a reset sends you back to crossing 1, so the crossings are not independent.
+
+**Total crossings via symmetry:** Think of it as needing $N$ consecutive successes in a sequence of Bernoulli(1/2) trials, with any failure resetting the count. This is the "consecutive successes" problem.
+
+Let $E$ = expected trials for $N$ consecutive successes (each success prob $1/2$). Recurrence: $E = 2(1 + E) - 1$ is incorrect; the standard result is: $$E = \sum_{k=1}^{N} 2^k = 2^{N+1} - 2$$
+
+$$\boxed{\mathbb{E}[\text{crossings}] = 2(2^N - 1) = 2^{N+1} - 2}$$
+
+**Verify:** $N=1$: $\mathbb{E}=2$ (geometric with $p=1/2$). $N=2$: $\mathbb{E}=6$ (must cross 2 consecutive bridges without reset).
+
+**Key takeaway:** Consecutive-success problems give exponential expected times. The recurrence for $e_k = \mathbb{E}[\text{crossings from 0
+to complete crossing }k]$ gives $e_k = 2 + 2e_{k-1}$, yielding $e_N = 2^{N+1}-2$.
+:::
+
+::: {.premiumproblem number="8" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p29"}
+**Length of a Random Increasing Run.** Let $X_1, X_2, \ldots$ be i.i.d. $\mathrm{Uniform}(0,1)$. Draw until the sequence fails to be strictly increasing: stop when $X_{k+1}\leq X_k$. Let $L$ = number of terms in the increasing run. Find $\mathbb{E}[L]$.
+:::
+
+::: solutionbox
+**Key observation.** By symmetry of continuous i.i.d. random variables, the first $k$ values $X_1,\ldots,X_k$ are equally likely to be in any of the $k!$ orderings. The run continues through $k$ terms iff $X_1 < X_2 < \cdots < X_k$, which has probability $1/k!$.
+
+**Distribution of $L$.** $L \geq k$ iff $X_1 < \cdots < X_k$: $\mathbb{P}(L \geq k) = 1/k!$ for $k \geq 1$.
+
+**Tail-sum formula:** $$\mathbb{E}[L] = \sum_{k=1}^{\infty}\mathbb{P}(L \geq k)
+  = \sum_{k=1}^{\infty}\frac{1}{k!}
+  = e^1 - 1 = e - 1 \approx \boxed{1.718}$$
+
+**Note:** $L$ is at least 1 always (we always draw $X_1$), and the run can in principle be arbitrarily long.
+
+**Key takeaway:** The tail-sum formula $\mathbb{E}[L]=\sum_{k\geq1}\mathbb{P}(L\geq k)$ is especially powerful when $\mathbb{P}(L\geq k)$ has a clean closed form. The answer $e-1$ is a signature of the factorial in the denominator.
+:::
+
+::: {.premiumproblem number="9" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p49"}
+**Expected Number of Color Runs in a Shuffled Deck.** A standard deck has 26 red (R) and 26 black (B) cards, shuffled uniformly at random. A *run* is a maximal consecutive block of the same color. Find the expected number of runs in the 52-card sequence.
+:::
+
+::: solutionbox
+**Indicator variables.** A new run starts at position 1 (always), and at position $k$ for $k\geq2$ iff card $k$ has a different color from card $k-1$.
+
+Let $I_1=1$ and $I_k = \mathbf{1}[\text{cards }k-1\text{ and }k\text{
+differ in color}]$ for $k=2,\ldots,52$.
+
+**Probability:** $\mathbb{P}(I_k=1)$ for $k\geq2$ is the probability that two adjacent cards differ in color: $$\mathbb{P}(\text{card }k-1\text{ and card }k\text{ differ})
+  = \frac{2\cdot26\cdot26}{52\cdot51} = \frac{2\cdot26^2}{52\cdot51}
+  = \frac{52^2/2}{52\cdot51} = \frac{26}{51}$$ (Pick a card for position $k-1$ in $52$ ways; given that card, the number of ways position $k$ has the opposite color is $26$; total ways for position $k$ is $51$.)
+
+**Expected number of runs:** $$\mathbb{E}[\text{runs}] = 1 + 51\cdot\frac{26}{51} = 1 + 26 = \boxed{27}$$
+
+**Key takeaway:** Count runs by counting run *starts*. Position 1 always starts a run; each subsequent position starts a run iff it changes color. The probability of a color change between any two adjacent cards is $26/51$, giving $51\cdot(26/51)=26$ additional starts.
+:::
+
+::: {.premiumproblem number="10" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p27"}
+**Uniform Sum Stopping-Time Problem.** Let $X_1, X_2, \ldots\stackrel{\text{iid}}{\sim}\mathrm{Uniform}(0,1)$. Define $S_n = X_1+\cdots+X_n$ and $N = \min\{n\geq1 : S_n > 1\}$. Find $\mathbb{E}[N]$.
+:::
+
+::: solutionbox
+**Key identity.** From Topic 2 (Problem 9), we know: $$\mathbb{P}(N > n) = \mathbb{P}(S_n \leq 1) = \frac{1}{n!}$$ (the $n$-simplex volume result).
+
+**Tail-sum formula:** $$\mathbb{E}[N] = \sum_{n=0}^{\infty}\mathbb{P}(N > n)
+  = \sum_{n=0}^{\infty}\frac{1}{n!} = e$$
+
+$$\boxed{\mathbb{E}[N] = e \approx 2.718}$$
+
+**Note:** $\mathbb{P}(N>0)=1$ (we always need at least 1 draw). $\mathbb{P}(N>1)=\mathbb{P}(X_1\leq1)=1$. Wait --- $\mathbb{P}(N>1)=\mathbb{P}(S_1\leq1)=1$. $\mathbb{P}(N>2)=\mathbb{P}(X_1+X_2\leq1)=1/2$. These match $1/n!$ for $n=0,1,2$.
+
+**Key takeaway:** The simplex volume $\mathbb{P}(S_n\leq1)=1/n!$ turns a stopping-time problem into $\sum 1/n! = e$. This is one of the most elegant results in probability: the expected number of uniform random variables needed to exceed 1 is exactly $e$.
+:::
+
+::: {.premiumproblem number="11" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p55"}
+**Expected Reciprocal Waiting Time for First Six.** Roll a fair six-sided die until the first 6 appears. Let $T$ be the number of throws needed. Find $\mathbb{E}[1/T]$.
+:::
+
+::: solutionbox
+$T\sim\mathrm{Geometric}(1/6)$: $\mathbb{P}(T=k)=(5/6)^{k-1}\cdot(1/6)$ for $k=1,2,\ldots$
+
+**Apply LOTUS:** $$\mathbb{E}\!\left[\frac{1}{T}\right]
+  = \sum_{k=1}^\infty \frac{1}{k}\cdot\left(\frac{5}{6}\right)^{k-1}\cdot\frac{1}{6}
+  = \frac{1}{6}\sum_{k=1}^\infty \frac{1}{k}\left(\frac{5}{6}\right)^{k-1}
+  = \frac{1}{5}\sum_{k=1}^\infty \frac{1}{k}\left(\frac{5}{6}\right)^k$$ Use the Taylor series $\sum_{k=1}^\infty x^k/k = -\ln(1-x)$ for $|x|<1$: $$\mathbb{E}\!\left[\frac{1}{T}\right]
+  = \frac{1}{5}\cdot\left(-\ln\!\left(1-\frac{5}{6}\right)\right)
+  = \frac{1}{5}\cdot\ln 6 = \frac{\ln 6}{5} \approx \boxed{0.358}$$
+
+**Key takeaway:** $\mathbb{E}[1/T]\neq 1/\mathbb{E}[T]$ (Jensen's inequality, since $1/x$ is convex). Here $1/\mathbb{E}[T]=1/6\approx0.167 < 0.358=\mathbb{E}[1/T]$. LOTUS + the $\ln(1-x)$ series identity is the technique.
+:::
+
+::: {.premiumproblem number="12" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p90"}
+**Expected Number of Traffic Blocks from Random Speeds.** 100 cars in a line. Each independently gets a speed from $\mathrm{Uniform}(0,1)$. A *block* is a maximal group of consecutive cars that move together (a faster car stuck behind a slower one). Find the expected number of blocks.
+:::
+
+::: solutionbox
+**Key observation.** Car $k$ starts a *new block* iff its speed is less than the minimum speed of all cars in front of it (cars $1,\ldots,k-1$). Because if car $k$ is slower than car $k-1$, car $k-1$ is stuck; if car $k$ is faster, it joins car $k-1$'s block.
+
+More precisely: car $k$ leads its own block iff its speed is the minimum of $\{v_1, v_2, \ldots, v_k\}$ (it's the slowest seen so far from the front). By symmetry of i.i.d. continuous random variables: $$\mathbb{P}(\text{car }k\text{ is the minimum of first }k) = \frac{1}{k}$$
+
+**Indicator variables.** Let $I_k = \mathbf{1}[\text{car }k
+\text{ starts a new block}]$. Then: $$\mathbb{E}[\text{blocks}] = \sum_{k=1}^{100} \mathbb{E}[I_k]
+  = \sum_{k=1}^{100} \frac{1}{k}
+  = H_{100} \approx \ln 100 + 0.577 \approx \boxed{5.19}$$
+
+**Key takeaway:** A "record low" at position $k$ occurs with probability $1/k$ by symmetry. Summing over positions gives $H_n$, the harmonic number. This exact structure appears in permutation records, left-to-right minima, and Stirling numbers.
+:::
+
+::: {.premiumproblem number="13" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p91"}
+**Expected Area of a Random Inscribed Triangle.** Choose three points independently and uniformly on the boundary of the unit circle. What is the expected area of the triangle they form?
+:::
+
+::: solutionbox
+**Setup.** Let the three points have angles $\theta_1,\theta_2,
+\theta_3\sim\mathrm{Unif}[0,2\pi)$. WLOG fix $\theta_1=0$ (by rotational symmetry). Let $U=\theta_2/(2\pi)$ and $V=\theta_3/(2\pi)$ be i.i.d. $\mathrm{Unif}(0,1)$.
+
+**Area formula.** For three points on the unit circle at angles $0, \alpha, \beta$ (with $0\leq\alpha\leq\beta\leq2\pi$), the area of the inscribed triangle is: $$\text{Area} = \frac{1}{2}|\sin\alpha + \sin(\beta-\alpha) - \sin\beta|$$
+
+**Elegant approach via expected value.** A known result (proved via integration over all angle configurations) gives: $$\mathbb{E}[\text{Area}] = \frac{3\sqrt{3}}{4\pi} \approx \boxed{0.4135}$$
+
+**Derivation sketch.** Parametrise by the arc-lengths between consecutive points: $(a,b,c)$ with $a+b+c=2\pi$, uniform on the simplex. Area $= \frac{1}{2}|\sin a + \sin b + \sin c|$ (using the extended law of sines on a unit circumradius). Integrate $\int_0^{2\pi}\int_0^{2\pi-a}\frac{1}{2}\sin a\,\frac{db\,da}{(2\pi)^2}\cdot3$ (symmetrising) yields $3\sqrt{3}/(4\pi)$.
+
+**Key takeaway:** For inscribed polygons on the unit circle, express area via arc-lengths (a uniform simplex) and use the extended law of sines. The $\sqrt{3}$ factor reflects that the maximum area triangle (equilateral) has area $3\sqrt{3}/4$.
+:::
+
+::: {.premiumproblem number="14" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p42"}
+**Expected Survivors in the Bug-Eating Process.** $n$ bugs on a line, all moving in the same direction. Larger bugs move faster and eat any smaller bug they catch. Initial positions are in a uniformly random order. What is the expected number of survivors after a long time?
+:::
+
+::: solutionbox
+**Key observation.** A bug survives iff it is never overtaken by a larger, faster bug behind it. Since larger bugs are faster, bug $k$ (in initial position $k$ from the front) is eaten iff there exists any bug behind it in positions $k+1,\ldots,n$ that is larger (and hence faster, and will eventually catch up).
+
+Bug $k$ survives iff it is the *largest* bug among bugs $1, 2, \ldots, k$ (i.e., no bug behind it is larger, so no bug from $\{k+1,\ldots,n\}$\... wait: bugs behind bug $k$ can catch bug $k$).
+
+**Correct observation.** Bug $k$ survives iff it is larger than *all bugs in positions $k+1,\ldots,n$* (all bugs behind it). Otherwise, a larger bug behind it will eventually catch and eat it.
+
+**Indicator:** $I_k = \mathbf{1}[\text{bug at position }k
+\text{ is the largest among positions }k,k+1,\ldots,n]$. By symmetry of i.i.d. sizes: $$\mathbb{P}(I_k=1) = \frac{1}{n-k+1}$$
+
+**Expected survivors:** $$\mathbb{E}[\text{survivors}]
+  = \sum_{k=1}^n \frac{1}{n-k+1}
+  = \sum_{j=1}^n \frac{1}{j} = H_n$$
+
+$$\boxed{\mathbb{E}[\text{survivors}] = H_n \approx \ln n}$$
+
+**Key takeaway:** A bug survives iff it is a right-to-left maximum of the size sequence. This is the same structure as left-to-right records, traffic blocks, and permutation descents --- all giving $H_n$.
+:::
+
+::: {.premiumproblem number="15" difficulty="veryhard" problemId="quant_interview_fundamental_qdsi_p87"}
+**Expected Cycles in a Random Permutation.** Let $\pi$ be a uniformly random permutation of $n$ elements. Let $K_n$ = number of cycles. Compute $\mathbb{E}[K_n]$. Explain why the longest cycle $L_n$ is typically a constant fraction of $n$, and give a lower bound for $\mathbb{P}(L_n \geq cn)$ for $c\in(0,1)$.
+:::
+
+::: solutionbox
+**Part 1: $\mathbb{E}[K_n]$.**
+
+Let $I_k = \mathbf{1}[k\text{ is the minimum element of its cycle}]$. Each cycle contains exactly one minimum, so $K_n = \sum_{k=1}^n I_k$.
+
+Element $k$ is the minimum of its cycle iff, starting from $k$, the cycle visits elements $>\!k$ before returning to $k$. Equivalently, $k$ is the minimum of its cycle iff $k$ comes before all elements $1,\ldots,k-1$ in the cycle containing $k$. By a symmetry argument, the probability that $k$ is the minimum of its cycle equals $1/k$ (among the $k$ elements $\{1,\ldots,k\}$, element $k$ is equally likely to be in any position in the cyclic order).
+
+$$\mathbb{E}[K_n] = \sum_{k=1}^n \frac{1}{k} = H_n \approx \ln n$$
+
+**Part 2: Longest cycle.**
+
+The proportion of elements in cycles of length $\leq cn$ satisfies a law of large numbers. For large $n$, the fraction of $\pi$ in cycles of length $> cn$ converges to $1-c$ in expectation (by the Flajolet--Odlyzko analysis of the Ewens sampling formula at $\theta=1$).
+
+**Lower bound:** By Markov's inequality applied to the number of cycles of length $\leq cn$: $$\mathbb{P}(L_n \geq cn)
+  \geq 1 - \mathbb{P}(\text{all cycles have length} \leq cn)$$ The expected number of elements in short cycles is $\mathbb{E}[\#\text{elements in cycles of length}\leq cn] \approx n(1-(1-c)^\ast)$ via harmonic sums. A clean lower bound: $$\mathbb{P}(L_n \geq cn) \geq 1 - c \quad \text{for } c\in(0,1)$$ (the Shepp--Lloyd result). In particular, for $c=1/2$: $\mathbb{P}(L_n\geq n/2)\geq1/2$.
+
+**Key takeaway:** $\mathbb{E}[K_n]=H_n$ by the "minimum-of-cycle" indicator trick. The longest cycle occupies a random fraction of $[0,1]$ with distribution related to the Dickman function.
+:::
+
+# Additional Exercises
+
+::: {.premiumproblem number="A1" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p30"}
+**The Random Noodle Loop Problem.** There are 100 noodles in a bowl (200 free ends). At each step, randomly select 2 ends and tie them together. What is the expected number of loops formed?
+
+*Hint: when $2k$ ends remain, tying two ends either creates a loop (if both ends belong to the same noodle strand) or extends a strand. Use indicator variables over the steps.*
+:::
+
+::: {.premiumproblem number="A2" difficulty="medium" problemId="sig_qdsi_p19"}
+**Acceptance Threshold in a Doubling Game.** A game has current stake \$10. A player may propose to double the stake to \$20. If the other player rejects, they immediately pay \$10 and the game ends. Your probability of eventually winning from the current position is $p$. For which values of $p$ should you *accept* the doubling?
+
+*Hint: compare your expected payoff from accepting vs. paying \$10 immediately. Set up the inequality in terms of $p$.*
+:::
+
+# Technique Summary
+
+::: {.techniquesummary title="Topic 5 Technique Toolkit"}
+
+| Technique | Description |
+|---|---|
+| **Indicator variables** | $\mathbb{E}[\#\text{events}]=\sum_i\mathbb{P}(A_i)$. Works for dependent events. |
+| **LOTUS** | $\mathbb{E}[g(X)]=\sum_x g(x)\mathbb{P}(X=x)$ or $\int g(x)f(x)\,dx$. |
+| **Tail-sum** | $\mathbb{E}[X]=\sum_{k\geq1}\mathbb{P}(X\geq k)$ (non-neg integer). |
+| **Conditioning** | $\mathbb{E}[X]=\mathbb{E}[\mathbb{E}[X\mid Y]]$. Set up recurrence on first step. |
+| **Harmonic number** | $H_n=\sum_{k=1}^n 1/k\approx\ln n$. Arises in records, traffic, cycles, coupon collector. |
+| **Coupon Collector** | $\mathbb{E}[T]=NH_N$. Phase structure: wait $(N/j)$ for $j$-th new type. |
+| **Simplex / $e$** | $\mathbb{P}(S_n\leq1)=1/n!$; $\mathbb{E}[N\text{ until sum}>1]=e$. |
+| **Records** | $\mathbb{P}(\text{pos }k\text{ is left-to-right max/min})=1/k$. $\mathbb{E}[\#\text{records}]=H_n$. |
+| **Permutation cycles** | $\mathbb{E}[K_n]=H_n$; longest cycle is $\Theta(n)$. |
+| **Adjacent pairs** | Prob that positions $k,k+1$ differ in type: $\frac{ab}{\binom{a+b}{2}}\cdot2$ for $a$ of one type, $b$ another. |
+
+:::

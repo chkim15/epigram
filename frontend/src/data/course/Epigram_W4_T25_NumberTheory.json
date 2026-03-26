@@ -1,0 +1,160 @@
+{
+  "weekNum": 4,
+  "topicNum": 25,
+  "topicName": "Number Theory and Mental Math",
+  "subtopics": "Mental Arithmetic $\\cdot$ Factorial Counting $\\cdot$ Roots of Unity $\\cdot$ Number Puzzles $\\cdot$ Algorithmic Thinking",
+  "freeProblems": 5,
+  "premiumProblems": 5,
+  "timeEstimate": "120–150 minutes",
+  "prerequisites": "Basic algebra; Topic 1 — Combinatorics",
+  "learningObjectives": [
+    "**Perform rapid binary-fraction conversion** and related mental arithmetic tricks used in quant interviews.",
+    "**Count trailing zeros in $n!$** using Legendre's formula and generalise to any prime.",
+    "**Apply the approximation $(1+x)^{n**\\approx e^{nx}$} for small $x$ and correct for higher-order terms.",
+    "**Construct a risk-free arbitrage** using delta-hedging ideas when a casino offers bets on a two-outcome stock.",
+    "**Apply the roots of unity filter** to count sequences satisfying a divisibility condition.",
+    "**Use Legendre's formula** to find the exact power of a prime in $n!$.",
+    "**Decompose integers using digit constraints** (product of digits) with prime factorisation.",
+    "**Evaluate complex powers** via Euler's formula.",
+    "**Use binary encoding** to identify a single object among many with a minimal number of tests.",
+    "**Enumerate $\\mathbb{Z**^{2}$ systematically} to design a guaranteed rabbit-finding strategy."
+  ],
+  "sections": [
+    {
+      "title": "Mental Arithmetic and Approximations",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "easy",
+          "tier": "free",
+          "content": "**Mental Conversion of 1/32 to Decimal.** Convert $1/32$ to a decimal mentally. Describe your method.",
+          "solution": "**Method: successive halving.**\n\n$1/32 = 1/2^{5}$. Halve repeatedly: \\[\\frac{1}{2}= 0.5 \\;\\to\\; \\frac{1}{4}= 0.25 \\;\\to\\; \\frac{1}{8}= 0.125 \\;\\to\\; \\frac{1}{16}= 0.0625 \\;\\to\\; \\frac{1}{32}= 0.03125\\]\n\n**Alternative: multiply numerator and denominator by $5^{5**=3125$:} \\[\\frac{1}{32}= \\frac{5^{5}}{10^{5}}= \\frac{3125}{100000}= 0.03125\\]\n\n**Quick check:** $32\\times3=96$, $32\\times3.1=99.2$, $32\\times0.03125 = 32\\times3125/100000 = 100000/100000 = 1$. ✓\n\n**Key takeaway:** Any fraction $1/2^{k}$ terminates with $k$ decimal places. The fastest mental method is successive halving. For fractions with power-of-5 denominators ($1/5^{k}$), multiply by $2^{k}/2^{k}$ to get $2^{k}/10^{k}$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "easy",
+          "problemId": "quant_interview_fundamental_qdsi_p47",
+          "content": "**Trailing Zeros of $100!$.** Compute the number of trailing zeros in $100!$. Explain the general method.",
+          "solution": "**Key insight.** Trailing zeros come from factors of $10=2\\times5$. Since factors of 2 are much more abundant than factors of 5, the count of trailing zeros equals the number of times 5 divides $100!$.\n\n**Legendre's formula** (see Problem 6 for the full version): \\[\\nu_{5}(100!) = \\left\\lfloor\\frac{100}{5}\\right\\rfloor + \\left\\lfloor\\frac{100}{25}\\right\\rfloor + \\left\\lfloor\\frac{100}{125}\\right\\rfloor + \\cdots = 20 + 4 + 0 = \\boxed{24}\\]\n\n**Explanation:** \\begin{itemize}\\item $\\lfloor100/5\\rfloor=20$: multiples of 5 up to 100 (each contributes at least one factor of 5).\n\n\\item $\\lfloor100/25\\rfloor=4$: multiples of 25 contribute an *extra* factor of 5 (already counted once above).\n\n\\item $\\lfloor100/125\\rfloor=0$: no multiples of 125 below 100.\\end{itemize}\n\n**General formula:** for prime $p$, the exponent of $p$ in $n!$ is $\\nu_{p}(n!)=\\sum_{k=1}^{\\infty}\\lfloor n/p^{k}\\rfloor$.\n\n**Key takeaway:** Trailing zeros in $n!$ $= \\nu_{5}(n!)$. The formula terminates quickly since $p^{k} > n$ for large $k$. For $p=5, n=100$: sum $= 20+4 = 24$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "medium",
+          "problemId": "five_rings_qdsi_p10",
+          "content": "**Approximating $(1.01)^{100**$ via $e^{x}$.} Estimate $100\\cdot(1.01)^{100}$ using $(1+x)^{n}\\approx e^{nx}$.",
+          "solution": "**First-order approximation:** $(1+x)^{n} \\approx e^{nx}$ for small $x$ (since $\\ln(1+x)\\approx x$). \\[(1.01)^{100}\\approx e^{100\\times0.01}= e^{1} = e \\approx 2.718\\] \\[100\\cdot(1.01)^{100}\\approx 100e \\approx \\boxed{271.8}\\]\n\n**Better approximation:** Use $\\ln(1+x) = x - x^{2}/2 + \\cdots$: \\[100\\ln(1.01) = 100\\left(0.01 - \\frac{0.01^{2}}{2}+ \\cdots\\right) = 1 - 0.005 + \\cdots \\approx 0.995\\] \\[(1.01)^{100}\\approx e^{0.995}\\approx e\\cdot e^{-0.005}\\approx e\\cdot(1-0.005) = 2.718\\times0.995 \\approx 2.704\\] \\[100\\cdot(1.01)^{100}\\approx 100\\times2.704 = \\boxed{270.5}\\] (Exact value: $\\approx270.5$. The second-order correction brings us very close.)\n\n**Key takeaway:** $(1+x)^{n} \\approx e^{nx}$ is the first-order approximation. To one extra decimal of accuracy, use $e^{n(x - x^2/2)}= e^{nx - nx^2/2}$."
+        },
+        {
+          "type": "freeproblem",
+          "number": "4",
+          "difficulty": "hard",
+          "problemId": "sig_qdsi_p12",
+          "content": "**Constructing a Risk-Free Arbitrage Strategy.** A stock is worth \\$100 today. Tomorrow it will be \\$50 or \\$200. A casino offers 1:1 bets (stake \\$S, win \\$S or lose \\$S) on whether the stock goes up or down. Find a trading strategy that gives a sure profit.",
+          "solution": "**Setup.** Two states tomorrow: up ($S_{u}=200$) or down ($S_{d}=50$). Casino bet: bet \\$S on “up” wins $+S$ if up, loses $-S$ if down.\n\n**Key idea: delta hedging.** Combine a stock position with a casino bet to make the payoff independent of the outcome.\n\nLet $\\Delta$ = number of shares bought today, $S_{b}$ = casino bet on “up” (negative means betting on “down”).\n\nPortfolio value tomorrow: \\begin{align*}\\text{If up:}\\quad V_{u}&= \\Delta\\cdot200 + S_{b} \\\\ \\text{If down:}\\quad V_{d}&= \\Delta\\cdot50 - S_{b}\\end{align*}\n\n**Hedge condition** ($V_{u} = V_{d}$): \\[200\\Delta + S_{b} = 50\\Delta - S_{b} \\implies 150\\Delta = -2S_{b} \\implies S_{b} = -75\\Delta\\]\n\n**Choose $\\Delta=1$ (buy 1 share at \\$100).** Then $S_{b}=-75$ (bet \\$75 on “down”).\n\n**Payoffs tomorrow:** \\begin{itemize}\\item Up: $200 - 75 = \\$125$\n\n\\item Down: $50 + 75 = \\$125$\\end{itemize} Guaranteed payoff = \\$125 regardless of outcome.\n\n**Cost today:** \\$100 (stock) $-$ \\$0 (casino bet is free to enter, cost only when losing).\n\nActually: cost today is just \\$100 for the stock; casino bets cost nothing upfront. Tomorrow you receive \\$125 guaranteed, having paid \\$100 today. \\[\\text{Risk-free profit}= 125 - 100 = \\boxed{\\$25}\\]\n\n**Why does this work?** The up/down ratio is $200/50=4$, while the casino's payoff ratio is $1:1$. This mismatch creates an arbitrage — the casino's odds don't reflect the actual stock volatility.\n\n**Key takeaway:** Delta-hedge the stock with the casino bet to eliminate all risk. The risk-free profit exists because the casino's implied probability (50\\% each) is inconsistent with the stock's risk-neutral probability $q = (1-50/100)/(200/100-50/100) = 1/3$, not 1/2."
+        },
+        {
+          "type": "freeproblem",
+          "number": "5",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p4",
+          "content": "**Divisibility of the Sum of Ten Dice by 6.** Roll 10 fair six-sided dice. What is the probability the sum is divisible by 6?",
+          "solution": "**Method: roots of unity filter.**\n\nThe probability that a sum $S$ is divisible by $m$ is: \\[\\mathbb{P}(m\\mid S) = \\frac{1}{m}\\sum_{j=0}^{m-1}\\left[\\phi(\\omega^{j})\\right]^{n}\\] where $\\omega=e^{2\\pi i/m}$ and $\\phi(z)=\\frac{1}{6}\\sum_{k=1}^{6} z^{k}$ is the probability generating function of one die.\n\nFor $m=6$, $\\omega=e^{2\\pi i/6}$ (a primitive 6th root of unity): \\[\\phi(\\omega^{j}) = \\frac{1}{6}\\sum_{k=1}^{6} \\omega^{jk}\\]\n\n**Key calculation.** For $j=1,2,3,4,5$: $\\sum_{k=1}^{6}\\omega^{jk}= \\omega^{j}\\cdot\\frac{1-\\omega^{6j}}{1-\\omega^{j}}$. Since $\\omega^{6}=1$, the numerator $1-\\omega^{6j}=1-1=0$. Therefore $\\phi(\\omega^{j}) = 0$ for all $j=1,…,5$.\n\nFor $j=0$: $\\phi(1)=1$ (sum of all probabilities).\n\n**Result:** \\[\\mathbb{P}(6\\mid S) = \\frac{1}{6}\\left[1^{10}+0+0+0+0+0\\right] = \\boxed{\\frac{1}{6}}\\] **exactly**, for *any* number of dice and any number of sides equal to 6.\n\n**Intuition.** Each individual die is uniform on $\\{1,…,6\\}$, so each die is already uniform modulo 6. The sum of 10 independent uniform mod-6 variables is still uniform mod 6 (sums of uniform modular random variables stay uniform). Hence the sum is equally likely to be any residue mod 6.\n\n**Key takeaway:** Roots of unity filter: $\\mathbb{P}(m\\mid S) = \\frac{1}{m}\\sum_{j=0}^{m-1}\\phi(\\omega^{j})^{n}$. When each die is uniform $\\{1,…,m\\}$ (so the PGF at $m$-th roots of unity vanishes), the answer is exactly $1/m$ for any number of dice."
+        }
+      ]
+    },
+    {
+      "title": "Legendre's Formula, Complex Numbers, and Puzzles",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p48",
+          "content": "**Legendre's Formula for the Prime Exponent in $n!$.** Find the exponent of prime $p$ in $n!$. Apply to find $\\nu_{3}(100!)$.",
+          "solution": "**Legendre's formula:** \\[\\nu_{p}(n!) = \\sum_{k=1}^{\\infty}\\left\\lfloor\\frac{n}{p^{k}}\\right\\rfloor = \\left\\lfloor\\frac{n}{p}\\right\\rfloor + \\left\\lfloor\\frac{n}{p^{2}}\\right\\rfloor + \\left\\lfloor\\frac{n}{p^{3}}\\right\\rfloor + \\cdots\\] (finite sum since $\\lfloor n/p^{k}\\rfloor=0$ for $p^{k}>n$).\n\n**Derivation.** The integer $m\\leq n$ contributes exactly $\\nu_{p}(m)=\\sum_{k\\geq1}\\mathbf{1}[p^{k}\\mid m]$ factors of $p$ to $n!$. Summing over all $m=1,…,n$: \\[\\nu_{p}(n!) = \\sum_{m=1}^{n}\\nu_{p}(m) = \\sum_{k=1}^{\\infty}\\#\\{m\\leq n: p^{k}\\mid m\\} = \\sum_{k=1}^{\\infty}\\lfloor n/p^{k}\\rfloor\\]\n\n**Alternative formula:** \\[\\nu_{p}(n!) = \\frac{n - s_{p}(n)}{p-1}\\] where $s_{p}(n)$ is the sum of digits of $n$ in base $p$.\n\n**Apply to $\\nu_{3**(100!)$:} \\[\\nu_{3}(100!) = \\left\\lfloor\\frac{100}{3}\\right\\rfloor + \\left\\lfloor\\frac{100}{9}\\right\\rfloor + \\left\\lfloor\\frac{100}{27}\\right\\rfloor + \\left\\lfloor\\frac{100}{81}\\right\\rfloor + \\left\\lfloor\\frac{100}{243}\\right\\rfloor = 33 + 11 + 3 + 1 + 0 = \\boxed{48}\\]\n\n**Verification via digit formula:** $100 = 10201_{3}$ (base 3), digit sum $= 1+0+2+0+1=4$, so $\\nu_{3}(100!)=(100-4)/(3-1)=96/2=48$. ✓\n\n**Key takeaway:** $\\nu_{p}(n!) = \\sum_{k}\\lfloor n/p^{k}\\rfloor = (n-s_{p}(n))/(p-1)$. For $p=5$: gives trailing zeros. For $p=3$: $\\nu_{3}(100!)=48$."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "7",
+          "difficulty": "medium",
+          "problemId": "jane_street_qdsi_p5",
+          "content": "**Digit Product Decomposition to 10000.** Find the smallest and largest positive integers whose product of digits is 10000.",
+          "solution": "**Step 1: Factorise.** $10000 = 10^{4} = 2^{4}\\times5^{4} = 16\\times625$.\n\n**Step 2: Which single digits can appear?** Each digit must be from $\\{1,…,9\\}$ and divide into the factorisation $2^{4}\\times5^{4}$. Crucially: \\begin{itemize}\\item The digit 5 is the only digit containing the prime 5. Since $5^{4}$ must appear, exactly **four 5s** are required.\n\n\\item Digits $\\{3,6,7,9\\}$ introduce primes 3 or 7 not in $10000$ — they cannot appear.\n\n\\item Remaining useful digits: $\\{1, 2, 4, 8\\}$ (powers of 2 only). Digit 1 contributes nothing; avoid it for minimising digit count.\\end{itemize}\n\n**Step 3: Represent $2^{4** = 16$ using single digits.} Need digits from $\\{2, 4, 8\\}$ with product $= 16$: \\begin{itemize}\\item $2 \\times 8 = 16$ (2 digits)\n\n\\item $4 \\times 4 = 16$ (2 digits)\n\n\\item $2\\times2\\times4=16$ (3 digits — more digits, larger numbers)\\end{itemize}\n\n**Step 4: Minimum number of digits.** Minimum = four 5s + two digits for $2^{4}$ = **6 digits**. A 5-digit representation requires one digit $= 2^{4} = 16 > 9$. Impossible.\n\n**Step 5: Find the smallest number.**\n\nTo minimise, use as *few digits as possible* (fewer digits $\\Rightarrow$ smaller number). Factorisations of $16 = 2^{4}$ into allowed digits: \\begin{itemize}\\item $8\\times2$ (2 digits) $\\to$ multiset $\\{2,5,5,5,5,8\\}$, ascending $= 255558$\n\n\\item $4\\times4$ (2 digits) $\\to$ multiset $\\{4,4,5,5,5,5\\}$, ascending $= 445555$\n\n\\item $2\\times2\\times2\\times2$ (4 digits) $\\to$ more digits, larger number\\end{itemize} Since $255558 < 445555$: \\[\\boxed{\\text{Smallest: }255558}\\]\n\n**Step 6: Find the largest number.**\n\nTo maximise, use as *many digits as possible* (more digits $\\Rightarrow$ larger number). Expand $2^{4}$ fully into individual 2s: \\[2\\times2\\times2\\times2 \\quad(\\text{4 digits for the power-of-2 part})\\] Digit multiset: $\\{2,2,2,2,5,5,5,5\\}$ (8 digits). Arrange descending: \\[\\boxed{\\text{Largest: }55552222}\\]\n\n**Check:** $2^{4}\\times5^{4} = 16\\times625 = 10000$. ✓\n\n**Remark:** If extra 1s were allowed (product unchanged), there would be no largest number — any number can be made bigger by appending more 1s. The problem assumes no trivial 1-insertion.\n\n**Key takeaway:** For *smallest*: minimise digit count, use largest single-digit combinations ($8\\times2$ beats $4\\times4$ beats $2^{4}$). For *largest*: maximise digit count, split every composite digit into smaller factors."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "8",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p80",
+          "content": "**Evaluating the Complex Power $i^{i**$.} Compute $i^{i}$. Is the result real or complex?",
+          "solution": "**Express $i$ in polar form.** $i = e^{i\\pi/2}$ (since $e^{i\\theta}=\\cos\\theta+i\\sin\\theta$, and $\\cos(\\pi/2)=0$, $\\sin(\\pi/2)=1$).\n\n**Apply the definition $z^{w** = e^{w\\ln z}$:} \\[i^{i} = \\left(e^{i\\pi/2}\\right)^{i} = e^{i\\cdot i\\pi/2}= e^{i^2\\pi/2}= e^{-\\pi/2}\\]\n\n\\[\\boxed{i^i = e^{-\\pi/2} \\approx 0.2079}\\]\n\n**The result is real!** Despite being “imaginary raised to an imaginary power”, $i^{i}$ is a positive real number.\n\n**Note: multiple values.** Since $i=e^{i(\\pi/2+2\\pi k)}$ for any integer $k$: $i^{i} = e^{i\\cdot i(\\pi/2+2\\pi k)}= e^{-(\\pi/2+2\\pi k)}$. The principal value (using $k=0$) is $e^{-\\pi/2}$. Other branches give $e^{-\\pi/2-2\\pi k}$ for $k\\in\\mathbb{Z}$, all of which are real.\n\n**Key takeaway:** $i^{i} = e^{-\\pi/2}\\approx0.208$ using Euler's formula $i=e^{i\\pi/2}$. The imaginary unit squared ($i^{2}=-1$) transforms the imaginary exponent into a real one."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "9",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p93",
+          "content": "**1000 Bottles, 10 Rats: Find the Poison.** 1000 bottles of wine, exactly one is poisoned. Any rat that drinks poisoned wine dies within 1 hour. You have 10 rats and one round of testing. How do you identify the poisoned bottle?",
+          "solution": "**Key insight: binary encoding.**\n\n$2^{10}= 1024 > 1000$, so 10 bits can represent all numbers from 0 to 1023. Assign each bottle a unique 10-bit binary label from $1$ to $1000$ (e.g.\\ bottle 1 $= 0000000001$, bottle 2 $= 0000000010$, …, bottle 1000 $= 1111101000$).\n\n**Protocol.** For each rat $j=1,2,…,10$: rat $j$ drinks from every bottle whose binary label has a $1$ in position $j$ (bit $j$).\n\n**Reading the result.** After one hour, record which rats died (1) and which survived (0). This gives a 10-bit binary number $b_{10}b_{9}\\cdots b_{1}$, which is exactly the binary label of the poisoned bottle.\n\n**Example.** If bottle 7 ($= 0000000111_{2}$) is poisoned, rats 1, 2, 3 die; rats 4–10 survive. Reading the death pattern gives $0000000111 = 7$.\n\n**Key constraint.** Each rat may drink from many bottles in one round (just mix all relevant bottles into one cup). Since only the poisoned bottle kills, each rat either dies (poisoned bottle was in their mix) or survives.\n\n**Capacity:** With $k$ rats and 1 round, you can identify the poisoned bottle among up to $2^{k}$ bottles. With $k=10$: up to 1024 bottles.\n\n**Key takeaway:** Binary encoding maps the “which rats die” pattern directly to the poisoned bottle's index. $n$ rats $\\Rightarrow$ $2^{n}$ bottles in 1 round. This is information-theoretically optimal: $n$ bits of outcome (live/die per rat) can distinguish $2^{n}$ outcomes."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "10",
+          "difficulty": "veryhard",
+          "problemId": "game_theory_qdsi_p2",
+          "content": "**Searching for a Deterministically Moving Rabbit.** A rabbit moves on $\\mathbb{Z}$: at time $t$ it is at position $p+mt$ for unknown integers $p$ and $m$. At each integer time step you may inspect one integer position. Give a strategy guaranteed to find the rabbit.",
+          "solution": "**Setup.** The rabbit's trajectory is determined by $(p,m)\\in \\mathbb{Z}^{2}$ (unknown). At time $t$, the rabbit is at $p+mt$. You must find a sequence of positions $x_{0}, x_{1}, x_{2}, …$ (where $x_{t}$ is your guess at time $t$) such that for every $(p,m)\\in \\mathbb{Z}^{2}$, there exists $t$ with $x_{t} = p+mt$.\n\n**Key observation.** You need to check all pairs $(p,m)\\in \\mathbb{Z}^{2}$. At time $t$, if you guess based on hypothesis $(p_{t}, m_{t})$, you check whether $x_{t} = p_{t} + m_{t} t$. Your strategy succeeds iff the list $(p_{0},m_{0}),(p_{1},m_{1}),…$ enumerates all of $\\mathbb{Z}^{2}$.\n\n**Enumerate $\\mathbb{Z**^{2}$ systematically.} Since $\\mathbb{Z}^{2}$ is countable, enumerate all integer pairs in a spiral (or diagonal) order: \\[(0,0),\\;(1,0),\\;(0,1),\\;(-1,0),\\;(0,-1),\\;(1,1),\\;(2,0),…\\]\n\n**Concrete strategy.** At time $t=0,1,2,…$, let $(p_{t},m_{t})$ be the $t$-th pair in the enumeration of $\\mathbb{Z}^{2}$. Check position $x_{t} = p_{t} + m_{t}\\cdot t$.\n\n**Correctness.** For any fixed $(p,m)\\in\\mathbb{Z}^{2}$, there exists $t^{*}$ such that $(p_{t^*},m_{t^*})=(p,m)$ (since the enumeration covers all of $\\mathbb{Z}^{2}$). At that time $t^{*}$, we check $x_{t^*}= p + m\\cdot t^{*}$, which is exactly the rabbit's position. We find the rabbit at time $t^{*}$.\n\n**Explicit enumeration of $\\mathbb{Z**^{2}$.} Use a diagonal / Cantor pairing approach. List all $(p,m)$ with $|p|+|m|\\leq R$ for $R=0,1,2,…$, then within each “ring” in some fixed order (e.g.\\ increasing $p$). This covers all pairs.\n\n**Key takeaway:** The rabbit problem reduces to: can you enumerate $\\mathbb{Z}^{2}$ (countably infinite)? Yes — any bijection $\\mathbb{N}\\to\\mathbb{Z}^{2}$ gives a valid strategy. The rabbit is guaranteed to be found because every possible $(p,m)$ is eventually tested. The strategy does not need to know $(p,m)$ in advance."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 25 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>$1/2^{k$ to decimal}</th><th>Halve $k$ times: $1/32=0.03125$. Or multiply by $5^{k}/10^{k}$.</th></tr><tr><td>Trailing zeros in $n!$</td><td>$\\nu_{5}(n!)=\\sum_{k}\\lfloor n/5^{k}\\rfloor$. For $n=100$: $20+4=24$.</td></tr><tr><td>$(1+x)^{n$ approximation}</td><td>$\\approx e^{nx}$ (first order); $\\approx e^{n(x-x^2/2)}$ (second order).</td></tr><tr><td>Delta hedging arbitrage</td><td>Find $\\Delta$ making payoffs equal in both states; use casino bet to balance.</td></tr><tr><td>Roots of unity filter</td><td>$\\mathbb{P}(m\\mid S)=\\frac{1}{m}\\sum_{j=0}^{m-1}\\phi(\\omega^{j})^{n}$. For dice mod 6: exactly $1/6$.</td></tr><tr><td>Legendre's formula</td><td>$\\nu_{p}(n!)=\\sum_{k}\\lfloor n/p^{k}\\rfloor = (n-s_{p}(n))/(p-1)$. For $p=3$, $n=100$: $48$.</td></tr><tr><td>Digit product</td><td>Factorise target; identify which digits can appear; For smallest: minimise digits (use $8\\times2$); for largest: maximise digits (use $2\\times2\\times2\\times2$).</td></tr><tr><td>$i^{i$}</td><td>$i=e^{i\\pi/2}$ so $i^{i}=e^{-\\pi/2}\\approx0.208$. Real!</td></tr><tr><td>$n$ rats, $2^{n$ bottles}</td><td>Binary encode bottle indices; rat $j$ tests bottles with bit $j=1$.</td></tr><tr><td>Rabbit on $\\mathbb{Z$}</td><td>Enumerate $\\mathbb{Z}^{2}$ (all $(p,m)$ pairs); at time $t$ check $p_{t}+m_{t}\\cdot t$. Guaranteed to find rabbit.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "Mental Conversion of 1/32 to Decimal",
+      "problemId": "sig_qdsi_p28"
+    },
+    {
+      "number": "2",
+      "name": "Trailing Zeros of 100!",
+      "problemId": "quant_interview_fundamental_qdsi_p47"
+    },
+    {
+      "number": "4",
+      "name": "Constructing a Risk-Free Arbitrage Strategy",
+      "problemId": "sig_qdsi_p12"
+    },
+    {
+      "number": "5",
+      "name": "Divisibility of the Sum of Ten Dice by 6",
+      "problemId": "quant_interview_fundamental_qdsi_p4"
+    },
+    {
+      "number": "6",
+      "name": "Legendre's Formula for the Prime Exponent in n!",
+      "problemId": "quant_interview_fundamental_qdsi_p48"
+    },
+    {
+      "number": "7",
+      "name": "Digit Product Decomposition to 10000",
+      "problemId": "jane_street_qdsi_p5"
+    },
+    {
+      "number": "9",
+      "name": "1000 Bottles, 10 Rats: Find the Poison",
+      "problemId": "quant_interview_fundamental_qdsi_p93"
+    },
+    {
+      "number": "10",
+      "name": "Searching for a Deterministically Moving Rabbit",
+      "problemId": "game_theory_qdsi_p2"
+    }
+  ]
+}

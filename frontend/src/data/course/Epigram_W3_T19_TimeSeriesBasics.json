@@ -1,0 +1,124 @@
+{
+  "weekNum": 3,
+  "topicNum": 19,
+  "topicName": "Time Series Basics",
+  "subtopics": "AR $\\cdot$ MA $\\cdot$ ARMA $\\cdot$ Stationarity $\\cdot$ Unit Roots $\\cdot$ Optimal Forecasting",
+  "freeProblems": 3,
+  "premiumProblems": 3,
+  "timeEstimate": "90–120 minutes",
+  "prerequisites": "Topic 17–18 — Linear Regression; Topic 5 — Expectation & Variance",
+  "learningObjectives": [
+    "**Derive the stationarity condition, variance, and ACF** for an AR(1) process, and explain what happens when $|\\phi|\\geq1$.",
+    "**Contrast a random walk with a stationary AR(1)**: compute the mean and variance of each as functions of time, and sketch their ACFs.",
+    "**Compute the ACF of an MA(1)** from first principles and verify the cutoff property at lag 1.",
+    "**Identify the correct ARMA($p$,$q$) model** from the pattern of ACF and PACF: AR($p$) $\\leftrightarrow$ PACF cuts at $p$; MA($q$) $\\leftrightarrow$ ACF cuts at $q$; ARMA $\\leftrightarrow$ both decay.",
+    "**Explain the unit root concept and the ADF test**: state the null hypothesis, explain why the standard $t$-distribution does not apply, and discuss the practical importance for financial series.",
+    "**Compute optimal multi-step forecasts and their error variance** for an AR(1) process."
+  ],
+  "sections": [
+    {
+      "title": "Core Definitions",
+      "blocks": [
+        {
+          "type": "conceptbox",
+          "title": "Covariance Stationarity and ARMA",
+          "content": "A process $(X_{t})$ is **covariance-stationary** (weakly stationary) if: $\\mathbb{E}[X_{t}] = \\mu$ (constant), $\\text{Var}(X_{t}) = \\sigma^{2} < \\infty$ (constant), and $\\text{Cov}(X_{t}, X_{t-k})$ depends only on $|k|$, not on $t$.\n\n**AR($p$):** $X_{t} = \\phi_{1} X_{t-1}+\\cdots+\\phi_{p} X_{t-p}+\\varepsilon_{t}$. Stationary iff all roots of $1-\\phi_{1} z-\\cdots-\\phi_{p} z^{p}=0$ lie outside the unit circle.\n\n**MA($q$):** $X_{t} = \\varepsilon_{t}+\\theta_{1}\\varepsilon_{t-1}+\\cdots +\\theta_{q}\\varepsilon_{t-q}$. Always stationary.\n\n**ARMA($p$,$q$):** combines both. Stationarity governed by the AR part.\n\n**ACF** $\\rho(k)=\\text{Cov}(X_{t},X_{t-k})/\\text{Var}(X_{t})$. **PACF** $\\alpha(k)$ = partial autocorrelation at lag $k$ (effect of $X_{t-k}$ on $X_{t}$ after removing intermediate lags)."
+        }
+      ]
+    },
+    {
+      "title": "AR and MA Processes",
+      "blocks": [
+        {
+          "type": "workedproblem",
+          "number": "1",
+          "difficulty": "medium",
+          "tier": "free",
+          "content": "**AR(1) Process: Stationarity Conditions.** $X_{t} = \\phi X_{t-1}+\\varepsilon_{t}$, $\\varepsilon_{t}\\stackrel{\\text{iid}}{\\sim}N(0,\\sigma^{2})$. \\begin{enumerate}[label=(\\alph{*})]\\item For what values of $\\phi$ is this covariance-stationary?\n\n\\item Under stationarity, find $\\mathbb{E}[X_{t}]$, $\\text{Var}(X_{t})$, and $\\rho(k)=\\text{Corr}(X_{t},X_{t-k})$.\n\n\\item What happens if $|\\phi|>1$?\\end{enumerate}",
+          "solution": "**(a) Stationarity.** The AR(1) characteristic equation is $1-\\phi z=0$, root $z=1/\\phi$. Stationarity requires this root to lie outside the unit circle: $|1/\\phi|>1$, i.e.\\ $|\\phi|<1$.\n\n\\[\\boxed{|\\phi|<1}\\]\n\n**(b) Moments under stationarity.**\n\n**Mean:** Taking expectations of $X_{t}=\\phi X_{t-1}+\\varepsilon_{t}$: $\\mathbb{E}[X_{t}]=\\phi\\mathbb{E}[X_{t-1}]+0$. By stationarity $\\mathbb{E}[X_{t}]=\\mathbb{E}[X_{t-1}]=\\mu$, so $\\mu=\\phi\\mu \\Rightarrow \\mu(1-\\phi)=0 \\Rightarrow \\mu=0$.\n\n**Variance:** $\\text{Var}(X_{t})=\\phi^{2}\\text{Var}(X_{t-1})+\\sigma^{2}=\\phi^{2}\\gamma_{0}+\\sigma^{2}$. By stationarity $\\gamma_{0}=\\phi^{2}\\gamma_{0}+\\sigma^{2}$: \\[\\text{Var}(X_{t}) = \\gamma_{0} = \\frac{\\sigma^{2}}{1-\\phi^{2}}\\]\n\n**Autocovariance:** $\\gamma_{k} = \\text{Cov}(X_{t},X_{t-k})$. For $k\\geq1$: $\\gamma_{k} = \\text{Cov}(\\phi X_{t-1}+\\varepsilon_{t}, X_{t-k}) = \\phi\\text{Cov}(X_{t-1},X_{t-k})+0 = \\phi\\gamma_{k-1}$. Solving: $\\gamma_{k} = \\phi^{k}\\gamma_{0}$.\n\n**ACF:** \\[\\rho(k) = \\frac{\\gamma_{k}}{\\gamma_{0}}= \\phi^{k}, \\quad k=0,1,2,…\\] The ACF decays *geometrically* at rate $|\\phi|$.\n\n**(c) $|\\phi|>1$ — explosive process.** The process is non-stationary: the variance grows without bound as $t\\to\\infty$. Starting from any $X_{0}$, $\\text{Var}(X_{t})$ grows like $\\phi^{2t}\\text{Var}(X_{0})+\\sigma^{2}(1-\\phi^{2t})/(1-\\phi^{2})$. The process “blows up” exponentially. Such processes are not useful models for financial time series.\n\n**Key takeaway:** AR(1) is stationary iff $|\\phi|<1$; then $\\text{Var}=\\sigma^{2}/(1-\\phi^{2})$ and ACF $=\\phi^{k}$ (geometric decay). $|\\phi|=1$ gives a random walk (unit root, non-stationary)."
+        },
+        {
+          "type": "freeproblem",
+          "number": "2",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p119",
+          "content": "**Random Walk vs Stationary AR(1).** $Y_{t} = Y_{t-1}+\\varepsilon_{t}$ (random walk) and $X_{t}=0.5X_{t-1}+\\varepsilon_{t}$ (AR(1)), both with $\\varepsilon_{t}\\stackrel{\\text{iid}}{\\sim}N(0,1)$. \\begin{enumerate}[label=(\\alph{*})]\\item Is $Y_{t}$ stationary? Compute its mean and variance as functions of $t$.\n\n\\item Is $X_{t}$ stationary? Justify.\n\n\\item Sketch the ACF of each. What is the key practical difference for forecasting?\\end{enumerate}",
+          "solution": "**(a) Random walk $Y_{t**$.}\n\nNot stationary. Unrolling: $Y_{t} = Y_{0} + \\sum_{s=1}^{t}\\varepsilon_{s}$. \\[\\mathbb{E}[Y_{t}] = Y_{0} \\quad (\\text{constant})\\] \\[\\text{Var}(Y_{t}) = t\\cdot\\text{Var}(\\varepsilon) = t\\] The variance grows linearly in $t$ — violating the constant variance requirement for stationarity.\n\n**(b) AR(1) $X_{t**$.}\n\nStationary, since $|\\phi|=0.5<1$. $\\mathbb{E}[X_{t}]=0$, $\\text{Var}(X_{t})=1/(1-0.25)=4/3$ (constant for all $t$).\n\n**(c) ACF comparison.**\n\n <table class=\"course-table\"><tr><td></td><td>Random walk $Y_{t}$</td><td>AR(1) $X_{t}$ ($\\phi=0.5$)</td></tr><tr><td>$\\rho(k)$</td><td>$\\approx 1$ for all $k$ (slowly decays to 0)</td><td>$0.5^{k}$ (geometric decay)</td></tr><tr><td>Practical shape</td><td>Stays near 1 for large $k$</td><td>Drops quickly (e.g.\\ $\\rho(5)=0.031$)</td></tr></table>\n\nThe random walk's sample ACF stays close to 1 for many lags because $\\text{Corr}(Y_{t}, Y_{t-k}) = \\sqrt{(t-k)/t}\\to 1$ as $t\\to\\infty$. The AR(1) ACF decays to zero quickly.\n\n**Forecasting implications.** \\begin{itemize}\\item **AR(1):** Forecast reverts to zero at rate $\\phi^{h}$. $\\mathbb{E}[X_{t+h}\\mid X_{t}]=0.5^{h} X_{t}\\to0$.\n\n\\item **Random walk:** Best forecast is the current value: $\\mathbb{E}[Y_{t+h}\\mid Y_{t}]=Y_{t}$ for all $h$ (no mean reversion; forecast error variance $= h$ grows with horizon).\\end{itemize}\n\n**Key takeaway:** A random walk has ACF near 1 for all lags; AR(1) with $|\\phi|<1$ has geometrically decaying ACF. In finance, asset *prices* resemble random walks (non-stationary) while *returns* are approximately stationary."
+        },
+        {
+          "type": "freeproblem",
+          "number": "3",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p120",
+          "content": "**ACF of MA(1): Computation and Cutoff.** $X_{t} = \\varepsilon_{t} + \\theta\\varepsilon_{t-1}$, $\\varepsilon_{t}\\stackrel{\\text{iid}}{\\sim}(0,\\sigma^{2})$. \\begin{enumerate}[label=(\\alph{*})]\\item Compute $\\gamma(k) = \\text{Cov}(X_{t}, X_{t-k})$ for all $k$.\n\n\\item Compute the ACF $\\rho(k)$.\n\n\\item Verify the cutoff property: ACF $= 0$ for $k\\geq2$.\n\n\\item Compare to the AR(1) ACF.\\end{enumerate}",
+          "solution": "**(a) Autocovariance.**\n\n$X_{t} = \\varepsilon_{t}+\\theta\\varepsilon_{t-1}$. Note $\\mathbb{E}[X_{t}]=0$ and $\\text{Cov}(\\varepsilon_{s},\\varepsilon_{r})=\\sigma^{2}\\mathbf{1}[s=r]$.\n\n**$k=0$:** \\[\\gamma(0) = \\text{Var}(X_{t}) = \\text{Var}(\\varepsilon_{t})+\\theta^{2}\\text{Var}(\\varepsilon_{t-1}) = \\sigma^{2}(1+\\theta^{2})\\]\n\n**$k=1$:** \\[\\gamma(1) = \\text{Cov}(\\varepsilon_{t}+\\theta\\varepsilon_{t-1},\\; \\varepsilon_{t-1}+\\theta\\varepsilon_{t-2}) = \\theta\\text{Cov}(\\varepsilon_{t-1},\\varepsilon_{t-1}) = \\theta\\sigma^{2}\\]\n\n**$k\\geq2$:** $X_{t}$ depends only on $\\varepsilon_{t},\\varepsilon_{t-1}$ and $X_{t-k}$ depends on $\\varepsilon_{t-k},\\varepsilon_{t-k-1}$. For $k\\geq2$, all four indices are distinct, so: \\[\\gamma(k) = 0, \\quad k\\geq2\\]\n\n**(b) ACF.** \\[\\rho(0) = 1, \\qquad \\rho(1) = \\frac{\\theta\\sigma^{2}}{\\sigma^{2}(1+\\theta^{2})}= \\frac{\\theta}{1+\\theta^{2}}, \\qquad \\rho(k) = 0\\ \\text{for }k\\geq2\\]\n\n**(c) Cutoff at lag 1.** For $|k|\\geq2$, $X_{t}$ and $X_{t-k}$ share no common $\\varepsilon$ terms, so they are *uncorrelated* (not just asymptotically but exactly). The ACF has a *hard cutoff* at lag 1. ✓\n\n**Note:** $|\\rho(1)|\\leq1/2$, with equality when $\\theta=\\pm1$. This is because $\\theta/(1+\\theta^{2})\\leq1/2$ for all real $\\theta$ (AM-GM: $1+\\theta^{2}\\geq2|\\theta|$).\n\n**(d) Comparison to AR(1).**\n\n <table class=\"course-table\"><tr><td></td><td>MA(1): $X_{t}=\\varepsilon_{t}+\\theta\\varepsilon_{t-1}$</td><td>AR(1): $X_{t}=\\phi X_{t-1}+\\varepsilon_{t}$</td></tr><tr><td>$\\rho(1)$</td><td>$\\theta/(1+\\theta^{2})$</td><td>$\\phi$</td></tr><tr><td>$\\rho(k\\geq2)$</td><td>$0$ (exact cutoff)</td><td>$\\phi^{k}$ (geometric decay)</td></tr><tr><td>Memory</td><td>Finite (lag 1 only)</td><td>Infinite (all lags)</td></tr><tr><td>Identification</td><td>ACF cuts off</td><td>ACF decays, PACF cuts off</td></tr></table>\n\n**Key takeaway:** MA($q$) has ACF that cuts off exactly at lag $q$; AR($p$) has ACF that decays geometrically. This is the primary ACF diagnostic for model identification."
+        }
+      ]
+    },
+    {
+      "title": "Model Identification, Unit Roots, and Forecasting",
+      "blocks": [
+        {
+          "type": "premiumproblem",
+          "number": "4",
+          "difficulty": "medium",
+          "problemId": "quant_interview_fundamental_qdsi_p121",
+          "content": "**ARMA Model Identification from ACF/PACF.** \\begin{enumerate}[label=(\\alph{*})]\\item Scenario A: ACF decays exponentially, PACF cuts off after lag 2. What model?\n\n\\item Scenario B: ACF cuts off after lag 1, PACF decays. What model?\n\n\\item Scenario C: Both ACF and PACF decay. What model?\n\n\\item Summarise the general ARMA($p$,$q$) identification rules.\\end{enumerate}",
+          "solution": "**(a) Scenario A:** ACF decays exponentially + PACF cuts off at lag 2.\n\n\\[\\Rightarrow **AR(2)**\\]\n\nAR($p$) processes have: PACF cuts off at lag $p$ (exactly zero after); ACF decays geometrically (exponentially or oscillating).\n\n**(b) Scenario B:** ACF cuts off at lag 1 + PACF decays.\n\n\\[\\Rightarrow **MA(1)**\\]\n\nMA($q$) processes have: ACF cuts off at lag $q$; PACF decays (tailing off, possibly oscillating).\n\n**(c) Scenario C:** Both ACF and PACF decay.\n\n\\[\\Rightarrow **ARMA($p$,$q$) for some $p,q\\geq1$**\\]\n\nWhen both decay, the process has both AR and MA components. Use information criteria (AIC, BIC) to select $p$ and $q$.\n\n**(d) Identification rules.**\n\n <table class=\"course-table\"><tr><th>ACF</th><th>PACF</th><th>Model</th></tr><tr><td>Cuts off at lag $q$</td><td>Decays</td><td>MA($q$)</td></tr><tr><td>Decays</td><td>Cuts off at lag $p$</td><td>AR($p$)</td></tr><tr><td>Both decay</td><td>Both decay</td><td>ARMA($p$,$q$)</td></tr><tr><td>Cuts off at 0</td><td>Cuts off at 0</td><td>White noise</td></tr></table>\n\n**Practical note.** “Cuts off” means the ACF/PACF is statistically indistinguishable from zero beyond a certain lag (within $\\pm1.96/\\sqrt{T}$ bands). “Decays” means it tapers toward zero but does not reach it within a few lags.\n\n**Key takeaway:** The Box–Jenkins methodology: (1) check ACF/PACF patterns; (2) identify model class; (3) estimate; (4) check residuals. AR($p$) has characteristic PACF cutoff; MA($q$) has characteristic ACF cutoff."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "5",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p122",
+          "content": "**Unit Root and Dickey–Fuller Test.** \\begin{enumerate}[label=(\\alph{*})]\\item What is a unit root in AR(1)?\n\n\\item Explain the ADF test. What is $H_{0}$?\n\n\\item Why doesn't the standard $t$-distribution apply?\n\n\\item Why does stationarity testing matter for financial series?\\end{enumerate}",
+          "solution": "**(a) Unit root.** The AR(1) $X_{t}=\\phi X_{t-1}+\\varepsilon_{t}$ has a **unit root** when $\\phi=1$ (the characteristic root $1/\\phi=1$ lies *on* the unit circle). The process becomes a random walk: $X_{t} = X_{t-1}+\\varepsilon_{t}$, which is non-stationary.\n\n**(b) Augmented Dickey–Fuller (ADF) test.** Rewrite the AR(1) as: \\[\\Delta X_{t} = X_{t} - X_{t-1}= (\\phi-1)X_{t-1}+\\varepsilon_{t} = \\delta X_{t-1}+\\varepsilon_{t}\\] where $\\delta = \\phi-1$.\n\n$H_{0}\\colon\\delta=0$ (unit root, $\\phi=1$, non-stationary) vs $H_{1}\\colon\\delta<0$ ($\\phi<1$, stationary).\n\nThe ADF test augments this regression with lagged differences $\\Delta X_{t-1},…,\\Delta X_{t-p}$ to absorb serial correlation in residuals: \\[\\Delta X_{t} = \\delta X_{t-1}+ \\sum_{j=1}^{p}\\gamma_{j}\\Delta X_{t-j}+ \\varepsilon_{t}\\] The test statistic is the $t$-ratio on $\\hat{\\delta}$.\n\n**(c) Why not the standard $t$-distribution?** Under $H_{0}$ ($\\phi=1$), $X_{t}$ is non-stationary. The standard OLS inference theory relies on stationarity and CLT arguments that break down when $\\phi=1$. Under the unit root null, $\\hat{\\delta}$ converges at rate $T$ (not $\\sqrt{T}$), and the test statistic converges to a functional of **Brownian motion**, known as the **Dickey–Fuller distribution**. This distribution is *left-skewed* and has more negative critical values than the standard $t$ (e.g.\\ the 5\\% critical value is approximately $-2.86$ for a driftless model vs $-1.65$ for a one-sided $t$).\n\n**(d) Practical importance for financial time series.** \\begin{itemize}\\item **Stock prices:** typically non-stationary (random walk). Running regressions on levels leads to *spurious regression* (artificially high $R^{2}$ and significant $t$-statistics with no real relationship).\n\n\\item **Returns:** typically stationary (mean-reverting after demeaning). Safe to use in standard regression and time series models.\n\n\\item **Cointegration:** two non-stationary series can have a stationary linear combination (cointegrated), which is exploitable for pairs trading.\n\n\\item **Correct differencing:** if a series is I(1) (integrated order 1), first-differencing gives a stationary series. Using levels in a regression of an I(1) series on another I(1) series (not cointegrated) produces spurious results.\\end{itemize}\n\n**Key takeaway:** Unit root $\\Leftrightarrow$ $\\phi=1$ $\\Leftrightarrow$ non-stationary. The ADF test has $H_{0}:$ unit root (test on $\\hat{\\delta}$ from $\\Delta X_{t} = \\delta X_{t-1}+…$). Non-standard distribution because OLS inference breaks under non-stationarity. In finance, test whether to use prices (likely I(1)) or returns (likely I(0))."
+        },
+        {
+          "type": "premiumproblem",
+          "number": "6",
+          "difficulty": "hard",
+          "problemId": "quant_interview_fundamental_qdsi_p123",
+          "content": "**Optimal Forecasting with AR(1).** $X_{t} = 0.6 X_{t-1}+\\varepsilon_{t}$, $\\sigma^{2}=1$, $X_{100}=5$. \\begin{enumerate}[label=(\\alph{*})]\\item 1-step-ahead forecast $\\mathbb{E}[X_{101}\\mid X_{100}=5]$.\n\n\\item $h$-step-ahead forecast $\\mathbb{E}[X_{100+h}\\mid X_{100}=5]$.\n\n\\item What does the forecast converge to as $h\\to\\infty$?\n\n\\item Forecast error variance for the $h$-step forecast.\\end{enumerate}",
+          "solution": "**(a) 1-step-ahead forecast.** \\[\\mathbb{E}[X_{101}\\mid X_{100}=5] = 0.6\\times5 = \\boxed{3}\\]\n\n**(b) $h$-step-ahead forecast.**\n\nUnrolling the recursion: $X_{100+h}= 0.6^{h} X_{100}+ \\sum_{j=0}^{h-1}0.6^{j}\\varepsilon_{100+h-j}$.\n\nSince future innovations are independent of $X_{100}$: \\[\\mathbb{E}[X_{100+h}\\mid X_{100}=5] = 0.6^{h}\\times5 = \\boxed{5\\times0.6^h}\\]\n\n <table class=\"course-table\"><tr><td>$h$</td><td>Forecast $= 5\\times0.6^{h}$</td><td></td></tr><tr><td>1</td><td>3.000</td><td></td></tr><tr><td>2</td><td>1.800</td><td></td></tr><tr><td>5</td><td>0.389</td><td></td></tr><tr><td>10</td><td>0.030</td><td></td></tr></table>\n\n**(c) Long-run convergence.** \\[5\\times0.6^{h} \\to 0 \\quad\\text{as }h\\to\\infty\\] The forecast converges to the unconditional mean $\\mu=0$ (since the process has mean zero). The rate of convergence is geometric with factor $0.6$ per period.\n\n**How quickly?** After $h=5$ steps, the forecast is $0.389$ (7.8\\% of the initial value). After $h=10$, it is $0.030$ (0.6\\%). The “half-life” is $h_{1/2}=\\log(0.5)/\\log(0.6)\\approx1.36$ steps.\n\n**(d) Forecast error variance.**\n\nThe $h$-step forecast error is: $X_{100+h}-\\hat{X}_{100+h}= \\sum_{j=0}^{h-1}0.6^{j}\\varepsilon_{100+h-j}$.\n\n\\[\\text{Var}(X_{100+h}-\\hat{X}_{100+h}) = \\sigma^{2}\\sum_{j=0}^{h-1}0.6^{2j}= \\sigma^{2}\\cdot\\frac{1-0.6^{2h}}{1-0.36}= \\frac{1-0.36^{h}}{0.64}\\]\n\n <table class=\"course-table\"><tr><td>$h$</td><td>Forecast error variance</td><td></td></tr><tr><td>1</td><td>$1.000$</td><td>(just $\\sigma^{2}$)</td></tr><tr><td>2</td><td>$1.360$</td><td></td></tr><tr><td>5</td><td>$1.553$</td><td></td></tr><tr><td>$\\infty$</td><td>$1.563 = 1/0.64 = \\sigma^{2}/(1-\\phi^{2})$</td><td>(unconditional variance)</td></tr></table>\n\nThe forecast error variance starts at $\\sigma^{2}=1$ for $h=1$ and converges to the unconditional variance $\\sigma^{2}/(1-\\phi^{2})=1/0.64 \\approx1.563$ as $h\\to\\infty$.\n\n**Key takeaway:** AR(1) forecasts mean-revert at rate $\\phi^{h}$; forecast error variance grows from $\\sigma^{2}$ toward $\\sigma^{2}/(1-\\phi^{2})$. At short horizons, the model provides useful signal; at long horizons, the forecast converges to the unconditional mean with full unconditional uncertainty."
+        },
+        {
+          "type": "techniquesummary",
+          "content": "**Topic 19 Technique Toolkit**\n\n<table class=\"course-table\"><tr><th>AR(1) stationarity</th><th>$|\\phi|<1$. $\\text{Var}=\\sigma^{2}/(1-\\phi^{2})$. ACF $\\rho(k)=\\phi^{k}$ (geometric decay).</th></tr><tr><td>Random walk</td><td>$\\phi=1$. $\\text{Var}(Y_{t})=t$ (grows). ACF $\\approx 1$ for all lags. Best forecast = current value.</td></tr><tr><td>MA(1) ACF</td><td>$\\rho(1)=\\theta/(1+\\theta^{2})$, $\\rho(k)=0$ for $k\\geq2$. Hard cutoff at lag 1.</td></tr><tr><td>Model identification</td><td>AR($p$): PACF cuts at $p$, ACF decays. MA($q$): ACF cuts at $q$, PACF decays. ARMA: both decay.</td></tr><tr><td>ADF test</td><td>$H_{0}$: unit root ($\\delta=0$ in $\\Delta X_{t}=\\delta X_{t-1}+…$). Use Dickey–Fuller critical values, not $t$.</td></tr><tr><td>Finance application</td><td>Prices: I(1) — use returns (first differences). Spurious regression risk with non-stationary series.</td></tr><tr><td>AR(1) $h$-step forecast</td><td>$\\hat{X}_{t+h}=\\phi^{h} X_{t}$. Converges to 0 (mean) as $h\\to\\infty$.</td></tr><tr><td>Forecast error variance</td><td>$\\sigma^{2}(1-\\phi^{2h})/(1-\\phi^{2})$. Grows from $\\sigma^{2}$ to $\\sigma^{2}/(1-\\phi^{2})$.</td></tr></table>"
+        }
+      ]
+    }
+  ],
+  "problemIndex": [
+    {
+      "number": "W1",
+      "name": "AR(1) Process: Stationarity Conditions",
+      "problemId": "quant_interview_fundamental_qdsi_p118"
+    },
+    {
+      "number": "2",
+      "name": "Random Walk vs Stationary AR(1)",
+      "problemId": "quant_interview_fundamental_qdsi_p119"
+    },
+    {
+      "number": "3",
+      "name": "ACF of MA(1): Computation and Cutoff",
+      "problemId": "quant_interview_fundamental_qdsi_p120"
+    },
+    {
+      "number": "4",
+      "name": "ARMA Model Identification from ACF/PACF",
+      "problemId": "quant_interview_fundamental_qdsi_p121"
+    },
+    {
+      "number": "5",
+      "name": "Unit Root and Dickey-Fuller Test",
+      "problemId": "quant_interview_fundamental_qdsi_p122"
+    },
+    {
+      "number": "6",
+      "name": "Optimal Forecasting with AR(1)",
+      "problemId": "quant_interview_fundamental_qdsi_p123"
+    }
+  ]
+}

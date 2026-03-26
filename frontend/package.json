@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "build:mdx": "for f in ../storage/4-week-course/*.tex; do pandoc \"$f\" --lua-filter=scripts/epigram.lua -t markdown -o \"src/data/course-mdx/$(basename \"$f\" .tex).mdx\"; done"
+    "build:mdx": "for f in ../storage/4-week-course/*.tex; do pandoc \"$f\" --lua-filter=scripts/epigram.lua --wrap=none -t markdown -o \"src/data/course-mdx/$(basename \"$f\" .tex).mdx\"; done"
   },
   "dependencies": {
     "openai": "^5.12.2",
