@@ -307,6 +307,27 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['usage_tracking']['Row'], 'id' | 'created_at' | 'updated_at' | 'usage_count'> & { usage_count?: number };
         Update: Partial<Database['public']['Tables']['usage_tracking']['Insert']>;
       };
+      mock_interview_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          status: 'in_progress' | 'completed' | 'abandoned';
+          problem_ids: string[];
+          user_answers: string[] | null;
+          self_assessed_correct: boolean[] | null;
+          score: number | null;
+          time_limit_seconds: number;
+          started_at: string;
+          completed_at: string | null;
+          overtime_seconds: number;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['mock_interview_sessions']['Row'], 'id' | 'created_at' | 'started_at' | 'overtime_seconds'> & {
+          started_at?: string;
+          overtime_seconds?: number;
+        };
+        Update: Partial<Database['public']['Tables']['mock_interview_sessions']['Insert']>;
+      };
     };
   };
 }
@@ -332,6 +353,7 @@ export type SubscriptionPlan = Database['public']['Tables']['subscription_plans'
 export type UserSubscription = Database['public']['Tables']['user_subscriptions']['Row'];
 export type PaymentHistory = Database['public']['Tables']['payment_history']['Row'];
 export type UsageTracking = Database['public']['Tables']['usage_tracking']['Row'];
+export type MockInterviewSession = Database['public']['Tables']['mock_interview_sessions']['Row'];
 
 // Subscription status enum
 export type SubscriptionStatus = UserSubscription['status'];

@@ -1,15 +1,19 @@
 "use client";
 
 import { Suspense, use } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ProblemViewer from "@/components/problems/ProblemViewer";
 import ChatSidebar from "@/components/ai/ChatSidebar";
 import ResizablePanels from "@/components/ui/resizable-panels";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 
 function ProblemDetailContent({ slug }: { slug: string }) {
   const { isAuthenticated, isLoading, showCheckoutSuccess, setShowCheckoutSuccess } = useAuthGuard();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const fromMockInterview = searchParams.get("from") === "mock-interview";
 
   if (isLoading) {
     return (
@@ -29,6 +33,18 @@ function ProblemDetailContent({ slug }: { slug: string }) {
       onDismissCheckout={() => setShowCheckoutSuccess(false)}
     >
       <div className="flex-1 flex flex-col min-h-0">
+        {fromMockInterview && (
+          <div className="px-4 pt-3 pb-1">
+            <button
+              onClick={() => router.push("/mock-interview?phase=review")}
+              className="flex items-center gap-1.5 text-sm cursor-pointer transition-opacity hover:opacity-70"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Reports
+            </button>
+          </div>
+        )}
         <ResizablePanels
           leftPanel={
             <ProblemViewer

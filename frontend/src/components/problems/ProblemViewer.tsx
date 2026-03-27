@@ -15,8 +15,6 @@ import {
   ChevronRight,
   BookOpen,
   Loader2,
-  LineChart,
-  Calculator,
   Lightbulb,
   ChevronDown,
   Star,
@@ -31,8 +29,6 @@ import {
   Sigma
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import GeoGebraDialog from "@/components/geogebra/GeoGebraDialog";
-import ScientificCalculatorDialog from "@/components/geogebra/ScientificCalculatorDialog";
 import { useAuthStore } from "@/stores/authStore";
 
 interface ProblemViewerProps {
@@ -78,8 +74,6 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
   const [submitted, setSubmitted] = useState<{ [key: string]: boolean }>({});
   const [previousAnswers, setPreviousAnswers] = useState<{ [key: string]: UserAnswer[] }>({});
   const [gradingFeedback, setGradingFeedback] = useState<{ [key: string]: { isCorrect: boolean; feedback?: string } }>({});
-  const [geogebraOpen, setGeogebraOpen] = useState(false);
-  const [scientificCalculatorOpen, setScientificCalculatorOpen] = useState(false);
   const [expandedHints, setExpandedHints] = useState<{ [key: string]: boolean }>({});
   const [problemHints, setProblemHints] = useState<{ [key: string]: Array<{ id: string; hint_text: string; hint_order: number }> }>({});
   const [revealedHints, setRevealedHints] = useState<{ [key: string]: number }>({});
@@ -1363,46 +1357,6 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                           <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900 dark:border-t-gray-700" />
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="default"
-                        onClick={() => setScientificCalculatorOpen(true)}
-                        className="!p-1 cursor-pointer rounded-xl"
-                        style={{
-                          backgroundColor: 'var(--background)',
-                          borderColor: 'var(--border)',
-                          color: 'var(--foreground)'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'var(--secondary)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'var(--background)';
-                        }}
-                        title="Open Scientific Calculator"
-                      >
-                        <Calculator className="!h-6 !w-6" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="default"
-                        onClick={() => setGeogebraOpen(true)}
-                        className="!p-1 cursor-pointer rounded-xl"
-                        style={{
-                          backgroundColor: 'var(--background)',
-                          borderColor: 'var(--border)',
-                          color: 'var(--foreground)'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'var(--secondary)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'var(--background)';
-                        }}
-                        title="Open Graphing Calculator"
-                      >
-                        <LineChart className="!h-6 !w-6" />
-                      </Button>
                     </div>
                   </CardTitle>
                 </CardHeader>
@@ -1821,9 +1775,6 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
       </div>
       </div>
 
-      {/* Calculator Dialogs */}
-      <ScientificCalculatorDialog open={scientificCalculatorOpen} onOpenChange={setScientificCalculatorOpen} />
-      <GeoGebraDialog open={geogebraOpen} onOpenChange={setGeogebraOpen} />
     </div>
   );
 }

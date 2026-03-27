@@ -2,14 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, FileText, BookOpen, X, SquarePen, MessagesSquare, Sigma } from "lucide-react";
+import { ArrowUp, BookOpen, X, SquarePen, MessagesSquare, Sigma } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProblemStore } from "@/stores/problemStore";
 import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
 import { Subproblem, Solution, Problem, Document } from "@/types/database";
 import { useAuthStore } from "@/stores/authStore";
-import { TopicHandoutsViewer } from '@/components/handouts/TopicHandoutsViewer';
 import { useActiveLearning } from "@/hooks/useActiveLearning";
 import ActiveLearningPrompt from "@/components/problems/ActiveLearningPrompt";
 import { NotesTab } from '@/components/notes/NotesTab';
@@ -1066,10 +1065,9 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
     "Create a plot and help me understand this problem visually."
   ];
 
-  const tabs = mode === 'problems' 
+  const tabs = mode === 'problems'
     ? [
         { id: 'chat', label: 'AI Tutor', icon: MessagesSquare },
-        { id: 'handouts', label: 'Handouts', icon: FileText },
         { id: 'solutions', label: 'Solutions', icon: BookOpen },
         { id: 'notes', label: 'Notes', icon: SquarePen }
       ] as const
@@ -1285,15 +1283,6 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                 </Button>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Other tab content */}
-        {activeTab === 'handouts' && (
-          <div className="flex-1 min-h-0 h-full">
-            <TopicHandoutsViewer 
-              problemId={currentProblem?.id || null}
-            />
           </div>
         )}
 
