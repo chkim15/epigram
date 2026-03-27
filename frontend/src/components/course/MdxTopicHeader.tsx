@@ -28,18 +28,23 @@ export default function MdxTopicHeader({ topicData, hideLearningObjectives }: Md
         </h1>
         {topicData.subtopics && (
           <div
-            className="text-sm"
+            className="mt-1.5 text-sm"
             style={{ color: "var(--muted-foreground)" }}
           >
             <MathContent content={topicData.subtopics} />
           </div>
         )}
         <div
-          className="flex items-center gap-4 mt-2 text-xs"
+          className="mt-1.5 text-xs"
           style={{ color: "var(--muted-foreground)" }}
         >
-          <span>{convertDashes(topicData.timeEstimate)}</span>
-          <span>{topicData.freeProblems} free + {topicData.premiumProblems} premium problems</span>
+          {convertDashes(topicData.timeEstimate)}
+        </div>
+        <div
+          className="mt-1.5 text-xs"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          {topicData.freeProblems} free + {topicData.premiumProblems} premium problems
         </div>
         {topicData.prerequisites && (
           <div

@@ -2,12 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Settings, CreditCard, LogOut, BookOpen, HelpCircle, Moon, Sun } from 'lucide-react';
+import { Settings, CreditCard, LogOut, BookOpen, HelpCircle } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { User } from '@supabase/supabase-js';
 import SettingsModal from '@/components/settings/SettingsModal';
 import { useActiveLearning } from '@/hooks/useActiveLearning';
-import { useAppTheme } from '@/lib/utils/theme';
 
 interface UserProfileDropdownProps {
   user: User;
@@ -21,7 +20,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   const [settingsTab, setSettingsTab] = useState<'account' | 'personalization' | 'subscription' | 'account-management'>('account');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isActiveLearningMode, toggleActiveLearningMode } = useActiveLearning();
-  const { isClaudeDark, setTheme } = useAppTheme();
+
 
   // Get user initials for avatar
   const getInitials = () => {
@@ -140,26 +139,6 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
                 backgroundColor: isActiveLearningMode ? '#10b981' : 'var(--muted)'
               }}></div>
               <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${isActiveLearningMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}></div>
-            </div>
-          </button>
-
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={() => setTheme(isClaudeDark ? 'claude-light' : 'claude-dark')}
-            className="w-full flex items-center justify-between px-3 py-1.5 transition-colors cursor-pointer text-sm"
-            style={{ color: 'var(--foreground)' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            <div className="flex items-center gap-2">
-              {isClaudeDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-              <span>Dark Mode</span>
-            </div>
-            <div className="relative">
-              <div className="w-8 h-4 rounded-full transition-colors" style={{
-                backgroundColor: isClaudeDark ? '#10b981' : 'var(--muted)'
-              }}></div>
-              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${isClaudeDark ? 'translate-x-4.5' : 'translate-x-0.5'}`}></div>
             </div>
           </button>
 
