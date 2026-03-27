@@ -1625,6 +1625,18 @@
             {id: 109, name: 'Factor Models'}, {id: 110, name: 'Inequalities (Estimate)'}, {id: 111, name: 'Nash Equilibrium'},
             {id: 112, name: 'Optimal Strategy'}, {id: 113, name: 'Pigeonhole Principle'}
         ];
+        let availableFourWeekTopics = [
+            {id: 1, name: 'Foundations of Probability Modeling'}, {id: 2, name: 'Conditional Probability'}, {id: 3, name: 'Distributions'},
+            {id: 4, name: 'Gaussian Distribution'}, {id: 5, name: 'Expectation & Variance'}, {id: 6, name: 'Covariance & Correlation'},
+            {id: 7, name: 'Miscellaneous Topics'}, {id: 8, name: 'Markov Chains'}, {id: 9, name: 'Martingales & Random Walks'},
+            {id: 10, name: 'Dynamic Programming'}, {id: 11, name: 'Coding: Dynamic Programming I'}, {id: 12, name: 'Coding: Dynamic Programming II'},
+            {id: 13, name: 'Coding: Backtracking'}, {id: 14, name: 'Coding: Data Structures'}, {id: 15, name: 'CLT & Law of Large Numbers'},
+            {id: 16, name: 'Hypothesis Testing'}, {id: 17, name: 'Linear Regression I'}, {id: 18, name: 'Linear Regression II'},
+            {id: 19, name: 'Time Series Basics'}, {id: 20, name: 'Monte Carlo Methods'}, {id: 21, name: 'Coding: Stack and Queue'},
+            {id: 22, name: 'Coding: BFS and DFS'}, {id: 23, name: 'Nash Equilibrium'}, {id: 24, name: 'Bayesian Games'},
+            {id: 25, name: 'Number Theory and Mental Math'}, {id: 26, name: 'Brain Teasers'}, {id: 27, name: 'Options Pricing and Black-Scholes'},
+            {id: 28, name: 'Coding: Sorting Algorithms'}, {id: 29, name: 'Coding: Searching Algorithms'}
+        ];
         let availableCompanies = [
             {id: 1, name: 'Citadel'}, {id: 2, name: 'Citadel Securities'}, {id: 3, name: 'HRT'},
             {id: 4, name: 'Two Sigma'}, {id: 5, name: 'Squarepoint'}, {id: 6, name: 'Point72'},
@@ -1808,6 +1820,7 @@
             if (data && data.length > 0) {
                 const problemUuid = data[0].id;
                 await insertQuantTopics(problem.quant_topics || [], problemUuid);
+                await insertFourWeekTopics(problem.four_week_topics || [], problemUuid);
             }
 
             // Handle multiple solutions and hints if available
@@ -2151,6 +2164,9 @@
 
                                 // 1b. Update quant_topics through junction table
                                 await insertQuantTopics(problem.quant_topics || [], problemUuid);
+
+                                // 1c. Update four_week_topics through junction table
+                                await insertFourWeekTopics(problem.four_week_topics || [], problemUuid);
 
                                 // 2. Update solutions table (ONLY place where solutions are stored now)
                                 // Prepare all solutions
@@ -2605,6 +2621,7 @@
                 difficulty: '',
                 topics: [],
                 quant_topics: [],
+                four_week_topics: [],
                 math_approach: [],
                 reasoning_type: [],
                 problem_labels: [],
@@ -2816,6 +2833,21 @@
                         </div>
                         <div class="topics-list" id="quantTopicsList">
                             ${generateQuantTopicsList(problem.quant_topics || [])}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">4-Week Topics</label>
+                    <div class="topics-container">
+                        <div class="topics-search-container" style="position: relative;">
+                            <input type="text" class="form-control" id="fourWeekTopicSearchInput" placeholder="Search 4-week topics..." oninput="handleFourWeekTopicInput()" onfocus="showFourWeekTopicsDropdown()" onblur="hideFourWeekTopicsDropdown()">
+                            <button type="button" style="position: absolute; right: 5px; top: 5px; background: #007bff; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; z-index: 10;" onclick="testFourWeekTopicsDropdown()">▼</button>
+                            <div id="fourWeekTopicsDropdown" class="topics-dropdown" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="topics-list" id="fourWeekTopicsList">
+                            ${generateFourWeekTopicsList(problem.four_week_topics || [])}
                         </div>
                     </div>
                 </div>
@@ -4173,6 +4205,112 @@
             }
         }
 
+        // ===== 4-WEEK TOPICS (searchable dropdown) =====
+        function generateFourWeekTopicsList(fourWeekTopicNames) {
+            if (!fourWeekTopicNames || fourWeekTopicNames.length === 0) {
+                return '<p style="color: #6c757d; font-style: italic;">No 4-week topics added</p>';
+            }
+            return fourWeekTopicNames.map(name => {
+                return `
+                    <div class="topic-tag" onclick="removeFourWeekTopic('${name.replace(/'/g, "\\'")}')">
+                        ${name}
+                        <span class="remove">×</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterFourWeekTopics() {
+            const searchInput = document.getElementById('fourWeekTopicSearchInput');
+            const dropdown = document.getElementById('fourWeekTopicsDropdown');
+            if (!searchInput || !dropdown) return;
+
+            const searchTerm = searchInput.value.toLowerCase();
+            const currentTopics = (currentProblemIndex >= 0 && problemsData && problemsData.problems)
+                ? (problemsData.problems[currentProblemIndex].four_week_topics || [])
+                : [];
+
+            let filtered = availableFourWeekTopics.filter(t => !currentTopics.includes(t.name));
+            if (searchTerm) {
+                filtered = filtered.filter(t => t.name.toLowerCase().includes(searchTerm));
+            }
+
+            dropdown.innerHTML = filtered.map(t => `
+                <div class="topics-dropdown-item" onmousedown="addFourWeekTopicByName('${t.name.replace(/'/g, "\\'")}')">
+                    ${t.name}
+                </div>
+            `).join('');
+
+            if (filtered.length === 0 && searchTerm) {
+                dropdown.innerHTML = '<div class="topics-dropdown-item" style="color: #6c757d; font-style: italic;">No 4-week topics found</div>';
+            }
+        }
+
+        function showFourWeekTopicsDropdown() {
+            const dropdown = document.getElementById('fourWeekTopicsDropdown');
+            if (!dropdown) return;
+            dropdown.style.display = 'block';
+            filterFourWeekTopics();
+        }
+
+        function hideFourWeekTopicsDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('fourWeekTopicsDropdown');
+                if (dropdown) dropdown.style.display = 'none';
+                const searchInput = document.getElementById('fourWeekTopicSearchInput');
+                if (searchInput) searchInput.value = '';
+            }, 200);
+        }
+
+        function handleFourWeekTopicInput() {
+            showFourWeekTopicsDropdown();
+            filterFourWeekTopics();
+        }
+
+        function testFourWeekTopicsDropdown() {
+            const dropdown = document.getElementById('fourWeekTopicsDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                if (dropdown.style.display === 'block') filterFourWeekTopics();
+            }
+        }
+
+        function addFourWeekTopicByName(name) {
+            if (currentProblemIndex >= 0 && problemsData && problemsData.problems) {
+                if (!problemsData.problems[currentProblemIndex].four_week_topics) {
+                    problemsData.problems[currentProblemIndex].four_week_topics = [];
+                }
+                const topics = problemsData.problems[currentProblemIndex].four_week_topics;
+                if (!topics.includes(name)) {
+                    topics.push(name);
+                }
+                updateFourWeekTopicsList();
+                const searchInput = document.getElementById('fourWeekTopicSearchInput');
+                const dropdown = document.getElementById('fourWeekTopicsDropdown');
+                if (searchInput) searchInput.value = '';
+                if (dropdown) dropdown.style.display = 'none';
+            }
+        }
+
+        function removeFourWeekTopic(name) {
+            if (currentProblemIndex >= 0) {
+                const topics = problemsData.problems[currentProblemIndex].four_week_topics;
+                const index = topics.indexOf(name);
+                if (index > -1) {
+                    topics.splice(index, 1);
+                    updateFourWeekTopicsList();
+                }
+            }
+        }
+
+        function updateFourWeekTopicsList() {
+            const list = document.getElementById('fourWeekTopicsList');
+            if (list) {
+                const topics = problemsData.problems[currentProblemIndex].four_week_topics || [];
+                list.innerHTML = generateFourWeekTopicsList(topics);
+            }
+        }
+
         // ===== COMPANY LABELS (searchable dropdown) =====
         function generateCompanyList(companyNames) {
             if (!companyNames || companyNames.length === 0) {
@@ -4606,10 +4744,11 @@
                               (problem.subproblems && Object.keys(problem.subproblems).length > 0 &&
                                Object.values(problem.subproblems).some(sp => sp && sp.problem_text && sp.problem_text.trim()));
 
-            // Check topics: either topics or quant_topics must have at least one entry
+            // Check topics: either topics, quant_topics, or four_week_topics must have at least one entry
             const hasTopics = problem.topics && Array.isArray(problem.topics) && problem.topics.length > 0;
             const hasQuantTopics = problem.quant_topics && Array.isArray(problem.quant_topics) && problem.quant_topics.length > 0;
-            const hasAnyTopics = hasTopics || hasQuantTopics;
+            const hasFourWeekTopics = problem.four_week_topics && Array.isArray(problem.four_week_topics) && problem.four_week_topics.length > 0;
+            const hasAnyTopics = hasTopics || hasQuantTopics || hasFourWeekTopics;
             const hasProblemName = problem.problem_name && problem.problem_name.trim();
             
             // Check if there are subproblems
@@ -4830,6 +4969,32 @@
 
                 if (error) {
                     console.error('Quant topic insert failed:', error);
+                }
+            }
+        }
+
+        async function insertFourWeekTopics(fourWeekTopicNames, problemUuid) {
+            if (!fourWeekTopicNames || fourWeekTopicNames.length === 0) return;
+
+            // Delete existing four_week_topic relationships
+            await supabase
+                .from('problem_four_week_topics')
+                .delete()
+                .eq('problem_id', problemUuid);
+
+            for (const name of fourWeekTopicNames) {
+                const topic = availableFourWeekTopics.find(t => t.name === name);
+                if (!topic) continue;
+
+                const { error } = await supabase
+                    .from('problem_four_week_topics')
+                    .upsert({
+                        problem_id: problemUuid,
+                        four_week_topic_id: topic.id
+                    }, { onConflict: 'problem_id,four_week_topic_id' });
+
+                if (error) {
+                    console.error('Four week topic insert failed:', error);
                 }
             }
         }
@@ -7471,12 +7636,33 @@
                         }
                     }
 
+                    // Batch fetch four_week_topics from junction table
+                    let fourWeekTopicsByProblem = {};
+                    if (problemIds.length > 0) {
+                        const { data: fwData, error: fwError } = await supabase
+                            .from('problem_four_week_topics')
+                            .select('problem_id, four_week_topic_id')
+                            .in('problem_id', problemIds);
+
+                        if (!fwError && fwData) {
+                            fwData.forEach(pfw => {
+                                if (!fourWeekTopicsByProblem[pfw.problem_id]) {
+                                    fourWeekTopicsByProblem[pfw.problem_id] = [];
+                                }
+                                const topic = availableFourWeekTopics.find(t => t.id === pfw.four_week_topic_id);
+                                if (topic) {
+                                    fourWeekTopicsByProblem[pfw.problem_id].push(topic.name);
+                                }
+                            });
+                        }
+                    }
+
                     // Batch fetch all solutions from solutions table
                     let solutionsByProblem = {};
                     let solutionsBySubproblem = {};
                     if (problemIds.length > 0 || allSubproblems.length > 0) {
                         const subproblemIds = allSubproblems.map(sp => sp.id).filter(id => id);
-                        
+
                         // Build the query conditionally based on what IDs we have
                         let orConditions = [];
                         if (problemIds.length > 0) {
@@ -7914,6 +8100,27 @@
                     }
                 }
 
+                // Get four_week_topics from junction table
+                let fourWeekTopicsByProblem = {};
+                if (problemIds.length > 0) {
+                    const { data: fwData, error: fwError } = await supabase
+                        .from('problem_four_week_topics')
+                        .select('problem_id, four_week_topic_id')
+                        .in('problem_id', problemIds);
+
+                    if (!fwError && fwData) {
+                        fwData.forEach(pfw => {
+                            if (!fourWeekTopicsByProblem[pfw.problem_id]) {
+                                fourWeekTopicsByProblem[pfw.problem_id] = [];
+                            }
+                            const topic = availableFourWeekTopics.find(t => t.id === pfw.four_week_topic_id);
+                            if (topic) {
+                                fourWeekTopicsByProblem[pfw.problem_id].push(topic.name);
+                            }
+                        });
+                    }
+                }
+
                 // NEW: Get solutions from solutions table
                 let problemSolutions = {};
                 let subproblemSolutions = {};
@@ -8087,6 +8294,7 @@
                         difficulty: problem.difficulty,
                         topics: topics,
                         quant_topics: quantTopicsByProblem[problem.id] || [],
+                        four_week_topics: fourWeekTopicsByProblem[problem.id] || [],
                         math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
                         reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                         problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : (problem.problem_labels ? [problem.problem_labels] : []),
@@ -8253,6 +8461,7 @@
                         difficulty: problem.difficulty,
                         topics: topicsByProblem[problem.id] || [selectedTopic],  // Use all topics for this problem
                         quant_topics: [],
+                        four_week_topics: [],
                         math_approach: Array.isArray(problem.math_approach) ? problem.math_approach : (problem.math_approach ? [problem.math_approach] : []),
                         reasoning_type: Array.isArray(problem.reasoning_type) ? problem.reasoning_type : (problem.reasoning_type ? [problem.reasoning_type] : []),
                         problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : (problem.problem_labels ? [problem.problem_labels] : []),
@@ -8446,6 +8655,13 @@
             const currentQuantTopics = JSON.stringify((current.quant_topics || []).slice().sort());
             const originalQuantTopics = JSON.stringify((original.quant_topics || []).slice().sort());
             if (currentQuantTopics !== originalQuantTopics) {
+                return true;
+            }
+
+            // Compare four_week_topics array
+            const currentFourWeekTopics = JSON.stringify((current.four_week_topics || []).slice().sort());
+            const originalFourWeekTopics = JSON.stringify((original.four_week_topics || []).slice().sort());
+            if (currentFourWeekTopics !== originalFourWeekTopics) {
                 return true;
             }
 
