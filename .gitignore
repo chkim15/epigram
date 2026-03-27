@@ -7,6 +7,9 @@
 storage/
 temp/
 
+# LaTeX source files
+*.tex
+
 # Root level JSON files (keep data files in version control)
 /problems.json
 /problems_clean.json
