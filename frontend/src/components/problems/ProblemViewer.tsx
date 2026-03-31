@@ -945,6 +945,16 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
         if (mainElement) {
           mainElement.innerText = mainAnswers[0].answer_text;
         }
+        // Restore grading feedback from most recent answer
+        if (mainAnswers[0].is_correct !== null && mainAnswers[0].is_correct !== undefined) {
+          setGradingFeedback(prev => ({
+            ...prev,
+            main: {
+              isCorrect: mainAnswers[0].is_correct,
+              feedback: mainAnswers[0].is_correct ? 'Correct!' : 'Incorrect'
+            }
+          }));
+        }
       }
 
       // Fetch previous answers for subproblems
@@ -966,6 +976,16 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
             const subElement = answerContentEditableRefs.current[`sub_${subproblem.key}`];
             if (subElement) {
               subElement.innerText = subAnswers[0].answer_text;
+            }
+            // Restore grading feedback from most recent answer
+            if (subAnswers[0].is_correct !== null && subAnswers[0].is_correct !== undefined) {
+              setGradingFeedback(prev => ({
+                ...prev,
+                [`sub_${subproblem.key}`]: {
+                  isCorrect: subAnswers[0].is_correct,
+                  feedback: subAnswers[0].is_correct ? 'Correct!' : 'Incorrect'
+                }
+              }));
             }
           }
         }
@@ -1523,7 +1543,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                           ) : (
                             <AlertCircle className="h-4 w-4 flex-shrink-0" />
                           )}
-                          <span>{gradingFeedback['main'].feedback}</span>
+                          <span>{gradingFeedback['main'].isCorrect ? 'Correct' : (gradingFeedback['main'].feedback || 'Incorrect')}</span>
                         </div>
                       )}
                     </div>
@@ -1639,8 +1659,8 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                                     className="flex-1 min-h-[50px] max-h-[150px] overflow-y-auto py-3 px-2 outline-none bg-transparent custom-scrollbar"
                                     style={{
                                       color: 'var(--foreground)',
-                                      minHeight: '50px',
-                                      maxHeight: '150px',
+                                      minHeight: '100px',
+                                      maxHeight: '300px',
                                       outline: 'none',
                                       boxShadow: 'none',
                                       fontSize: '16px',
@@ -1698,7 +1718,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                                   ) : (
                                     <AlertCircle className="h-4 w-4 flex-shrink-0" />
                                   )}
-                                  <span>{gradingFeedback[`sub_${subproblem.key}`].feedback}</span>
+                                  <span>{gradingFeedback[`sub_${subproblem.key}`].isCorrect ? 'Correct' : (gradingFeedback[`sub_${subproblem.key}`].feedback || 'Incorrect')}</span>
                                 </div>
                               )}
                             </div>

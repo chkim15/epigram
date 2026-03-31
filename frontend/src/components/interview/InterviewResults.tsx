@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Clock, FileText, ChevronRight } from "lucide-react";
+import { Clock, FileText, ChevronRight, Check, X, Minus } from "lucide-react";
 import { MathContent } from "@/lib/utils/katex";
 import { slugify } from "@/lib/utils/slugify";
 import { Problem, MockInterviewSession } from "@/types/database";
@@ -74,10 +74,38 @@ export default function InterviewResults({
   const router = useRouter();
   const [sessions, setSessions] = useState<MockInterviewSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null);
+  // Map of problemId -> true (correct), false (incorrect), null (no answer)
+  const [correctnessMap, setCorrectnessMap] = useState<Record<string, boolean | null>>({});
+  // Map of sessionId -> number of problems answered
+  const [answeredCounts, setAnsweredCounts] = useState<Record<string, number>>({});
   const hasCurrentSession = !!(currentProblems && currentAnswers && elapsedSeconds !== undefined);
   const [isSaving, setIsSaving] = useState(hasCurrentSession);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const hasSaved = useRef(false);
+
+  const fetchCorrectness = async (problemIds: string[]) => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("user_answers")
+      .select("problem_id, is_correct")
+      .eq("user_id", user.id)
+      .in("problem_id", problemIds);
+
+    const map: Record<string, boolean | null> = {};
+    for (const pid of problemIds) {
+      map[pid] = null; // default: no answer
+    }
+    if (data) {
+      for (const row of data) {
+        if (row.is_correct === true) {
+          map[row.problem_id] = true;
+        } else if (row.is_correct === false && map[row.problem_id] !== true) {
+          map[row.problem_id] = false;
+        }
+      }
+    }
+    setCorrectnessMap(map);
+  };
 
   // Auto-save the just-completed interview and load past sessions
   useEffect(() => {
@@ -130,6 +158,25 @@ export default function InterviewResults({
       if (allSessions) {
         setSessions(allSessions as MockInterviewSession[]);
 
+        // Compute answered counts per session from user_answers table
+        const allProblemIds = [...new Set(allSessions.flatMap((s) => s.problem_ids))];
+        if (allProblemIds.length > 0) {
+          const { data: answerData } = await supabase
+            .from("user_answers")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .in("problem_id", allProblemIds);
+
+          if (answerData) {
+            const answeredProblemIds = new Set(answerData.map((a) => a.problem_id));
+            const counts: Record<string, number> = {};
+            for (const s of allSessions) {
+              counts[s.id] = s.problem_ids.filter((pid: string) => answeredProblemIds.has(pid)).length;
+            }
+            setAnsweredCounts(counts);
+          }
+        }
+
         if (savedId) {
           // Auto-select the just-completed interview
           const current = allSessions.find((s) => s.id === savedId) as MockInterviewSession | undefined;
@@ -138,6 +185,7 @@ export default function InterviewResults({
               session: current,
               problems: currentProblems,
             });
+            fetchCorrectness(current.problem_ids);
           }
         } else if (allSessions.length > 0) {
           // Reports-only mode: auto-select the most recent session
@@ -152,6 +200,7 @@ export default function InterviewResults({
               .map((id) => problemData.find((p) => p.id === id))
               .filter(Boolean) as Problem[];
             setSelectedSession({ session: mostRecent, problems: ordered });
+            fetchCorrectness(mostRecent.problem_ids);
           }
         }
       }
@@ -165,6 +214,7 @@ export default function InterviewResults({
     // If selecting the current session, use local problems
     if (session.id === currentSessionId && currentProblems) {
       setSelectedSession({ session, problems: currentProblems });
+      fetchCorrectness(session.problem_ids);
       return;
     }
 
@@ -180,6 +230,7 @@ export default function InterviewResults({
         .map((id) => problemData.find((p) => p.id === id))
         .filter(Boolean) as Problem[];
       setSelectedSession({ session, problems: ordered });
+      fetchCorrectness(session.problem_ids);
     }
   };
 
@@ -242,9 +293,10 @@ export default function InterviewResults({
             </h3>
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {sessions.map((session) => {
+            {sessions.map((session, idx) => {
               const isSelected = selectedSession?.session.id === session.id;
               const isCurrent = session.id === currentSessionId;
+              const sessionNumber = sessions.length - idx;
               return (
                 <button
                   key={session.id}
@@ -267,7 +319,7 @@ export default function InterviewResults({
                         className="text-sm font-medium"
                         style={{ color: "var(--foreground)" }}
                       >
-                        Mock Interview
+                        Mock Interview {sessionNumber}
                         {isCurrent && (
                           <span
                             className="ml-2 text-xs px-1.5 py-0.5 rounded"
@@ -281,7 +333,7 @@ export default function InterviewResults({
                         className="text-xs mt-0.5"
                         style={{ color: "var(--foreground)", opacity: 0.5 }}
                       >
-                        {session.user_answers?.filter((a) => a?.trim()).length ?? 0} of 3 answered
+                        {answeredCounts[session.id] ?? 0} of 3 answered
                       </div>
                     </div>
                     <div className="text-right">
@@ -319,7 +371,10 @@ export default function InterviewResults({
                   className="text-xl font-bold mb-1"
                   style={{ color: "var(--foreground)" }}
                 >
-                  Mock Interview
+                  Mock Interview {(() => {
+                    const idx = sessions.findIndex((s) => s.id === selectedSession.session.id);
+                    return idx >= 0 ? sessions.length - idx : "";
+                  })()}
                 </h2>
                 <p
                   className="text-sm"
@@ -403,15 +458,24 @@ export default function InterviewResults({
                             {difficulty.replace("_", " ")}
                           </span>
                         </div>
-                        <p
-                          className="text-sm"
-                          style={{
-                            color: "var(--foreground)",
-                            opacity: 0.6,
-                          }}
-                        >
-                          View problem
-                        </p>
+                        <div className="flex items-center gap-1.5 text-sm mt-0.5">
+                          {correctnessMap[problem.id] === true ? (
+                            <>
+                              <Check className="h-4 w-4" style={{ color: "#16a34a" }} />
+                              <span style={{ color: "#16a34a" }}>Correct</span>
+                            </>
+                          ) : correctnessMap[problem.id] === false ? (
+                            <>
+                              <X className="h-4 w-4" style={{ color: "#dc2626" }} />
+                              <span style={{ color: "#dc2626" }}>Incorrect</span>
+                            </>
+                          ) : (
+                            <>
+                              <Minus className="h-4 w-4" style={{ color: "var(--foreground)", opacity: 0.4 }} />
+                              <span style={{ color: "var(--foreground)", opacity: 0.5 }}>Not answered</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </button>
                   );

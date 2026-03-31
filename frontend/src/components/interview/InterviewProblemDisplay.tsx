@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MathContent } from "@/lib/utils/katex";
 import { Problem, Subproblem } from "@/types/database";
-import { ChevronRight, Sigma } from "lucide-react";
+import { ChevronRight, Sigma, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
+import { useAuthStore } from "@/stores/authStore";
 
 interface MathFieldElement extends HTMLElement {
   value?: string;
@@ -30,10 +32,91 @@ export default function InterviewProblemDisplay({
   onNext,
   onSubmit,
 }: InterviewProblemDisplayProps) {
+  const { user } = useAuthStore();
   const answersRef = useRef<{ [key: string]: string }>({});
   const answerContentEditableRefs = useRef<{
     [key: string]: HTMLDivElement | null;
   }>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  const saveAndGradeAnswers = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      const subs = subproblems;
+      for (const [key, answerText] of Object.entries(answersRef.current)) {
+        if (!answerText.trim()) continue;
+
+        let subproblemId: string | null = null;
+        let correctAnswer: string | null = null;
+        let problemText: string | null = null;
+
+        if (key === "main") {
+          correctAnswer = problem.correct_answer;
+          problemText = problem.problem_text;
+        } else {
+          const subKey = key.replace("sub_", "");
+          const sub = subs.find((s) => s.key === subKey);
+          if (sub) {
+            subproblemId = sub.id;
+            correctAnswer = sub.correct_answer || null;
+            problemText = sub.problem_text || null;
+          }
+        }
+
+        try {
+          const { data: insertData } = await supabase
+            .from("user_answers")
+            .insert({
+              user_id: user.id,
+              problem_id: problem.id,
+              subproblem_id: subproblemId,
+              answer_text: answerText.trim(),
+              attempt_number: 1,
+            })
+            .select("id")
+            .single();
+
+          if (insertData && correctAnswer) {
+            fetch("/api/grade", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userAnswer: answerText.trim(),
+                correctAnswer,
+                problemText,
+              }),
+            })
+              .then((res) => (res.ok ? res.json() : null))
+              .then((result) => {
+                if (result) {
+                  supabase
+                    .from("user_answers")
+                    .update({ is_correct: result.isCorrect })
+                    .eq("id", insertData.id)
+                    .then(() => {});
+                }
+              })
+              .catch(() => {});
+          }
+        } catch (err) {
+          console.error("Error saving answer:", err);
+        }
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleNextClick = async () => {
+    await saveAndGradeAnswers();
+    onNext();
+  };
+
+  const handleSubmitClick = async () => {
+    await saveAndGradeAnswers();
+    onSubmit();
+  };
 
   // Import MathLive when component mounts
   useEffect(() => {
@@ -293,7 +376,7 @@ export default function InterviewProblemDisplay({
             className="text-sm"
             style={{ color: "var(--foreground)", opacity: 0.6 }}
           >
-            {problem.problem_name}
+            <MathContent content={problem.problem_name} />
           </span>
         )}
       </div>
@@ -337,24 +420,32 @@ export default function InterviewProblemDisplay({
       <div className="flex justify-end">
         {isLastProblem ? (
           <Button
-            onClick={onSubmit}
+            onClick={handleSubmitClick}
+            disabled={isSaving}
             className="rounded-xl cursor-pointer px-6"
             style={{ backgroundColor: "#141310", color: "#ffffff" }}
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
-            Submit
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit"}
           </Button>
         ) : (
           <Button
-            onClick={onNext}
+            onClick={handleNextClick}
+            disabled={isSaving}
             className="rounded-xl cursor-pointer px-6"
             style={{ backgroundColor: "#141310", color: "#ffffff" }}
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
-            Next
-            <ChevronRight className="ml-1 h-4 w-4" />
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                Next
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </>
+            )}
           </Button>
         )}
       </div>

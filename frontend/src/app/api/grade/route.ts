@@ -19,7 +19,8 @@ interface GradeResponse {
 
 // Simplified prompt for grading
 const GRADING_PROMPT = `Check if the student answer equals the correct answer mathematically. Return JSON only:
-{"isCorrect": true/false, "confidence": 0.0-1.0, "feedback": "short text"}`;
+{"isCorrect": true/false, "confidence": 0.0-1.0, "feedback": "short text"}
+When writing feedback, address the student directly using "you" (e.g. "Your answer..." or "You got...") instead of referring to them as "the student" or "student answer".`;
 
 export async function POST(req: NextRequest) {
   try {

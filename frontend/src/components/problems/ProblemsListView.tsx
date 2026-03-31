@@ -99,7 +99,7 @@ export default function ProblemsListView({
           Probability, Stochastic Processes, Statistics, and Brain Teasers
         </p>
         <button
-          onClick={() => router.push('/course')}
+          onClick={() => router.push('/curriculum')}
           className="px-4 py-1.5 text-sm font-medium rounded-xl border cursor-pointer transition-opacity"
           style={{
             borderColor: 'rgba(255,255,255,0.3)',

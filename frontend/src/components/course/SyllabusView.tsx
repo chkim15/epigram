@@ -88,7 +88,7 @@ export default function SyllabusView() {
                         key={topic.slug}
                         onClick={() =>
                           router.push(
-                            `/course/${week.slug}/${topic.slug}`
+                            `/curriculum/${week.slug}/${topic.slug}`
                           )
                         }
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-colors"

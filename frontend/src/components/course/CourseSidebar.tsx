@@ -38,7 +38,7 @@ export default function CourseSidebar({
     >
       {/* Back to syllabus */}
       <button
-        onClick={() => router.push("/course")}
+        onClick={() => router.push("/curriculum")}
         className="flex items-center gap-1 px-4 py-4 text-xs cursor-pointer transition-opacity"
         style={{ color: "var(--muted-foreground)" }}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
@@ -110,7 +110,7 @@ export default function CourseSidebar({
             <button
               key={topic.slug}
               onClick={() =>
-                router.push(`/course/${viewingWeek.slug}/${topic.slug}`)
+                router.push(`/curriculum/${viewingWeek.slug}/${topic.slug}`)
               }
               className="w-full flex items-center gap-2 px-2 py-2.5 rounded-md text-left cursor-pointer transition-colors text-[13px]"
               style={{

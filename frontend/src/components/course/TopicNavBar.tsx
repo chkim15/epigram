@@ -37,7 +37,7 @@ export default function TopicNavBar({
       {/* Previous */}
       <button
         onClick={() =>
-          prev && router.push(`/course/${prev.weekSlug}/${prev.topicSlug}`)
+          prev && router.push(`/curriculum/${prev.weekSlug}/${prev.topicSlug}`)
         }
         disabled={!prev}
         className="flex items-center gap-1 text-xs cursor-pointer transition-opacity disabled:opacity-30 disabled:cursor-default"
@@ -56,7 +56,7 @@ export default function TopicNavBar({
       {/* Next */}
       <button
         onClick={() =>
-          next && router.push(`/course/${next.weekSlug}/${next.topicSlug}`)
+          next && router.push(`/curriculum/${next.weekSlug}/${next.topicSlug}`)
         }
         disabled={!next}
         className="flex items-center gap-1 text-xs cursor-pointer transition-opacity disabled:opacity-30 disabled:cursor-default"

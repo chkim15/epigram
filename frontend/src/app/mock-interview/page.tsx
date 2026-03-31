@@ -49,6 +49,11 @@ function MockInterviewPageContent() {
     setPhase("landing");
   };
 
+  const handleViewHistory = () => {
+    setReviewData(null);
+    setPhase("review");
+  };
+
   if (isLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center" style={{ backgroundColor: "#faf9f5" }}>
@@ -70,7 +75,7 @@ function MockInterviewPageContent() {
       onDismissCheckout={() => setShowCheckoutSuccess(false)}
     >
       {phase === "landing" && (
-        <InterviewLanding onStart={handleStartInterview} />
+        <InterviewLanding onStart={handleStartInterview} onViewHistory={handleViewHistory} />
       )}
 
       {phase === "interview" && (

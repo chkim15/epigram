@@ -6,9 +6,10 @@ import ProGate from "@/components/subscription/ProGate";
 
 interface InterviewLandingProps {
   onStart: () => void;
+  onViewHistory: () => void;
 }
 
-export default function InterviewLanding({ onStart }: InterviewLandingProps) {
+export default function InterviewLanding({ onStart, onViewHistory }: InterviewLandingProps) {
   return (
     <div
       className="flex-1 flex flex-col items-center justify-center p-8"
@@ -62,6 +63,15 @@ export default function InterviewLanding({ onStart }: InterviewLandingProps) {
             <ChevronRight className="ml-2 h-5 w-5" />
           </Button>
         </ProGate>
+        <button
+          onClick={onViewHistory}
+          className="text-sm cursor-pointer"
+          style={{ color: "var(--foreground)", opacity: 0.5 }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.5")}
+        >
+          View Interview History
+        </button>
       </div>
     </div>
   );
