@@ -14,6 +14,7 @@ function ProblemDetailContent({ slug }: { slug: string }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const fromMockInterview = searchParams.get("from") === "mock-interview";
+  const fromCurriculum = searchParams.get("from") === "curriculum";
 
   if (isLoading) {
     return (
@@ -42,6 +43,18 @@ function ProblemDetailContent({ slug }: { slug: string }) {
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Reports
+            </button>
+          </div>
+        )}
+        {fromCurriculum && (
+          <div className="px-4 pt-3 pb-1">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-1.5 text-sm cursor-pointer transition-opacity hover:opacity-70"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Curriculum
             </button>
           </div>
         )}

@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/lib/supabase/client";
 
-export function useAuthGuard() {
+export function useAuthGuard(options?: { requireAuth?: boolean }) {
+  const requireAuth = options?.requireAuth ?? true;
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading: authLoading, checkAuth } = useAuthStore();
@@ -41,6 +42,7 @@ export function useAuthGuard() {
 
   // Redirect to signin if not authenticated
   useEffect(() => {
+    if (!requireAuth) return;
     const isFromCheckout = searchParams.get('checkout') === 'success';
 
     if (!authLoading && !isAuthenticated && user === null && !isFromCheckout) {
@@ -52,7 +54,7 @@ export function useAuthGuard() {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [authLoading, isAuthenticated, user, router, searchParams]);
+  }, [authLoading, isAuthenticated, user, router, searchParams, requireAuth]);
 
   // Check if authenticated user has completed onboarding
   useEffect(() => {

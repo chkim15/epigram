@@ -61,14 +61,13 @@ export async function middleware(request: NextRequest) {
           request.nextUrl.pathname === '/mock-interview' ||
           request.nextUrl.pathname === '/bookmarks' ||
           request.nextUrl.pathname === '/home' ||
+          request.nextUrl.pathname === '/curriculum' ||
+          request.nextUrl.pathname.startsWith('/curriculum/') ||
           request.nextUrl.pathname.startsWith('/api/chat')) {
         return NextResponse.redirect(new URL('/auth/onboarding', request.url))
       }
     }
   }
-
-  // Allow unauthenticated users to access pages
-  // They will have limited functionality but can browse
 
   return response
 }
@@ -80,6 +79,8 @@ export const config = {
     '/problems/:path*',
     '/mock-interview',
     '/bookmarks',
+    '/curriculum',
+    '/curriculum/:path*',
     '/auth/onboarding',
     '/api/chat',
   ]

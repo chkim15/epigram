@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronUp, AlertTriangle, ExternalLink } from "lucide-react";
 import { getLeetCodeUrl } from "@/data/course/lc-slugs";
 
@@ -27,6 +28,23 @@ function LeetCodeLink({ number }: { number?: string }) {
     >
       <ExternalLink className="h-3.5 w-3.5" />
     </a>
+  );
+}
+
+function InternalProblemLink({ problemId, number }: { problemId?: string; number?: string }) {
+  if (!problemId || extractLcNumber(number) !== null) return null;
+  return (
+    <Link
+      href={`/problems/${problemId}?from=curriculum`}
+      className="p-1 rounded cursor-pointer transition-colors inline-flex"
+      style={{ color: "rgba(255,255,255,0.7)" }}
+      onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
+      onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
+      title="Open in Problem Viewer"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <ExternalLink className="h-3.5 w-3.5" />
+    </Link>
   );
 }
 
@@ -195,6 +213,7 @@ function MdxWorkedBox({ number, difficulty, problemid, problemId, children }: { 
           </span>
         )}
         <LeetCodeLink number={number} />
+        <InternalProblemLink problemId={problemId || problemid} number={number} />
       </div>
       <div
         className="px-4 py-4 text-sm leading-relaxed"
@@ -308,6 +327,7 @@ function MdxFreeProblem({
           </span>
         )}
         <LeetCodeLink number={number} />
+        <InternalProblemLink problemId={problemId} number={number} />
       </div>
       <div
         className="px-4 py-4 text-sm leading-relaxed"
@@ -364,6 +384,7 @@ function MdxPremiumProblem({
           </span>
         )}
         <LeetCodeLink number={number} />
+        <InternalProblemLink problemId={problemId} number={number} />
       </div>
       <div
         className="px-4 py-4 text-sm leading-relaxed"

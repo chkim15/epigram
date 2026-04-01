@@ -21,7 +21,7 @@ interface ProblemWithTopics {
 }
 
 function ProblemsPageContent() {
-  const { user, isAuthenticated, isLoading, showCheckoutSuccess, setShowCheckoutSuccess } = useAuthGuard();
+  const { user, isAuthenticated, isLoading, showCheckoutSuccess, setShowCheckoutSuccess } = useAuthGuard({ requireAuth: false });
   const [problems, setProblems] = useState<ProblemWithTopics[]>([]);
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
@@ -37,7 +37,7 @@ function ProblemsPageContent() {
 
   // Fetch problems and completion data
   useEffect(() => {
-    if (!isAuthenticated && !isLoading) return;
+    if (isLoading) return;
 
     async function fetchData() {
       try {
@@ -220,10 +220,6 @@ function ProblemsPageContent() {
         <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#a16207' }} />
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (
