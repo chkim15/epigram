@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,6 +10,68 @@ import { Playfair_Display, DM_Sans } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
+
+const faqs = [
+  {
+    q: "How should I use Epigram effectively?",
+    a: "Block 2–3 hours a day and protect that time. Before checking any solution, attempt the problem as if you're in a real interview — the struggle is where the learning happens. Then study the solution carefully, understand the core technique, and redo it from scratch. Review, redo, repeat.",
+  },
+  {
+    q: "What are the prerequisites?",
+    a: "Undergraduate probability, statistics, and basic algorithms are helpful but not required. If you haven't taken these courses yet, the 4-Week Intensive is designed to be self-contained — you learn by doing, starting from the fundamentals and building up progressively.",
+  },
+  {
+    q: "What if I'm still confused after reading a solution?",
+    a: "Email us directly and we'll explain personally — every question gets a real response, not a template. Premium users get up to 3 email support a week. For deeper help, 1-on-1 tutoring with the author is available from $49.",
+  },
+  {
+    q: "Is Epigram only for quant finance roles?",
+    a: "Primarily built for quant trader, researcher, and developer roles — probability, statistics, and coding modules transfer directly to data science and ML interviews. We're also working on dedicated courses for these roles, coming soon.",
+  },
+  {
+    q: "How is this different from the Green Book or other prep resources?",
+    a: "Three things. First, our problems come from real, recent interviews — updated every 2–3 days, not fixed in a book from 2008. Second, the curriculum is structured and self-contained: no wading through irrelevant material, just a targeted path from foundations to firm-ready. Third, we incorporate learner feedback continuously — the platform improves as you use it.",
+  },
+  {
+    q: "How often are new problems added?",
+    a: "Every 2–3 days. Premium users get priority access the moment new problems go live. Spotted a problem in your own interview? Submit it — accepted problems earn Premium credit and attribution of your choice.",
+  },
+];
+
+function FaqSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  return (
+    <section className="py-20">
+      <div className="mx-auto max-w-4xl px-8">
+        <p style={{ color: '#a16207', fontSize: '13px', fontWeight: 600, letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '12px' }}>
+          Common Questions
+        </p>
+        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '48px' }}>FAQ</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+          {faqs.map((item, i) => (
+            <div
+              key={i}
+              style={{ border: '1px solid rgb(220,218,210)', borderRadius: '12px', background: '#ffffff', cursor: 'pointer' }}
+              onClick={() => setOpenIndex(openIndex === i ? null : i)}
+            >
+              <div className="flex items-center justify-between" style={{ padding: '20px 24px' }}>
+                <span style={{ fontSize: '15px', color: '#141310', fontWeight: 500 }}>{item.q}</span>
+                <span style={{ color: '#9b9b93', fontSize: '20px', marginLeft: '16px', flexShrink: 0 }}>
+                  {openIndex === i ? '−' : '+'}
+                </span>
+              </div>
+              {openIndex === i && (
+                <div style={{ padding: '0 24px 20px', fontSize: '14px', color: '#4a4a42', lineHeight: 1.7 }}>
+                  {item.a}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function LandingPage() {
   return (
@@ -477,7 +539,7 @@ export default function LandingPage() {
             </div>
             <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>per month</p>
             <div style={{ flex: 1 }}>
-              {['The 4-Week Intensive — flagship prep course', 'Exclusive problems not found anywhere online', 'Unlimited mock interviews', 'Firm & location tags (US, UK, HK, China, and more)', 'Priority access to new premium problems'].map(f => (
+              {['The 4-Week Intensive — flagship prep course', 'Exclusive problems not found online', 'Unlimited mock interviews', 'Firm & location tags by region', 'Priority access to new premium problems', 'Up to 3 expert email responses per week'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
                   <span style={{ color: '#a16207', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
                 </div>
@@ -607,39 +669,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20">
-        <div className="mx-auto max-w-6xl px-8">
-          <p style={{ color: '#a16207', fontSize: '13px', fontWeight: 600, letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '12px' }}>
-            Common Questions
-          </p>
-          <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '48px' }}>FAQ</h2>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            {[
-              "How should I use Epigram effectively?",
-              "What are the prerequisites?",
-              "What if I'm still confused after reading a solution?",
-              "Is Epigram only for quant finance roles?",
-              "How is this different from LeetCode or the Green Book?",
-              "How often are new problems added?",
-            ].map((question) => (
-              <div
-                key={question}
-                className="flex items-center justify-between"
-                style={{
-                  border: '1px solid rgb(220,218,210)',
-                  borderRadius: '12px',
-                  padding: '20px 24px',
-                  background: '#ffffff',
-                }}
-              >
-                <span style={{ fontSize: '15px', color: '#141310', fontWeight: 500 }}>{question}</span>
-                <span style={{ color: '#9b9b93', fontSize: '20px', marginLeft: '16px', flexShrink: 0 }}>+</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FaqSection />
 
       {/* Final CTA Section */}
       <section style={{ background: '#e9e6dc', padding: '96px 10%' }}>

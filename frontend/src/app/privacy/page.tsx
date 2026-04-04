@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         <div style={{ fontSize: "15px", color: "#4A5B78", lineHeight: 1.8 }}>
 
           <p style={{ marginBottom: "48px" }}>
-            Epigram, Inc. ("we", "us", or "our") provides this Privacy Policy to inform you of our policies and procedures regarding the collection, use, and disclosure of personal information we may receive from users of our website and any other services offered by us (the "Services").
+            Epigram, Inc. (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) provides this Privacy Policy to inform you of our policies and procedures regarding the collection, use, and disclosure of personal information we may receive from users of our website and any other services offered by us (the &quot;Services&quot;).
           </p>
 
           <Section title="INFORMATION COLLECTION">
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
 
           <Section title="COOKIES AND OTHER TECHNOLOGIES">
             <p style={{ marginBottom: "16px" }}>
-              Like many websites and applications, we use "cookies" to collect information. A cookie is a small data file that we transfer to your device for record-keeping purposes. We may use session cookies to enable certain features of the Site, to better understand how you interact with it, and to monitor aggregate usage.
+              Like many websites and applications, we use &quot;cookies&quot; to collect information. A cookie is a small data file that we transfer to your device for record-keeping purposes. We may use session cookies to enable certain features of the Site, to better understand how you interact with it, and to monitor aggregate usage.
             </p>
             <p>
               You can instruct your browser to stop accepting cookies or to prompt you before accepting a cookie. If you do not accept cookies, you may not be able to use all portions of the Site or all functionality of the Services.
@@ -160,7 +160,7 @@ export default function PrivacyPage() {
 
           <Section title="CHANGES TO THIS PRIVACY POLICY">
             <p>
-              This Privacy Policy may be revised periodically, as reflected by the "last modified" date above. Our amended Privacy Policy will automatically take effect 30 days after the change. If you do not agree with any changes, you may terminate your use of the Services.
+              This Privacy Policy may be revised periodically, as reflected by the &quot;last modified&quot; date above. Our amended Privacy Policy will automatically take effect 30 days after the change. If you do not agree with any changes, you may terminate your use of the Services.
             </p>
           </Section>
 

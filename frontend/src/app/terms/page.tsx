@@ -32,7 +32,7 @@ export default function TermsPage() {
         <div style={{ fontSize: "15px", color: "#4A5B78", lineHeight: 1.8 }}>
 
           <p style={{ marginBottom: "24px" }}>
-            These Terms of Service are entered into between you and Epigram, Inc. ("us", "we", or "our") for the use of our application in relation to our quantitative finance interview preparation and training tools. By accessing our websites and services (the "Services"), you acknowledge that you have read, understood, and agree to the most recent version of these Terms of Service ("Terms").
+            These Terms of Service are entered into between you and Epigram, Inc. (&quot;us&quot;, &quot;we&quot;, or &quot;our&quot;) for the use of our application in relation to our quantitative finance interview preparation and training tools. By accessing our websites and services (the &quot;Services&quot;), you acknowledge that you have read, understood, and agree to the most recent version of these Terms of Service (&quot;Terms&quot;).
           </p>
           <p style={{ marginBottom: "48px" }}>
             We reserve the right to revise these Terms at any time. If we do, we will post the modified Terms on this page and indicate the date of the most recent change above. Your continued use of the Services constitutes acceptance of these Terms and any modifications thereto. If you object to any changes, your sole recourse is to cease use of the Services.
@@ -60,7 +60,7 @@ export default function TermsPage() {
             </ul>
             <p style={{ marginBottom: "12px", fontWeight: 600, color: "#141310" }}>Content:</p>
             <p style={{ marginBottom: "12px" }}>
-              "Content" refers to all software, images, problems, solutions, communications, and any related material available from our Service. Content may be owned by us ("Our Content") or contributed by users ("User Submitted Content"). Unless otherwise specified in writing, all Our Content is owned, controlled, or licensed by us and is protected under United States copyright laws.
+              &quot;Content&quot; refers to all software, images, problems, solutions, communications, and any related material available from our Service. Content may be owned by us (&quot;Our Content&quot;) or contributed by users (&quot;User Submitted Content&quot;). Unless otherwise specified in writing, all Our Content is owned, controlled, or licensed by us and is protected under United States copyright laws.
             </p>
             <p>
               By submitting any User Submitted Content (including notes or feedback), you grant us a worldwide, non-exclusive, royalty-free, perpetual, and irrevocable license to use, reproduce, modify, and distribute it in connection with the Services. This right persists even if such content is subsequently removed or your account is deleted.
@@ -90,7 +90,7 @@ export default function TermsPage() {
 
           <Section title="WARRANTIES AND LIMITATIONS ON LIABILITY">
             <p style={{ marginBottom: "16px" }}>
-              USE OF THE SERVICES IS AT YOUR OWN RISK. THE SERVICES ARE PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. WE EXPRESSLY DISCLAIM ALL WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+              USE OF THE SERVICES IS AT YOUR OWN RISK. THE SERVICES ARE PROVIDED ON AN &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; BASIS. WE EXPRESSLY DISCLAIM ALL WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
             </p>
             <p style={{ marginBottom: "16px" }}>
               WE MAKE NO WARRANTY THAT (I) THE SERVICES WILL MEET YOUR REQUIREMENTS; (II) THE SERVICES WILL BE UNINTERRUPTED, TIMELY, SECURE, OR ERROR-FREE. EPIGRAM IS AN EDUCATIONAL PLATFORM. NOTHING WE PROVIDE CONSTITUTES PROFESSIONAL CAREER ADVICE OR GUARANTEES JOB PLACEMENT.
@@ -108,7 +108,7 @@ export default function TermsPage() {
               ANY LEGAL CLAIM AGAINST US MUST BE FILED WITHIN ONE YEAR AFTER THE EVENT THAT GAVE RISE TO YOUR CLAIM. OTHERWISE, YOUR CLAIM WILL BE PERMANENTLY BARRED.
             </p>
             <p>
-              You and we agree that claims may be brought solely in each party's individual capacity and not as a class action, and that the arbitrator may not consolidate claims from multiple parties.
+              You and we agree that claims may be brought solely in each party&apos;s individual capacity and not as a class action, and that the arbitrator may not consolidate claims from multiple parties.
             </p>
           </Section>
 
