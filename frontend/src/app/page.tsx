@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { Pencil, RefreshCw, Layers, Compass, Target, Timer } from "lucide-react";
 
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 
@@ -13,24 +12,24 @@ const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
 
 const faqs = [
   {
-    q: "How should I use Epigram effectively?",
-    a: "Block 2–3 hours a day and protect that time. Before checking any solution, attempt the problem as if you're in a real interview — the struggle is where the learning happens. Then study the solution carefully, understand the core technique, and redo it from scratch. Review, redo, repeat.",
+    q: "How is this different from the Green Book or Heard on the Street?",
+    a: "Three things. First, our problems come from real, recent interviews — updated every 2–3 days, not fixed in a book from 2008. Second, the curriculum is structured and self-contained: no wading through irrelevant material, just a targeted path from foundations to firm-ready. Third, we incorporate learner feedback continuously — the platform improves as you use it.",
   },
   {
     q: "What are the prerequisites?",
     a: "Undergraduate probability, statistics, and basic algorithms are helpful but not required. If you haven't taken these courses yet, the 4-Week Intensive is designed to be self-contained — you learn by doing, starting from the fundamentals and building up progressively.",
   },
   {
-    q: "What if I'm still confused after reading a solution?",
-    a: "Email us directly and we'll explain personally — every question gets a real response, not a template. Premium users get up to 3 email support a week. For deeper help, 1-on-1 tutoring with the author is available from $49.",
-  },
-  {
-    q: "Is Epigram only for quant finance roles?",
+    q: "Is this only for quant finance roles?",
     a: "Primarily built for quant trader, researcher, and developer roles — probability, statistics, and coding modules transfer directly to data science and ML interviews. We're also working on dedicated courses for these roles, coming soon.",
   },
   {
-    q: "How is this different from the Green Book or other prep resources?",
-    a: "Three things. First, our problems come from real, recent interviews — updated every 2–3 days, not fixed in a book from 2008. Second, the curriculum is structured and self-contained: no wading through irrelevant material, just a targeted path from foundations to firm-ready. Third, we incorporate learner feedback continuously — the platform improves as you use it.",
+    q: "How should I use Epigram most effectively?",
+    a: "Block 2–3 hours a day and protect that time. Before checking any solution, attempt the problem as if you're in a real interview — the struggle is where the learning happens. Then study the solution carefully, understand the core technique, and redo it from scratch. Review, redo, repeat.",
+  },
+  {
+    q: "What if I'm confused even after reading the solution?",
+    a: "Email us directly and we'll explain personally — every question gets a real response, not a template. Premium users get up to 3 email support a week. For deeper help, 1-on-1 tutoring with the author is available from $49.",
   },
   {
     q: "How often are new problems added?",
@@ -41,17 +40,17 @@ const faqs = [
 function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   return (
-    <section className="py-20">
+    <section className="py-20" style={{ background: '#e9e6dc' }}>
       <div className="mx-auto max-w-4xl px-8">
         <p style={{ color: '#a16207', fontSize: '13px', fontWeight: 600, letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '12px' }}>
           Common Questions
         </p>
-        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '48px' }}>FAQ</h2>
+        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(22px, 2.8vw, 38px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '48px' }}>FAQ</h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
           {faqs.map((item, i) => (
             <div
               key={i}
-              style={{ border: '1px solid rgb(220,218,210)', borderRadius: '12px', background: '#ffffff', cursor: 'pointer' }}
+              style={{ border: '1px solid rgb(220,218,210)', borderRadius: '12px', background: '#faf9f5', cursor: 'pointer' }}
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
             >
               <div className="flex items-center justify-between" style={{ padding: '20px 24px' }}>
@@ -76,9 +75,17 @@ function FaqSection() {
 export default function LandingPage() {
   return (
     <div className={`min-h-screen overflow-y-auto scroll-smooth ${playfair.variable} ${dmSans.variable}`} style={{ backgroundColor: '#faf9f5', height: '100vh' }}>
+      {/* Announcement Bar */}
+      <div style={{ background: 'rgba(161,98,7,0.12)', borderBottom: '1px solid rgba(161,98,7,0.4)', padding: '9px 16px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+        <span style={{ background: '#a16207', color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '4px', flexShrink: 0 }}>Launch Offer</span>
+        <span style={{ fontSize: '14px', color: '#141310' }}>
+          First 50 users: <strong>20% off any paid plan</strong>
+        </span>
+      </div>
+
       {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-[#faf9f5]/80 backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-7xl px-16">
           <div className="flex h-20 items-center justify-between">
             <div className="flex items-center gap-10">
               <Link href="#hero" onClick={(e) => {
@@ -101,6 +108,10 @@ export default function LandingPage() {
                   e.preventDefault();
                   document.querySelector('#pricing')?.scrollIntoView({ behavior: 'smooth' });
                 }} className="text-black hover:opacity-70 cursor-pointer" style={{ fontSize: '14px' }}>Pricing</Link>
+                <Link href="#tutoring" onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('#tutoring')?.scrollIntoView({ behavior: 'smooth' });
+                }} className="text-black hover:opacity-70 cursor-pointer" style={{ fontSize: '14px' }}>Tutoring</Link>
               </nav>
             </div>
             <div className="flex items-center gap-3">
@@ -126,24 +137,11 @@ export default function LandingPage() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          padding: '60px 10% 40px',
+          padding: '60px 16% 40px',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* Eyebrow */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '28px' }}
-        >
-          <div style={{ width: '28px', height: '1px', background: '#a16207' }} />
-          <span style={{ color: '#a16207', fontSize: '14px', fontWeight: 500, letterSpacing: '2px', textTransform: 'uppercase' }}>
-            Quant Interview Prep, Restructured
-          </span>
-        </motion.div>
-
         {/* Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 24 }}
@@ -151,7 +149,7 @@ export default function LandingPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           style={{
             fontFamily: 'var(--font-playfair, Playfair Display, serif)',
-            fontSize: 'clamp(42px, 6vw, 76px)',
+            fontSize: 'clamp(30px, 4vw, 56px)',
             fontWeight: 700,
             color: '#141310',
             lineHeight: 1.1,
@@ -160,8 +158,8 @@ export default function LandingPage() {
             marginBottom: '28px',
           }}
         >
-          Stop grinding <em style={{ color: '#a16207', fontStyle: 'italic' }}>randomly.</em><br />
-          Start with the right problems.
+          Fewer, harder problems.<br />
+          <em style={{ color: '#a16207', fontStyle: 'italic' }}>The ones top funds<br />actually ask.</em>
         </motion.h1>
 
         {/* Subtext */}
@@ -169,10 +167,10 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          style={{ color: '#4A5B78', fontSize: '18px', lineHeight: 1.7, marginBottom: '48px' }}
+          style={{ color: '#4A5B78', fontSize: '16px', lineHeight: 1.7, marginBottom: '48px' }}
         >
-          Structured prep for top quant firms like Citadel, Jane Street, and more.<br />
-          Real problems. Human-verified solutions. Built for how top firms actually interview.
+          The books are too easy and too broad. The forums are unstructured and unverified.<br />
+          Epigram is <strong>the only platform built exclusively for top fund candidates</strong>.
         </motion.p>
 
         {/* Created by */}
@@ -219,6 +217,16 @@ export default function LandingPage() {
           </Link>
         </motion.div>
 
+        {/* No credit card note */}
+        <motion.p
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35 }}
+          style={{ fontSize: '13px', color: '#9b9b93', marginTop: '14px' }}
+        >
+          No credit card required. Free account unlocks problems + two cheatsheets instantly.
+        </motion.p>
+
         {/* Stats Row */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -227,184 +235,260 @@ export default function LandingPage() {
           style={{ display: 'flex', gap: '48px', marginTop: '40px', paddingTop: '24px', borderTop: '1px solid rgb(220,218,210)', flexWrap: 'wrap' }}
         >
           {[
-            { num: '4', label: 'Weeks to interview-ready' },
-            { num: '29', label: 'Topics across all major interview areas' },
-            { num: <span>15<span style={{ color: '#a16207' }}>+</span></span>, label: 'Top quant firms represented' },
-            { num: '∞', label: 'Problems updated continuously' },
+            { num: '29', label: 'Topics covered' },
+            { num: <span>15<span style={{ color: '#141310' }}>+</span></span>, label: 'Firms represented' },
+            { num: '∞', label: 'Problems growing' },
+            { num: <span>100<span style={{ color: '#141310' }}>%</span></span>, label: 'Human-verified' },
           ].map(({ num, label }, i) => (
             <div key={i}>
-              <div style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: '36px', fontWeight: 700, color: '#141310' }}>{num}</div>
-              <div style={{ fontSize: '13px', color: '#9b9b93', marginTop: '4px' }}>{label}</div>
+              <div style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: '26px', fontWeight: 700, color: '#141310' }}>{num}</div>
+              <div style={{ fontSize: '12px', color: '#9b9b93', marginTop: '4px' }}>{label}</div>
             </div>
           ))}
         </motion.div>
       </section>
 
       {/* Firms Bar */}
-      <div style={{ background: '#e9e6dc', padding: '20px 10%', borderBottom: '1px solid rgb(220,218,210)' }}>
-        <p style={{ fontSize: '13px', color: '#9b9b93', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500 }}>
-          Problems sourced from top quant firms — exclusively curated, not publicly available
-        </p>
+      <div style={{ background: '#e9e6dc', padding: '20px 16%', borderBottom: '1px solid rgb(220,218,210)', borderTop: '1px solid rgb(220,218,210)', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'nowrap' }}>
+          <span style={{ fontSize: '9px', color: '#9b9b93', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 600, flexShrink: 0 }}>
+            Problems sourced from
+          </span>
+          {[
+            { name: 'Citadel', file: 'citadel.svg' },
+            { name: 'Jane Street', file: 'jane-street.svg' },
+            { name: 'Two Sigma', file: 'two-sigma.svg' },
+            { name: 'D.E. Shaw', file: 'de-shaw.svg' },
+            { name: 'Optiver', file: 'optiver.svg' },
+            { name: 'Hudson River Trading', file: 'hrt.svg', filter: 'opacity(0.6)' },
+            { name: 'Jump Trading', file: 'jump-trading.svg' },
+            { name: 'IMC Trading', file: 'imc.svg' },
+          ].map(({ name, file, filter }) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={file}
+              src={`/company_logo/${file}`}
+              alt={name}
+              style={{ height: '24px', maxWidth: '100px', width: 'auto', filter: filter ?? 'brightness(0) opacity(0.45)', objectFit: 'contain', flexShrink: 0 }}
+            />
+          ))}
+          <span style={{ fontSize: '12px', color: '#9b9b93', fontWeight: 500, flexShrink: 0 }}>+ more</span>
+        </div>
       </div>
 
+      {/* Founder Story Section */}
+      <section style={{ background: '#faf9f5', padding: '100px 16%' }}>
+        <div style={{ maxWidth: '800px' }}>
+          {/* Avatar + quote */}
+          <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start', marginBottom: '40px' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(161,98,7,0.1)', border: '2px solid rgba(161,98,7,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-playfair, serif)', fontSize: '24px', fontWeight: 700, color: '#a16207' }}>
+              J
+            </div>
+            <blockquote style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(16px, 1.8vw, 22px)', fontStyle: 'italic', color: '#141310', lineHeight: 1.55, margin: 0 }}>
+              &ldquo;I was preparing for top quant fund interviews. I had the mathematical background. I read the books everyone reads. And they felt like practice for a different exam. Too easy. Too broad. No way to tell which problems actually mattered. I spent hours on material that wasn&apos;t going to appear in the room — and I couldn&apos;t shake the feeling that my prep wasn&apos;t mapping to what I was about to face. I built Epigram because that resource shouldn&apos;t be this hard to find.<span style={{ color: '#a16207' }}>&rdquo;</span>
+            </blockquote>
+          </div>
+          {/* Attribution */}
+          <p style={{ fontSize: '14px', color: '#4A5B78', lineHeight: 1.6, paddingLeft: '96px' }}>
+            <strong style={{ color: '#141310' }}>Jeremy Wu</strong>
+            {' · '}Math PhD, Penn{' · '}Former Wharton lecturer in stochastic processes{' · '}IAS visiting fellow
+          </p>
+        </div>
+      </section>
+
       {/* The Problem Section */}
-      <section style={{ padding: '100px 10%', background: '#faf9f5' }}>
+      <section style={{ padding: '100px 16%', background: '#e9e6dc' }}>
         {/* Eyebrow */}
-        <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '16px' }}>
-          The Problem
+        <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '20px' }}>
+          The problem with current resources
         </p>
 
         {/* Heading */}
-        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(32px, 4vw, 50px)', fontWeight: 700, lineHeight: 1.15, letterSpacing: '-1px', color: '#141310', marginBottom: '56px', whiteSpace: 'nowrap' }}>
-          Why most candidates fall short
+        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(26px, 3.5vw, 46px)', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-1px', color: '#141310', marginBottom: '20px', maxWidth: '700px' }}>
+          Every other resource was built for a different exam.
         </h2>
 
-        {/* Two columns */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'stretch' }}>
-          {/* Left — The usual approach */}
-          <div style={{ background: 'rgba(250, 234, 234, 0.3)', padding: '40px', borderRadius: '16px', border: '1px solid #F0C0C0' }}>
-            <p style={{ fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#C03030', marginBottom: '16px', paddingBottom: '16px', borderBottom: '2px solid #F0C0C0' }}>
-              The usual approach
-            </p>
-            {[
-              { title: 'Hundreds of unstructured problems.', body: 'LeetCode, Glassdoor, Reddit, ChatGPT — volume without direction. You don\'t know what to prioritize or when you\'re ready.' },
-              { title: 'Outdated resources.', body: 'The Green Book was written in 2008. Heard on the Street in 2012. Quant interviews have evolved — these haven\'t.' },
-              { title: 'Unverified solutions.', body: 'Crowd-sourced answers and AI-generated explanations that are frequently wrong on complex interview problems.' },
-            ].map(({ title, body }, idx) => (
-              <div key={title} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', marginBottom: idx === 2 ? 0 : '28px' }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#FAEAEA', color: '#C03030', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0, marginTop: '2px', fontWeight: 600 }}>✕</div>
-                <p style={{ fontSize: '15px', color: '#4A5B78', lineHeight: 1.6 }}>
-                  <strong style={{ color: '#141310', fontWeight: 600 }}>{title}</strong>{' '}{body}
-                </p>
-              </div>
-            ))}
-          </div>
+        {/* Subtext */}
+        <p style={{ fontSize: '17px', color: '#6b7280', lineHeight: 1.7, marginBottom: '56px', maxWidth: '560px' }}>
+          The quant interview has evolved. The prep landscape hasn&apos;t. What&apos;s out there is scattered, outdated, or built for the wrong problem type entirely.
+        </p>
 
-          {/* Right — The Epigram difference */}
-          <div style={{ background: '#ffffff', padding: '40px', borderRadius: '16px', border: '1px solid #B8D8C8', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.08)' }}>
-            <p style={{ fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#2A6048', marginBottom: '16px', paddingBottom: '16px', borderBottom: '2px solid #B8D8C8' }}>
-              The Epigram difference
-            </p>
-            {[
-              { title: 'Structure and efficiency.', body: 'A clear 4-week path through every major interview topic — so you practice with purpose, not panic.' },
-              { title: 'Human-verified problems & solutions.', body: 'Every problem and solution personally verified by a Math PhD and former Wharton lecturer. No hallucinations, no crowd-sourced errors.' },
-              { title: 'Real interview questions.', body: 'Sourced directly from top firms — exclusive problems not found on Glassdoor, Reddit, or anywhere else online.' },
-            ].map(({ title, body }, idx) => (
-              <div key={title} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', marginBottom: idx === 2 ? 0 : '28px' }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#E8F2EC', color: '#2A6048', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0, marginTop: '2px', fontWeight: 600 }}>✓</div>
-                <p style={{ fontSize: '15px', color: '#4A5B78', lineHeight: 1.6 }}>
-                  <strong style={{ color: '#141310', fontWeight: 600 }}>{title}</strong>{' '}{body}
-                </p>
-              </div>
-            ))}
-          </div>
+        {/* 2×2 Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          {[
+            {
+              source: 'Heard on the Street',
+              verdict: '"Too many questions. No emphasis on what actually matters."',
+              body: '500+ problems with no signal for what to prioritize. You can finish it and still not know which topics firms weight most heavily.',
+            },
+            {
+              source: 'The Green Book (2008)',
+              verdict: '"Answers scattered. Not self-contained. Calibrated too low."',
+              body: 'Written for solid undergrad math — not for what Citadel puts in front of you. The problems that matter aren\'t in this book.',
+            },
+            {
+              source: 'Glassdoor & forums',
+              verdict: 'Real questions exist somewhere. Finding them doesn\'t help you.',
+              body: 'Scattered across thousands of threads with no explanation of what the interviewer was testing. Fragments, not a curriculum.',
+            },
+            {
+              source: 'AI-generated explanations',
+              verdict: 'Wrong answers, delivered with total confidence.',
+              body: 'ChatGPT and similar tools frequently produce incorrect solutions to hard quant problems. You won\'t know the difference until you\'re in the room. Every Epigram solution is human-verified by a Math PhD.',
+            },
+          ].map(({ source, verdict, body }) => (
+            <div key={source} style={{ background: '#faf9f5', border: '1px solid rgb(220,218,210)', borderRadius: '16px', padding: '32px' }}>
+              <p style={{ fontSize: '12px', color: '#C03030', letterSpacing: '1px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 700 }}>✕</span> {source}
+              </p>
+              <p style={{ fontSize: '18px', fontWeight: 700, color: '#141310', lineHeight: 1.35, marginBottom: '14px' }}>{verdict}</p>
+              <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: 1.65 }}>{body}</p>
+            </div>
+          ))}
         </div>
       </section>
 
 
       {/* Four-Week Intensive Section */}
-      <section id="curriculum" style={{ background: '#e9e6dc', padding: '80px 10%' }}>
-        <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '20px' }}>
-          Our Flagship Product
-        </p>
+      <section id="curriculum" style={{ background: '#faf9f5', padding: '80px 16%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
 
-        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(36px, 5vw, 58px)', fontWeight: 700, color: '#141310', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: '24px', whiteSpace: 'nowrap' }}>
-          The Four-Week Intensive
-        </h2>
+          {/* Left */}
+          <div>
+            <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '20px' }}>
+              Our Flagship Product
+            </p>
 
-        <p style={{ fontSize: '17px', color: '#4A5B78', lineHeight: 1.75, marginBottom: '40px' }}>
-          Every major quant interview topic, in the exact order that mirrors how top firms interview —<br />
-          from probability foundations to game theory, statistics, and live coding.<br />
-          Progressive difficulty. Human-verified throughout.
-        </p>
+            <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(26px, 3.5vw, 46px)', fontWeight: 700, color: '#141310', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: '24px' }}>
+              The Four-Week Intensive
+            </h2>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
-          <Link href="/curriculum">
-            <button
-              className="cursor-pointer"
-              style={{ background: 'transparent', color: '#a16207', border: '1px solid #a16207', padding: '12px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, transition: 'background 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(161,98,7,0.08)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              View full course details →
-            </button>
-          </Link>
-          <p style={{ fontSize: '13px', color: '#9b9b93' }}>
-            4 weeks · 29 topics · ~180 problems · included in Premium
-          </p>
+            <p style={{ fontSize: '17px', color: '#4A5B78', lineHeight: 1.75, marginBottom: '40px' }}>
+              Every major quant interview topic, in the exact order that mirrors how top firms interview —
+              from probability foundations to game theory, statistics, and live coding.
+              Progressive difficulty. Human-verified throughout.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'flex-start' }}>
+              <p style={{ fontSize: '13px', fontWeight: 600, color: '#a16207', background: 'rgba(161,98,7,0.1)', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(161,98,7,0.25)' }}>
+                Included in Premium
+              </p>
+              <Link href="/curriculum">
+                <button
+                  className="cursor-pointer"
+                  style={{ background: 'transparent', color: '#a16207', border: '1px solid #a16207', padding: '12px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, transition: 'background 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(161,98,7,0.08)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  View full curriculum →
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Right — Week timeline */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+            {[
+              {
+                week: 'W1', label: 'WEEK 01 — PROBABILITY',
+                title: 'Foundations through Distributions',
+                topics: 'Probability modeling · Conditional probability & Bayes · Uniform, Geometric & Poisson distributions · Gaussian & multivariate Gaussian · Expectation, variance & covariance',
+              },
+              {
+                week: 'W2', label: 'WEEK 02 — STOCHASTIC PROCESSES + CODING',
+                title: 'Markov Chains, Random Walks & DP',
+                topics: 'Markov chains · Martingales & random walks · Dynamic programming (I & II) · Backtracking · Data structures',
+              },
+              {
+                week: 'W3', label: 'WEEK 03 — STATISTICS + CODING',
+                title: 'Inference, Regression & Simulation',
+                topics: 'CLT & LLN · Hypothesis testing · Linear regression (I & II) · Time series · Monte Carlo · Stack, queue, BFS & DFS',
+              },
+              {
+                week: 'W4', label: 'WEEK 04 — GAME THEORY, BRAINTEASERS + CODING',
+                title: 'Strategy, Mental Math & Mock Interviews',
+                topics: 'Nash equilibrium · Bayesian games · Number theory & mental math · Brain teasers · Black-Scholes overview · Sorting & searching · Mock interview session',
+              },
+            ].map(({ week, label, title, topics }, i, arr) => (
+              <div key={week} style={{ display: 'flex', gap: '20px' }}>
+                {/* Timeline spine */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(161,98,7,0.12)', border: '1px solid rgba(161,98,7,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#a16207', flexShrink: 0 }}>
+                    {week}
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div style={{ width: '1px', flexGrow: 1, background: 'rgba(161,98,7,0.2)', margin: '6px 0' }} />
+                  )}
+                </div>
+                {/* Content */}
+                <div style={{ paddingBottom: i < arr.length - 1 ? '32px' : '0' }}>
+                  <p style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#a16207', fontWeight: 600, marginBottom: '8px' }}>{label}</p>
+                  <p style={{ fontSize: '17px', fontWeight: 700, color: '#141310', marginBottom: '8px', lineHeight: 1.3 }}>{title}</p>
+                  <p style={{ fontSize: '13px', color: '#6b7280', lineHeight: 1.65 }}>{topics}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       </section>
 
       {/* What's Inside Section */}
-      <section id="features" style={{ background: '#faf9f5', padding: '100px 10%' }}>
-        <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '16px' }}>
+      <section id="features" style={{ background: '#e9e6dc', padding: '100px 16%' }}>
+        <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '20px' }}>
           What&apos;s Inside
         </p>
-        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 700, color: '#141310', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: '16px', whiteSpace: 'nowrap' }}>
-          Everything in one place
+        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(26px, 3.5vw, 46px)', fontWeight: 700, color: '#141310', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: '20px' }}>
+          Curated to what top funds test.<br />
+          <em style={{ color: '#a16207' }}>Nothing more. Nothing less.</em>
         </h2>
-        <p style={{ fontSize: '16px', color: '#4A5B78', lineHeight: 1.7, marginBottom: '56px' }}>
-          No juggling between platforms. No hunting for solutions.<br />
-          Everything you need is here, structured the way it should be.
+        <p style={{ fontSize: '17px', color: '#6b7280', lineHeight: 1.7, marginBottom: '56px', maxWidth: '720px' }}>
+          250 problems, not 500. The ones that appear in top fund interviews, at the difficulty they appear at, in the sequence that builds the right <span style={{ whiteSpace: 'nowrap' }}>mental models.</span>
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+        <div style={{ border: '1px solid rgb(220,218,210)', borderRadius: '16px', overflow: 'hidden' }}>
           {[
             {
-              icon: Pencil,
-              title: 'Worked Solutions, Not Just Answers',
-              desc: 'Full worked solutions with multiple approaches, difficulty ratings, and the exact intuition interviewers look for.',
-              gold: false,
+              num: '01',
+              title: 'Real problems, actually structured',
+              body: 'Actual quant interview questions from 15+ top firms — exclusive, not on Glassdoor or Reddit — organized across 29 of the most frequently-tested topics. Every problem has a difficulty rating, firm tag, and a clear place in the 4-week path.',
+              tags: ['29 TOPICS', '~250 PROBLEMS', 'FIRM-ATTRIBUTED'],
+              badge: null,
             },
             {
-              icon: RefreshCw,
-              title: 'Continuously Updated Problem Bank',
-              desc: 'New problems added regularly to reflect the latest firm interview styles.',
-              gold: false,
+              num: '02',
+              title: 'Solution depth that actually teaches',
+              body: 'Every solution is a full worked walkthrough with multiple approaches and the exact intuition interviewers look for. Written and verified by a Math PhD — no AI-generated explanations, no crowd-sourced errors.',
+              tags: ['FULL WALKTHROUGHS', 'MULTIPLE APPROACHES', 'INTERVIEWER NOTES'],
+              badge: null,
             },
             {
-              icon: Layers,
-              title: 'Free & Premium Tiers',
-              desc: 'Start with core problems for free. Upgrade to Premium for the harder, firm-specific questions.',
-              gold: false,
-            },
-            {
-              icon: Compass,
-              title: 'Beginner Friendly',
-              desc: 'Start from zero. Build confidence with easy problems before moving to structured, firm-ready progression.',
-              gold: false,
-            },
-            {
-              icon: Target,
-              title: 'Firm-Attributed Problems',
-              desc: 'Filter problems by firm, difficulty, and topic to target your exact interview pipeline.',
-              gold: false,
-            },
-            {
-              icon: Timer,
-              title: 'Mock Interview Suite',
-              desc: 'Timed 30-minute sessions with randomized problems and an immediate full debrief to track your progress.',
-              gold: true,
+              num: '03',
+              title: 'Mock interview module',
+              body: 'Timed 30-minute sessions with randomized problems and an immediate full debrief — tracking your progress and exposing the gaps that only show up under real conditions.',
+              tags: ['TIMED', 'RANDOMIZED', 'FULL DEBRIEF'],
               badge: 'New',
             },
-          ].map(({ icon: Icon, title, desc, gold, badge }) => (
-            <div key={title} style={{ background: '#fff', border: '1px solid rgb(240,238,230)', borderRadius: '12px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '14px', transition: 'border-color 0.2s' }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(161,98,7,0.35)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgb(240,238,230)')}
-            >
-              <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: gold ? '#a16207' : '#141310', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon size={20} color="#ffffff" />
-              </div>
-              <div>
-                <p style={{ fontSize: '15px', fontWeight: 600, color: '#141310', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {title}
-                  {badge && (
-                    <span style={{ fontSize: '10px', fontWeight: 600, background: 'rgba(161,98,7,0.12)', color: '#a16207', padding: '2px 8px', borderRadius: '20px', letterSpacing: '0.5px' }}>
-                      {badge}
-                    </span>
-                  )}
-                </p>
-                <p style={{ fontSize: '14px', color: '#4A5B78', lineHeight: 1.7 }}>{desc}</p>
+          ].map(({ num, title, body, tags, badge }, i, arr) => (
+            <div key={num} style={{ padding: '40px 48px', borderBottom: i < arr.length - 1 ? '1px solid rgb(220,218,210)' : 'none', background: '#faf9f5' }}>
+              <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+                <span style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: '32px', fontWeight: 700, color: 'rgba(161,98,7,0.25)', lineHeight: 1, flexShrink: 0, marginTop: '2px' }}>{num}</span>
+                <div>
+                  <p style={{ fontSize: '18px', fontWeight: 700, color: '#141310', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {title}
+                    {badge && (
+                      <span style={{ fontSize: '10px', fontWeight: 600, background: 'rgba(161,98,7,0.12)', color: '#a16207', padding: '2px 8px', borderRadius: '20px', letterSpacing: '0.5px' }}>
+                        {badge}
+                      </span>
+                    )}
+                  </p>
+                  <p style={{ fontSize: '15px', color: '#6b7280', lineHeight: 1.7, marginBottom: '20px' }}>{body}</p>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {tags.map(tag => (
+                      <span key={tag} style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '1px', color: '#a16207', border: '1px solid rgba(161,98,7,0.3)', padding: '4px 10px', borderRadius: '6px' }}>{tag}</span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -412,16 +496,16 @@ export default function LandingPage() {
       </section>
 
       {/* Free Starter Kit Section */}
-      <section style={{ background: '#e9e6dc', padding: '100px 10%' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+      <section style={{ background: '#faf9f5', padding: '100px 16%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'flex-end' }}>
 
           {/* Left */}
           <div>
             <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '16px' }}>
               Free Starter Kit
             </p>
-            <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '20px' }}>
-              Your free starter kit.<br />Unlocked on sign-up.
+            <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(24px, 3vw, 42px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '20px' }}>
+              Your free starter kit.<br />Unlocked on <span style={{ whiteSpace: 'nowrap' }}>sign-up.</span>
             </h2>
             <p style={{ fontSize: '16px', color: '#4A5B78', lineHeight: 1.75, marginBottom: '32px' }}>
               Create a free account and instantly unlock both interview cheatsheets — written by a Math PhD and former Wharton lecturer.
@@ -441,7 +525,7 @@ export default function LandingPage() {
                   desc: '12 essential patterns — Binary Search, BFS/DFS, DP, Backtracking, Union Find, Trie, LRU Cache — each with a Python template, complexity, and a "when to use" heuristic.',
                 },
               ].map(({ icon, title, desc }) => (
-                <div key={title} style={{ background: '#fff', border: '1px solid rgb(240,238,230)', borderRadius: '12px', padding: '20px 22px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                <div key={title} style={{ background: '#faf9f5', border: '1px solid rgb(240,238,230)', borderRadius: '12px', padding: '20px 22px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '9px', background: '#141310', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: 700, flexShrink: 0, fontFamily: 'monospace' }}>
                     {icon}
                   </div>
@@ -455,7 +539,7 @@ export default function LandingPage() {
           </div>
 
           {/* Right — cheatsheet preview */}
-          <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid rgb(220,218,210)', boxShadow: '0 32px 64px rgba(20,19,16,0.1)', overflow: 'hidden' }}>
+          <div style={{ background: '#faf9f5', borderRadius: '14px', border: '1px solid rgb(220,218,210)', boxShadow: '0 32px 64px rgba(20,19,16,0.1)', overflow: 'hidden' }}>
             {/* Browser chrome */}
             <div style={{ background: '#e9e6dc', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgb(220,218,210)' }}>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'rgba(20,19,16,0.15)' }} />
@@ -483,7 +567,7 @@ export default function LandingPage() {
                     onMouseEnter={e => (e.currentTarget.style.background = '#2a2520')}
                     onMouseLeave={e => (e.currentTarget.style.background = '#141310')}
                   >
-                    🔒 Sign up free to unlock full cheatsheet
+                    🔒 Sign up free to unlock both cheatsheets
                   </button>
                 </Link>
               </div>
@@ -494,28 +578,28 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" style={{ background: '#faf9f5', padding: '100px 10%' }}>
+      <section id="pricing" style={{ background: '#e9e6dc', padding: '100px 16%' }}>
         <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '16px' }}>Pricing</p>
-        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '48px' }}>
+        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(24px, 3vw, 42px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '48px' }}>
           Start free.<br />Go deeper when you&apos;re ready.
         </h2>
 
         {/* Launch offer banner */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(161,98,7,0.08)', border: '1px solid rgba(161,98,7,0.25)', borderRadius: '10px', padding: '14px 20px', marginBottom: '28px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(161,98,7,0.12)', border: '2px solid rgba(161,98,7,0.4)', borderRadius: '10px', padding: '14px 20px', marginBottom: '28px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600, color: '#a16207', flexShrink: 0 }}>🎯 Launch offer</span>
-          <span style={{ fontSize: '14px', color: '#4A5B78' }}>First 50 users: <strong style={{ color: '#141310' }}>20% off any paid plan</strong> for your entire committed period.</span>
-          <span style={{ fontSize: '13px', color: '#9b9b93', marginLeft: 'auto' }}>Monthly → <strong style={{ color: '#141310' }}>$31.20</strong> &nbsp;·&nbsp; 6-month → <strong style={{ color: '#141310' }}>$143.20</strong></span>
+          <span style={{ fontSize: '14px', color: '#141310' }}>First 50 users: <strong>20% off any paid plan</strong> for your entire committed period.</span>
+          <span style={{ fontSize: '13px', color: '#6b6b5f', marginLeft: 'auto' }}>Monthly → <strong style={{ color: '#141310' }}>$31.20</strong> &nbsp;·&nbsp; 6-month → <strong style={{ color: '#141310' }}>$143.20</strong></span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', alignItems: 'stretch' }}>
 
           {/* Free */}
-          <div style={{ background: '#fff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#9b9b93', marginBottom: '8px' }}>Free Account</p>
             <div style={{ marginBottom: '4px' }}>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$0</span>
             </div>
-            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>forever · registration required</p>
+            <div style={{ marginBottom: '24px' }} />
             <div style={{ flex: 1 }}>
               {['Both interview cheatsheets', 'Core free-tier problems · continuously updated', '1 mock interview/week (free topics)'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
@@ -532,14 +616,14 @@ export default function LandingPage() {
           </div>
 
           {/* 1-month Premium */}
-          <div style={{ background: '#fff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>Premium</p>
             <div style={{ marginBottom: '4px' }}>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$39</span>
             </div>
             <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>per month</p>
             <div style={{ flex: 1 }}>
-              {['The 4-Week Intensive — flagship prep course', 'Exclusive problems not found online', 'Unlimited mock interviews', 'Firm & location tags by region', 'Priority access to new premium problems', 'Up to 3 expert email responses per week'].map(f => (
+              {['The 4-Week Intensive — flagship prep course', 'Exclusive problems not found online', 'Unlimited mock interviews', 'Company filters', 'Priority access to new premium problems', 'Up to 3 expert email responses per week'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
                   <span style={{ color: '#a16207', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
                 </div>
@@ -554,19 +638,19 @@ export default function LandingPage() {
           </div>
 
           {/* 6-month Premium — Recommended */}
-          <div style={{ position: 'relative', background: '#1A2640', border: '1px solid #1A2640', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ position: 'relative', background: '#ffffff', border: '2px solid #a16207', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
             {/* Badge */}
             <div style={{ position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)', background: '#a16207', color: '#fff', fontSize: '11px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '5px 16px', borderRadius: '20px', whiteSpace: 'nowrap' }}>
               Recommended
             </div>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>Premium · 6 months</p>
             <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#fff', lineHeight: 1 }}>$179</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$179</span>
             </div>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginBottom: '24px' }}>$30/mo · save 23%</p>
+            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>$30/mo · save 23%</p>
             <div style={{ flex: 1 }}>
               {['Everything in 1-month Premium', 'Best value for full interview prep cycle', 'Lock in price for 6 months'].map(f => (
-                <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
+                <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
                   <span style={{ color: '#a16207', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
                 </div>
               ))}
@@ -583,16 +667,16 @@ export default function LandingPage() {
       </section>
 
       {/* Tutoring Section */}
-      <section style={{ background: '#e9e6dc', padding: '100px 10%' }}>
+      <section id="tutoring" style={{ background: '#faf9f5', padding: '100px 16%' }}>
         <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '16px' }}>1-on-1 Tutoring</p>
-        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '48px', whiteSpace: 'nowrap' }}>
+        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(22px, 2.8vw, 38px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '48px', whiteSpace: 'nowrap' }}>
           Work directly with the author
         </h2>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', alignItems: 'stretch' }}>
 
           {/* Intro */}
-          <div style={{ background: '#fff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#9b9b93', marginBottom: '8px' }}>Intro Session</p>
             <div style={{ marginBottom: '4px' }}>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$49</span>
@@ -619,7 +703,7 @@ export default function LandingPage() {
           </div>
 
           {/* Standard */}
-          <div style={{ background: '#fff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#9b9b93', marginBottom: '8px' }}>Standard</p>
             <div style={{ marginBottom: '4px' }}>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$120</span>
@@ -641,18 +725,18 @@ export default function LandingPage() {
           </div>
 
           {/* 3-session pack — Best value */}
-          <div style={{ position: 'relative', background: '#1A2640', border: '1px solid #1A2640', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ position: 'relative', background: '#ffffff', border: '2px solid #a16207', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)', background: '#a16207', color: '#fff', fontSize: '11px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '5px 16px', borderRadius: '20px', whiteSpace: 'nowrap' }}>
               Best Value
             </div>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>3-Session Pack</p>
             <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#fff', lineHeight: 1 }}>$299</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$299</span>
             </div>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginBottom: '24px' }}>~$100/hr · save $61</p>
+            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>~$100/hr · save $61</p>
             <div style={{ flex: 1 }}>
               {['3 × 60 min sessions', '1-on-1 with author (Math PhD, former Wharton lecturer)', 'Pre-session email discussion — tailored to you', 'Flexible scheduling, Zoom'].map(f => (
-                <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
+                <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
                   <span style={{ color: '#a16207', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
                 </div>
               ))}
@@ -672,22 +756,17 @@ export default function LandingPage() {
       <FaqSection />
 
       {/* Final CTA Section */}
-      <section style={{ background: '#e9e6dc', padding: '96px 10%' }}>
-        <div className="mx-auto max-w-6xl text-center">
-          <p style={{ color: '#9b9b93', fontSize: '13px', fontWeight: 600, letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '20px' }}>
-            Begin Your Preparation
-          </p>
-          <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '20px' }}>
-            One month from now,<br />you&apos;ll be interview-ready.
+      <section style={{ background: '#faf9f5', padding: '100px 16%' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(24px, 3vw, 44px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '24px' }}>
+            You won&apos;t hope the right<br />problems come up.<br />
+            <em style={{ color: '#a16207' }}>You&apos;ll know you&apos;re ready.</em>
           </h2>
-          <p style={{ fontSize: '16px', color: '#4A5B78', maxWidth: '480px', margin: '0 auto 40px', lineHeight: 1.7 }}>
-            Most candidates spend months preparing badly. Spend four weeks preparing precisely. The firms you want are hiring right now.
-          </p>
-          <div className="flex items-center justify-center gap-3">
+          <div style={{ marginTop: '48px' }} className="flex items-center justify-center gap-3">
             <Link href="/problems">
               <button
                 className="cursor-pointer"
-                style={{ backgroundColor: '#a16207', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontSize: '15px', fontWeight: 500, border: 'none' }}
+                style={{ backgroundColor: '#a16207', color: '#fff', padding: '14px 32px', borderRadius: '8px', fontSize: '15px', fontWeight: 500, border: 'none' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}
               >
@@ -697,7 +776,7 @@ export default function LandingPage() {
             <Link href="/curriculum">
               <button
                 className="cursor-pointer"
-                style={{ backgroundColor: 'transparent', color: '#141310', padding: '12px 24px', borderRadius: '8px', fontSize: '15px', fontWeight: 500, border: '1px solid rgb(220,218,210)' }}
+                style={{ backgroundColor: 'transparent', color: '#141310', padding: '14px 28px', borderRadius: '8px', fontSize: '15px', fontWeight: 500, border: '1px solid rgb(220,218,210)' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgb(240,238,230)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
@@ -709,7 +788,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer style={{ background: '#faf9f5', borderTop: '1px solid rgb(240,238,230)', padding: '32px 10% 20px' }}>
+      <footer style={{ background: '#e9e6dc', padding: '32px 16% 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '48px' }}>
 
           {/* Left — logo + tagline */}
@@ -718,7 +797,7 @@ export default function LandingPage() {
               <Image src="/epigram_logo.svg" alt="Epigram Logo" width={24} height={24} />
               <span style={{ fontWeight: 700, fontSize: '18px', color: '#141310' }}>Epigram</span>
             </div>
-            <p style={{ fontSize: '13px', color: '#4A5B78', lineHeight: 1.7 }}>
+            <p style={{ fontSize: '13px', color: '#6b6b5f', lineHeight: 1.7 }}>
               Structured quant interview prep.<br />
               Built by a Math PhD &amp; former Wharton lecturer.
             </p>
@@ -736,7 +815,7 @@ export default function LandingPage() {
                   key={label}
                   href={href}
                   aria-label={label}
-                  style={{ width: '40px', height: '40px', borderRadius: '10px', border: '1px solid rgb(220,218,210)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4A5B78', transition: 'border-color 0.2s', flexShrink: 0 }}
+                  style={{ width: '40px', height: '40px', borderRadius: '10px', border: '1px solid rgb(220,218,210)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b6b5f', transition: 'border-color 0.2s', flexShrink: 0 }}
                   onMouseEnter={e => (e.currentTarget.style.borderColor = '#a16207')}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgb(220,218,210)')}
                 >
@@ -759,7 +838,7 @@ export default function LandingPage() {
                   { label: '4-Week Course', href: '/curriculum' },
                   { label: 'Pricing', href: '#pricing' },
                 ].map(({ label, href }) => (
-                  <Link key={label} href={href} style={{ fontSize: '14px', color: '#4A5B78' }} className="hover:opacity-70">
+                  <Link key={label} href={href} style={{ fontSize: '14px', color: '#6b6b5f' }} className="hover:opacity-70">
                     {label}
                   </Link>
                 ))}
@@ -774,7 +853,7 @@ export default function LandingPage() {
                   { label: 'Terms', href: '/terms' },
                   { label: 'Privacy', href: '/privacy' },
                 ].map(({ label, href }) => (
-                  <Link key={label} href={href} style={{ fontSize: '14px', color: '#4A5B78' }} className="hover:opacity-70">
+                  <Link key={label} href={href} style={{ fontSize: '14px', color: '#6b6b5f' }} className="hover:opacity-70">
                     {label}
                   </Link>
                 ))}
@@ -785,7 +864,7 @@ export default function LandingPage() {
         </div>
 
         {/* Bottom bar */}
-        <div style={{ marginTop: '48px', paddingTop: '24px', borderTop: '1px solid rgb(240,238,230)' }}>
+        <div style={{ marginTop: '48px', paddingTop: '24px', borderTop: '1px solid rgb(220,218,210)' }}>
           <p style={{ fontSize: '12px', color: '#9b9b93' }}>© 2026 Epigram. All rights reserved.</p>
         </div>
       </footer>
