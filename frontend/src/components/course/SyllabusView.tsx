@@ -25,6 +25,47 @@ export default function SyllabusView() {
         </p>
 
         <div className="space-y-6">
+          {/* Introduction card */}
+          <div
+            className="rounded-xl border p-5 cursor-pointer"
+            style={{
+              borderColor: "var(--border)",
+              backgroundColor: "var(--background)",
+            }}
+            onClick={() => router.push("/curriculum/intro")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "var(--sidebar-background)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "var(--background)")
+            }
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className="text-xs font-semibold px-2 py-0.5 rounded-md"
+                style={{
+                  backgroundColor: "#a16207",
+                  color: "white",
+                }}
+              >
+                Intro
+              </span>
+              <h2
+                className="text-lg font-semibold"
+                style={{ color: "var(--foreground)" }}
+              >
+                The Four-Week Intensive
+              </h2>
+            </div>
+            <p
+              className="text-sm mt-2"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              Course overview, what to expect, and how to study
+            </p>
+          </div>
+
+          {/* Week cards */}
           {COURSE_WEEKS.map((week) => {
             const progress = getWeekProgress(week.weekNum);
 
@@ -166,6 +207,46 @@ export default function SyllabusView() {
               </div>
             );
           })}
+
+          {/* Final Remarks card */}
+          <div
+            className="rounded-xl border p-5 cursor-pointer"
+            style={{
+              borderColor: "var(--border)",
+              backgroundColor: "var(--background)",
+            }}
+            onClick={() => router.push("/curriculum/departing")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "var(--sidebar-background)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "var(--background)")
+            }
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className="text-xs font-semibold px-2 py-0.5 rounded-md"
+                style={{
+                  backgroundColor: "#a16207",
+                  color: "white",
+                }}
+              >
+                Final
+              </span>
+              <h2
+                className="text-lg font-semibold"
+                style={{ color: "var(--foreground)" }}
+              >
+                Interview Day
+              </h2>
+            </div>
+            <p
+              className="text-sm mt-2"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              Final remarks on mindset, communication, and performance
+            </p>
+          </div>
         </div>
       </div>
     </div>

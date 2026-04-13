@@ -116,7 +116,7 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center gap-3">
               <Link href="/auth/signin">
-                <button className="px-4 py-2 hover:opacity-70 cursor-pointer" style={{ fontSize: '14px', color: '#141310' }}>Sign In</button>
+                <button className="px-4 py-2 hover:opacity-70 cursor-pointer rounded-xl" style={{ fontSize: '14px', color: '#141310', border: '1px solid rgb(220,218,210)' }}>Sign In</button>
               </Link>
               <Link href="/problems">
                 <button className="px-4 py-2.5 text-sm font-medium text-white rounded-xl cursor-pointer" style={{ backgroundColor: '#a16207' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}>

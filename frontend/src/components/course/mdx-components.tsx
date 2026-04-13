@@ -446,6 +446,36 @@ function MdxLearningObjectives({ title, children }: { title?: string; children: 
   );
 }
 
+function MdxGoldBox({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className="rounded-lg my-6 border px-4 py-4 text-sm leading-relaxed"
+      style={{
+        backgroundColor: "#faf4e8",
+        borderColor: "#b87333",
+        color: "var(--foreground)",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function MdxGrayBox({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className="rounded-lg my-6 border px-4 py-4 text-sm leading-relaxed mdx-graybox"
+      style={{
+        backgroundColor: "#f8f8f8",
+        borderColor: "rgba(90,100,115,0.4)",
+        color: "var(--foreground)",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 // Export each component individually so they can be imported
 // as client component references in server components
 export {
@@ -459,4 +489,6 @@ export {
   MdxPremiumProblem as PremiumProblem,
   MdxTechniqueSummary as TechniqueSummary,
   MdxLearningObjectives as LearningObjectives,
+  MdxGoldBox as GoldBox,
+  MdxGrayBox as GrayBox,
 };

@@ -10,9 +10,12 @@ import WarningBox from "./blocks/WarningBox";
 import WorkedProblem from "./blocks/WorkedProblem";
 import CourseProblem from "./blocks/CourseProblem";
 import TechniqueSummary from "./blocks/TechniqueSummary";
+import TopicCompleteButton from "./TopicCompleteButton";
 
 interface CourseContentProps {
   topicData: CourseTopicJSON;
+  weekNum: number;
+  topicNum: number;
 }
 
 function BlockRenderer({ block }: { block: ContentBlock }) {
@@ -74,7 +77,7 @@ function BlockRenderer({ block }: { block: ContentBlock }) {
   }
 }
 
-export default function CourseContent({ topicData }: CourseContentProps) {
+export default function CourseContent({ topicData, weekNum, topicNum }: CourseContentProps) {
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ backgroundColor: "#ffffff" }}>
       <div className="max-w-3xl mx-auto px-8 py-6">
@@ -125,6 +128,8 @@ export default function CourseContent({ topicData }: CourseContentProps) {
             ))}
           </div>
         ))}
+
+        <TopicCompleteButton weekNum={weekNum} topicNum={topicNum} />
       </div>
     </div>
   );

@@ -232,35 +232,6 @@ export default function InterviewSession({
         </Button>
       </div>
 
-      {/* Problem tabs */}
-      <div
-        className="flex items-center gap-1 px-4 py-2 border-b"
-        style={{ borderColor: "var(--border)" }}
-      >
-        {problems.map((p, i) => {
-          const isActive = i === currentIndex;
-          return (
-            <button
-              key={p.id}
-              onClick={() => setCurrentIndex(i)}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-colors"
-              style={{
-                backgroundColor: isActive ? "#141310" : "transparent",
-                color: isActive ? "#ffffff" : "var(--foreground)",
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.backgroundColor = "var(--secondary)";
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
-              }}
-            >
-              Q{i + 1}
-            </button>
-          );
-        })}
-      </div>
-
       {/* Problem content */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {problems[currentIndex] && (

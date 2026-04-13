@@ -140,6 +140,21 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['chat_messages']['Row'], 'id' | 'created_at'>;
         Update: Partial<Database['public']['Tables']['chat_messages']['Insert']>;
       };
+      user_problem_feedback: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          difficulty: string | null;
+          interview_seen: string | null;
+          interview_firm: string | null;
+          solution_clear: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_problem_feedback']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['user_problem_feedback']['Insert']>;
+      };
       user_problem_progress: {
         Row: {
           id: string;

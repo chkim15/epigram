@@ -9,24 +9,30 @@ import { useCourseProgress } from "@/hooks/useCourseProgress";
 interface CourseSidebarProps {
   currentWeekSlug: string;
   currentTopicSlug: string;
+  standaloneSlug?: "intro" | "departing";
 }
 
 export default function CourseSidebar({
   currentWeekSlug,
   currentTopicSlug,
+  standaloneSlug,
 }: CourseSidebarProps) {
   const router = useRouter();
   const currentWeek = getWeekBySlug(currentWeekSlug);
   const { getTopicStatus, getWeekProgress } = useCourseProgress();
 
-  const [viewingWeekIdx, setViewingWeekIdx] = useState(() =>
-    COURSE_WEEKS.findIndex((w) => w.slug === currentWeekSlug)
-  );
+  const [viewingWeekIdx, setViewingWeekIdx] = useState(() => {
+    const idx = COURSE_WEEKS.findIndex((w) => w.slug === currentWeekSlug);
+    return idx >= 0 ? idx : 0;
+  });
   const viewingWeek = COURSE_WEEKS[viewingWeekIdx];
 
-  if (!currentWeek || !viewingWeek) return null;
+  if (!viewingWeek) return null;
 
   const progress = getWeekProgress(viewingWeek.weekNum);
+
+  const introActive = standaloneSlug === "intro";
+  const departingActive = standaloneSlug === "departing";
 
   return (
     <div
@@ -48,8 +54,34 @@ export default function CourseSidebar({
         Back to syllabus
       </button>
 
+      {/* Introduction link */}
+      <div className="px-2 pb-1">
+        <button
+          onClick={() => router.push("/curriculum/intro")}
+          className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-left cursor-pointer transition-colors text-[13px]"
+          style={{
+            backgroundColor: introActive ? "var(--sidebar-accent)" : "transparent",
+            color: introActive ? "var(--foreground)" : "var(--muted-foreground)",
+            fontWeight: introActive ? 500 : 400,
+          }}
+          onMouseEnter={(e) => {
+            if (!introActive)
+              e.currentTarget.style.backgroundColor = "var(--sidebar-accent)";
+          }}
+          onMouseLeave={(e) => {
+            if (!introActive)
+              e.currentTarget.style.backgroundColor = "transparent";
+          }}
+        >
+          <span className="flex-shrink-0 w-4 h-4 flex items-center justify-center text-[10px]">
+            ◆
+          </span>
+          <span className="truncate">Introduction</span>
+        </button>
+      </div>
+
       {/* Week selector */}
-      <div className="px-4 pb-5">
+      <div className="px-4 pb-5 pt-3 border-t" style={{ borderColor: "var(--border)" }}>
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={() => setViewingWeekIdx((i) => Math.max(0, i - 1))}
@@ -99,9 +131,10 @@ export default function CourseSidebar({
       </div>
 
       {/* Topics for the viewed week */}
-      <div className="flex-1 px-2 pb-4">
+      <div className="flex-1 px-2 pb-2">
         {viewingWeek.topics.map((topic, idx) => {
           const isActive =
+            !standaloneSlug &&
             viewingWeek.slug === currentWeekSlug &&
             topic.slug === currentTopicSlug;
           const status = getTopicStatus(viewingWeek.weekNum, topic.topicNum);
@@ -190,6 +223,32 @@ export default function CourseSidebar({
             </button>
           );
         })}
+      </div>
+
+      {/* Final Remarks link */}
+      <div className="px-2 pt-1 pb-4 border-t" style={{ borderColor: "var(--border)" }}>
+        <button
+          onClick={() => router.push("/curriculum/departing")}
+          className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-left cursor-pointer transition-colors text-[13px]"
+          style={{
+            backgroundColor: departingActive ? "var(--sidebar-accent)" : "transparent",
+            color: departingActive ? "var(--foreground)" : "var(--muted-foreground)",
+            fontWeight: departingActive ? 500 : 400,
+          }}
+          onMouseEnter={(e) => {
+            if (!departingActive)
+              e.currentTarget.style.backgroundColor = "var(--sidebar-accent)";
+          }}
+          onMouseLeave={(e) => {
+            if (!departingActive)
+              e.currentTarget.style.backgroundColor = "transparent";
+          }}
+        >
+          <span className="flex-shrink-0 w-4 h-4 flex items-center justify-center text-[10px]">
+            ◆
+          </span>
+          <span className="truncate">Final Remarks</span>
+        </button>
       </div>
     </div>
   );

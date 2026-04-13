@@ -1061,8 +1061,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
 
   const exampleQuestions = [
     "Help me with the next step of solving this problem",
-    "What concepts do I need to review for this problem?",
-    "Create a plot and help me understand this problem visually."
+    "What concepts do I need to review for this problem?"
   ];
 
   const tabs = mode === 'problems'

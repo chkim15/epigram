@@ -254,12 +254,6 @@ export default function ProblemsListView({
           <option value="bookmarked">Bookmarked</option>
         </select>
 
-        {/* Solved Count */}
-        <div className="flex-shrink-0 ml-auto">
-          <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-            {solvedCount} / {totalCount} Solved
-          </span>
-        </div>
       </div>
 
       {/* Problems Table */}

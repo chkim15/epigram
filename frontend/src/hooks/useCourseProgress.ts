@@ -120,6 +120,88 @@ export function useCourseProgress() {
     [topicProgressMap, problemProgressMap]
   );
 
+  const markTopicStarted = useCallback(
+    async (weekNum: number, topicNum: number) => {
+      if (!user) return;
+      const key = `${weekNum}-${topicNum}`;
+      if (topicProgressMap.has(key)) return; // already tracked
+
+      await supabase.from("course_topic_progress").upsert(
+        {
+          user_id: user.id,
+          week_num: weekNum,
+          topic_num: topicNum,
+          status: "in_progress",
+          problems_solved: 0,
+          problems_total: 0,
+          started_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,week_num,topic_num" }
+      );
+
+      setTopicProgressMap((prev) => {
+        if (prev.has(key)) return prev; // race guard
+        const next = new Map(prev);
+        next.set(key, {
+          week_num: weekNum,
+          topic_num: topicNum,
+          status: "in_progress",
+          problems_solved: 0,
+          problems_total: 0,
+        });
+        return next;
+      });
+    },
+    [user, topicProgressMap]
+  );
+
+  const markTopicComplete = useCallback(
+    async (weekNum: number, topicNum: number) => {
+      if (!user) return;
+      const key = `${weekNum}-${topicNum}`;
+      const existing = topicProgressMap.get(key);
+      if (existing?.status === "completed") return;
+
+      // Optimistic update — update UI immediately regardless of DB result
+      setTopicProgressMap((prev) => {
+        const next = new Map(prev);
+        const cur = prev.get(key);
+        next.set(key, {
+          week_num: weekNum,
+          topic_num: topicNum,
+          status: "completed",
+          problems_solved: cur?.problems_solved ?? 0,
+          problems_total: cur?.problems_total ?? 0,
+        });
+        return next;
+      });
+
+      try {
+        await supabase.from("course_topic_progress").upsert(
+          {
+            user_id: user.id,
+            week_num: weekNum,
+            topic_num: topicNum,
+            status: "completed",
+            problems_solved: existing?.problems_solved ?? 0,
+            problems_total: existing?.problems_total ?? 0,
+            started_at:
+              !existing || existing.status === "not_started"
+                ? new Date().toISOString()
+                : undefined,
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id,week_num,topic_num" }
+        );
+      } catch {
+        // DB write failed — UI already reflects completion for this session
+      }
+    },
+    [user, topicProgressMap]
+  );
+
   const markProblemSolved = useCallback(
     async (
       weekNum: number,
@@ -210,5 +292,7 @@ export function useCourseProgress() {
     getWeekProgress,
     getTopicProblemProgress,
     markProblemSolved,
+    markTopicStarted,
+    markTopicComplete,
   };
 }

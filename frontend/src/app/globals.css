@@ -441,6 +441,11 @@ math-field:focus {
   border-bottom: none;
 }
 
+.mdx-graybox table td:first-child,
+.mdx-graybox table th:first-child {
+  white-space: nowrap;
+}
+
 .course-mdx-content hr {
   border: none;
   border-top: 1px solid var(--border);

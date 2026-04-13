@@ -26,10 +26,14 @@ import {
   Target,
   GraduationCap,
   Trophy,
-  Sigma
+  Sigma,
+  Tag,
+  ChevronUp,
+  Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
+import ProblemFeedback from "@/components/problems/ProblemFeedback";
 
 interface ProblemViewerProps {
   specificProblemId?: string;
@@ -81,8 +85,31 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [completedLoading, setCompletedLoading] = useState(false);
+  const [problemTopics, setProblemTopics] = useState<string[]>([]);
+  const [topicsOpen, setTopicsOpen] = useState(false);
+  const [companiesOpen, setCompaniesOpen] = useState(false);
   const { user } = useAuthStore();
   const answerContentEditableRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Fetch quant_topics for current problem
+  useEffect(() => {
+    if (!currentProblem?.id) {
+      setProblemTopics([]);
+      return;
+    }
+    supabase
+      .from('problem_quant_topics')
+      .select('quant_topics(name)')
+      .eq('problem_id', currentProblem.id)
+      .then(({ data }) => {
+        if (data) {
+          const names = data
+            .map((row) => (row.quant_topics as unknown as { name: string } | null)?.name)
+            .filter((n): n is string => !!n);
+          setProblemTopics(names);
+        }
+      });
+  }, [currentProblem?.id]);
 
   // Import MathLive when component mounts
   useEffect(() => {
@@ -1290,8 +1317,30 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
               {/* Main Problem */}
               <Card className="w-full border-0 shadow-none" style={{ backgroundColor: 'transparent' }}>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <span>Problem {currentProblemIndex + 1}</span>
+                  <CardTitle className="text-lg flex items-start gap-2">
+                    <div className="flex flex-col gap-1">
+                      <span className="flex items-baseline gap-1">
+                        <span>{currentProblemIndex + 1}.</span>
+                        <MathContent content={currentProblem.problem_name ?? `Problem ${currentProblemIndex + 1}`} documentId={currentDocument?.document_id} />
+                      </span>
+                      {currentProblem.difficulty && (
+                        <span
+                          className="text-xs font-normal w-fit px-2 py-0.5 rounded"
+                          style={{
+                            color:
+                              currentProblem.difficulty === 'easy' ? '#16a34a' :
+                              currentProblem.difficulty === 'hard' ? '#dc2626' :
+                              '#ca8a04',
+                            backgroundColor:
+                              currentProblem.difficulty === 'easy' ? '#dcfce7' :
+                              currentProblem.difficulty === 'hard' ? '#fee2e2' :
+                              '#fef9c3',
+                          }}
+                        >
+                          {currentProblem.difficulty.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs font-normal" style={{ color: 'var(--background)' }}>({currentProblem.problem_id})</span>
                     <div className="ml-auto flex items-center gap-2">
                       <div className="relative inline-block group">
@@ -1469,9 +1518,9 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                   {subproblems.length === 0 && (
                     <div className="mt-4 space-y-2" data-answer-section="main">
                       <div className="flex gap-2 items-start">
-                        <div className="flex-1 flex items-center gap-2 rounded-2xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
+                        <div className="flex-1 flex items-start gap-2 rounded-2xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
                           <button
-                            className="h-8 w-10 rounded-xl border cursor-pointer flex items-center justify-center flex-shrink-0"
+                            className="h-8 w-10 mt-2 rounded-xl border cursor-pointer flex items-center justify-center flex-shrink-0"
                             aria-label="Insert math equation"
                             onClick={() => insertMathField('main')}
                             style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}
@@ -1489,7 +1538,9 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                               outline: 'none',
                               boxShadow: 'none',
                               fontSize: '16px',
-                              lineHeight: '24px'
+                              lineHeight: '24px',
+                              wordBreak: 'break-word',
+                              overflowWrap: 'break-word'
                             }}
                             data-placeholder="Type your answer here..."
                             onInput={(e) => handleContentEditableChange('main', e.currentTarget)}
@@ -1644,9 +1695,9 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                             {/* Answer input for subproblem */}
                             <div className="mt-4 space-y-2" data-answer-section={`sub_${subproblem.key}`}>
                               <div className="flex gap-2 items-start">
-                                <div className="flex-1 flex items-center gap-2 rounded-2xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
+                                <div className="flex-1 flex items-start gap-2 rounded-2xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
                                   <button
-                                    className="h-8 w-10 rounded-xl border cursor-pointer flex items-center justify-center flex-shrink-0"
+                                    className="h-8 w-10 mt-2 rounded-xl border cursor-pointer flex items-center justify-center flex-shrink-0"
                                     aria-label="Insert math equation"
                                     onClick={() => insertMathField(`sub_${subproblem.key}`)}
                                     style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}
@@ -1664,7 +1715,9 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                                       outline: 'none',
                                       boxShadow: 'none',
                                       fontSize: '16px',
-                                      lineHeight: '24px'
+                                      lineHeight: '24px',
+                                      wordBreak: 'break-word',
+                                      overflowWrap: 'break-word'
                                     }}
                                     data-placeholder="Type your answer here..."
                                     onInput={(e) => handleContentEditableChange(`sub_${subproblem.key}`, e.currentTarget)}
@@ -1732,6 +1785,94 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
 
             </>
           )}
+        </div>
+
+        {/* Problem Feedback Survey — inside scrollable area, appears at bottom of content */}
+        {user && currentProblem && (
+          <div style={{ margin: '24px -12px 0' }}>
+            <ProblemFeedback userId={user.id} problemId={currentProblem.id} />
+          </div>
+        )}
+
+        {/* Topics */}
+        {problemTopics.length > 0 && (
+          <div style={{ margin: '0 -12px 0' }}>
+            <div style={{ borderTop: '1px solid var(--border)', backgroundColor: 'var(--background)' }}>
+              <button
+                onClick={() => setTopicsOpen(o => !o)}
+                className="cursor-pointer w-full"
+                style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'transparent', border: 'none' }}
+              >
+                <Tag className="h-4 w-4" style={{ color: 'var(--foreground)' }} />
+                <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--foreground)' }}>Topics</span>
+                <span className="ml-auto">
+                  {topicsOpen
+                    ? <ChevronUp className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
+                    : <ChevronDown className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
+                  }
+                </span>
+              </button>
+              {topicsOpen && (
+                <div style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {problemTopics.map((topic) => (
+                    <span
+                      key={topic}
+                      style={{
+                        fontSize: '12px',
+                        padding: '4px 10px',
+                        borderRadius: '999px',
+                        backgroundColor: 'var(--sidebar-accent)',
+                        color: 'var(--muted-foreground)',
+                      }}
+                    >
+                      {topic}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Companies */}
+        <div style={{ margin: '0 -12px -12px' }}>
+          <div style={{ borderTop: '1px solid var(--border)', backgroundColor: 'var(--background)' }}>
+            <button
+              onClick={() => setCompaniesOpen(o => !o)}
+              className="cursor-pointer w-full"
+              style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'transparent', border: 'none' }}
+            >
+              <Lock className="h-4 w-4" style={{ color: '#ca8a04' }} />
+              <span style={{ fontSize: '13px', fontWeight: 500, color: '#ca8a04' }}>Companies</span>
+              <span className="ml-auto">
+                {companiesOpen
+                  ? <ChevronUp className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
+                  : <ChevronDown className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
+                }
+              </span>
+            </button>
+            {companiesOpen && (
+              <div style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {(currentProblem?.company_labels ?? []).length > 0
+                  ? (currentProblem!.company_labels as string[]).map((company) => (
+                      <span
+                        key={company}
+                        style={{
+                          fontSize: '12px',
+                          padding: '4px 10px',
+                          borderRadius: '999px',
+                          backgroundColor: 'var(--sidebar-accent)',
+                          color: 'var(--muted-foreground)',
+                        }}
+                      >
+                        {company}
+                      </span>
+                    ))
+                  : <span style={{ fontSize: '12px', color: 'var(--muted-foreground)' }}>No companies listed</span>
+                }
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
