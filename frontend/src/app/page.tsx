@@ -79,7 +79,7 @@ export default function LandingPage() {
       <div style={{ background: 'rgba(161,98,7,0.12)', borderBottom: '1px solid rgba(161,98,7,0.4)', padding: '9px 16px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
         <span style={{ background: '#a16207', color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '4px', flexShrink: 0 }}>Launch Offer</span>
         <span style={{ fontSize: '14px', color: '#141310' }}>
-          First 50 users: <strong>20% off any paid plan</strong>
+          Sign up before <strong>Sep 1</strong>: <strong>50% off any paid plan</strong>
         </span>
       </div>
 
@@ -132,12 +132,12 @@ export default function LandingPage() {
       <section
         id="hero"
         style={{
-          minHeight: '100vh',
+          minHeight: '80vh',
           background: '#faf9f5',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          padding: '60px 16% 40px',
+          padding: '30px 16% 20px',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -170,7 +170,7 @@ export default function LandingPage() {
           style={{ color: '#4A5B78', fontSize: '16px', lineHeight: 1.7, marginBottom: '48px' }}
         >
           The books are too easy and too broad. The forums are unstructured and unverified.<br />
-          Epigram is <strong>the only platform built exclusively for top fund candidates</strong>.
+          Epigram <strong>trains you the way top funds actually test</strong>.
         </motion.p>
 
         {/* Created by */}
@@ -227,25 +227,6 @@ export default function LandingPage() {
           No credit card required. Free account unlocks problems + two cheatsheets instantly.
         </motion.p>
 
-        {/* Stats Row */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          style={{ display: 'flex', gap: '48px', marginTop: '40px', paddingTop: '24px', borderTop: '1px solid rgb(220,218,210)', flexWrap: 'wrap' }}
-        >
-          {[
-            { num: '29', label: 'Topics covered' },
-            { num: <span>15<span style={{ color: '#141310' }}>+</span></span>, label: 'Firms represented' },
-            { num: '∞', label: 'Problems growing' },
-            { num: <span>100<span style={{ color: '#141310' }}>%</span></span>, label: 'Human-verified' },
-          ].map(({ num, label }, i) => (
-            <div key={i}>
-              <div style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: '26px', fontWeight: 700, color: '#141310' }}>{num}</div>
-              <div style={{ fontSize: '12px', color: '#9b9b93', marginTop: '4px' }}>{label}</div>
-            </div>
-          ))}
-        </motion.div>
       </section>
 
       {/* Firms Bar */}
@@ -279,6 +260,7 @@ export default function LandingPage() {
       {/* Founder Story Section */}
       <section style={{ background: '#faf9f5', padding: '100px 16%' }}>
         <div style={{ maxWidth: '800px' }}>
+          <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '24px' }}>From the founder</p>
           {/* Avatar + quote */}
           <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start', marginBottom: '40px' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(161,98,7,0.1)', border: '2px solid rgba(161,98,7,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-playfair, serif)', fontSize: '24px', fontWeight: 700, color: '#a16207' }}>
@@ -392,7 +374,7 @@ export default function LandingPage() {
               {
                 week: 'W1', label: 'WEEK 01 — PROBABILITY',
                 title: 'Foundations through Distributions',
-                topics: 'Probability modeling · Conditional probability & Bayes · Uniform, Geometric & Poisson distributions · Gaussian & multivariate Gaussian · Expectation, variance & covariance',
+                topics: 'Foundations of Probability Modeling · Conditional Probability · Distributions · Gaussian Distribution · Expectation & Variance · Covariance & Correlation',
               },
               {
                 week: 'W2', label: 'WEEK 02 — STOCHASTIC PROCESSES + CODING',
@@ -402,12 +384,12 @@ export default function LandingPage() {
               {
                 week: 'W3', label: 'WEEK 03 — STATISTICS + CODING',
                 title: 'Inference, Regression & Simulation',
-                topics: 'CLT & LLN · Hypothesis testing · Linear regression (I & II) · Time series · Monte Carlo · Stack, queue, BFS & DFS',
+                topics: 'CLT & Law of Large Numbers · Hypothesis Testing · Linear Regression I & II · Time Series Basics · Monte Carlo Methods · Stack & Queue · BFS & DFS',
               },
               {
                 week: 'W4', label: 'WEEK 04 — GAME THEORY, BRAINTEASERS + CODING',
                 title: 'Strategy, Mental Math & Mock Interviews',
-                topics: 'Nash equilibrium · Bayesian games · Number theory & mental math · Brain teasers · Black-Scholes overview · Sorting & searching · Mock interview session',
+                topics: 'Nash Equilibrium · Bayesian Games · Number Theory & Mental Math · Brain Teasers · Options Pricing & Black-Scholes · Sorting Algorithms · Searching Algorithms',
               },
             ].map(({ week, label, title, topics }, i, arr) => (
               <div key={week} style={{ display: 'flex', gap: '20px' }}>
@@ -443,31 +425,31 @@ export default function LandingPage() {
           <em style={{ color: '#a16207' }}>Nothing more. Nothing less.</em>
         </h2>
         <p style={{ fontSize: '17px', color: '#6b7280', lineHeight: 1.7, marginBottom: '56px', maxWidth: '720px' }}>
-          250 problems, not 500. The ones that appear in top fund interviews, at the difficulty they appear at, in the sequence that builds the right <span style={{ whiteSpace: 'nowrap' }}>mental models.</span>
+          The ones that appear in top fund interviews, at the difficulty they appear at, in the sequence that builds the right <span style={{ whiteSpace: 'nowrap' }}>mental models.</span>
         </p>
 
         <div style={{ border: '1px solid rgb(220,218,210)', borderRadius: '16px', overflow: 'hidden' }}>
           {[
             {
               num: '01',
-              title: 'Real problems, actually structured',
-              body: 'Actual quant interview questions from 15+ top firms — exclusive, not on Glassdoor or Reddit — organized across 29 of the most frequently-tested topics. Every problem has a difficulty rating, firm tag, and a clear place in the 4-week path.',
-              tags: ['29 TOPICS', '~250 PROBLEMS', 'FIRM-ATTRIBUTED'],
+              title: 'Real problems, rigorously organized',
+              body: 'Actual quant interview questions from 15+ top firms — exclusive, not on Glassdoor or Reddit — organized across 29 of the most frequently-tested topics.',
+              tags: ['29 TOPICS', 'FIRM-ATTRIBUTED'],
               badge: null,
             },
             {
               num: '02',
               title: 'Solution depth that actually teaches',
-              body: 'Every solution is a full worked walkthrough with multiple approaches and the exact intuition interviewers look for. Written and verified by a Math PhD — no AI-generated explanations, no crowd-sourced errors.',
-              tags: ['FULL WALKTHROUGHS', 'MULTIPLE APPROACHES', 'INTERVIEWER NOTES'],
+              body: 'Every solution is a full walkthrough with multiple approaches and the exact intuition interviewers look for. Written and verified by a Math PhD — no AI-generated explanations, no crowd-sourced errors.',
+              tags: ['FULL WALKTHROUGHS', 'VERIFIED BY PHD'],
               badge: null,
             },
             {
               num: '03',
-              title: 'Mock interview module',
+              title: 'Practice under real conditions',
               body: 'Timed 30-minute sessions with randomized problems and an immediate full debrief — tracking your progress and exposing the gaps that only show up under real conditions.',
-              tags: ['TIMED', 'RANDOMIZED', 'FULL DEBRIEF'],
-              badge: 'New',
+              tags: ['TIMED', 'RANDOMIZED', 'INSTANT FEEDBACK'],
+              badge: null,
             },
           ].map(({ num, title, body, tags, badge }, i, arr) => (
             <div key={num} style={{ padding: '40px 48px', borderBottom: i < arr.length - 1 ? '1px solid rgb(220,218,210)' : 'none', background: '#faf9f5' }}>
@@ -508,7 +490,7 @@ export default function LandingPage() {
               Your free starter kit.<br />Unlocked on <span style={{ whiteSpace: 'nowrap' }}>sign-up.</span>
             </h2>
             <p style={{ fontSize: '16px', color: '#4A5B78', lineHeight: 1.75, marginBottom: '32px' }}>
-              Create a free account and instantly unlock both interview cheatsheets — written by a Math PhD and former Wharton lecturer.
+              Create a free account and instantly unlock two interview cheatsheets — written by a Math PhD and former Wharton lecturer.
             </p>
 
             {/* Cheatsheet cards */}
@@ -567,7 +549,7 @@ export default function LandingPage() {
                     onMouseEnter={e => (e.currentTarget.style.background = '#2a2520')}
                     onMouseLeave={e => (e.currentTarget.style.background = '#141310')}
                   >
-                    🔒 Sign up free to unlock both cheatsheets
+                    🔒 Sign up free to unlock two cheatsheets
                   </button>
                 </Link>
               </div>
@@ -585,10 +567,9 @@ export default function LandingPage() {
         </h2>
 
         {/* Launch offer banner */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(161,98,7,0.12)', border: '2px solid rgba(161,98,7,0.4)', borderRadius: '10px', padding: '14px 20px', marginBottom: '28px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#ffffff', border: '2px solid rgba(161,98,7,0.4)', borderRadius: '10px', padding: '14px 20px', marginBottom: '28px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600, color: '#a16207', flexShrink: 0 }}>🎯 Launch offer</span>
-          <span style={{ fontSize: '14px', color: '#141310' }}>First 50 users: <strong>20% off any paid plan</strong> for your entire committed period.</span>
-          <span style={{ fontSize: '13px', color: '#6b6b5f', marginLeft: 'auto' }}>Monthly → <strong style={{ color: '#141310' }}>$31.20</strong> &nbsp;·&nbsp; 6-month → <strong style={{ color: '#141310' }}>$143.20</strong></span>
+          <span style={{ fontSize: '14px', color: '#141310' }}>Sign up before <span style={{ fontWeight: 700, color: '#a16207' }}>Sep 1</span> for <strong>50% off</strong> any paid plan — locked in for your entire committed period.</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', alignItems: 'stretch' }}>
@@ -601,7 +582,7 @@ export default function LandingPage() {
             </div>
             <div style={{ marginBottom: '24px' }} />
             <div style={{ flex: 1 }}>
-              {['Both interview cheatsheets', 'Core free-tier problems · continuously updated', '1 mock interview/week (free topics)'].map(f => (
+              {['Two interview cheatsheets', 'Core free-tier problems'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
                   <span style={{ color: '#2A6048', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
                 </div>
@@ -618,12 +599,13 @@ export default function LandingPage() {
           {/* 1-month Premium */}
           <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>Premium</p>
-            <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$39</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '4px' }}>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1, textDecoration: 'line-through' }}>$39</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$19.50</span>
             </div>
             <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>per month</p>
             <div style={{ flex: 1 }}>
-              {['The 4-Week Intensive — flagship prep course', 'Exclusive problems not found online', 'Unlimited mock interviews', 'Company filters', 'Priority access to new premium problems', 'Up to 3 expert email responses per week'].map(f => (
+              {['Full access to The 4-Week Intensive curriculum', 'Exclusive problems not found online', 'Unlimited mock interviews', 'Company filters', 'Priority access to new premium problems', 'Up to 3 expert email responses per week'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
                   <span style={{ color: '#a16207', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
                 </div>
@@ -644,10 +626,11 @@ export default function LandingPage() {
               Recommended
             </div>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>Premium · 6 months</p>
-            <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$179</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '4px' }}>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1, textDecoration: 'line-through' }}>$179</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$89.50</span>
             </div>
-            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>$30/mo · save 23%</p>
+            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>$14.92/mo · save 50%</p>
             <div style={{ flex: 1 }}>
               {['Everything in 1-month Premium', 'Best value for full interview prep cycle', 'Lock in price for 6 months'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
@@ -691,8 +674,7 @@ export default function LandingPage() {
             </div>
             {/* Promo note */}
             <div style={{ marginTop: '28px', background: 'rgba(161,98,7,0.07)', border: '1px solid rgba(161,98,7,0.2)', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px' }}>
-              <p style={{ fontSize: '12px', fontWeight: 600, color: '#a16207', marginBottom: '3px' }}>Book intro → +1 month Premium free</p>
-              <p style={{ fontSize: '11px', color: '#9b9b93', lineHeight: 1.5 }}>Complete a short feedback survey after your session and your Premium credit is activated.</p>
+              <p style={{ fontSize: '12px', fontWeight: 600, color: '#a16207', marginBottom: 0 }}>Book intro → +1 month Premium free</p>
             </div>
             <Link href="/auth/signup" style={{ display: 'block' }}>
               <button className="cursor-pointer" style={{ width: '100%', padding: '13px', borderRadius: '8px', border: '1px solid rgb(220,218,210)', background: 'transparent', color: '#141310', fontSize: '14px', fontWeight: 500, transition: 'border-color 0.2s' }}
@@ -758,11 +740,17 @@ export default function LandingPage() {
       {/* Final CTA Section */}
       <section style={{ background: '#faf9f5', padding: '100px 16%' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '16px' }}>
+            Begin your preparation
+          </p>
           <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(24px, 3vw, 44px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '24px' }}>
-            You won&apos;t hope the right<br />problems come up.<br />
-            <em style={{ color: '#a16207' }}>You&apos;ll know you&apos;re ready.</em>
+            Stop hoping the right<br />problems come up.<br />
+            <em style={{ color: '#a16207' }}>Start knowing you&apos;re ready.</em>
           </h2>
-          <div style={{ marginTop: '48px' }} className="flex items-center justify-center gap-3">
+          <p style={{ fontSize: '17px', color: '#6b7280', lineHeight: 1.7, maxWidth: '560px', margin: '0 auto' }}>
+            Join top candidates preparing with real interview questions, verified solutions, and a targeted curriculum.
+          </p>
+          <div style={{ marginTop: '40px' }} className="flex items-center justify-center gap-3">
             <Link href="/problems">
               <button
                 className="cursor-pointer"

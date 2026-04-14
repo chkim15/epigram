@@ -44,8 +44,8 @@ export default function SyllabusView() {
               <span
                 className="text-xs font-semibold px-2 py-0.5 rounded-md"
                 style={{
-                  backgroundColor: "#a16207",
-                  color: "white",
+                  backgroundColor: "var(--foreground)",
+                  color: "var(--background)",
                 }}
               >
                 Intro
@@ -83,8 +83,8 @@ export default function SyllabusView() {
                   <span
                     className="text-xs font-semibold px-2 py-0.5 rounded-md"
                     style={{
-                      backgroundColor: "var(--foreground)",
-                      color: "var(--background)",
+                      backgroundColor: "#a16207",
+                      color: "white",
                     }}
                   >
                     Week {week.weekNum}
@@ -227,8 +227,8 @@ export default function SyllabusView() {
               <span
                 className="text-xs font-semibold px-2 py-0.5 rounded-md"
                 style={{
-                  backgroundColor: "#a16207",
-                  color: "white",
+                  backgroundColor: "var(--foreground)",
+                  color: "var(--background)",
                 }}
               >
                 Final
