@@ -580,9 +580,10 @@ export default function LandingPage() {
             <div style={{ marginBottom: '4px' }}>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$0</span>
             </div>
-            <div style={{ marginBottom: '24px' }} />
+            <p style={{ fontSize: '13px', color: 'transparent', marginBottom: '4px', userSelect: 'none' }}>per month</p>
+            <p style={{ fontSize: '11px', color: 'transparent', marginBottom: '24px', userSelect: 'none' }}>* Limited time launch offer</p>
             <div style={{ flex: 1 }}>
-              {['Two interview cheatsheets', 'Core free-tier problems'].map(f => (
+              {['Access to first topics of The 4-Week Intensive curriculum', 'Two interview cheatsheets', 'Core free-tier problems'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
                   <span style={{ color: '#2A6048', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
                 </div>
@@ -603,7 +604,8 @@ export default function LandingPage() {
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1, textDecoration: 'line-through' }}>$39</span>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$19.50</span>
             </div>
-            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>per month</p>
+            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '4px' }}>per month</p>
+            <p style={{ fontSize: '11px', color: '#C03030', fontWeight: 600, marginBottom: '24px' }}>* Limited time launch offer</p>
             <div style={{ flex: 1 }}>
               {['Full access to The 4-Week Intensive curriculum', 'Exclusive problems not found online', 'Unlimited mock interviews', 'Company filters', 'Priority access to new premium problems', 'Up to 3 expert email responses per week'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
@@ -630,7 +632,8 @@ export default function LandingPage() {
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1, textDecoration: 'line-through' }}>$179</span>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$89.50</span>
             </div>
-            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>$14.92/mo · save 50%</p>
+            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '4px' }}>$14.92/mo</p>
+            <p style={{ fontSize: '11px', color: '#C03030', fontWeight: 600, marginBottom: '24px' }}>* Limited time launch offer</p>
             <div style={{ flex: 1 }}>
               {['Everything in 1-month Premium', 'Best value for full interview prep cycle', 'Lock in price for 6 months'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
