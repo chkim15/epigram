@@ -2,11 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Settings, CreditCard, LogOut, BookOpen, HelpCircle } from 'lucide-react';
+import { Settings, CreditCard, LogOut, HelpCircle } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { User } from '@supabase/supabase-js';
 import SettingsModal from '@/components/settings/SettingsModal';
-import { useActiveLearning } from '@/hooks/useActiveLearning';
 
 interface UserProfileDropdownProps {
   user: User;
@@ -19,9 +18,6 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'account' | 'personalization' | 'subscription' | 'account-management'>('account');
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { isActiveLearningMode, toggleActiveLearningMode } = useActiveLearning();
-
-
   // Get user initials for avatar
   const getInitials = () => {
     if (user?.user_metadata?.full_name) {
@@ -121,26 +117,6 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
             <span>Pricing</span>
           </button>
 
-
-          {/* Active Learning Toggle */}
-          <button
-            onClick={toggleActiveLearningMode}
-            className="w-full flex items-center justify-between px-3 py-1.5 transition-colors cursor-pointer text-sm"
-            style={{ color: 'var(--foreground)' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Active Learning</span>
-            </div>
-            <div className="relative">
-              <div className="w-8 h-4 rounded-full transition-colors" style={{
-                backgroundColor: isActiveLearningMode ? '#10b981' : 'var(--muted)'
-              }}></div>
-              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${isActiveLearningMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}></div>
-            </div>
-          </button>
 
           {/* Get Help */}
           <button

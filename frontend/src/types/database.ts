@@ -145,7 +145,7 @@ export interface Database {
           id: string;
           user_id: string;
           problem_id: string;
-          difficulty: string | null;
+          self_assessment: string | null;
           interview_seen: string | null;
           interview_firm: string | null;
           solution_clear: string | null;

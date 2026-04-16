@@ -9,7 +9,6 @@ import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
 import { Subproblem, Solution, Problem, Document } from "@/types/database";
 import { useAuthStore } from "@/stores/authStore";
-import { useActiveLearning } from "@/hooks/useActiveLearning";
 import ActiveLearningPrompt from "@/components/problems/ActiveLearningPrompt";
 import { NotesTab } from '@/components/notes/NotesTab';
 
@@ -35,14 +34,16 @@ interface SolutionsTabProps {
   currentDocument: Document | null;
   problemSolutions?: Solution[];
   subproblemSolutions?: { [key: string]: Solution[] };
+  selfAssessmentAnswered: boolean;
 }
 
-function SolutionsTab({ 
-  currentProblem, 
-  currentSubproblems, 
+function SolutionsTab({
+  currentProblem,
+  currentSubproblems,
   currentDocument,
   problemSolutions: parentProblemSolutions,
-  subproblemSolutions: parentSubproblemSolutions 
+  subproblemSolutions: parentSubproblemSolutions,
+  selfAssessmentAnswered
 }: SolutionsTabProps) {
   const [problemSolutions, setProblemSolutions] = useState<Solution[]>(parentProblemSolutions || []);
   const [subproblemSolutions, setSubproblemSolutions] = useState<{ [key: string]: Solution[] }>(parentSubproblemSolutions || {});
@@ -50,8 +51,6 @@ function SolutionsTab({
   const [selectedSubproblemSolutions, setSelectedSubproblemSolutions] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState<'solutions' | 'comments'>('solutions');
-  const [hasSubmittedAnswer, setHasSubmittedAnswer] = useState<{ [key: string]: boolean }>({});
-  const { isActiveLearningMode } = useActiveLearning();
   const { user } = useAuthStore();
 
   // Update solutions when parent provides them
@@ -63,99 +62,6 @@ function SolutionsTab({
       setSubproblemSolutions(parentSubproblemSolutions);
     }
   }, [parentProblemSolutions, parentSubproblemSolutions]);
-
-  // Check if user has submitted answers
-  useEffect(() => {
-    const checkSubmittedAnswers = async () => {
-      if (!user || !currentProblem) {
-        setHasSubmittedAnswer({});
-        return;
-      }
-
-      try {
-        // Check main problem answer
-        const { data: mainAnswer } = await supabase
-          .from('user_answers')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('problem_id', currentProblem.id)
-          .is('subproblem_id', null)
-          .limit(1);
-
-        const submitted: { [key: string]: boolean } = {
-          main: !!(mainAnswer && mainAnswer.length > 0)
-        };
-
-        // Check subproblem answers
-        for (const subproblem of currentSubproblems) {
-          const { data: subAnswer } = await supabase
-            .from('user_answers')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('subproblem_id', subproblem.id)
-            .limit(1);
-
-          submitted[`sub_${subproblem.key}`] = !!(subAnswer && subAnswer.length > 0);
-        }
-
-        setHasSubmittedAnswer(submitted);
-      } catch (err) {
-        console.error('Error checking submitted answers:', err);
-      }
-    };
-
-    checkSubmittedAnswers();
-  }, [user, currentProblem, currentSubproblems]);
-
-  // Listen for answer submission events from ProblemViewer
-  useEffect(() => {
-    const handleAnswerSubmitted = (event: CustomEvent) => {
-      if (event.detail.problemId === currentProblem?.id) {
-        // Re-check submitted answers when an answer is submitted
-        const checkSubmittedAnswers = async () => {
-          if (!user || !currentProblem) return;
-
-          try {
-            // Check main problem answer
-            const { data: mainAnswer } = await supabase
-              .from('user_answers')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('problem_id', currentProblem.id)
-              .is('subproblem_id', null)
-              .limit(1);
-
-            const submitted: { [key: string]: boolean } = {
-              main: !!(mainAnswer && mainAnswer.length > 0)
-            };
-
-            // Check subproblem answers
-            for (const subproblem of currentSubproblems) {
-              const { data: subAnswer } = await supabase
-                .from('user_answers')
-                .select('id')
-                .eq('user_id', user.id)
-                .eq('subproblem_id', subproblem.id)
-                .limit(1);
-
-              submitted[`sub_${subproblem.key}`] = !!(subAnswer && subAnswer.length > 0);
-            }
-
-            setHasSubmittedAnswer(submitted);
-          } catch (err) {
-            console.error('Error checking submitted answers:', err);
-          }
-        };
-
-        checkSubmittedAnswers();
-      }
-    };
-
-    window.addEventListener('answerSubmitted', handleAnswerSubmitted as EventListener);
-    return () => {
-      window.removeEventListener('answerSubmitted', handleAnswerSubmitted as EventListener);
-    };
-  }, [user, currentProblem, currentSubproblems]);
 
   // Fetch solutions when problem changes (only if not provided by parent)
   useEffect(() => {
@@ -260,7 +166,8 @@ function SolutionsTab({
   const hasSolutions = problemSolutions.length > 0 || Object.values(subproblemSolutions).some(sols => sols.length > 0);
   const hasComments = currentProblem?.comment || currentSubproblems.some(sp => sp.comment);
   const hasMultipleSolutions = problemSolutions.length > 1;
-  const showTabs = hasMultipleSolutions || (hasSolutions && hasComments);
+  const hasLockedSolutions = user && !selfAssessmentAnswered && hasSolutions;
+  const showTabs = !hasLockedSolutions && (hasMultipleSolutions || (hasSolutions && hasComments));
 
   if (!hasSolutions && !hasComments) {
     return (
@@ -347,13 +254,6 @@ function SolutionsTab({
       <div className="flex-1 overflow-y-auto custom-scrollbar solutions-tab-content">
         {activeSubTab === 'solutions' && hasSolutions ? (
           (() => {
-            // Check if any solutions are locked due to active learning mode
-            const hasLockedSolutions = isActiveLearningMode && user && (
-              (!hasSubmittedAnswer.main && problemSolutions.length > 0) ||
-              Object.keys(subproblemSolutions).some(key => !hasSubmittedAnswer[`sub_${key}`])
-            );
-
-            // If there are locked solutions, show single prompt
             if (hasLockedSolutions) {
               return <ActiveLearningPrompt problemKey="main" />;
             }
@@ -478,6 +378,7 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
   const [subproblemSolutions, setSubproblemSolutions] = useState<{ [key: string]: Solution[] }>({});
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messageOrder, setMessageOrder] = useState(0);
+  const [selfAssessmentAnswered, setSelfAssessmentAnswered] = useState(false);
   const contentEditableRef = useRef<HTMLDivElement>(null);
 
   // Import MathLive when component mounts
@@ -533,6 +434,33 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
 
     fetchSubproblems();
   }, [currentProblem]);
+
+  // Reset self-assessment gate on problem change, pre-unlock if already answered
+  useEffect(() => {
+    setSelfAssessmentAnswered(false);
+    if (!user || !currentProblem) return;
+
+    supabase
+      .from('user_problem_feedback')
+      .select('self_assessment')
+      .eq('user_id', user.id)
+      .eq('problem_id', currentProblem.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.self_assessment) setSelfAssessmentAnswered(true);
+      });
+  }, [user, currentProblem?.id]);
+
+  // Unlock solution when user taps Got it / Partial / Stuck
+  useEffect(() => {
+    const handleSelfAssessment = (event: CustomEvent) => {
+      if (event.detail.problemId === currentProblem?.id) {
+        setSelfAssessmentAnswered(true);
+      }
+    };
+    window.addEventListener('selfAssessmentAnswered', handleSelfAssessment as EventListener);
+    return () => window.removeEventListener('selfAssessmentAnswered', handleSelfAssessment as EventListener);
+  }, [currentProblem?.id]);
 
   // Fetch solutions when current problem changes
   useEffect(() => {
@@ -1286,12 +1214,13 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
         )}
 
         {activeTab === 'solutions' && (
-          <SolutionsTab 
+          <SolutionsTab
             currentProblem={currentProblem}
             currentSubproblems={currentSubproblems}
             problemSolutions={problemSolutions}
             subproblemSolutions={subproblemSolutions}
             currentDocument={currentDocument}
+            selfAssessmentAnswered={selfAssessmentAnswered}
           />
         )}
 

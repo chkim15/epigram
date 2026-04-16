@@ -1516,7 +1516,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                   
                   {/* Answer input for main problem (only if no subproblems) */}
                   {subproblems.length === 0 && (
-                    <div className="mt-4 space-y-2" data-answer-section="main">
+                    <div className="mt-4 space-y-2" data-answer-section="main" style={{ display: 'none' }}>
                       <div className="flex gap-2 items-start">
                         <div className="flex-1 flex items-start gap-2 rounded-2xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
                           <button
@@ -1693,7 +1693,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                             )}
                             
                             {/* Answer input for subproblem */}
-                            <div className="mt-4 space-y-2" data-answer-section={`sub_${subproblem.key}`}>
+                            <div className="mt-4 space-y-2" data-answer-section={`sub_${subproblem.key}`} style={{ display: 'none' }}>
                               <div className="flex gap-2 items-start">
                                 <div className="flex-1 flex items-start gap-2 rounded-2xl border px-2" style={{ backgroundColor: 'var(--input)', borderColor: 'var(--border)' }}>
                                   <button
