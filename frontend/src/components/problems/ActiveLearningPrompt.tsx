@@ -19,30 +19,19 @@ export default function ActiveLearningPrompt({}: ActiveLearningPromptProps) {
 
           <div className="space-y-3">
             <h3 className="text-xl font-semibold" style={{ color: 'var(--foreground)' }}>
-              Solution Locked
+              Try it first
             </h3>
 
             <div className="text-center" style={{ color: 'var(--muted-foreground)' }}>
               <p className="text-base">
-                Take a moment to solve this problem on your own!<br />
-                Active learning helps you retain knowledge better.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="rounded-xl p-4 border" style={{ backgroundColor: 'var(--card)', borderColor: '#a16207' }}>
-              <p className="text-sm" style={{ color: '#a16207' }}>
-                <span className="font-medium">Active Learning Mode is ON</span>
-                <br />
-                Submit your answer to unlock the solution.
+                Attempting before reading the answer is one of the most effective ways to retain new material.
               </p>
             </div>
           </div>
 
           <div className="pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
             <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-              💡 Still struggling? Ask your questions to AI Tutor!
+              Stuck? Ask the AI Tutor for a nudge — then rate yourself to unlock.
             </p>
           </div>
         </div>
