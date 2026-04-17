@@ -102,7 +102,7 @@ export default function CourseContent({ topicData, weekNum, topicNum }: CourseCo
             style={{ color: "var(--muted-foreground)" }}
           >
             <span>{topicData.timeEstimate}</span>
-            <span>{topicData.freeProblems} free + {topicData.premiumProblems} premium problems</span>
+            <span>{topicData.freeProblems + topicData.premiumProblems} problems</span>
             {topicData.prerequisites !== "None" && (
               <span>Prerequisites: {topicData.prerequisites}</span>
             )}

@@ -48,12 +48,6 @@ export default function CourseProblem({
         style={{ backgroundColor: headerBg }}
       >
         <span
-          className="text-xs font-medium px-2 py-0.5 rounded-full"
-          style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "white" }}
-        >
-          {isPremium ? "Premium" : "Free"}
-        </span>
-        <span
           className="text-xs font-medium"
           style={{ color: "white" }}
         >

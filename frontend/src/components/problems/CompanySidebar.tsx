@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Lock } from "lucide-react";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
+import SubscribeModal from "@/components/subscription/SubscribeModal";
 
 interface CompanyTag {
   name: string;
@@ -20,6 +22,8 @@ export default function CompanySidebar({
   onSelectCompany,
 }: CompanySidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const { isPro } = useSubscriptionStore();
 
   const filteredTags = companyTags.filter((tag) =>
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -45,16 +49,22 @@ export default function CompanySidebar({
   }
 
   return (
+    <>
+    <SubscribeModal
+      isOpen={showSubscribeModal}
+      onClose={() => setShowSubscribeModal(false)}
+      message="Company filters are a premium feature. Subscribe to filter problems by company."
+    />
     <div
       className="w-[280px] flex-shrink-0 border-l px-4 pt-12 pb-4 overflow-y-auto custom-scrollbar hidden lg:block"
       style={{ borderColor: 'var(--border)' }}
     >
-      <h3
-        className="text-sm font-semibold mb-3"
-        style={{ color: 'var(--foreground)' }}
-      >
-        Companies
-      </h3>
+      <div className="flex items-center gap-1.5 mb-3">
+        <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+          Companies
+        </h3>
+        {!isPro && <Lock size={12} style={{ color: 'var(--muted-foreground)' }} />}
+      </div>
 
       {/* Search */}
       <div className="relative mb-3">
@@ -82,7 +92,7 @@ export default function CompanySidebar({
           return (
             <button
               key={tag.name}
-              onClick={() => onSelectCompany(isActive ? null : tag.name)}
+              onClick={() => isPro ? onSelectCompany(isActive ? null : tag.name) : setShowSubscribeModal(true)}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm rounded-xl border cursor-pointer transition-colors"
               style={{
                 backgroundColor: isActive ? 'var(--foreground)' : 'transparent',
@@ -115,5 +125,6 @@ export default function CompanySidebar({
         })}
       </div>
     </div>
+    </>
   );
 }

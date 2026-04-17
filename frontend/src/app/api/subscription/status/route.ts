@@ -40,12 +40,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch user's subscription
-    const { data: subscription, error: subError } = await supabaseAdmin
-      .from('user_subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    // Fetch user's subscription and profile in parallel
+    const [{ data: subscription, error: subError }, { data: profile }] = await Promise.all([
+      supabaseAdmin.from('user_subscriptions').select('*').eq('user_id', user.id).single(),
+      supabaseAdmin.from('user_profiles').select('is_team').eq('user_id', user.id).single(),
+    ]);
+
+    const isTeam = profile?.is_team ?? false;
 
     // If no subscription found, user is on free plan
     if (subError || !subscription) {
@@ -58,7 +59,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         subscription: null,
         plan: freePlan,
-        status: 'free',
+        status: isTeam ? 'team' : 'free',
+        isTeam,
       });
     }
 
@@ -72,7 +74,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       subscription,
       plan,
-      status: subscription.status,
+      status: isTeam ? 'team' : subscription.status,
+      isTeam,
     });
   } catch (error) {
     console.error('Subscription status error:', error);

@@ -44,7 +44,7 @@ export default function MdxTopicHeader({ topicData, hideLearningObjectives }: Md
           className="mt-1.5 text-xs"
           style={{ color: "var(--muted-foreground)" }}
         >
-          {topicData.freeProblems} free + {topicData.premiumProblems} premium problems
+          {topicData.freeProblems + topicData.premiumProblems} problems
         </div>
         {topicData.prerequisites && (
           <div

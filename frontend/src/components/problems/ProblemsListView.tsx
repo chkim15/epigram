@@ -2,12 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, CheckCircle, Circle, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { Search, CheckCircle, Circle, ChevronDown, ChevronUp, Star, Lock } from "lucide-react";
 import { MathContent } from "@/lib/utils/katex";
 import { slugify } from "@/lib/utils/slugify";
+import { FREE_PROBLEM_IDS } from "@/data/freeProblemIds";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
+import SubscribeModal from "@/components/subscription/SubscribeModal";
 
 interface ProblemRow {
   id: string;
+  problem_id: string | null;
   problem_name: string | null;
   difficulty: string | null;
 }
@@ -80,9 +84,17 @@ export default function ProblemsListView({
   onToggleBookmark,
 }: ProblemsListViewProps) {
   const router = useRouter();
+  const { isPro } = useSubscriptionStore();
   const [topicsExpanded, setTopicsExpanded] = useState(false);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
   return (
+    <>
+    <SubscribeModal
+      isOpen={showSubscribeModal}
+      onClose={() => setShowSubscribeModal(false)}
+      message="This problem requires a premium subscription. Subscribe to access all problems."
+    />
     <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4">
       {/* Course Card */}
       <div
@@ -282,19 +294,25 @@ export default function ProblemsListView({
             const isBookmarked = bookmarkedSet.has(problem.id);
             const diffColor = DIFFICULTY_COLORS[problem.difficulty || ''] || 'var(--muted-foreground)';
             const diffLabel = DIFFICULTY_LABELS[problem.difficulty || ''] || problem.difficulty || '—';
+            const isLocked = !isPro && !FREE_PROBLEM_IDS.has(problem.problem_id ?? '');
 
             return (
               <div
                 key={problem.id}
-                onClick={() => router.push(`/problems/${problem.problem_name ? slugify(problem.problem_name) : problem.id}`)}
+                onClick={() => isLocked
+                  ? setShowSubscribeModal(true)
+                  : router.push(`/problems/${problem.problem_name ? slugify(problem.problem_name) : problem.id}`)
+                }
                 className="group flex items-center py-3 px-2 border-b cursor-pointer transition-colors"
                 style={{ borderColor: 'var(--border)' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--sidebar-background)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                {/* Status */}
+                {/* Status / Lock */}
                 <div className="w-8 flex-shrink-0">
-                  {isCompleted ? (
+                  {isLocked ? (
+                    <Lock className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
+                  ) : isCompleted ? (
                     <CheckCircle className="h-4 w-4" style={{ color: '#10b981' }} />
                   ) : (
                     <Circle className="h-4 w-4" style={{ color: 'var(--border)' }} />
@@ -319,31 +337,33 @@ export default function ProblemsListView({
                   </span>
                 </div>
 
-                {/* Bookmark Star */}
+                {/* Bookmark Star — hidden for locked rows */}
                 <div className="w-10 flex justify-center flex-shrink-0">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleBookmark(problem.id);
-                    }}
-                    className={`p-1 rounded-md cursor-pointer transition-colors ${
-                      isBookmarked ? '' : 'opacity-0 group-hover:opacity-100'
-                    }`}
-                    onMouseEnter={(e) => {
-                      if (!isBookmarked) e.currentTarget.style.backgroundColor = 'var(--sidebar-accent)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <Star
-                      className="h-4 w-4"
-                      style={{
-                        color: isBookmarked ? '#eab308' : 'var(--muted-foreground)',
-                        fill: isBookmarked ? '#eab308' : 'none',
+                  {!isLocked && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleBookmark(problem.id);
                       }}
-                    />
-                  </button>
+                      className={`p-1 rounded-md cursor-pointer transition-colors ${
+                        isBookmarked ? '' : 'opacity-0 group-hover:opacity-100'
+                      }`}
+                      onMouseEnter={(e) => {
+                        if (!isBookmarked) e.currentTarget.style.backgroundColor = 'var(--sidebar-accent)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      <Star
+                        className="h-4 w-4"
+                        style={{
+                          color: isBookmarked ? '#eab308' : 'var(--muted-foreground)',
+                          fill: isBookmarked ? '#eab308' : 'none',
+                        }}
+                      />
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -351,5 +371,6 @@ export default function ProblemsListView({
         )}
       </div>
     </div>
+    </>
   );
 }

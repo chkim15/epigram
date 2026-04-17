@@ -14,6 +14,7 @@ interface SubscriptionState {
   usage: UsageLimits;
   isLoading: boolean;
   error: string | null;
+  isTeam: boolean;
 
   // Computed properties
   isPro: boolean;
@@ -27,7 +28,7 @@ interface SubscriptionState {
   fetchUsage: () => Promise<void>;
   checkFeatureAccess: (feature: FeatureType) => Promise<{ allowed: boolean; reason?: string }>;
   trackUsage: (feature: FeatureType) => Promise<{ success: boolean; remaining: number }>;
-  startCheckout: (planType: 'weekly' | 'monthly' | 'yearly', promoCode?: string) => Promise<{ url?: string; error?: string }>;
+  startCheckout: (planType: 'monthly' | 'six_month', promoCode?: string) => Promise<{ url?: string; error?: string }>;
   cancelSubscription: () => Promise<{ showRetentionOffer: boolean; error?: string }>;
   acceptRetentionDiscount: () => Promise<{ success: boolean; error?: string }>;
   declineRetentionAndCancel: () => Promise<{ success: boolean; error?: string }>;
@@ -64,32 +65,14 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   },
   isLoading: false,
   error: null,
+  isTeam: false,
 
-  // Computed properties
-  get isPro() {
-    // TEMPORARY: Everything is free — bypass subscription check
-    return true;
-  },
-
-  get isTrial() {
-    const { subscription } = get();
-    return subscription?.status === 'trialing';
-  },
-
-  get isFree() {
-    const { subscription } = get();
-    return !subscription || subscription.plan_id === 'free';
-  },
-
-  get hasUsedTrial() {
-    const { subscription } = get();
-    return subscription?.has_used_trial || false;
-  },
-
-  get canStartTrial() {
-    const { hasUsedTrial, isFree } = get();
-    return isFree && !hasUsedTrial;
-  },
+  // Computed properties (stored explicitly — Zustand's Object.assign flattens JS getters)
+  isPro: false,
+  isTrial: false,
+  isFree: true,
+  hasUsedTrial: false,
+  canStartTrial: false,
 
   fetchSubscription: async () => {
     set({ isLoading: true, error: null });
@@ -100,9 +83,25 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         throw new Error('Failed to fetch subscription');
       }
       const data = await response.json();
+      const isTeam: boolean = data.isTeam ?? false;
+      const subscription: UserSubscription | null = data.subscription ?? null;
+      const isPro =
+        isTeam ||
+        ((subscription?.status === 'active' || subscription?.status === 'trialing') &&
+          subscription?.plan_id !== 'free');
+      const isTrial = subscription?.status === 'trialing' || false;
+      const isFree = !subscription || subscription.plan_id === 'free';
+      const hasUsedTrial = subscription?.has_used_trial ?? false;
+      const canStartTrial = isFree && !hasUsedTrial;
       set({
-        subscription: data.subscription,
+        subscription,
         plan: data.plan,
+        isTeam,
+        isPro,
+        isTrial,
+        isFree,
+        hasUsedTrial,
+        canStartTrial,
         isLoading: false,
       });
     } catch (error) {
@@ -207,7 +206,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     }
   },
 
-  startCheckout: async (planType: 'weekly' | 'monthly' | 'yearly', promoCode?: string) => {
+  startCheckout: async (planType: 'monthly' | 'six_month', promoCode?: string) => {
     set({ isLoading: true, error: null });
     try {
       const headers = await getAuthHeaders();
@@ -372,6 +371,12 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       },
       isLoading: false,
       error: null,
+      isTeam: false,
+      isPro: false,
+      isTrial: false,
+      isFree: true,
+      hasUsedTrial: false,
+      canStartTrial: false,
     });
   },
 }));

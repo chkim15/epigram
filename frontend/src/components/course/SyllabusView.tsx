@@ -1,12 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Lock } from "lucide-react";
 import { COURSE_WEEKS } from "@/data/course/course-structure";
 import { useCourseProgress } from "@/hooks/useCourseProgress";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
+
+function isPremiumTopic(weekNum: number, topicNum: number) {
+  return weekNum > 1 || topicNum > 2;
+}
 
 export default function SyllabusView() {
   const router = useRouter();
   const { getTopicStatus, getWeekProgress } = useCourseProgress();
+  const { isPro } = useSubscriptionStore();
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -123,17 +130,18 @@ export default function SyllabusView() {
                 <div className="space-y-1">
                   {week.topics.map((topic, idx) => {
                     const status = getTopicStatus(week.weekNum, topic.topicNum);
+                    const locked = !isPro && isPremiumTopic(week.weekNum, topic.topicNum);
 
                     return (
                       <button
                         key={topic.slug}
                         onClick={() =>
-                          router.push(
-                            `/curriculum/${week.slug}/${topic.slug}`
-                          )
+                          locked
+                            ? router.push("/upgrade")
+                            : router.push(`/curriculum/${week.slug}/${topic.slug}`)
                         }
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-colors"
-                        style={{ color: "var(--foreground)" }}
+                        style={{ color: locked ? "var(--muted-foreground)" : "var(--foreground)" }}
                         onMouseEnter={(e) =>
                           (e.currentTarget.style.backgroundColor =
                             "var(--sidebar-background)")
@@ -142,54 +150,23 @@ export default function SyllabusView() {
                           (e.currentTarget.style.backgroundColor = "transparent")
                         }
                       >
-                        {/* Status icon */}
+                        {/* Status / lock icon */}
                         <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
-                          {status === "completed" ? (
-                            <svg
-                              width="18"
-                              height="18"
-                              viewBox="0 0 18 18"
-                              fill="none"
-                            >
+                          {locked ? (
+                            <Lock size={15} strokeWidth={2} style={{ color: "var(--muted-foreground)" }} />
+                          ) : status === "completed" ? (
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                               <circle cx="9" cy="9" r="9" fill="#10b981" />
-                              <path
-                                d="M5 9.5L7.5 12L13 6.5"
-                                stroke="white"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
+                              <path d="M5 9.5L7.5 12L13 6.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           ) : status === "in_progress" ? (
-                            <svg
-                              width="18"
-                              height="18"
-                              viewBox="0 0 18 18"
-                              fill="none"
-                            >
-                              <circle
-                                cx="9"
-                                cy="9"
-                                r="8"
-                                stroke="#f59e0b"
-                                strokeWidth="2"
-                              />
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                              <circle cx="9" cy="9" r="8" stroke="#f59e0b" strokeWidth="2" />
                               <circle cx="9" cy="9" r="4" fill="#f59e0b" />
                             </svg>
                           ) : (
-                            <svg
-                              width="18"
-                              height="18"
-                              viewBox="0 0 18 18"
-                              fill="none"
-                            >
-                              <circle
-                                cx="9"
-                                cy="9"
-                                r="8"
-                                stroke="var(--border)"
-                                strokeWidth="2"
-                              />
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                              <circle cx="9" cy="9" r="8" stroke="var(--border)" strokeWidth="2" />
                             </svg>
                           )}
                         </span>
@@ -215,7 +192,7 @@ export default function SyllabusView() {
               borderColor: "var(--border)",
               backgroundColor: "var(--background)",
             }}
-            onClick={() => router.push("/curriculum/departing")}
+            onClick={() => isPro ? router.push("/curriculum/departing") : router.push("/upgrade")}
             onMouseEnter={(e) =>
               (e.currentTarget.style.backgroundColor = "var(--sidebar-background)")
             }
@@ -235,10 +212,11 @@ export default function SyllabusView() {
               </span>
               <h2
                 className="text-lg font-semibold"
-                style={{ color: "var(--foreground)" }}
+                style={{ color: isPro ? "var(--foreground)" : "var(--muted-foreground)" }}
               >
                 Interview Day
               </h2>
+              {!isPro && <Lock size={14} strokeWidth={2} style={{ color: "var(--muted-foreground)" }} />}
             </div>
             <p
               className="text-sm mt-2"
