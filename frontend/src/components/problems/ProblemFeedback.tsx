@@ -11,14 +11,14 @@ interface ProblemFeedbackProps {
 type Step = 1 | 2 | 3 | 'done';
 
 const COMPANIES = [
-  'Jane Street', 'Citadel Securities', 'Two Sigma', 'DE Shaw', 'Virtu Financial',
+  'Jane Street', 'Citadel', 'Citadel Securities', 'Two Sigma', 'DE Shaw', 'Virtu Financial',
   'Five Rings Capital', 'Optiver', 'IMC Trading', 'Flow Traders', 'Akuna Capital',
   'SIG (Susquehanna International Group)', 'DRW', 'Jump Trading', 'Hudson River Trading',
   'Tower Research Capital', 'Belvedere Trading', 'Tibra Capital', 'Maven Securities',
   'Qube Research & Technologies (QRT)', 'XTX Markets',
   'Renaissance Technologies', 'Millennium Management', 'Point72', 'Bridgewater Associates',
   'Man AHL', 'Winton Group', 'WorldQuant', 'PDT Partners', 'TGS Management',
-  'Two Sigma Investments', 'Squarepoint Capital', 'Balyasny Asset Management',
+  'Squarepoint Capital', 'Balyasny Asset Management',
   'ExodusPoint Capital', 'Cubist Systematic Strategies',
   'Goldman Sachs', 'Morgan Stanley', 'JP Morgan', 'Barclays', 'Citi',
   'Deutsche Bank', 'BNP Paribas', 'UBS', 'HSBC',
