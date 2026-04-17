@@ -16,7 +16,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   const { signOut } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'account' | 'personalization' | 'subscription' | 'account-management'>('account');
+  const [settingsTab, setSettingsTab] = useState<'account' | 'profile' | 'subscription' | 'account-management'>('account');
   const dropdownRef = useRef<HTMLDivElement>(null);
   // Get user initials for avatar
   const getInitials = () => {
@@ -104,9 +104,8 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
           {/* Pricing */}
           <button
             onClick={() => {
-              setSettingsTab('subscription');
-              setIsSettingsOpen(true);
               setIsOpen(false);
+              router.push('/upgrade');
             }}
             className="w-full flex items-center gap-2 px-3 py-1.5 transition-colors cursor-pointer text-sm"
             style={{ color: 'var(--foreground)' }}

@@ -1,39 +1,62 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { X, User, Palette, Trash2, Check } from 'lucide-react';
+import { X, User, Trash2, Check, Briefcase } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
-import { useAppTheme, themeConfigs, Theme } from '@/lib/utils/theme';
+import {
+  BACKGROUND_OPTIONS,
+  FIRM_OPTIONS,
+  PREP_LEVEL_OPTIONS,
+  ROLE_OPTIONS,
+  TIMELINE_OPTIONS,
+  type Background,
+  type FirmSlug,
+  type PrepLevel,
+  type RoleType,
+  type Timeline,
+} from '@/lib/onboarding/options';
 // TEMPORARY: SubscriptionTab hidden — everything is free
 // import SubscriptionTab from './SubscriptionTab';
 
 interface UserProfile {
-  school: string | null;
-  course: string | null;
-  referral_source: string | null;
+  background: Background | null;
+  target_firms: FirmSlug[];
+  target_firms_other: string | null;
+  role_type: RoleType | null;
+  timeline: Timeline | null;
+  prep_level: PrepLevel | null;
   onboarding_completed: boolean;
 }
+
+type SettingsTab =
+  | 'account'
+  | 'profile'
+  | 'subscription'
+  | 'account-management';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialTab?: 'account' | 'personalization' | 'subscription' | 'account-management';
+  initialTab?: SettingsTab;
 }
 
 export default function SettingsModal({ isOpen, onClose, initialTab = 'account' }: SettingsModalProps) {
   const { user, deleteAccount } = useAuthStore();
-  const { theme, setTheme } = useAppTheme();
-  const [activeTab, setActiveTab] = useState<'account' | 'personalization' | 'subscription' | 'account-management'>(initialTab);
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Profile tab edit state
+  const [profileBackground, setProfileBackground] = useState<Background | ''>('');
+  const [profileFirms, setProfileFirms] = useState<FirmSlug[]>([]);
+  const [profileFirmsOther, setProfileFirmsOther] = useState('');
+  const [profileRole, setProfileRole] = useState<RoleType | ''>('');
+  const [profileTimeline, setProfileTimeline] = useState<Timeline | ''>('');
+  const [profilePrep, setProfilePrep] = useState<PrepLevel | ''>('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
 
   // Set to initial tab whenever modal opens
   useEffect(() => {
@@ -48,18 +71,58 @@ export default function SettingsModal({ isOpen, onClose, initialTab = 'account' 
       if (user && isOpen) {
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('school, course, referral_source, onboarding_completed')
+          .select('background, target_firms, target_firms_other, role_type, timeline, prep_level, onboarding_completed')
           .eq('user_id', user.id)
           .single();
-        
+
         if (profile) {
-          setUserProfile(profile);
+          const typed = profile as unknown as UserProfile;
+          setProfileBackground((typed.background as Background) ?? '');
+          setProfileFirms(typed.target_firms ?? []);
+          setProfileFirmsOther(typed.target_firms_other ?? '');
+          setProfileRole((typed.role_type as RoleType) ?? '');
+          setProfileTimeline((typed.timeline as Timeline) ?? '');
+          setProfilePrep((typed.prep_level as PrepLevel) ?? '');
+          setSaveStatus('idle');
         }
       }
     }
-    
+
     fetchUserProfile();
   }, [user, isOpen]);
+
+  const toggleProfileFirm = (firm: FirmSlug) => {
+    setSaveStatus('idle');
+    setProfileFirms((prev) =>
+      prev.includes(firm) ? prev.filter((f) => f !== firm) : [...prev, firm],
+    );
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    setSaveStatus('idle');
+    const otherFundsSelected = profileFirms.includes('other_funds');
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({
+        background: profileBackground || null,
+        target_firms: profileFirms,
+        target_firms_other: otherFundsSelected ? profileFirmsOther.trim() : null,
+        role_type: profileRole || null,
+        timeline: profileTimeline || null,
+        prep_level: profilePrep || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', user.id);
+    setIsSaving(false);
+    if (error) {
+      console.error('Error saving profile:', error);
+      setSaveStatus('error');
+      return;
+    }
+    setSaveStatus('saved');
+  };
 
   if (!isOpen) return null;
 
@@ -107,83 +170,223 @@ export default function SettingsModal({ isOpen, onClose, initialTab = 'account' 
       </div>
 
       {/* Date Created */}
-      <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+      <div className="flex items-center justify-between py-3">
         <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>Date Created</span>
         <span className="text-sm" style={{ color: 'var(--foreground)' }}>{formatDate(user?.created_at)}</span>
-      </div>
-
-      {/* School */}
-      <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--border)' }}>
-        <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>School</span>
-        <span className="text-sm" style={{ color: 'var(--foreground)' }}>
-          {userProfile?.school || 'Not specified'}
-        </span>
-      </div>
-
-      {/* Course */}
-      <div className="flex items-center justify-between py-3">
-        <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>Course</span>
-        <span className="text-sm" style={{ color: 'var(--foreground)' }}>
-          {userProfile?.course || 'Not specified'}
-        </span>
       </div>
     </div>
   );
 
-  const renderPersonalizationTab = () => {
-    return (
-      <div className="space-y-6">
-        {/* Theme Selection */}
-        <div>
-          <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--foreground)' }}>
-            Appearance
-          </h3>
-          <div className="grid grid-cols-1 gap-3">
-            {mounted && (Object.keys(themeConfigs) as Theme[]).map((themeName) => {
-              const config = themeConfigs[themeName];
-              const isSelected = theme === themeName;
+  const otherFundsSelected = profileFirms.includes('other_funds');
 
-              return (
-                <button
-                  key={themeName}
-                  onClick={() => setTheme(themeName)}
-                  className="flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer"
-                  style={{
-                    borderColor: isSelected ? 'var(--foreground)' : 'var(--border)',
-                    backgroundColor: isSelected ? 'var(--accent)' : 'transparent'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'var(--muted-foreground)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'var(--border)';
-                    }
-                  }}
-                >
-                  <div className="flex-1 text-left">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                        {config.label}
-                      </span>
-                      {isSelected && (
-                        <Check className="w-4 h-4" style={{ color: 'var(--foreground)' }} />
-                      )}
-                    </div>
-                    <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                      {config.description}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+  const renderProfileTab = () => (
+    <div className="space-y-6 max-h-[480px] overflow-y-auto custom-scrollbar pr-2">
+      {/* Background */}
+      <div>
+        <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
+          Background
+        </h4>
+        <div className="grid grid-cols-1 gap-2">
+          {BACKGROUND_OPTIONS.map((opt) => {
+            const selected = profileBackground === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  setSaveStatus('idle');
+                  setProfileBackground(opt.value);
+                }}
+                className="flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer text-left"
+                style={{
+                  borderColor: selected ? 'var(--foreground)' : 'var(--border)',
+                  backgroundColor: selected ? 'var(--accent)' : 'transparent',
+                }}
+              >
+                <span className="text-sm" style={{ color: 'var(--foreground)' }}>
+                  {opt.label}
+                </span>
+                {selected && (
+                  <Check className="w-4 h-4 ml-auto" style={{ color: 'var(--foreground)' }} />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
-    );
-  };
+
+      {/* Target firms */}
+      <div>
+        <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
+          Target firms
+        </h4>
+        <div className="space-y-1.5">
+          {FIRM_OPTIONS.map((firm) => {
+            const selected = profileFirms.includes(firm.value);
+            const showOtherInput = firm.value === 'other_funds' && otherFundsSelected;
+            return (
+              <div key={firm.value}>
+                <button
+                  onClick={() => toggleProfileFirm(firm.value)}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg border-2 transition-all cursor-pointer text-left"
+                  style={{
+                    borderColor: selected ? 'var(--foreground)' : 'var(--border)',
+                    backgroundColor: selected ? 'var(--accent)' : 'transparent',
+                  }}
+                >
+                  <div
+                    className="flex items-center justify-center flex-shrink-0"
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 4,
+                      border: `2px solid ${selected ? 'var(--foreground)' : 'var(--muted-foreground)'}`,
+                      backgroundColor: selected ? 'var(--foreground)' : 'transparent',
+                    }}
+                  >
+                    {selected && (
+                      <Check className="w-3 h-3" style={{ color: 'var(--background)' }} />
+                    )}
+                  </div>
+                  <span className="text-sm" style={{ color: 'var(--foreground)' }}>
+                    {firm.label}
+                  </span>
+                </button>
+                {showOtherInput && (
+                  <input
+                    type="text"
+                    value={profileFirmsOther}
+                    onChange={(e) => {
+                      setSaveStatus('idle');
+                      setProfileFirmsOther(e.target.value);
+                    }}
+                    placeholder="Which ones?"
+                    className="mt-1.5 w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid var(--border)',
+                      color: '#141310',
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Role type */}
+      <div>
+        <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
+          Target role
+        </h4>
+        <div className="grid grid-cols-1 gap-2">
+          {ROLE_OPTIONS.map((opt) => {
+            const selected = profileRole === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  setSaveStatus('idle');
+                  setProfileRole(opt.value);
+                }}
+                className="flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer text-left"
+                style={{
+                  borderColor: selected ? 'var(--foreground)' : 'var(--border)',
+                  backgroundColor: selected ? 'var(--accent)' : 'transparent',
+                }}
+              >
+                <span className="text-sm" style={{ color: 'var(--foreground)' }}>{opt.label}</span>
+                {selected && <Check className="w-4 h-4 ml-auto" style={{ color: 'var(--foreground)' }} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Timeline */}
+      <div>
+        <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
+          Timeline
+        </h4>
+        <div className="grid grid-cols-1 gap-2">
+          {TIMELINE_OPTIONS.map((opt) => {
+            const selected = profileTimeline === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  setSaveStatus('idle');
+                  setProfileTimeline(opt.value);
+                }}
+                className="flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer text-left"
+                style={{
+                  borderColor: selected ? 'var(--foreground)' : 'var(--border)',
+                  backgroundColor: selected ? 'var(--accent)' : 'transparent',
+                }}
+              >
+                <span className="text-sm" style={{ color: 'var(--foreground)' }}>{opt.label}</span>
+                {selected && <Check className="w-4 h-4 ml-auto" style={{ color: 'var(--foreground)' }} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Prep level */}
+      <div>
+        <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
+          Current preparation
+        </h4>
+        <div className="grid grid-cols-1 gap-2">
+          {PREP_LEVEL_OPTIONS.map((opt) => {
+            const selected = profilePrep === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  setSaveStatus('idle');
+                  setProfilePrep(opt.value);
+                }}
+                className="flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer text-left"
+                style={{
+                  borderColor: selected ? 'var(--foreground)' : 'var(--border)',
+                  backgroundColor: selected ? 'var(--accent)' : 'transparent',
+                }}
+              >
+                <span className="text-sm" style={{ color: 'var(--foreground)' }}>{opt.label}</span>
+                {selected && <Check className="w-4 h-4 ml-auto" style={{ color: 'var(--foreground)' }} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Save bar */}
+      <div className="flex items-center justify-end gap-3 pt-2">
+        {saveStatus === 'saved' && (
+          <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+            Saved
+          </span>
+        )}
+        {saveStatus === 'error' && (
+          <span className="text-xs" style={{ color: '#b91c1c' }}>
+            Could not save. Try again.
+          </span>
+        )}
+        <button
+          onClick={handleSaveProfile}
+          disabled={isSaving}
+          className="px-4 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: 'var(--foreground)',
+            color: 'var(--background)',
+          }}
+        >
+          {isSaving ? 'Saving...' : 'Save changes'}
+        </button>
+      </div>
+    </div>
+  );
 
   const renderAccountManagementTab = () => (
     <div className="space-y-6">
@@ -284,28 +487,28 @@ export default function SettingsModal({ isOpen, onClose, initialTab = 'account' 
             </button>
 
             <button
-              onClick={() => setActiveTab('personalization')}
+              onClick={() => setActiveTab('profile')}
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors cursor-pointer text-sm border-2"
               style={{
-                backgroundColor: activeTab === 'personalization' ? 'var(--accent)' : 'transparent',
-                borderColor: activeTab === 'personalization' ? 'var(--foreground)' : 'transparent',
-                color: activeTab === 'personalization' ? 'var(--foreground)' : 'var(--muted-foreground)'
+                backgroundColor: activeTab === 'profile' ? 'var(--accent)' : 'transparent',
+                borderColor: activeTab === 'profile' ? 'var(--foreground)' : 'transparent',
+                color: activeTab === 'profile' ? 'var(--foreground)' : 'var(--muted-foreground)'
               }}
               onMouseEnter={(e) => {
-                if (activeTab !== 'personalization') {
+                if (activeTab !== 'profile') {
                   e.currentTarget.style.backgroundColor = 'var(--accent)';
                   e.currentTarget.style.color = 'var(--foreground)';
                 }
               }}
               onMouseLeave={(e) => {
-                if (activeTab !== 'personalization') {
+                if (activeTab !== 'profile') {
                   e.currentTarget.style.backgroundColor = 'transparent';
                   e.currentTarget.style.color = 'var(--muted-foreground)';
                 }
               }}
             >
-              <Palette className="w-4 h-4" />
-              Personalization
+              <Briefcase className="w-4 h-4" />
+              Profile
             </button>
 
             {/* TEMPORARY: Subscription tab hidden — everything is free */}
@@ -346,7 +549,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab = 'account' 
 
           {/* Tab Content */}
           {activeTab === 'account' && renderAccountTab()}
-          {activeTab === 'personalization' && renderPersonalizationTab()}
+          {activeTab === 'profile' && renderProfileTab()}
           {/* TEMPORARY: Subscription tab hidden — everything is free */}
           {activeTab === 'account-management' && renderAccountManagementTab()}
         </div>

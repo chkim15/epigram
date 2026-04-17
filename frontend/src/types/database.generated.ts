@@ -566,37 +566,43 @@ export type Database = {
       user_profiles: {
         Row: {
           active_learning_mode: boolean | null
-          course: string | null
+          background: string | null
           created_at: string | null
           id: string
           onboarding_completed: boolean | null
-          referral_other: string | null
-          referral_source: string | null
-          school: string | null
+          prep_level: string | null
+          role_type: string | null
+          target_firms: string[]
+          target_firms_other: string | null
+          timeline: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           active_learning_mode?: boolean | null
-          course?: string | null
+          background?: string | null
           created_at?: string | null
           id?: string
           onboarding_completed?: boolean | null
-          referral_other?: string | null
-          referral_source?: string | null
-          school?: string | null
+          prep_level?: string | null
+          role_type?: string | null
+          target_firms?: string[]
+          target_firms_other?: string | null
+          timeline?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           active_learning_mode?: boolean | null
-          course?: string | null
+          background?: string | null
           created_at?: string | null
           id?: string
           onboarding_completed?: boolean | null
-          referral_other?: string | null
-          referral_source?: string | null
-          school?: string | null
+          prep_level?: string | null
+          role_type?: string | null
+          target_firms?: string[]
+          target_firms_other?: string | null
+          timeline?: string | null
           updated_at?: string | null
           user_id?: string
         }

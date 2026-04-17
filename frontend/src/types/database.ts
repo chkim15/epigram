@@ -186,10 +186,12 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          school: string | null;
-          course: string | null;
-          referral_source: string | null;
-          referral_other: string | null;
+          background: string | null;
+          target_firms: string[];
+          target_firms_other: string | null;
+          role_type: string | null;
+          timeline: string | null;
+          prep_level: string | null;
           onboarding_completed: boolean | null;
           active_learning_mode: boolean | null;
           subscription_tier: string;
