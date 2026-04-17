@@ -27,7 +27,7 @@ export default function SubscriptionTab() {
   } = useSubscriptionStore();
 
   const [showRetentionModal, setShowRetentionModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'six_month'>('six_month');
   const [isRestoring, setIsRestoring] = useState(false);
 
   useEffect(() => {
@@ -232,11 +232,10 @@ export default function SubscriptionTab() {
             <h3 className="text-base font-semibold mb-4" style={{ color: '#141310' }}>
               Start Your Free Trial
             </h3>
-            <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="grid grid-cols-2 gap-3 mb-4">
               {[
-                { id: 'weekly' as const, name: 'Weekly', price: '$4.99/week', popular: true },
-                { id: 'monthly' as const, name: 'Monthly', price: '$14.99/month', savings: 'Save 25%' },
-                { id: 'yearly' as const, name: 'Yearly', price: '$99.99/year', savings: 'Save 62%' },
+                { id: 'monthly' as const, name: 'Monthly', price: '$19/mo' },
+                { id: 'six_month' as const, name: '6 Months', price: '$89/6 mo', savings: 'Save 22%', popular: true },
               ].map((planOption) => (
                 <div
                   key={planOption.id}

@@ -568,7 +568,7 @@ export default function LandingPage() {
 
         {/* Launch offer banner */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#ffffff', border: '2px solid rgba(161,98,7,0.4)', borderRadius: '10px', padding: '14px 20px', marginBottom: '28px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600, color: '#a16207', flexShrink: 0 }}>🎯 Launch offer</span>
+          <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600, color: '#a16207', flexShrink: 0 }}>Launch offer</span>
           <span style={{ fontSize: '14px', color: '#141310' }}>Sign up before <span style={{ fontWeight: 700, color: '#a16207' }}>Sep 1</span> for <strong>50% off</strong> any paid plan — locked in for your entire committed period.</span>
         </div>
 
@@ -580,7 +580,7 @@ export default function LandingPage() {
             <div style={{ marginBottom: '4px' }}>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$0</span>
             </div>
-            <p style={{ fontSize: '13px', color: 'transparent', marginBottom: '4px', userSelect: 'none' }}>per month</p>
+            <p style={{ fontSize: '12px', color: '#9b9b93', marginBottom: '4px' }}>No credit card required</p>
             <p style={{ fontSize: '11px', color: 'transparent', marginBottom: '24px', userSelect: 'none' }}>* Limited time launch offer</p>
             <div style={{ flex: 1 }}>
               {['Access to first topics of The 4-Week Intensive curriculum', 'Two interview cheatsheets', 'Core free-tier problems'].map(f => (
@@ -601,11 +601,11 @@ export default function LandingPage() {
           <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>Premium</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1, textDecoration: 'line-through' }}>$39</span>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$19.50</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 500, color: '#9b9b93', lineHeight: 1, textDecoration: 'line-through' }}>$39</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$19</span>
+              <span style={{ fontSize: '16px', color: '#9b9b93', fontWeight: 400 }}>/mo</span>
             </div>
-            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '4px' }}>per month</p>
-            <p style={{ fontSize: '11px', color: '#C03030', fontWeight: 600, marginBottom: '24px' }}>* Limited time launch offer</p>
+            <p style={{ fontSize: '12px', color: '#9b9b93', marginBottom: '24px' }}>Billed every month · Cancel anytime</p>
             <div style={{ flex: 1 }}>
               {['Full access to The 4-Week Intensive curriculum', 'Exclusive problems not found online', 'Unlimited mock interviews', 'Company filters', 'Priority access to new premium problems', 'Up to 3 expert email responses per week'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
@@ -613,7 +613,10 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            <Link href="/auth/signup" style={{ display: 'block', marginTop: '28px' }}>
+            <div style={{ marginTop: '28px', background: 'rgba(161,98,7,0.07)', border: '1px solid rgba(161,98,7,0.2)', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px' }}>
+              <p style={{ fontSize: '12px', fontWeight: 600, color: '#a16207', marginBottom: 0 }}>Free 30-min intro call included</p>
+            </div>
+            <Link href="/auth/signup" style={{ display: 'block' }}>
               <button className="cursor-pointer" style={{ width: '100%', padding: '13px', borderRadius: '8px', border: 'none', background: '#a16207', color: '#fff', fontSize: '14px', fontWeight: 500, transition: 'background 0.2s' }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#8b5006')}
                 onMouseLeave={e => (e.currentTarget.style.background = '#a16207')}
@@ -629,11 +632,15 @@ export default function LandingPage() {
             </div>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>Premium · 6 months</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1, textDecoration: 'line-through' }}>$179</span>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$89.50</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 500, color: '#9b9b93', lineHeight: 1, textDecoration: 'line-through' }}>$179</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$89</span>
+              <span style={{ fontSize: '16px', color: '#9b9b93', fontWeight: 400 }}>/6 mo</span>
             </div>
-            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '4px' }}>$14.92/mo</p>
-            <p style={{ fontSize: '11px', color: '#C03030', fontWeight: 600, marginBottom: '24px' }}>* Limited time launch offer</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '14px', fontWeight: 600, color: '#a16207' }}>$14.92/mo</span>
+              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', background: '#a16207', color: '#fff', borderRadius: '4px', padding: '2px 6px' }}>Save 22%</span>
+            </div>
+            <p style={{ fontSize: '12px', color: '#9b9b93', marginBottom: '24px' }}>Billed every 6 months · Cancel anytime</p>
             <div style={{ flex: 1 }}>
               {['Everything in 1-month Premium', 'Best value for full interview prep cycle', 'Lock in price for 6 months'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
@@ -641,7 +648,10 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            <Link href="/auth/signup" style={{ display: 'block', marginTop: '28px' }}>
+            <div style={{ marginTop: '28px', background: 'rgba(161,98,7,0.07)', border: '1px solid rgba(161,98,7,0.2)', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px' }}>
+              <p style={{ fontSize: '12px', fontWeight: 600, color: '#a16207', marginBottom: 0 }}>Free 30-min intro call included</p>
+            </div>
+            <Link href="/auth/signup" style={{ display: 'block' }}>
               <button className="cursor-pointer" style={{ width: '100%', padding: '13px', borderRadius: '8px', border: 'none', background: '#a16207', color: '#fff', fontSize: '14px', fontWeight: 500, transition: 'background 0.2s' }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#8b5006')}
                 onMouseLeave={e => (e.currentTarget.style.background = '#a16207')}
@@ -659,78 +669,27 @@ export default function LandingPage() {
           Work directly with the author
         </h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', alignItems: 'stretch' }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
 
-          {/* Intro */}
-          <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
-            <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#9b9b93', marginBottom: '8px' }}>Intro Session</p>
-            <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$49</span>
-            </div>
-            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>30 min session</p>
-            <div style={{ flex: 1 }}>
-              {['1-on-1 with author (Math PhD, former Wharton lecturer)', 'Pre-session email discussion — tailored to you', 'Flexible scheduling, Zoom'].map(f => (
-                <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
-                  <span style={{ color: '#2A6048', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
-                </div>
-              ))}
-            </div>
-            {/* Promo note */}
-            <div style={{ marginTop: '28px', background: 'rgba(161,98,7,0.07)', border: '1px solid rgba(161,98,7,0.2)', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px' }}>
-              <p style={{ fontSize: '12px', fontWeight: 600, color: '#a16207', marginBottom: 0 }}>Book intro → +1 month Premium free</p>
-            </div>
-            <Link href="/auth/signup" style={{ display: 'block' }}>
-              <button className="cursor-pointer" style={{ width: '100%', padding: '13px', borderRadius: '8px', border: '1px solid rgb(220,218,210)', background: 'transparent', color: '#141310', fontSize: '14px', fontWeight: 500, transition: 'border-color 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = '#141310')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgb(220,218,210)')}
-              >Book intro session →</button>
-            </Link>
-          </div>
-
-          {/* Standard */}
-          <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
-            <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#9b9b93', marginBottom: '8px' }}>Standard</p>
-            <div style={{ marginBottom: '4px' }}>
+          {/* Standard — 60 min */}
+          <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '40px 32px', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '420px' }}>
+            <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#9b9b93', marginBottom: '8px' }}>60-Min Session</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$120</span>
+              <span style={{ fontSize: '16px', color: '#9b9b93', fontWeight: 400 }}>/session</span>
             </div>
-            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>60 min session</p>
             <div style={{ flex: 1 }}>
-              {['1-on-1 with author (Math PhD, former Wharton lecturer)', 'Pre-session email discussion — tailored to you', 'Flexible scheduling, Zoom'].map(f => (
+              {['1-on-1 with author (Math PhD, former Wharton lecturer)', 'Pre-session email discussion — tailored to you', 'Flexible scheduling via video call'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
                   <span style={{ color: '#2A6048', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
                 </div>
               ))}
             </div>
-            <Link href="/auth/signup" style={{ display: 'block', marginTop: '28px' }}>
-              <button className="cursor-pointer" style={{ width: '100%', padding: '13px', borderRadius: '8px', border: '1px solid rgb(220,218,210)', background: 'transparent', color: '#141310', fontSize: '14px', fontWeight: 500, transition: 'border-color 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = '#141310')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgb(220,218,210)')}
-              >Book standard session →</button>
-            </Link>
-          </div>
-
-          {/* 3-session pack — Best value */}
-          <div style={{ position: 'relative', background: '#ffffff', border: '2px solid #a16207', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)', background: '#a16207', color: '#fff', fontSize: '11px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '5px 16px', borderRadius: '20px', whiteSpace: 'nowrap' }}>
-              Best Value
-            </div>
-            <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>3-Session Pack</p>
-            <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$299</span>
-            </div>
-            <p style={{ fontSize: '13px', color: '#9b9b93', marginBottom: '24px' }}>~$100/hr · save $61</p>
-            <div style={{ flex: 1 }}>
-              {['3 × 60 min sessions', '1-on-1 with author (Math PhD, former Wharton lecturer)', 'Pre-session email discussion — tailored to you', 'Flexible scheduling, Zoom'].map(f => (
-                <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
-                  <span style={{ color: '#a16207', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
-                </div>
-              ))}
-            </div>
-            <Link href="/auth/signup" style={{ display: 'block', marginTop: '28px' }}>
+            <Link href="/tutoring" style={{ display: 'block', marginTop: '96px' }}>
               <button className="cursor-pointer" style={{ width: '100%', padding: '13px', borderRadius: '8px', border: 'none', background: '#a16207', color: '#fff', fontSize: '14px', fontWeight: 500, transition: 'background 0.2s' }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#8b5006')}
                 onMouseLeave={e => (e.currentTarget.style.background = '#a16207')}
-              >Book 3-session pack →</button>
+              >Book a session →</button>
             </Link>
           </div>
 
