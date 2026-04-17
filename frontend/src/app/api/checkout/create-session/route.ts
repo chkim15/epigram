@@ -48,22 +48,21 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json();
     const { planType, promoCode } = body as {
-      planType: 'weekly' | 'monthly' | 'yearly';
+      planType: 'monthly' | 'six_month';
       promoCode?: string;
     };
 
-    if (!planType || !['weekly', 'monthly', 'yearly'].includes(planType)) {
+    if (!planType || !['monthly', 'six_month'].includes(planType)) {
       return NextResponse.json(
-        { error: 'Invalid plan type. Must be weekly, monthly, or yearly' },
+        { error: 'Invalid plan type. Must be monthly or six_month' },
         { status: 400 }
       );
     }
 
     // Get price ID based on plan type
     const priceIds = {
-      weekly: process.env.STRIPE_PRICE_WEEKLY!,
       monthly: process.env.STRIPE_PRICE_MONTHLY!,
-      yearly: process.env.STRIPE_PRICE_YEARLY!,
+      six_month: process.env.STRIPE_PRICE_SIX_MONTH!,
     };
 
     const priceId = priceIds[planType];
@@ -74,9 +73,6 @@ export async function POST(request: NextRequest) {
       .select('*')
       .eq('user_id', user.id)
       .single();
-
-    // Check if user has already used their trial
-    const hasUsedTrial = existingSubscription?.has_used_trial || false;
 
     // Get or create Stripe customer
     let customerId = existingSubscription?.stripe_customer_id;
@@ -107,12 +103,6 @@ export async function POST(request: NextRequest) {
       allow_promotion_codes: true, // Enable Stripe's built-in promo code field
       ...(discounts ? { discounts } : {}), // Pre-apply promo code if provided via URL
       subscription_data: {
-        // Skip trial if user has used it OR if using a promo code
-        ...(hasUsedTrial || promoCode
-          ? {}
-          : {
-              trial_period_days: 7,
-            }),
         metadata: {
           supabase_user_id: user.id,
           plan_type: planType,

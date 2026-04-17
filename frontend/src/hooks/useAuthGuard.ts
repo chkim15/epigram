@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import { supabase } from "@/lib/supabase/client";
 
 export function useAuthGuard(options?: { requireAuth?: boolean }) {
@@ -16,6 +17,13 @@ export function useAuthGuard(options?: { requireAuth?: boolean }) {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Load subscription whenever we have an authenticated user
+  useEffect(() => {
+    if (user) {
+      useSubscriptionStore.getState().fetchSubscription();
+    }
+  }, [user]);
 
   // Handle successful checkout - refetch subscription status
   useEffect(() => {

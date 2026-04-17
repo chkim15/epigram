@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { User as UserIcon } from "lucide-react";
@@ -8,7 +7,6 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useAuthStore } from "@/stores/authStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
-import UpgradeModal from "@/components/subscription/UpgradeModal";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 
 interface UnifiedHeaderProps {
@@ -19,22 +17,14 @@ const NAV_TABS = [
   { label: "Curriculum", href: "/curriculum", match: "/curriculum" },
   { label: "Problems", href: "/problems", match: "/problems" },
   { label: "Mock Interview", href: "/mock-interview", match: "/mock-interview" },
+  { label: "Tutoring", href: "/tutoring", match: "/tutoring" },
 ] as const;
 
 export default function UnifiedHeader({ className }: UnifiedHeaderProps) {
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { user } = useAuthStore();
   const { isPro } = useSubscriptionStore();
   const pathname = usePathname();
   const router = useRouter();
-
-  const handleStartTrial = () => {
-    if (!user) {
-      window.location.href = '/auth/signup';
-    } else {
-      setShowUpgradeModal(true);
-    }
-  };
 
   return (
     <>
@@ -96,21 +86,21 @@ export default function UnifiedHeader({ className }: UnifiedHeaderProps) {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Start Free Trial Button - Only show for non-Pro users */}
+        {/* Premium Button - Only show for non-Pro users */}
         {!isPro && (
           <>
             <Button
-              onClick={handleStartTrial}
+              onClick={() => router.push('/upgrade')}
               size="sm"
-              className="h-8 px-4 rounded-xl cursor-pointer font-medium"
+              className="h-8 px-4 rounded-lg cursor-pointer font-medium"
               style={{
-                backgroundColor: '#141310',
+                backgroundColor: '#a16207',
                 color: '#ffffff',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8b5006'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#a16207'}
             >
-              Start Free Trial
+              Premium
             </Button>
             <div className="w-2" />
           </>
@@ -135,11 +125,6 @@ export default function UnifiedHeader({ className }: UnifiedHeaderProps) {
         )}
       </div>
 
-      {/* Upgrade Modal */}
-      <UpgradeModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-      />
     </>
   );
 }

@@ -119,12 +119,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const priceId = subscription.items.data[0]?.price.id;
   let planId = 'free';
 
-  if (priceId === process.env.STRIPE_PRICE_WEEKLY) {
-    planId = 'pro_weekly';
-  } else if (priceId === process.env.STRIPE_PRICE_MONTHLY) {
+  if (priceId === process.env.STRIPE_PRICE_MONTHLY) {
     planId = 'pro_monthly';
-  } else if (priceId === process.env.STRIPE_PRICE_YEARLY) {
-    planId = 'pro_yearly';
+  } else if (priceId === process.env.STRIPE_PRICE_SIX_MONTH) {
+    planId = 'pro_six_month';
   }
   console.log(`[Checkout] Mapped price ${priceId} to plan: ${planId}`);
 
@@ -208,12 +206,10 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const priceId = subscription.items.data[0]?.price.id;
   let planId = 'free';
 
-  if (priceId === process.env.STRIPE_PRICE_WEEKLY) {
-    planId = 'pro_weekly';
-  } else if (priceId === process.env.STRIPE_PRICE_MONTHLY) {
+  if (priceId === process.env.STRIPE_PRICE_MONTHLY) {
     planId = 'pro_monthly';
-  } else if (priceId === process.env.STRIPE_PRICE_YEARLY) {
-    planId = 'pro_yearly';
+  } else if (priceId === process.env.STRIPE_PRICE_SIX_MONTH) {
+    planId = 'pro_six_month';
   }
 
   // Update subscription record

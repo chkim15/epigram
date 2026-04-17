@@ -10,6 +10,7 @@
     "build:mdx": "for f in ../storage/4-week-course/*.tex; do pandoc \"$f\" --lua-filter=scripts/epigram.lua --wrap=none -t markdown -o \"src/data/course-mdx/$(basename \"$f\" .tex).mdx\"; done"
   },
   "dependencies": {
+    "@calcom/embed-react": "^1.5.3",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-collapsible": "^1.1.11",

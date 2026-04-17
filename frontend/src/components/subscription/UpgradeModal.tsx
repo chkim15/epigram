@@ -14,31 +14,24 @@ interface UpgradeModalProps {
 export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalProps) {
   const { user } = useAuthStore();
   const { startCheckout, isLoading, canStartTrial } = useSubscriptionStore();
-  const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'six_month'>('six_month');
 
   if (!isOpen) return null;
 
   const plans = [
     {
-      id: 'weekly' as const,
-      name: 'Weekly',
-      price: '$4.99',
-      period: '/week',
-      popular: true,
-    },
-    {
       id: 'monthly' as const,
       name: 'Monthly',
-      price: '$14.99',
-      period: '/month',
-      savings: 'Save 25%',
+      price: '$19',
+      period: '/mo',
     },
     {
-      id: 'yearly' as const,
-      name: 'Yearly',
-      price: '$99.99',
-      period: '/year',
-      savings: 'Save 62%',
+      id: 'six_month' as const,
+      name: '6 Months',
+      price: '$89',
+      period: '/6 mo',
+      savings: 'Save 22%',
+      popular: true,
     },
   ];
 
@@ -53,8 +46,7 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
 
   const handleUpgrade = async () => {
     if (!user) {
-      // Redirect to signup
-      window.location.href = '/signup';
+      window.location.href = '/auth/signup';
       return;
     }
 
@@ -105,7 +97,7 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
         </div>
 
         {/* Plan selection */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {plans.map((plan) => (
             <div
               key={plan.id}
@@ -183,18 +175,12 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
           onMouseEnter={(e) => !isLoading && (e.currentTarget.style.opacity = '0.9')}
           onMouseLeave={(e) => !isLoading && (e.currentTarget.style.opacity = '1')}
         >
-          {isLoading
-            ? 'Processing...'
-            : canStartTrial
-            ? 'Start 7-Day Free Trial'
-            : 'Upgrade to Pro'}
+          {isLoading ? 'Processing...' : 'Upgrade to Premium'}
         </button>
 
         {/* Fine print */}
         <p className="text-xs text-center mt-4" style={{ color: '#141310', opacity: 0.6 }}>
-          {canStartTrial
-            ? 'No charge for 7 days. Cancel anytime during trial for free.'
-            : 'Cancel anytime. No refunds but access continues until end of billing period.'}
+          Cancel anytime. No refunds but access continues until end of billing period.
         </p>
       </div>
     </div>
