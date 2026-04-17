@@ -304,12 +304,6 @@ function MdxFreeProblem({
         className="px-4 py-2.5 flex items-center gap-3"
         style={{ backgroundColor: "#375623" }}
       >
-        <span
-          className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded"
-          style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "white" }}
-        >
-          FREE
-        </span>
         {number && (
           <span
             className="text-sm font-semibold"
@@ -361,12 +355,6 @@ function MdxPremiumProblem({
         className="px-4 py-2.5 flex items-center gap-3"
         style={{ backgroundColor: "#534AB7" }}
       >
-        <span
-          className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded"
-          style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "white" }}
-        >
-          PREMIUM
-        </span>
         {number && (
           <span
             className="text-sm font-semibold"

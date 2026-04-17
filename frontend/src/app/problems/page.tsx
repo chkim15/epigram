@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 
 interface ProblemWithTopics {
   id: string;
+  problem_id: string | null;
   problem_name: string | null;
   difficulty: string | null;
   company_labels: string[] | null;
@@ -47,7 +48,7 @@ function ProblemsPageContent() {
         const { data: problemsData, error: problemsError } = await supabase
           .from('problems')
           .select(`
-            id, problem_name, difficulty, company_labels, problem_labels,
+            id, problem_id, problem_name, difficulty, company_labels, problem_labels,
             problem_quant_topics(quant_topic_id, quant_topics(name))
           `)
           .eq('included', true)

@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
-import ProGate from "@/components/subscription/ProGate";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
+import SubscribeModal from "@/components/subscription/SubscribeModal";
 
 interface InterviewLandingProps {
   onStart: () => void;
@@ -10,7 +12,16 @@ interface InterviewLandingProps {
 }
 
 export default function InterviewLanding({ onStart, onViewHistory }: InterviewLandingProps) {
+  const { isPro } = useSubscriptionStore();
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+
   return (
+    <>
+    <SubscribeModal
+      isOpen={showSubscribeModal}
+      onClose={() => setShowSubscribeModal(false)}
+      message="Mock interviews are a premium feature. Subscribe to simulate real quant interviews."
+    />
     <div
       className="flex-1 flex flex-col items-center justify-center p-8"
       style={{ backgroundColor: "var(--background)" }}
@@ -51,18 +62,16 @@ export default function InterviewLanding({ onStart, onViewHistory }: InterviewLa
           </ul>
         </div>
 
-        <ProGate feature="mock_exam">
-          <Button
-            onClick={onStart}
-            className="w-full py-6 text-base font-semibold rounded-xl cursor-pointer"
-            style={{ backgroundColor: "#141310", color: "#ffffff" }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-          >
-            Start Interview
-            <ChevronRight className="ml-2 h-5 w-5" />
-          </Button>
-        </ProGate>
+        <Button
+          onClick={() => isPro ? onStart() : setShowSubscribeModal(true)}
+          className="w-full py-6 text-base font-semibold rounded-xl cursor-pointer"
+          style={{ backgroundColor: "#141310", color: "#ffffff" }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+        >
+          Start Interview
+          <ChevronRight className="ml-2 h-5 w-5" />
+        </Button>
         <button
           onClick={onViewHistory}
           className="text-sm cursor-pointer"
@@ -74,5 +83,6 @@ export default function InterviewLanding({ onStart, onViewHistory }: InterviewLa
         </button>
       </div>
     </div>
+    </>
   );
 }

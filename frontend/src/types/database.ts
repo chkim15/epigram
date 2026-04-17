@@ -193,6 +193,7 @@ export interface Database {
           onboarding_completed: boolean | null;
           active_learning_mode: boolean | null;
           subscription_tier: string;
+          is_team: boolean;
           created_at: string | null;
           updated_at: string | null;
         };
