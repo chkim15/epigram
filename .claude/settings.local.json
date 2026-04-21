@@ -1,16 +1,4 @@
 {
-  "hooks": {
-    "WorktreeCreate": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "WPATH=$(jq -r '.worktree_path // .path // empty' 2>/dev/null); if [ -n \"$WPATH\" ] && [ -d \"$WPATH/frontend\" ]; then ln -sf /Users/chulhee/src/epigram/frontend/node_modules \"$WPATH/frontend/node_modules\" && ln -sf /Users/chulhee/src/epigram/frontend/.env.local \"$WPATH/frontend/.env.local\" && lsof -ti:3000 | xargs kill -9 2>/dev/null; cd \"$WPATH/frontend\" && /Users/chulhee/src/epigram/frontend/node_modules/.bin/next dev &> /tmp/epigram-worktree-dev.log & fi"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "mcp__supabase__apply_migration",
@@ -25,7 +13,15 @@
       "Bash(find /Users/chulhee/src/epigram/frontend/src -name \"*login*\" -o -name \"*auth*\" -o -name \"*signin*\" 2>/dev/null | head -20)",
       "Bash(ls *)",
       "Bash(grep *)",
-      "Bash(head *)"
+      "Bash(head *)",
+      "Bash(npx next *)",
+      "Bash(node_modules/.bin/next build *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(lsof -ti:3000)",
+      "Bash(xargs kill *)",
+      "Bash(ln -sf /Users/chulhee/src/epigram/frontend/.env.local /Users/chulhee/src/epigram/.claude/worktrees/awesome-feynman-120405/frontend/.env.local)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ],
     "defaultMode": "acceptEdits"
   },
@@ -33,5 +29,17 @@
   "enabledMcpjsonServers": [
     "supabase",
     "shadcn-ui"
-  ]
+  ],
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "WPATH=$(jq -r '.worktree_path // .path // empty' 2>/dev/null); if [ -n \"$WPATH\" ] && [ -d \"$WPATH/frontend\" ]; then ln -sf /Users/chulhee/src/epigram/frontend/node_modules \"$WPATH/frontend/node_modules\" && ln -sf /Users/chulhee/src/epigram/frontend/.env.local \"$WPATH/frontend/.env.local\" && lsof -ti:3000 | xargs kill -9 2>/dev/null; cd \"$WPATH/frontend\" && /Users/chulhee/src/epigram/frontend/node_modules/.bin/next dev &> /tmp/epigram-worktree-dev.log & fi"
+          }
+        ]
+      }
+    ]
+  }
 }

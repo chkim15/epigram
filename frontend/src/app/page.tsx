@@ -167,10 +167,9 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          style={{ color: '#4A5B78', fontSize: '16px', lineHeight: 1.7, marginBottom: '48px' }}
+          style={{ color: '#4A5B78', fontSize: '16px', lineHeight: 1.7, marginBottom: '48px', maxWidth: '740px' }}
         >
-          The books are too easy and too broad. The forums are unstructured and unverified.<br />
-          Epigram <strong>trains you the way top funds actually test</strong>.
+          The prep books are outdated. The forums are unverified. Epigram is built for one thing: the exact problems top funds actually ask, at the difficulty they actually ask them.
         </motion.p>
 
         {/* Created by */}
@@ -272,8 +271,7 @@ export default function LandingPage() {
           </div>
           {/* Attribution */}
           <p style={{ fontSize: '14px', color: '#4A5B78', lineHeight: 1.6, paddingLeft: '96px' }}>
-            <strong style={{ color: '#141310' }}>Jeremy Wu</strong>
-            {' · '}Math PhD, Penn{' · '}Former Wharton lecturer in stochastic processes{' · '}IAS visiting fellow
+            Founder{' · '}Math PhD from Penn{' · '}Former Wharton lecturer in stochastic processes
           </p>
         </div>
       </section>
@@ -333,7 +331,7 @@ export default function LandingPage() {
 
       {/* Four-Week Intensive Section */}
       <section id="curriculum" style={{ background: '#faf9f5', padding: '80px 16%' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
 
           {/* Left */}
           <div>
@@ -342,13 +340,17 @@ export default function LandingPage() {
             </p>
 
             <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(26px, 3.5vw, 46px)', fontWeight: 700, color: '#141310', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: '24px' }}>
-              The Four-Week Intensive
+              One month from now, you could walk into any quant interview ready.
             </h2>
 
+            <p style={{ fontSize: '17px', color: '#4A5B78', lineHeight: 1.75, marginBottom: '16px' }}>
+              Most candidates walk into a quant interview hoping the right problems come up. You won&apos;t need to hope.
+            </p>
+            <p style={{ fontSize: '17px', color: '#4A5B78', lineHeight: 1.75, marginBottom: '16px' }}>
+              The Four-Week Intensive takes you through every topic top firms test — probability, stochastics, statistics, game theory, etc. — and deeper into the firm-specific problems the standard books never reach. Coding woven throughout, the way quant interviews actually work: math and code tested together, not siloed.
+            </p>
             <p style={{ fontSize: '17px', color: '#4A5B78', lineHeight: 1.75, marginBottom: '40px' }}>
-              Every major quant interview topic, in the exact order that mirrors how top firms interview —
-              from probability foundations to game theory, statistics, and live coding.
-              Progressive difficulty. Human-verified throughout.
+              29 topics. ~180 curated problems. Four weeks from where you are now to ready.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'flex-start' }}>
@@ -434,21 +436,21 @@ export default function LandingPage() {
               num: '01',
               title: 'Real problems, rigorously organized',
               body: 'Actual quant interview questions from 15+ top firms — exclusive, not on Glassdoor or Reddit — organized across 29 of the most frequently-tested topics.',
-              tags: ['29 TOPICS', 'FIRM-ATTRIBUTED'],
+              tags: ['UP-TO-DATE', 'REAL INTERVIEW QUESTIONS', 'ALL KEY TECHNIQUES COVERED'],
               badge: null,
             },
             {
               num: '02',
               title: 'Solution depth that actually teaches',
-              body: 'Every solution is a full walkthrough with multiple approaches and the exact intuition interviewers look for. Written and verified by a Math PhD — no AI-generated explanations, no crowd-sourced errors.',
-              tags: ['FULL WALKTHROUGHS', 'VERIFIED BY PHD'],
+              body: 'Every human-verified solution is a full walkthrough with multiple approaches and the exact intuition interviewers look for.',
+              tags: ['FULL WALKTHROUGHS', 'MULTIPLE SOLUTION PATHS', 'VERIFIED BY EXPERTS'],
               badge: null,
             },
             {
               num: '03',
               title: 'Practice under real conditions',
-              body: 'Timed 30-minute sessions with randomized problems and an immediate full debrief — tracking your progress and exposing the gaps that only show up under real conditions.',
-              tags: ['TIMED', 'RANDOMIZED', 'INSTANT FEEDBACK'],
+              body: 'Timed 30-minute sessions with real interview difficulty and an immediate full debrief — tracking your progress and exposing the gaps that only show up under real conditions.',
+              tags: ['TIMED', 'REAL INTERVIEW DIFFICULTY', 'INSTANT FEEDBACK'],
               badge: null,
             },
           ].map(({ num, title, body, tags, badge }, i, arr) => (
@@ -490,7 +492,7 @@ export default function LandingPage() {
               Your free starter kit.<br />Unlocked on <span style={{ whiteSpace: 'nowrap' }}>sign-up.</span>
             </h2>
             <p style={{ fontSize: '16px', color: '#4A5B78', lineHeight: 1.75, marginBottom: '32px' }}>
-              Create a free account and instantly unlock two interview cheatsheets — written by a Math PhD and former Wharton lecturer.
+              Create a free account and instantly unlock two interview cheatsheets — written by the founder.
             </p>
 
             {/* Cheatsheet cards */}
