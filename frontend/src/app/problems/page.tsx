@@ -15,6 +15,7 @@ interface ProblemWithTopics {
   difficulty: string | null;
   company_labels: string[] | null;
   problem_labels: string[] | null;
+  is_free: boolean | null;
   problem_quant_topics: Array<{
     quant_topic_id: number;
     quant_topics: { name: string } | null;
@@ -48,7 +49,7 @@ function ProblemsPageContent() {
         const { data: problemsData, error: problemsError } = await supabase
           .from('problems')
           .select(`
-            id, problem_id, problem_name, difficulty, company_labels, problem_labels,
+            id, problem_id, problem_name, difficulty, company_labels, problem_labels, is_free,
             problem_quant_topics(quant_topic_id, quant_topics(name))
           `)
           .eq('included', true)

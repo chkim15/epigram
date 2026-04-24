@@ -1781,7 +1781,9 @@
                 problem_name: problem.problem_name || null,
                 problem_labels: Array.isArray(problem.problem_labels) ? problem.problem_labels : (problem.problem_labels ? [problem.problem_labels] : []),
                 company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : []),
-                location_labels: Array.isArray(problem.location_labels) ? problem.location_labels : (problem.location_labels ? [problem.location_labels] : [])
+                location_labels: Array.isArray(problem.location_labels) ? problem.location_labels : (problem.location_labels ? [problem.location_labels] : []),
+                is_free:   problem.is_free   ?? false,
+                is_recent: problem.is_recent ?? false
             };
 
             const { data, error } = await supabase
@@ -2888,6 +2890,13 @@
                     <label class="form-label">Problem Labels</label>
                     <div class="reasoning-buttons" id="problemLabelButtons">
                         ${generateProblemLabelButtons(problem.problem_labels || [])}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Access Labels</label>
+                    <div class="reasoning-buttons" id="accessLabelButtons">
+                        ${generateAccessLabelButtons(problem)}
                     </div>
                 </div>
 
@@ -4096,6 +4105,33 @@
             if (container) {
                 const labels = problemsData.problems[currentProblemIndex].problem_labels || [];
                 container.innerHTML = generateProblemLabelButtons(labels);
+            }
+        }
+
+        // ===== ACCESS LABELS (is_free / is_recent toggle buttons) =====
+        function generateAccessLabelButtons(problem) {
+            const labels = [
+                { key: 'is_free',   display: 'Free'   },
+                { key: 'is_recent', display: 'Recent' },
+            ];
+            return labels.map(({ key, display }) => {
+                const isSelected = !!problem[key];
+                return `<button class="reasoning-btn ${isSelected ? 'selected' : ''}" onclick="toggleAccessLabel('${key}')">${display}</button>`;
+            }).join('');
+        }
+
+        function toggleAccessLabel(key) {
+            if (currentProblemIndex >= 0) {
+                const problem = problemsData.problems[currentProblemIndex];
+                problem[key] = !problem[key];
+                updateAccessLabelButtons();
+            }
+        }
+
+        function updateAccessLabelButtons() {
+            const container = document.getElementById('accessLabelButtons');
+            if (container) {
+                container.innerHTML = generateAccessLabelButtons(problemsData.problems[currentProblemIndex]);
             }
         }
 
@@ -8039,7 +8075,9 @@
                         updated_at,
                         included,
                         company_labels,
-                        location_labels
+                        location_labels,
+                        is_free,
+                        is_recent
                     `)
                     .eq('document_id', docData.id)
                     .order('problem_id');

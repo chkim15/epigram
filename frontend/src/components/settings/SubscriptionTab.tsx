@@ -12,11 +12,9 @@ export default function SubscriptionTab() {
   const {
     subscription,
     plan,
-    usage,
     isTrial,
     canStartTrial,
     fetchSubscription,
-    fetchUsage,
     startCheckout,
     cancelSubscription,
     acceptRetentionDiscount,
@@ -32,8 +30,7 @@ export default function SubscriptionTab() {
 
   useEffect(() => {
     fetchSubscription();
-    fetchUsage();
-  }, [fetchSubscription, fetchUsage]);
+  }, [fetchSubscription]);
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return 'N/A';
@@ -209,18 +206,6 @@ export default function SubscriptionTab() {
               <div className="flex items-center gap-2 text-sm" style={{ color: '#141310', opacity: 0.7 }}>
                 <span>•</span>
                 <span>Access to first 3 topics</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm" style={{ color: '#141310', opacity: 0.7 }}>
-                <span>•</span>
-                <span>{usage.personalized_practice}/3 personalized practice attempts used</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm" style={{ color: '#141310', opacity: 0.7 }}>
-                <span>•</span>
-                <span>{usage.mock_exam}/3 mock exam attempts used</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm" style={{ color: '#141310', opacity: 0.7 }}>
-                <span>•</span>
-                <span>{usage.ai_tutor}/3 AI tutor problems used</span>
               </div>
             </div>
           </div>

@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
-import { useSubscriptionStore } from "@/stores/subscriptionStore";
 
 interface Message {
   id: string;
@@ -50,27 +49,11 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
   // Start with loading state if we have an initial session to restore
   const [isRestoringSession, setIsRestoringSession] = useState(!!initialSessionId);
   const [isEditingMath, setIsEditingMath] = useState(false);
-  const [isAtUsageLimit, setIsAtUsageLimit] = useState(false);
   const contentEditableRef = useRef<HTMLDivElement>(null);
   const chatContentEditableRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
-  const { checkFeatureAccess, trackUsage, usage, fetchUsage } = useSubscriptionStore();
-
-  // Check if user is at usage limit (only for new sessions)
-  useEffect(() => {
-    const checkLimit = async () => {
-      if (user && !sessionId) {
-        // Only check when starting a NEW session
-        const accessCheck = await checkFeatureAccess('ai_tutor');
-        setIsAtUsageLimit(!accessCheck.allowed);
-      } else {
-        setIsAtUsageLimit(false);
-      }
-    };
-    checkLimit();
-  }, [user, sessionId, usage.ai_tutor, checkFeatureAccess]);
 
   // Import MathLive when component mounts
   useEffect(() => {
@@ -702,24 +685,6 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
       }
     }
 
-    // Track usage when submitting a problem/image to AI tutor (not for every follow-up message)
-    // Only track if this is the first message in the session (creating new session)
-    // OR if an image is being submitted (new problem with image)
-    if (!sessionId || pastedImage) {
-      // Check feature access before proceeding
-      const accessCheck = await checkFeatureAccess('ai_tutor');
-      if (!accessCheck.allowed) {
-        setIsLoading(false);
-        // Reset the added user message since we can't proceed
-        setMessages(prev => prev.slice(0, -1));
-        // Feature access denied - user will see upgrade modal
-        return;
-      }
-
-      // Track usage for submitting a problem/image
-      await trackUsage('ai_tutor');
-    }
-
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -1057,10 +1022,10 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   <div className="relative group ml-auto z-[100]">
                     <Button
                       onClick={handleSendMessage}
-                      disabled={(!input && !pastedImage) || isLoading || isAtUsageLimit}
+                      disabled={(!input && !pastedImage) || isLoading}
                       className="h-10 w-10 rounded-xl cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
                       style={{
-                        backgroundColor: (!input && !pastedImage) || isLoading || isAtUsageLimit ? 'var(--muted)' : 'var(--primary)'
+                        backgroundColor: (!input && !pastedImage) || isLoading ? 'var(--muted)' : 'var(--primary)'
                       }}
                       onMouseEnter={(e) => {
                         if (!e.currentTarget.disabled) {
@@ -1075,12 +1040,6 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                     >
                       <ArrowUp className="!w-[22px] !h-[22px] text-white" />
                     </Button>
-                    {isAtUsageLimit && (
-                      <div className="absolute right-0 bottom-full mb-2 px-3 py-2 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-[101] shadow-lg" style={{ backgroundColor: '#141310', color: '#ffffff' }}>
-                        Start Free Trial for more tutoring!
-                        <div className="absolute right-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4" style={{ borderTopColor: '#141310' }} />
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1245,10 +1204,10 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                 <div className="relative group z-[100]">
                   <Button
                     onClick={handleSendMessage}
-                    disabled={!input.trim() || isLoading || isAtUsageLimit}
+                    disabled={!input.trim() || isLoading}
                     className="h-8 w-8 mr-1 rounded-xl cursor-pointer disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0"
                     style={{
-                      backgroundColor: (!input.trim() || isLoading || isAtUsageLimit) ? 'var(--muted)' : 'var(--primary)'
+                      backgroundColor: (!input.trim() || isLoading) ? 'var(--muted)' : 'var(--primary)'
                     }}
                     onMouseEnter={(e) => {
                       if (!e.currentTarget.disabled) {
@@ -1263,12 +1222,6 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
                   >
                     <ArrowUp className="h-4 w-4 text-white" />
                   </Button>
-                  {isAtUsageLimit && (
-                    <div className="absolute right-0 bottom-full mb-2 px-3 py-2 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-[101] shadow-lg" style={{ backgroundColor: '#141310', color: '#ffffff' }}>
-                      Start Free Trial for more tutoring!
-                      <div className="absolute right-4 top-full w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4" style={{ borderTopColor: '#141310' }} />
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
