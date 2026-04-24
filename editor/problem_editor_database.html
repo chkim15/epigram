@@ -8341,6 +8341,8 @@
                         keyword: problem.keyword,
                         company_labels: Array.isArray(problem.company_labels) ? problem.company_labels : (problem.company_labels ? [problem.company_labels] : []),
                         location_labels: Array.isArray(problem.location_labels) ? problem.location_labels : (problem.location_labels ? [problem.location_labels] : []),
+                        is_free:   problem.is_free   ?? false,
+                        is_recent: problem.is_recent ?? false,
                         updated_at: problem.updated_at,
                         version: problem.version,
                         included: problem.included !== false  // Default to true if not specified
