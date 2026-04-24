@@ -5,7 +5,6 @@ import { Upload, FileText, X, Loader2, ChevronRight, BookOpen, AlertCircle, File
 import { MathContent } from '@/lib/utils/katex';
 import { extractTextFromPDF } from '@/lib/utils/pdfToImagesSimple';
 import dynamic from 'next/dynamic';
-import ProGate from '@/components/subscription/ProGate';
 
 // Dynamically import react-pdf components to avoid SSR issues
 const Document = dynamic(
@@ -536,39 +535,37 @@ export default function RecommendedPractice({
 
         {/* Upload Button */}
         {file && uploadStatus !== 'complete' && (
-          <ProGate feature="personalized_practice">
-            <button
-              onClick={handleUpload}
-              disabled={!file || isProcessing}
-              className="mt-6 px-6 py-3 rounded-xl font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: isProcessing ? '#e9e6dc' : '#141310',
-                color: 'white',
-              }}
-              onMouseEnter={(e) => {
-                if (!isProcessing) {
-                  e.currentTarget.style.backgroundColor = '#3d3929';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isProcessing) {
-                  e.currentTarget.style.backgroundColor = '#141310';
-                }
-              }}
-            >
-              {isProcessing ? (
-                <span className="flex items-center space-x-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>
-                    {uploadStatus === 'extracting' ? 'Extracting text...' :
-                     uploadStatus === 'uploading' ? 'Uploading...' : 'Processing...'}
-                  </span>
+          <button
+            onClick={handleUpload}
+            disabled={!file || isProcessing}
+            className="mt-6 px-6 py-3 rounded-xl font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: isProcessing ? '#e9e6dc' : '#141310',
+              color: 'white',
+            }}
+            onMouseEnter={(e) => {
+              if (!isProcessing) {
+                e.currentTarget.style.backgroundColor = '#3d3929';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isProcessing) {
+                e.currentTarget.style.backgroundColor = '#141310';
+              }
+            }}
+          >
+            {isProcessing ? (
+              <span className="flex items-center space-x-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>
+                  {uploadStatus === 'extracting' ? 'Extracting text...' :
+                   uploadStatus === 'uploading' ? 'Uploading...' : 'Processing...'}
                 </span>
-              ) : (
-                'Get Recommendations'
-              )}
-            </button>
-          </ProGate>
+              </span>
+            ) : (
+              'Get Recommendations'
+            )}
+          </button>
         )}
       </div>
 

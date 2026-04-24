@@ -141,7 +141,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
       // Fetch all included problems with problem_name, ordered same as the list page
       const { data: allProblems, error } = await supabase
         .from('problems')
-        .select('id, problem_id, document_id, problem_text, correct_answer, hint, solution_text, math_approach, reasoning_type, difficulty, importance, comment, version, created_at, updated_at, included, problem_name, problem_labels, company_labels, location_labels')
+        .select('id, problem_id, document_id, problem_text, correct_answer, hint, solution_text, math_approach, reasoning_type, difficulty, importance, comment, version, created_at, updated_at, included, problem_name, problem_labels, company_labels, location_labels, is_free, is_recent')
         .eq('included', true)
         .not('problem_name', 'is', null)
         .order('problem_id');
@@ -184,7 +184,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
 
       const { data, error } = await supabase
         .from('problems')
-        .select('id, problem_id, document_id, problem_text, correct_answer, hint, solution_text, math_approach, reasoning_type, difficulty, importance, comment, version, created_at, updated_at, included, problem_name, problem_labels, company_labels, location_labels')
+        .select('id, problem_id, document_id, problem_text, correct_answer, hint, solution_text, math_approach, reasoning_type, difficulty, importance, comment, version, created_at, updated_at, included, problem_name, problem_labels, company_labels, location_labels, is_free, is_recent')
         .eq('id', specificProblemId)
         .single();
 
@@ -337,7 +337,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
               id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
               math_approach, reasoning_type, difficulty, importance,
               comment, version, created_at, updated_at, included,
-              problem_name, problem_labels, company_labels, location_labels,
+              problem_name, problem_labels, company_labels, location_labels, is_free, is_recent,
               problem_topics!inner(topic_id)
             `)
             .eq('included', true);
@@ -398,7 +398,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
             id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
             math_approach, reasoning_type, difficulty, importance,
             comment, version, created_at, updated_at, included,
-            problem_name, problem_labels, company_labels, location_labels,
+            problem_name, problem_labels, company_labels, location_labels, is_free, is_recent,
             problem_topics!inner(topic_id)
           `)
           .eq('included', true)
@@ -438,7 +438,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
             id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
             math_approach, reasoning_type, difficulty, importance,
             comment, version, created_at, updated_at, included,
-            problem_name, problem_labels, company_labels, location_labels
+            problem_name, problem_labels, company_labels, location_labels, is_free, is_recent
           `)
           .eq('included', true)
           .order('document_id')
@@ -477,7 +477,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
           id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
           math_approach, reasoning_type, difficulty, importance,
           comment, version, created_at, updated_at, included,
-          problem_name, problem_labels, company_labels, location_labels
+          problem_name, problem_labels, company_labels, location_labels, is_free, is_recent
         `)
         .eq('included', true)
         .in('id', recommendedProblemIds);
@@ -556,7 +556,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
             id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
             math_approach, reasoning_type, difficulty, importance,
             comment, version, created_at, updated_at, included,
-            problem_name, problem_labels, company_labels, location_labels
+            problem_name, problem_labels, company_labels, location_labels, is_free, is_recent
           )
         `)
         .eq('user_id', user.id)

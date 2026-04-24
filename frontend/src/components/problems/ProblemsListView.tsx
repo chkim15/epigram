@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Search, CheckCircle, Circle, ChevronDown, ChevronUp, Star, Lock } from "lucide-react";
 import { MathContent } from "@/lib/utils/katex";
 import { slugify } from "@/lib/utils/slugify";
-import { FREE_PROBLEM_IDS } from "@/data/freeProblemIds";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import SubscribeModal from "@/components/subscription/SubscribeModal";
 
@@ -14,6 +13,7 @@ interface ProblemRow {
   problem_id: string | null;
   problem_name: string | null;
   difficulty: string | null;
+  is_free: boolean | null;
 }
 
 interface TopicTag {
@@ -294,7 +294,7 @@ export default function ProblemsListView({
             const isBookmarked = bookmarkedSet.has(problem.id);
             const diffColor = DIFFICULTY_COLORS[problem.difficulty || ''] || 'var(--muted-foreground)';
             const diffLabel = DIFFICULTY_LABELS[problem.difficulty || ''] || problem.difficulty || '—';
-            const isLocked = !isPro && !FREE_PROBLEM_IDS.has(problem.problem_id ?? '');
+            const isLocked = !isPro && !problem.is_free;
 
             return (
               <div

@@ -1,17 +1,10 @@
 import { create } from 'zustand';
-import { UserSubscription, SubscriptionPlan, FeatureType } from '@/types/database';
+import { UserSubscription, SubscriptionPlan } from '@/types/database';
 import { supabase } from '@/lib/supabase/client';
-
-interface UsageLimits {
-  personalized_practice: number;
-  mock_exam: number;
-  ai_tutor: number;
-}
 
 interface SubscriptionState {
   subscription: UserSubscription | null;
   plan: SubscriptionPlan | null;
-  usage: UsageLimits;
   isLoading: boolean;
   error: string | null;
   isTeam: boolean;
@@ -25,9 +18,6 @@ interface SubscriptionState {
 
   // Actions
   fetchSubscription: () => Promise<void>;
-  fetchUsage: () => Promise<void>;
-  checkFeatureAccess: (feature: FeatureType) => Promise<{ allowed: boolean; reason?: string }>;
-  trackUsage: (feature: FeatureType) => Promise<{ success: boolean; remaining: number }>;
   startCheckout: (planType: 'monthly' | 'six_month', promoCode?: string) => Promise<{ url?: string; error?: string }>;
   cancelSubscription: () => Promise<{ showRetentionOffer: boolean; error?: string }>;
   acceptRetentionDiscount: () => Promise<{ success: boolean; error?: string }>;
@@ -36,12 +26,6 @@ interface SubscriptionState {
   openCustomerPortal: () => Promise<{ url?: string; error?: string }>;
   reset: () => void;
 }
-
-const FREE_TIER_LIMITS = {
-  personalized_practice: 3,
-  mock_exam: 3,
-  ai_tutor: 3,
-};
 
 // Helper function to get authorization headers
 async function getAuthHeaders() {
@@ -58,11 +42,6 @@ async function getAuthHeaders() {
 export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   subscription: null,
   plan: null,
-  usage: {
-    personalized_practice: 0,
-    mock_exam: 0,
-    ai_tutor: 0,
-  },
   isLoading: false,
   error: null,
   isTeam: false,
@@ -115,94 +94,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         error: error instanceof Error ? error.message : 'Failed to fetch subscription',
         isLoading: false,
       });
-    }
-  },
-
-  fetchUsage: async () => {
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch('/api/usage/check', { headers });
-      if (!response.ok) {
-        throw new Error('Failed to fetch usage');
-      }
-      const data = await response.json();
-      set({
-        usage: {
-          personalized_practice: data.personalized_practice || 0,
-          mock_exam: data.mock_exam || 0,
-          ai_tutor: data.ai_tutor || 0,
-        },
-      });
-    } catch (error) {
-      // Silently fail if user is not logged in - this is expected
-      if (error instanceof Error && error.message === 'No active session') {
-        return;
-      }
-      console.error('Error fetching usage:', error);
-    }
-  },
-
-  checkFeatureAccess: async (feature: FeatureType) => {
-    const { isPro, usage } = get();
-
-    // Pro users have unlimited access
-    if (isPro) {
-      return { allowed: true };
-    }
-
-    // Free users check usage limits
-    const currentUsage = usage[feature];
-    const limit = FREE_TIER_LIMITS[feature];
-
-    if (currentUsage >= limit) {
-      return {
-        allowed: false,
-        reason: `You've reached the free tier limit of ${limit} ${feature.replace('_', ' ')} attempts. Upgrade to Pro for unlimited access.`,
-      };
-    }
-
-    return { allowed: true };
-  },
-
-  trackUsage: async (feature: FeatureType) => {
-    const { isPro } = get();
-
-    // Pro users don't need tracking
-    if (isPro) {
-      return { success: true, remaining: -1 }; // -1 indicates unlimited
-    }
-
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch('/api/usage/track', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ feature }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Failed to track usage:', response.status, errorData);
-        return { success: false, remaining: 0 };
-      }
-
-      const data = await response.json();
-
-      // Update local usage state
-      set((state) => ({
-        usage: {
-          ...state.usage,
-          [feature]: data.usage_count,
-        },
-      }));
-
-      return {
-        success: true,
-        remaining: FREE_TIER_LIMITS[feature] - data.usage_count,
-      };
-    } catch (error) {
-      console.error('Error tracking usage:', error);
-      return { success: false, remaining: 0 };
     }
   },
 
@@ -364,11 +255,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     set({
       subscription: null,
       plan: null,
-      usage: {
-        personalized_practice: 0,
-        mock_exam: 0,
-        ai_tutor: 0,
-      },
       isLoading: false,
       error: null,
       isTeam: false,

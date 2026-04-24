@@ -49,6 +49,8 @@ export interface Database {
           problem_labels: string[] | null;
           company_labels: string[] | null;
           location_labels: string[] | null;
+          is_free: boolean | null;
+          is_recent: boolean | null;
           created_at: string;
           updated_at: string;
         };
