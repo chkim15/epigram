@@ -4,7 +4,7 @@
     {
       "name": "frontend",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "cd frontend && /Users/chulhee/src/epigram/frontend/node_modules/.bin/next dev"],
+      "runtimeArgs": ["-c", "cd frontend && ./node_modules/.bin/next dev"],
       "port": 3000
     }
   ]
