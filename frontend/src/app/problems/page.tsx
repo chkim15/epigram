@@ -53,6 +53,7 @@ function ProblemsPageContent() {
             problem_quant_topics(quant_topic_id, quant_topics(name))
           `)
           .eq('included', true)
+          .not('difficulty', 'is', null)
           .order('problem_id');
 
         if (problemsError) throw problemsError;
