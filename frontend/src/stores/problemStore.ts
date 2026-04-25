@@ -37,6 +37,8 @@ interface ProblemStore {
   toggleSolution: () => void;
   setLoading: (loading: boolean) => void;
   
+  goToIndex: (index: number) => void;
+
   // Computed
   canGoNext: () => boolean;
   canGoPrevious: () => boolean;
@@ -123,6 +125,18 @@ export const useProblemStore = create<ProblemStore>((set, get) => ({
         currentProblem: problemList[prevIndex],
         showHint: false,
         showSolution: false
+      });
+    }
+  },
+
+  goToIndex: (index) => {
+    const { problemList } = get();
+    if (index >= 0 && index < problemList.length) {
+      set({
+        currentProblemIndex: index,
+        currentProblem: problemList[index],
+        showHint: false,
+        showSolution: false,
       });
     }
   },

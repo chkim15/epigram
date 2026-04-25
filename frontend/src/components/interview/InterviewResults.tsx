@@ -74,8 +74,12 @@ export default function InterviewResults({
   const router = useRouter();
   const [sessions, setSessions] = useState<MockInterviewSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null);
-  // Map of problemId -> true (correct), false (incorrect), null (no answer)
-  const [correctnessMap, setCorrectnessMap] = useState<Record<string, boolean | null>>({});
+  type CorrectnessStatus = true | false | 'grading' | null;
+  const [correctnessMap, setCorrectnessMap] = useState<Record<string, CorrectnessStatus>>({});
+  const [answersMap, setAnswersMap] = useState<Record<string, string>>({});
+  const [subAnswersMap, setSubAnswersMap] = useState<Record<string, Record<string, string>>>({}); // problem_id -> { key: answer_text }
+  const [isGradingInProgress, setIsGradingInProgress] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Map of sessionId -> number of problems answered
   const [answeredCounts, setAnsweredCounts] = useState<Record<string, number>>({});
   const hasCurrentSession = !!(currentProblems && currentAnswers && elapsedSeconds !== undefined);
@@ -83,28 +87,72 @@ export default function InterviewResults({
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const hasSaved = useRef(false);
 
-  const fetchCorrectness = async (problemIds: string[]) => {
-    if (!user) return;
+  const fetchCorrectness = async (problemIds: string[], isCurrentSession = true) => {
+    if (!user) return false;
     const { data } = await supabase
       .from("user_answers")
-      .select("problem_id, is_correct")
+      .select("problem_id, subproblem_id, is_correct, answer_text")
       .eq("user_id", user.id)
-      .in("problem_id", problemIds);
+      .in("problem_id", problemIds)
+      .order("created_at", { ascending: false });
 
-    const map: Record<string, boolean | null> = {};
-    for (const pid of problemIds) {
-      map[pid] = null; // default: no answer
-    }
+    const map: Record<string, true | false | 'grading' | null> = {};
+    const aMap: Record<string, string> = {};
+    const subMap: Record<string, Record<string, string>> = {};
+    const hasAnswerPending = new Set<string>();
+
+    for (const pid of problemIds) map[pid] = null;
+
     if (data) {
+      // Collect subproblem UUIDs that have answers so we can look up their keys
+      const subproblemIds = [...new Set(
+        data.filter(r => r.subproblem_id && r.answer_text).map(r => r.subproblem_id as string)
+      )];
+
+      // Fetch subproblem keys (a, b, c...) for those UUIDs
+      const subKeyMap: Record<string, string> = {};
+      if (subproblemIds.length > 0) {
+        const { data: subData } = await supabase
+          .from("subproblems")
+          .select("id, key")
+          .in("id", subproblemIds);
+        if (subData) {
+          for (const s of subData) subKeyMap[s.id] = s.key;
+        }
+      }
+
       for (const row of data) {
-        if (row.is_correct === true) {
+        if (!row.subproblem_id && row.answer_text && aMap[row.problem_id] === undefined) {
+          aMap[row.problem_id] = row.answer_text;
+        }
+        if (row.subproblem_id && row.answer_text) {
+          const key = subKeyMap[row.subproblem_id] ?? row.subproblem_id;
+          if (!subMap[row.problem_id]) subMap[row.problem_id] = {};
+          if (subMap[row.problem_id][key] === undefined) {
+            subMap[row.problem_id][key] = row.answer_text;
+          }
+        }
+        if (row.is_correct === null) {
+          hasAnswerPending.add(row.problem_id);
+        } else if (row.is_correct === true) {
           map[row.problem_id] = true;
         } else if (row.is_correct === false && map[row.problem_id] !== true) {
           map[row.problem_id] = false;
         }
       }
+      if (isCurrentSession) {
+        for (const pid of hasAnswerPending) {
+          if (map[pid] === null) map[pid] = 'grading';
+        }
+      }
     }
+
     setCorrectnessMap(map);
+    setAnswersMap(aMap);
+    setSubAnswersMap(subMap);
+    const gradingInProgress = isCurrentSession && Object.values(map).some(v => v === 'grading');
+    setIsGradingInProgress(gradingInProgress);
+    return gradingInProgress;
   };
 
   // Auto-save the just-completed interview and load past sessions
@@ -185,7 +233,19 @@ export default function InterviewResults({
               session: current,
               problems: currentProblems,
             });
-            fetchCorrectness(current.problem_ids);
+            const stillGrading = await fetchCorrectness(current.problem_ids, true);
+            if (stillGrading) {
+              let polls = 0;
+              pollingRef.current = setInterval(async () => {
+                polls++;
+                const still = await fetchCorrectness(current.problem_ids, true);
+                if (!still || polls >= 10) {
+                  if (polls >= 10) setIsGradingInProgress(false);
+                  clearInterval(pollingRef.current!);
+                  pollingRef.current = null;
+                }
+              }, 3000);
+            }
           }
         } else if (allSessions.length > 0) {
           // Reports-only mode: auto-select the most recent session
@@ -200,7 +260,7 @@ export default function InterviewResults({
               .map((id) => problemData.find((p) => p.id === id))
               .filter(Boolean) as Problem[];
             setSelectedSession({ session: mostRecent, problems: ordered });
-            fetchCorrectness(mostRecent.problem_ids);
+            fetchCorrectness(mostRecent.problem_ids, false);
           }
         }
       }
@@ -210,11 +270,22 @@ export default function InterviewResults({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
+  }, []);
+
   const handleSelectSession = async (session: MockInterviewSession) => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+
+    const isCurrentSession = session.id === currentSessionId;
+
     // If selecting the current session, use local problems
-    if (session.id === currentSessionId && currentProblems) {
+    if (isCurrentSession && currentProblems) {
       setSelectedSession({ session, problems: currentProblems });
-      fetchCorrectness(session.problem_ids);
+      fetchCorrectness(session.problem_ids, true);
       return;
     }
 
@@ -230,7 +301,7 @@ export default function InterviewResults({
         .map((id) => problemData.find((p) => p.id === id))
         .filter(Boolean) as Problem[];
       setSelectedSession({ session, problems: ordered });
-      fetchCorrectness(session.problem_ids);
+      fetchCorrectness(session.problem_ids, false);
     }
   };
 
@@ -266,12 +337,24 @@ export default function InterviewResults({
         >
           Reports
         </h1>
-        <p
-          className="text-sm"
-          style={{ color: "var(--foreground)", opacity: 0.6 }}
-        >
-          View detailed stats of your previous mock interviews
-        </p>
+        <div className="flex items-center gap-12">
+          <p
+            className="text-sm"
+            style={{ color: "var(--foreground)", opacity: 0.6 }}
+          >
+            View detailed stats of your previous mock interviews
+          </p>
+          <Button
+            onClick={onStartNew}
+            className="rounded-xl cursor-pointer shrink-0"
+            style={{ backgroundColor: "#141310", color: "#ffffff" }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            Start New Interview
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Two-panel layout */}
@@ -417,6 +500,16 @@ export default function InterviewResults({
                 </div>
               </div>
 
+              {/* Grading banner */}
+              {isGradingInProgress && selectedSession?.session.id === currentSessionId && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm"
+                  style={{ backgroundColor: 'rgba(161,98,7,0.08)', color: '#a16207' }}>
+                  <div className="h-3 w-3 rounded-full border-2 animate-spin shrink-0"
+                    style={{ borderColor: '#a16207', borderTopColor: 'transparent' }} />
+                  Grading in progress — results will appear shortly
+                </div>
+              )}
+
               {/* Problem cards */}
               <div className="flex flex-col gap-3 mt-2">
                 {selectedSession.problems.map((problem, i) => {
@@ -469,6 +562,12 @@ export default function InterviewResults({
                               <X className="h-4 w-4" style={{ color: "#dc2626" }} />
                               <span style={{ color: "#dc2626" }}>Incorrect</span>
                             </>
+                          ) : correctnessMap[problem.id] === 'grading' ? (
+                            <>
+                              <div className="h-3.5 w-3.5 rounded-full border-2 animate-spin shrink-0"
+                                style={{ borderColor: '#a16207', borderTopColor: 'transparent' }} />
+                              <span style={{ color: '#a16207' }}>Grading...</span>
+                            </>
                           ) : (
                             <>
                               <Minus className="h-4 w-4" style={{ color: "var(--foreground)", opacity: 0.4 }} />
@@ -476,25 +575,29 @@ export default function InterviewResults({
                             </>
                           )}
                         </div>
+                        {answersMap[problem.id] ? (
+                          <div className="mt-2 text-xs" style={{ color: 'var(--foreground)' }}>
+                            <span className="font-medium" style={{ opacity: 0.6 }}>Your answer: </span>
+                            <MathContent content={answersMap[problem.id]} />
+                          </div>
+                        ) : subAnswersMap[problem.id] && Object.keys(subAnswersMap[problem.id]).length > 0 ? (
+                          <div className="mt-2 text-xs flex flex-col gap-0.5" style={{ color: 'var(--foreground)' }}>
+                            {Object.entries(subAnswersMap[problem.id])
+                              .sort(([a], [b]) => a.localeCompare(b))
+                              .map(([key, answer]) => (
+                                <div key={key}>
+                                  <span className="font-medium" style={{ opacity: 0.6 }}>({key}): </span>
+                                  <MathContent content={answer} />
+                                </div>
+                              ))}
+                          </div>
+                        ) : null}
                       </div>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Start new interview button */}
-              <div className="pt-2">
-                <Button
-                  onClick={onStartNew}
-                  className="rounded-xl cursor-pointer"
-                  style={{ backgroundColor: "#141310", color: "#ffffff" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-                >
-                  Start New Interview
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </div>
             </div>
           ) : (
             <div

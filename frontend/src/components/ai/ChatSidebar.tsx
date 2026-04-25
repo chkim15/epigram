@@ -9,6 +9,8 @@ import { MathContent } from "@/lib/utils/katex";
 import { supabase } from "@/lib/supabase/client";
 import { Subproblem, Solution, Problem, Document } from "@/types/database";
 import { useAuthStore } from "@/stores/authStore";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
+import SubscribeModal from "@/components/subscription/SubscribeModal";
 import ActiveLearningPrompt from "@/components/problems/ActiveLearningPrompt";
 import { NotesTab } from '@/components/notes/NotesTab';
 
@@ -366,8 +368,10 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
   // Get current problem from store
   const { currentProblem, currentDocument } = useProblemStore();
   const { user } = useAuthStore();
-  
+  const { isPro, isLoading: isSubscriptionLoading } = useSubscriptionStore();
+
   const [messages, setMessages] = useState<Message[]>([]);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'handouts' | 'solutions' | 'notes'>('chat');
@@ -621,6 +625,10 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
 
   const handleSendMessage = async () => {
     if ((!input.trim() && !pastedImage) || isLoading) return;
+    if (!isPro && !isSubscriptionLoading) {
+      setShowSubscribeModal(true);
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -1154,15 +1162,15 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
                     suppressContentEditableWarning={true}
                   />
 
-                  {/* Math Button at Bottom Left */}
-                  <button
+                  {/* Math Button at Bottom Left — hidden, restore by removing comment */}
+                  {/* <button
                     className="absolute left-2 bottom-2 h-8 w-10 rounded-xl border cursor-pointer flex items-center justify-center"
                     aria-label="Insert math equation"
                     onClick={insertMathField}
                     style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}
                   >
                     <Sigma className="h-5 w-5" aria-hidden="true" style={{ color: 'var(--foreground)' }} />
-                  </button>
+                  </button> */}
                 </div>
                 
                 {/* Image Preview Inside Input */}
@@ -1228,6 +1236,12 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
           <NotesTab currentProblem={currentProblem} />
         )}
       </div>
+
+      <SubscribeModal
+        isOpen={showSubscribeModal}
+        onClose={() => setShowSubscribeModal(false)}
+        message="AI Tutor is a premium feature. Subscribe to ask unlimited questions."
+      />
     </div>
   );
 }
