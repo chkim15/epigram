@@ -29,7 +29,7 @@ export function renderMath(text: string, documentId?: string): string {
     processed = processed.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
   }
 
-  // IMPORTANT: Process math FIRST before handling line breaks, 
+  // IMPORTANT: Process math FIRST before handling line breaks,
   // otherwise we'll break LaTeX array/matrix environments that use \\
   
   // Process display math first - $$...$$ (including multi-line content)
@@ -104,7 +104,11 @@ export function renderMath(text: string, documentId?: string): string {
   processed = processed.replace(/___ESCAPED_DOLLAR___/g, '$');
 
   // NOW process text formatting and line breaks (after math is done)
-  
+
+  // Convert LaTeX-style quotes (``word'') to Unicode curly quotes ("word")
+  // Must be after math processing to avoid corrupting f''(x) inside math
+  processed = processed.replace(/``(.*?)''/gs, '\u201c$1\u201d');
+
   // Safety net: strip LaTeX commands that shouldn't appear in rendered output
   processed = processed.replace(/\\color\{[^}]+\}/g, '');
   processed = processed.replace(/\\(small|large|footnotesize|normalsize|Large|LARGE|huge|Huge)\b/g, '');

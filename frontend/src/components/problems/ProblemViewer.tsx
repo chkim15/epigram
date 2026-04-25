@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import ProblemFeedback from "@/components/problems/ProblemFeedback";
 
 interface ProblemViewerProps {
@@ -67,9 +68,22 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
     setCurrentProblem,
     nextProblem,
     previousProblem,
+    goToIndex,
     setLoading,
   } = useProblemStore();
 
+  const findNextAccessibleIndex = () => {
+    for (let i = currentProblemIndex + 1; i < problemList.length; i++) {
+      if (isPro || isSubscriptionLoading || problemList[i].is_free) return i;
+    }
+    return -1;
+  };
+  const findPrevAccessibleIndex = () => {
+    for (let i = currentProblemIndex - 1; i >= 0; i--) {
+      if (isPro || isSubscriptionLoading || problemList[i].is_free) return i;
+    }
+    return -1;
+  };
 
   const [subproblems, setSubproblems] = useState<Subproblem[]>([]);
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
@@ -89,6 +103,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
   const [topicsOpen, setTopicsOpen] = useState(false);
   const [companiesOpen, setCompaniesOpen] = useState(false);
   const { user } = useAuthStore();
+  const { isPro, isLoading: isSubscriptionLoading } = useSubscriptionStore();
   const answerContentEditableRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Fetch quant_topics for current problem
@@ -1884,16 +1899,16 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
               variant="outline"
               size="sm"
               onClick={() => {
-                previousProblem();
-                if (problemSlug) {
-                  const prevIndex = currentProblemIndex - 1;
-                  const prevProblem = problemList[prevIndex];
-                  if (prevProblem?.problem_name) {
-                    router.replace(`/problems/${slugify(prevProblem.problem_name)}`, { scroll: false });
+                const idx = findPrevAccessibleIndex();
+                if (idx !== -1) {
+                  goToIndex(idx);
+                  const prob = problemList[idx];
+                  if (prob?.problem_name && problemSlug) {
+                    router.replace(`/problems/${slugify(prob.problem_name)}`, { scroll: false });
                   }
                 }
               }}
-              disabled={!canGoPrevious()}
+              disabled={findPrevAccessibleIndex() === -1}
               className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
               style={{
                 backgroundColor: 'var(--background)',
@@ -1911,16 +1926,16 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
               variant="outline"
               size="sm"
               onClick={() => {
-                nextProblem();
-                if (problemSlug) {
-                  const nextIndex = currentProblemIndex + 1;
-                  const nextProb = problemList[nextIndex];
-                  if (nextProb?.problem_name) {
-                    router.replace(`/problems/${slugify(nextProb.problem_name)}`, { scroll: false });
+                const idx = findNextAccessibleIndex();
+                if (idx !== -1) {
+                  goToIndex(idx);
+                  const prob = problemList[idx];
+                  if (prob?.problem_name && problemSlug) {
+                    router.replace(`/problems/${slugify(prob.problem_name)}`, { scroll: false });
                   }
                 }
               }}
-              disabled={!canGoNext()}
+              disabled={findNextAccessibleIndex() === -1}
               className="cursor-pointer disabled:cursor-not-allowed rounded-xl"
               style={{
                 backgroundColor: 'var(--background)',

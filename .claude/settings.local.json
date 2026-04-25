@@ -21,7 +21,11 @@
       "Bash(xargs kill *)",
       "Bash(ln -sf /Users/chulhee/src/epigram/frontend/.env.local /Users/chulhee/src/epigram/.claude/worktrees/awesome-feynman-120405/frontend/.env.local)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(kill -9 94763)",
+      "Bash(/Users/chulhee/src/epigram/frontend/node_modules/.bin/next dev *)"
     ],
     "defaultMode": "acceptEdits"
   },
