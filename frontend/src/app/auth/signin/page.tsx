@@ -61,13 +61,29 @@ function SignInForm() {
   }, [user, router]);
 
   useEffect(() => {
-    // Check for confirmation success or error
+    // Check for confirmation success or error from query params
     if (searchParams.get('confirmed') === 'true') {
       setSuccessMessage('Email confirmed successfully! You can now sign in.');
     } else if (searchParams.get('error') === 'confirmation_failed') {
       setError('Email confirmation failed. Please try again or contact support.');
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    // Parse Supabase errors passed as hash fragments (e.g. expired email links)
+    const hash = window.location.hash;
+    if (!hash) return;
+    const params = new URLSearchParams(hash.slice(1));
+    const errorCode = params.get('error_code');
+    const errorDescription = params.get('error_description');
+    if (errorCode === 'otp_expired') {
+      setError('Your email confirmation link has expired. Please sign up again or request a new confirmation email.');
+    } else if (errorDescription) {
+      setError(errorDescription.replace(/\+/g, ' '));
+    }
+    // Clear the hash so it doesn't persist on refresh
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }, []);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +109,10 @@ function SignInForm() {
       setError(error.message);
     }
   };
+
+  if (isLoading || user) {
+    return <div className="min-h-screen bg-gray-50 dark:bg-gray-900" />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">

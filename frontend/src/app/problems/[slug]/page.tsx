@@ -58,6 +58,18 @@ function ProblemDetailContent({ slug }: { slug: string }) {
             </button>
           </div>
         )}
+        {!fromMockInterview && !fromCurriculum && (
+          <div className="px-4 pt-3 pb-1">
+            <button
+              onClick={() => router.push("/problems")}
+              className="flex items-center gap-1.5 text-sm cursor-pointer transition-opacity hover:opacity-70"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Problems
+            </button>
+          </div>
+        )}
         <ResizablePanels
           leftPanel={
             <ProblemViewer
@@ -67,7 +79,6 @@ function ProblemDetailContent({ slug }: { slug: string }) {
               selectedDifficulties={[]}
               viewMode="problems"
               problemCount={10}
-              savedProblemIds={[]}
             />
           }
           rightPanel={<ChatSidebar mode="problems" currentTopicId={null} />}

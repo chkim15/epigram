@@ -39,7 +39,6 @@ function BookmarksPageContent() {
             selectedDifficulties={[]}
             viewMode="bookmarks"
             problemCount={10}
-            savedProblemIds={[]}
           />
         }
         rightPanel={<ChatSidebar mode="problems" currentTopicId={null} />}

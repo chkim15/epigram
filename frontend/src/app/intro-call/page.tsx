@@ -8,7 +8,7 @@ import Cal, { getCalApi } from "@calcom/embed-react";
 
 function IntroCallPageContent() {
   const { showCheckoutSuccess, setShowCheckoutSuccess } = useAuthGuard({ requireAuth: true });
-  const { isPro } = useSubscriptionStore();
+  const { isPro, isLoading: isSubscriptionLoading } = useSubscriptionStore();
 
   const calLink = process.env.NEXT_PUBLIC_CAL_INTRO_CALL_LINK;
 
@@ -35,7 +35,7 @@ function IntroCallPageContent() {
             Get a personalized study plan and walkthrough of the platform
           </p>
 
-          {!isPro ? (
+          {!isPro && !isSubscriptionLoading ? (
             <p style={{ textAlign: "center", color: "#9b9b93", fontSize: "15px" }}>
               This call is available to premium members.
             </p>

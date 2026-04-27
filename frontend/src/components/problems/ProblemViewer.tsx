@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import ProblemFeedback from "@/components/problems/ProblemFeedback";
+import SubscribeModal from "@/components/subscription/SubscribeModal";
 
 interface ProblemViewerProps {
   specificProblemId?: string;
@@ -44,7 +45,6 @@ interface ProblemViewerProps {
   selectedDifficulties?: string[];
   viewMode?: 'problems' | 'bookmarks' | 'recommended-problems';
   problemCount?: number;
-  savedProblemIds?: string[];
   recommendedProblemIds?: string[];
 }
 
@@ -53,7 +53,7 @@ interface MathFieldElement extends HTMLElement {
   getValue?: () => string;
 }
 
-export default function ProblemViewer({ specificProblemId, problemSlug, selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, savedProblemIds = [], recommendedProblemIds = [] }: ProblemViewerProps) {
+export default function ProblemViewer({ specificProblemId, problemSlug, selectedTopicId, selectedTopicIds = [], selectedDifficulties = [], viewMode = 'problems', problemCount = 10, recommendedProblemIds = [] }: ProblemViewerProps) {
   const router = useRouter();
   const {
     currentProblem,
@@ -102,6 +102,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
   const [problemTopics, setProblemTopics] = useState<string[]>([]);
   const [topicsOpen, setTopicsOpen] = useState(false);
   const [companiesOpen, setCompaniesOpen] = useState(false);
+  const [showCompaniesModal, setShowCompaniesModal] = useState(false);
   const { user } = useAuthStore();
   const { isPro, isLoading: isSubscriptionLoading } = useSubscriptionStore();
   const answerContentEditableRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -159,6 +160,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
         .select('id, problem_id, document_id, problem_text, correct_answer, hint, solution_text, math_approach, reasoning_type, difficulty, importance, comment, version, created_at, updated_at, included, problem_name, problem_labels, company_labels, location_labels, is_free, is_recent')
         .eq('included', true)
         .not('problem_name', 'is', null)
+        .not('difficulty', 'is', null)
         .order('problem_id');
 
       if (allProblems && !error) {
@@ -230,9 +232,6 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
     const loadProblems = async () => {
       if (viewMode === 'bookmarks') {
         await fetchBookmarkedProblems();
-      } else if (savedProblemIds.length > 0) {
-        // For practice mode with saved problems
-        await fetchAllProblems();
       } else if (selectedTopicId !== null || selectedTopicIds.length > 0) {
         // Topic-based browsing
         await fetchAllProblems();
@@ -243,7 +242,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
     };
 
     loadProblems();
-  }, [selectedTopicId, selectedTopicIds, selectedDifficulties, viewMode, problemCount, savedProblemIds]);
+  }, [selectedTopicId, selectedTopicIds, selectedDifficulties, viewMode, problemCount]);
 
   useEffect(() => {
     if (currentProblem) {
@@ -320,32 +319,6 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
       let problemsError;
       
       if (isPracticeMode) {
-        // Practice mode: use saved problem IDs if available, otherwise filter and randomize
-        if (savedProblemIds.length > 0) {
-          // Use saved problem IDs - fetch specific problems in order
-          const result = await supabase
-            .from('problems')
-            .select(`
-              id, problem_id, document_id, problem_text, correct_answer, hint, solution_text,
-              math_approach, reasoning_type, difficulty, importance,
-              comment, version, created_at, updated_at, included,
-              problem_name, problem_labels, company_labels, location_labels
-            `)
-            .eq('included', true)
-            .in('id', savedProblemIds);
-
-          problemsData = result.data;
-          problemsError = result.error;
-
-          // Sort problems to match the saved order
-          if (problemsData) {
-            const problemMap = new Map(problemsData.map(p => [p.id, p]));
-            problemsData = savedProblemIds
-              .map(id => problemMap.get(id))
-              .filter(p => p !== undefined) as Problem[];
-          }
-        } else {
-          // Original behavior: filter by multiple topics and difficulties
           let query = supabase
             .from('problems')
             .select(`
@@ -404,7 +377,6 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
             // Limit to the specified problem count
             problemsData = uniqueProblemsArray.slice(0, problemCount);
           }
-        }
       } else if (selectedTopicId) {
         // Single topic selection from sidebar - show 3 random problems
         const result = await supabase
@@ -1853,7 +1825,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
         <div style={{ margin: '0 -12px -12px' }}>
           <div style={{ borderTop: '1px solid var(--border)', backgroundColor: 'var(--background)' }}>
             <button
-              onClick={() => setCompaniesOpen(o => !o)}
+              onClick={() => (isPro || isSubscriptionLoading) ? setCompaniesOpen(o => !o) : setShowCompaniesModal(true)}
               className="cursor-pointer w-full"
               style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'transparent', border: 'none' }}
             >
@@ -1866,7 +1838,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                 }
               </span>
             </button>
-            {companiesOpen && (
+            {companiesOpen && isPro && (
               <div style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {(currentProblem?.company_labels ?? []).length > 0
                   ? (currentProblem!.company_labels as string[]).map((company) => (
@@ -1951,6 +1923,11 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
       </div>
       </div>
 
+    <SubscribeModal
+      isOpen={showCompaniesModal}
+      onClose={() => setShowCompaniesModal(false)}
+      message="Company tags are a premium feature. Subscribe to see which companies have asked each problem."
+    />
     </div>
   );
 }

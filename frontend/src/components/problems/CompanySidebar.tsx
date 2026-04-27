@@ -111,15 +111,6 @@ export default function CompanySidebar({
               }}
             >
               <span>{tag.name}</span>
-              <span
-                className="text-xs font-medium px-1.5 py-0.5 rounded-full"
-                style={{
-                  backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'var(--sidebar-accent)',
-                  color: isActive ? 'var(--background)' : 'var(--muted-foreground)',
-                }}
-              >
-                {tag.count}
-              </span>
             </button>
           );
         })}

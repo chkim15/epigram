@@ -6,6 +6,7 @@ import { Search, CheckCircle, Circle, ChevronDown, ChevronUp, Star, Lock, X } fr
 import { MathContent } from "@/lib/utils/katex";
 import { slugify } from "@/lib/utils/slugify";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
+import { useAuthStore } from "@/stores/authStore";
 import SubscribeModal from "@/components/subscription/SubscribeModal";
 
 interface ProblemRow {
@@ -85,18 +86,20 @@ export default function ProblemsListView({
 }: ProblemsListViewProps) {
   const router = useRouter();
   const { isPro } = useSubscriptionStore();
+  const { user } = useAuthStore();
   const [topicsExpanded, setTopicsExpanded] = useState(false);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
-  const DISMISS_KEY = 'intro_call_banner_dismissed';
-  const [dismissed, setDismissed] = useState(false);
+  const dismissKey = user ? `intro_call_banner_dismissed_${user.id}` : null;
+  const [dismissed, setDismissed] = useState<boolean | null>(null);
   useEffect(() => {
-    setDismissed(!!localStorage.getItem(DISMISS_KEY));
-  }, []);
-  const showOnboardingBanner = isPro && !dismissed;
+    if (!dismissKey) return;
+    setDismissed(!!localStorage.getItem(dismissKey));
+  }, [dismissKey]);
+  const showOnboardingBanner = isPro && dismissed === false;
 
   const handleDismiss = () => {
-    localStorage.setItem(DISMISS_KEY, '1');
+    if (dismissKey) localStorage.setItem(dismissKey, '1');
     setDismissed(true);
   };
 

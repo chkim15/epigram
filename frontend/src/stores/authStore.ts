@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   signUp: async (email, password, fullName) => {
     set({ isLoading: true });
     const { data, error } = await auth.signUpWithEmail(email, password, fullName);
-    if (!error && data && data.user) {
+    if (!error && data && data.user && data.session) {
       set({ user: data.user, isAuthenticated: true });
     }
     set({ isLoading: false });

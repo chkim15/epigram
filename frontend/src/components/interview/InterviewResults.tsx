@@ -87,18 +87,30 @@ export default function InterviewResults({
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const hasSaved = useRef(false);
 
-  const fetchCorrectness = async (problemIds: string[], isCurrentSession = true) => {
+  const fetchCorrectness = async (problemIds: string[], isCurrentSession = true, session?: MockInterviewSession) => {
     if (!user) return false;
-    const { data } = await supabase
+    let query = supabase
       .from("user_answers")
       .select("problem_id, subproblem_id, is_correct, answer_text")
       .eq("user_id", user.id)
       .in("problem_id", problemIds)
       .order("created_at", { ascending: false });
 
+    // Scope to session's time window to prevent cross-session answer contamination
+    if (!isCurrentSession && session?.started_at && session?.completed_at) {
+      const bufferEnd = new Date(new Date(session.completed_at).getTime() + 24 * 60 * 60 * 1000).toISOString();
+      query = query.gte("created_at", session.started_at).lte("created_at", bufferEnd);
+    }
+
+    const { data } = await query;
+
     const map: Record<string, true | false | 'grading' | null> = {};
-    const aMap: Record<string, string> = {};
     const subMap: Record<string, Record<string, string>> = {};
+
+    // For past sessions, use the session's stored answers (avoids cross-session contamination)
+    const aMap: Record<string, string> = (!isCurrentSession && session?.user_answers && session?.problem_ids)
+      ? Object.fromEntries(session.problem_ids.map((pid, i) => [pid, session.user_answers[i] ?? '']).filter(([, v]) => v))
+      : {};
     const hasAnswerPending = new Set<string>();
 
     for (const pid of problemIds) map[pid] = null;
@@ -122,7 +134,7 @@ export default function InterviewResults({
       }
 
       for (const row of data) {
-        if (!row.subproblem_id && row.answer_text && aMap[row.problem_id] === undefined) {
+        if (!row.subproblem_id && row.answer_text && isCurrentSession && aMap[row.problem_id] === undefined) {
           aMap[row.problem_id] = row.answer_text;
         }
         if (row.subproblem_id && row.answer_text) {
@@ -274,6 +286,19 @@ export default function InterviewResults({
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, []);
 
+  const startPolling = (session: MockInterviewSession) => {
+    let polls = 0;
+    pollingRef.current = setInterval(async () => {
+      polls++;
+      const still = await fetchCorrectness(session.problem_ids, true);
+      if (!still || polls >= 10) {
+        if (polls >= 10) setIsGradingInProgress(false);
+        clearInterval(pollingRef.current!);
+        pollingRef.current = null;
+      }
+    }, 3000);
+  };
+
   const handleSelectSession = async (session: MockInterviewSession) => {
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
@@ -285,7 +310,8 @@ export default function InterviewResults({
     // If selecting the current session, use local problems
     if (isCurrentSession && currentProblems) {
       setSelectedSession({ session, problems: currentProblems });
-      fetchCorrectness(session.problem_ids, true);
+      const stillGrading = await fetchCorrectness(session.problem_ids, true);
+      if (stillGrading) startPolling(session);
       return;
     }
 
@@ -301,7 +327,7 @@ export default function InterviewResults({
         .map((id) => problemData.find((p) => p.id === id))
         .filter(Boolean) as Problem[];
       setSelectedSession({ session, problems: ordered });
-      fetchCorrectness(session.problem_ids, false);
+      fetchCorrectness(session.problem_ids, false, session);
     }
   };
 

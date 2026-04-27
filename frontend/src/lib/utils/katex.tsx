@@ -107,7 +107,7 @@ export function renderMath(text: string, documentId?: string): string {
 
   // Convert LaTeX-style quotes (``word'') to Unicode curly quotes ("word")
   // Must be after math processing to avoid corrupting f''(x) inside math
-  processed = processed.replace(/``([\s\S]*?)''/g, '\u201c$1\u201d');
+  processed = processed.replace(/``([^\n`']+?)''/g, '\u201c$1\u201d');
 
   // Safety net: strip LaTeX commands that shouldn't appear in rendered output
   processed = processed.replace(/\\color\{[^}]+\}/g, '');

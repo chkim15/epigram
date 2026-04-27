@@ -42,7 +42,7 @@ async function getAuthHeaders() {
 export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   subscription: null,
   plan: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   isTeam: false,
 

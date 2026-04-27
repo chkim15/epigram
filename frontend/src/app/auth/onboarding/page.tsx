@@ -23,7 +23,7 @@ const TOTAL_STEPS = 5
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { user, checkAuth } = useAuthStore()
+  const { user, checkAuth, isLoading: isAuthLoading } = useAuthStore()
 
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -41,6 +41,7 @@ export default function OnboardingPage() {
   }, [checkAuth])
 
   useEffect(() => {
+    if (isAuthLoading) return
     if (!user) {
       router.push('/auth/signin')
       return
@@ -67,7 +68,7 @@ export default function OnboardingPage() {
     }
 
     ensureProfile()
-  }, [user, router])
+  }, [user, router, isAuthLoading])
 
   const toggleFirm = (firm: FirmSlug) => {
     setTargetFirms((prev) =>
