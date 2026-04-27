@@ -26,8 +26,6 @@ interface ProblemsListViewProps {
   problems: ProblemRow[];
   completedSet: Set<string>;
   mainTopicTags: TopicTag[];
-  totalCount: number;
-  solvedCount: number;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   selectedDifficulty: string | null;
@@ -69,8 +67,6 @@ export default function ProblemsListView({
   problems,
   completedSet,
   mainTopicTags,
-  totalCount,
-  solvedCount,
   searchQuery,
   onSearchChange,
   selectedDifficulty,

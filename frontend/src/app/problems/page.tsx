@@ -213,10 +213,6 @@ function ProblemsPageContent() {
     });
   }, [problems, searchQuery, selectedDifficulty, selectedMainTopic, selectedCompany, selectedTag, selectedStatus, completedSet, bookmarkedSet]);
 
-  const solvedCount = useMemo(() => {
-    return filteredProblems.filter((p) => completedSet.has(p.id)).length;
-  }, [filteredProblems, completedSet]);
-
   if (isLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--background)' }}>
@@ -240,8 +236,6 @@ function ProblemsPageContent() {
             problems={filteredProblems}
             completedSet={completedSet}
             mainTopicTags={mainTopicTags}
-            totalCount={filteredProblems.length}
-            solvedCount={solvedCount}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             selectedDifficulty={selectedDifficulty}

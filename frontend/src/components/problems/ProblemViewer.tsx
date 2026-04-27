@@ -61,13 +61,9 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
     problemList,
     currentDocument,
     isLoading,
-    canGoNext,
-    canGoPrevious,
     setProblemList,
     setCurrentDocument,
     setCurrentProblem,
-    nextProblem,
-    previousProblem,
     goToIndex,
     setLoading,
   } = useProblemStore();
@@ -361,7 +357,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
             // Remove duplicates that might occur when a problem has multiple topics
             const uniqueProblems = new Map<string, Problem>();
             problemsData.forEach((problem: Problem & { problem_topics?: unknown }) => {
-              const { problem_topics: _, ...cleanProblem } = problem;
+              const { problem_topics: _pt, ...cleanProblem } = problem;
               if (!uniqueProblems.has(cleanProblem.id)) {
                 uniqueProblems.set(cleanProblem.id, cleanProblem);
               }
@@ -398,7 +394,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
         if (problemsData) {
           // Remove the problem_topics array from each problem
           const cleanedProblems = problemsData.map((problem: Problem & { problem_topics?: unknown }) => {
-            const { problem_topics: _, ...cleanProblem } = problem;
+            const { problem_topics: _pt, ...cleanProblem } = problem;
             return cleanProblem;
           });
 

@@ -109,7 +109,7 @@ export default function InterviewResults({
 
     // For past sessions, use the session's stored answers (avoids cross-session contamination)
     const aMap: Record<string, string> = (!isCurrentSession && session?.user_answers && session?.problem_ids)
-      ? Object.fromEntries(session.problem_ids.map((pid, i) => [pid, session.user_answers[i] ?? '']).filter(([, v]) => v))
+      ? Object.fromEntries(session.problem_ids.map((pid, i) => [pid, session.user_answers![i] ?? '']).filter(([, v]) => v))
       : {};
     const hasAnswerPending = new Set<string>();
 
