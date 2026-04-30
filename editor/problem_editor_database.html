@@ -4916,6 +4916,27 @@
                     } else {
                         problem.version = 'v1';
                     }
+
+                    // Merge additional solutions (Solution 2+) into solution.text array
+                    if (problem.solution) {
+                        const additionalSols = additionalSolutions[problem.id] || [];
+                        if (additionalSols.length > 0) {
+                            const primary = problem.solution.text || '';
+                            problem.solution.text = [primary, ...additionalSols];
+                        }
+                    }
+
+                    // Merge additional subproblem solutions
+                    if (problem.subproblems) {
+                        Object.keys(problem.subproblems).forEach(key => {
+                            const sub = problem.subproblems[key];
+                            const additionalSubSols = additionalSubproblemSolutions[key] || [];
+                            if (additionalSubSols.length > 0 && sub.solution) {
+                                const primarySub = sub.solution.text || '';
+                                sub.solution.text = [primarySub, ...additionalSubSols];
+                            }
+                        });
+                    }
                 });
             }
 
