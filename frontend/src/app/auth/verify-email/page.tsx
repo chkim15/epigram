@@ -11,7 +11,6 @@ function VerifyEmailContent() {
   const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
-    // Get email from query params if available
     const email = searchParams.get('email');
     if (email) {
       setUserEmail(email);
@@ -46,70 +45,61 @@ function VerifyEmailContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#faf9f5' }}>
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
-          {/* Title */}
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="rounded-xl p-8 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgb(240,238,230)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <h1 className="text-2xl font-semibold mb-4" style={{ color: '#141310' }}>
             Verify your account
           </h1>
-          
-          {/* Subtitle */}
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
-            Do not close this tab.
-          </p>
 
-          {/* Divider */}
-          <div className="w-full border-t border-gray-200 dark:border-gray-700 mb-8"></div>
+          <div className="w-full border-t mb-8" style={{ borderColor: 'rgb(240,238,230)' }}></div>
 
-          {/* Main message */}
-          <p className="text-gray-700 dark:text-gray-300 mb-2">
+          <p className="mb-2" style={{ color: '#141310' }}>
             We&apos;ve sent a verification email to your inbox.
           </p>
 
-          {/* Check inbox message */}
-          <p className="text-red-500 font-medium mb-4">
+          <p className="font-medium mb-4" style={{ color: '#a16207' }}>
             Check your inbox or junk folder
           </p>
 
-          {/* Additional instruction */}
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
+          <p className="mb-8" style={{ color: '#6b6b6b' }}>
             and click the link to continue.
           </p>
 
-          {/* Display user email if available */}
           {userEmail && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Email sent to: <span className="font-medium">{userEmail}</span>
+            <p className="text-sm mb-6" style={{ color: '#9b9b9b' }}>
+              Email sent to: <span className="font-medium" style={{ color: '#141310' }}>{userEmail}</span>
             </p>
           )}
 
-          {/* Resend button */}
           <button
             onClick={handleResendEmail}
             disabled={isResending}
-            className="w-full py-3 bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#141310', color: '#faf9f5' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#2c2c2c')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#141310')}
           >
             {isResending ? 'Sending...' : 'Resend email'}
           </button>
 
-          {/* Resend message */}
           {resendMessage && (
-            <div className={`mt-4 p-3 rounded-xl text-sm ${
-              resendMessage.includes('Error') 
-                ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' 
-                : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
-            }`}>
+            <div
+              className="mt-4 p-3 rounded-xl text-sm"
+              style={resendMessage.includes('Error')
+                ? { backgroundColor: '#fef2f2', color: '#dc2626' }
+                : { backgroundColor: '#f0fdf4', color: '#16a34a' }}
+            >
               {resendMessage}
             </div>
           )}
 
-          {/* Sign in link */}
-          <p className="mt-6 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-6 text-sm" style={{ color: '#6b6b6b' }}>
             Already confirmed?{' '}
             <a
               href="/auth/signin"
-              className="text-gray-900 dark:text-white font-medium hover:underline"
+              className="font-medium hover:underline"
+              style={{ color: '#141310' }}
             >
               Sign in
             </a>
@@ -123,15 +113,8 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Loading...
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Please wait a moment.
-          </p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#faf9f5' }}>
+        <p style={{ color: '#6b6b6b' }}>Loading...</p>
       </div>
     }>
       <VerifyEmailContent />

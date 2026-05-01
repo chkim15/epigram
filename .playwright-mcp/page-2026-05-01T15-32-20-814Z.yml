@@ -1,0 +1,13 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - heading "Verify your account" [level=1] [ref=e5]
+    - paragraph [ref=e7]: We've sent a verification email to your inbox.
+    - paragraph [ref=e8]: Check your inbox or junk folder
+    - paragraph [ref=e9]: and click the link to continue.
+    - paragraph [ref=e10]: "Email sent to: test@example.com"
+    - button "Resend email" [ref=e11] [cursor=pointer]
+    - paragraph [ref=e12]:
+      - text: Already confirmed?
+      - link "Sign in" [ref=e13] [cursor=pointer]:
+        - /url: /auth/signin
+  - alert [ref=e14]

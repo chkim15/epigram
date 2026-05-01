@@ -111,26 +111,29 @@ function SignInForm() {
   };
 
   if (isLoading || user) {
-    return <div className="min-h-screen bg-gray-50 dark:bg-gray-900" />;
+    return <div className="min-h-screen" style={{ backgroundColor: '#faf9f5' }} />;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#faf9f5' }}>
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+        <div className="rounded-xl p-8" style={{ backgroundColor: '#ffffff', border: '1px solid rgb(240,238,230)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           {/* Welcome text */}
-          <h1 className="text-2xl font-semibold text-center text-gray-900 dark:text-white mb-2">
-            Welcome back
+          <h1 className="text-2xl font-semibold text-center mb-2" style={{ color: '#141310' }}>
+            Welcome to Epigram
           </h1>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
-            Let&apos;s continue your learning journey.
+          <p className="text-center mb-8" style={{ color: '#6b6b6b' }}>
+            Sign in to continue.
           </p>
 
           {/* Google Sign In */}
           <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ border: '1px solid rgb(240,238,230)', backgroundColor: '#ffffff' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#faf9f5')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#ffffff')}
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -150,7 +153,7 @@ function SignInForm() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            <span className="text-gray-700 dark:text-gray-300 font-medium">
+            <span className="font-medium" style={{ color: '#141310' }}>
               Continue with Google
             </span>
           </button>
@@ -158,10 +161,10 @@ function SignInForm() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              <div className="w-full border-t" style={{ borderColor: 'rgb(240,238,230)' }}></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white dark:bg-gray-800 text-gray-500">
+              <span className="px-4" style={{ backgroundColor: '#ffffff', color: '#9b9b9b' }}>
                 or continue with
               </span>
             </div>
@@ -175,7 +178,8 @@ function SignInForm() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                className="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#141310] focus:border-transparent"
+                style={{ border: '1px solid rgb(240,238,230)', backgroundColor: '#ffffff', color: '#141310' }}
                 disabled={isLoading}
               />
             </div>
@@ -186,13 +190,15 @@ function SignInForm() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                className="w-full px-4 py-3 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#141310] focus:border-transparent"
+                style={{ border: '1px solid rgb(240,238,230)', backgroundColor: '#ffffff', color: '#141310' }}
                 disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+                style={{ color: '#9b9b9b' }}
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -206,7 +212,8 @@ function SignInForm() {
             <div className="text-right">
               <Link
                 href="/auth/forgot-password"
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                className="text-sm hover:underline"
+                style={{ color: '#6b6b6b' }}
               >
                 Forgot password?
               </Link>
@@ -214,14 +221,14 @@ function SignInForm() {
 
             {/* Success message */}
             {successMessage && (
-              <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm">
+              <div className="p-3 rounded-xl text-sm" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
                 {successMessage}
               </div>
             )}
 
             {/* Error message */}
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+              <div className="p-3 rounded-xl text-sm" style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}>
                 {error}
               </div>
             )}
@@ -230,18 +237,22 @@ function SignInForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#141310', color: '#faf9f5' }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#2c2c2c')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#141310')}
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
           {/* Sign up link */}
-          <p className="mt-6 text-center text-gray-600 dark:text-gray-400">
+          <p className="mt-6 text-center" style={{ color: '#6b6b6b' }}>
             Don&apos;t have an account?{' '}
             <Link
               href="/auth/signup"
-              className="text-gray-900 dark:text-white font-medium hover:underline"
+              className="font-medium hover:underline"
+              style={{ color: '#141310' }}
             >
               Sign up
             </Link>
