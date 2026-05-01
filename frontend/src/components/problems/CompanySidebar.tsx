@@ -66,7 +66,7 @@ function NewsletterCard() {
       </p>
       {status === 'success' ? (
         <p style={{ fontSize: '12px', color: '#15803d', fontWeight: 500 }}>
-          ✓ Check your inbox to confirm.
+          ✓ Subscribed. See you in your inbox each week.
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">

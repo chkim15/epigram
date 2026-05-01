@@ -294,7 +294,7 @@ export default function LandingPage() {
           <div style={{ flex: '1 1 320px', minWidth: 0 }}>
             {newsletterStatus === 'success' ? (
               <p style={{ fontSize: '15px', color: '#15803d', fontWeight: 500 }}>
-                ✓ You&apos;re in — check your inbox to confirm.
+                ✓ You&apos;re subscribed. Watch for The Quant Signal each week.
               </p>
             ) : (
               <form onSubmit={handleNewsletterSubmit} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
