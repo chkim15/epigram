@@ -47,13 +47,14 @@ export default function OnboardingPage() {
       return
     }
 
-    // Create a stub profile if one doesn't exist (e.g. Google OAuth users).
-    async function ensureProfile() {
+    // Create a stub profile if one doesn't exist (e.g. Google OAuth users), then
+    // fire the welcome email if it hasn't been sent yet.
+    async function ensureProfileAndWelcome() {
       if (!user) return
 
       const { data: existingProfile } = await supabase
         .from('user_profiles')
-        .select('user_id')
+        .select('user_id, welcome_email_sent')
         .eq('user_id', user.id)
         .single()
 
@@ -65,9 +66,21 @@ export default function OnboardingPage() {
             onboarding_completed: false,
           })
       }
+
+      if (!existingProfile?.welcome_email_sent) {
+        fetch('/api/welcome-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.email,
+            full_name: user.user_metadata?.full_name ?? '',
+            user_id: user.id,
+          }),
+        }).catch((err) => console.error('Welcome email request failed:', err))
+      }
     }
 
-    ensureProfile()
+    ensureProfileAndWelcome()
   }, [user, router, isAuthLoading])
 
   const toggleFirm = (firm: FirmSlug) => {

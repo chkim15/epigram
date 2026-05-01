@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendWelcomeEmail } from '@/lib/emails/sendWelcomeEmail';
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -32,34 +31,7 @@ export async function GET(request: Request) {
           });
       }
 
-      // Send welcome email once per user (idempotent via welcome_email_sent flag)
-      const debugTrace: string[] = [`profile=${JSON.stringify(profile)}`];
-      if (!profile?.welcome_email_sent) {
-        debugTrace.push('entered_send_block');
-        try {
-          await sendWelcomeEmail(
-            session.user.email!,
-            session.user.user_metadata?.full_name
-          );
-          debugTrace.push('send_ok');
-          await supabase
-            .from('user_profiles')
-            .update({ welcome_email_sent: true, welcome_email_error: debugTrace.join(' | ') })
-            .eq('user_id', session.user.id);
-        } catch (err) {
-          debugTrace.push(`error=${err instanceof Error ? err.message : String(err)}`);
-          await supabase
-            .from('user_profiles')
-            .update({ welcome_email_error: debugTrace.join(' | ') })
-            .eq('user_id', session.user.id);
-        }
-      } else {
-        debugTrace.push('skipped_already_sent');
-        await supabase
-          .from('user_profiles')
-          .update({ welcome_email_error: debugTrace.join(' | ') })
-          .eq('user_id', session.user.id);
-      }
+      // Welcome email is triggered from the onboarding page (handles both PKCE and implicit OAuth flows).
 
       // If onboarding not completed, redirect to onboarding
       if (!profile?.onboarding_completed) {
