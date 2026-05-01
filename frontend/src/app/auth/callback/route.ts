@@ -18,37 +18,41 @@ export async function GET(request: Request) {
       // Check if user has completed onboarding
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('onboarding_completed')
+        .select('onboarding_completed, welcome_email_sent')
         .eq('user_id', session.user.id)
         .single();
 
-      // If profile doesn't exist, create it (fallback if trigger fails)
+      // Fallback: create profile if the trigger somehow didn't
       if (!profile) {
         await supabase
           .from('user_profiles')
           .insert({
             user_id: session.user.id,
-            onboarding_completed: false
+            onboarding_completed: false,
           });
+      }
 
+      // Send welcome email once per user (idempotent via welcome_email_sent flag)
+      if (!profile?.welcome_email_sent) {
         try {
           await sendWelcomeEmail(
             session.user.email!,
             session.user.user_metadata?.full_name
           );
+          await supabase
+            .from('user_profiles')
+            .update({ welcome_email_sent: true })
+            .eq('user_id', session.user.id);
         } catch (err) {
           console.error('Welcome email failed:', err);
         }
-
-        // Always redirect new users to onboarding
-        return NextResponse.redirect(new URL('/auth/onboarding', requestUrl.origin));
       }
 
       // If onboarding not completed, redirect to onboarding
-      if (!profile.onboarding_completed) {
+      if (!profile?.onboarding_completed) {
         return NextResponse.redirect(new URL('/auth/onboarding', requestUrl.origin));
       }
-      
+
       // Only redirect to app if onboarding is complete
       return NextResponse.redirect(new URL('/problems', requestUrl.origin));
     }
