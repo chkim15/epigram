@@ -5,6 +5,105 @@ import { Search, Lock } from "lucide-react";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import SubscribeModal from "@/components/subscription/SubscribeModal";
 
+function NewsletterCard() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) return;
+    setStatus('loading');
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      setStatus(res.ok ? 'success' : 'error');
+    } catch {
+      setStatus('error');
+    }
+  }
+
+  return (
+    <div
+      className="mt-6 p-4 rounded-xl"
+      style={{
+        background: 'rgba(161,98,7,0.08)',
+        border: '1px solid rgba(161,98,7,0.4)',
+      }}
+    >
+      <span
+        style={{
+          display: 'inline-block',
+          background: '#a16207',
+          color: '#fff',
+          fontSize: '9px',
+          fontWeight: 700,
+          letterSpacing: '1.2px',
+          textTransform: 'uppercase',
+          padding: '2px 6px',
+          borderRadius: '3px',
+          marginBottom: '10px',
+        }}
+      >
+        Free Newsletter
+      </span>
+      <h4
+        style={{
+          fontFamily: 'var(--font-playfair, serif)',
+          fontSize: '17px',
+          fontWeight: 700,
+          color: 'var(--foreground)',
+          lineHeight: 1.2,
+          marginBottom: '6px',
+        }}
+      >
+        The Quant Signal
+      </h4>
+      <p style={{ fontSize: '12px', color: 'var(--muted-foreground)', lineHeight: 1.5, marginBottom: '12px' }}>
+        Weekly interview problems, prep tips, and strategy notes for top quant funds.
+      </p>
+      {status === 'success' ? (
+        <p style={{ fontSize: '12px', color: '#15803d', fontWeight: 500 }}>
+          ✓ Check your inbox to confirm.
+        </p>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          <input
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full px-3 py-2 text-xs rounded-lg border bg-white focus:outline-none"
+            style={{ borderColor: 'rgb(220,218,210)', color: 'var(--foreground)' }}
+          />
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="w-full px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer"
+            style={{
+              background: '#a16207',
+              color: '#fff',
+              border: 'none',
+              opacity: status === 'loading' ? 0.7 : 1,
+              cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {status === 'loading' ? 'Subscribing…' : 'Subscribe'}
+          </button>
+          {status === 'error' && (
+            <p style={{ fontSize: '11px', color: '#b91c1c' }}>
+              Something went wrong — try again.
+            </p>
+          )}
+        </form>
+      )}
+    </div>
+  );
+}
+
 interface CompanyTag {
   name: string;
   count: number;
@@ -115,6 +214,8 @@ export default function CompanySidebar({
           );
         })}
       </div>
+
+      <NewsletterCard />
     </div>
     </>
   );

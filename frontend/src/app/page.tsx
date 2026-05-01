@@ -73,6 +73,25 @@ function FaqSection() {
 }
 
 export default function LandingPage() {
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  async function handleNewsletterSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newsletterEmail) return;
+    setNewsletterStatus('loading');
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newsletterEmail }),
+      });
+      setNewsletterStatus(res.ok ? 'success' : 'error');
+    } catch {
+      setNewsletterStatus('error');
+    }
+  }
+
   return (
     <div className={`min-h-screen overflow-y-auto scroll-smooth ${playfair.variable} ${dmSans.variable}`} style={{ backgroundColor: '#faf9f5', height: '100vh' }}>
       {/* Announcement Bar */}
@@ -253,6 +272,55 @@ export default function LandingPage() {
             />
           ))}
           <span style={{ fontSize: '12px', color: '#9b9b93', fontWeight: 500, flexShrink: 0 }}>+ more</span>
+        </div>
+      </div>
+
+      {/* Newsletter Banner */}
+      <div style={{ background: 'rgba(161,98,7,0.08)', padding: '52px 16%', borderTop: '1px solid rgba(161,98,7,0.4)', borderBottom: '1px solid rgba(161,98,7,0.4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '40px', flexWrap: 'wrap' }}>
+          {/* Left: copy */}
+          <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+            <span style={{ display: 'inline-block', background: '#a16207', color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '4px', marginBottom: '16px' }}>
+              Free Weekly Newsletter
+            </span>
+            <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 700, color: '#141310', lineHeight: 1.2, marginBottom: '10px' }}>
+              The Quant Signal
+            </h3>
+            <p style={{ fontSize: '14px', color: '#4a4a42', lineHeight: 1.65, maxWidth: '420px' }}>
+              Real interview problems, prep tips, and strategy notes — to help you prepare for top funds with sharper signal and less wasted effort.
+            </p>
+          </div>
+          {/* Right: form */}
+          <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+            {newsletterStatus === 'success' ? (
+              <p style={{ fontSize: '15px', color: '#15803d', fontWeight: 500 }}>
+                ✓ You&apos;re in — check your inbox to confirm.
+              </p>
+            ) : (
+              <form onSubmit={handleNewsletterSubmit} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={newsletterEmail}
+                  onChange={e => setNewsletterEmail(e.target.value)}
+                  required
+                  style={{ flex: '1 1 200px', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgb(220,218,210)', background: '#ffffff', color: '#141310', fontSize: '14px', outline: 'none' }}
+                />
+                <button
+                  type="submit"
+                  disabled={newsletterStatus === 'loading'}
+                  style={{ padding: '10px 20px', borderRadius: '8px', background: '#a16207', color: '#fff', fontSize: '14px', fontWeight: 600, border: 'none', cursor: newsletterStatus === 'loading' ? 'not-allowed' : 'pointer', flexShrink: 0, opacity: newsletterStatus === 'loading' ? 0.7 : 1 }}
+                >
+                  {newsletterStatus === 'loading' ? 'Subscribing…' : 'Subscribe'}
+                </button>
+                {newsletterStatus === 'error' && (
+                  <p style={{ width: '100%', fontSize: '13px', color: '#b91c1c', marginTop: '4px' }}>
+                    Something went wrong — please try again.
+                  </p>
+                )}
+              </form>
+            )}
+          </div>
         </div>
       </div>
 
