@@ -30,7 +30,6 @@ function NewsletterCard() {
       className="mt-6 p-4 rounded-xl"
       style={{
         background: 'rgba(161,98,7,0.08)',
-        border: '1px solid rgba(161,98,7,0.4)',
       }}
     >
       <span

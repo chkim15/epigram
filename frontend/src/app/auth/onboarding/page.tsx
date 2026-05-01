@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase/client'
+import posthog from 'posthog-js'
 import type {
   Background,
   FirmSlug,
@@ -171,6 +172,13 @@ export default function OnboardingPage() {
         return
       }
 
+      posthog.capture('onboarding_completed', {
+        background,
+        role_type: roleType,
+        timeline,
+        prep_level: prepLevel,
+        target_firms: targetFirms,
+      })
       router.push('/problems')
     } catch (err) {
       console.error('Error updating profile:', err)

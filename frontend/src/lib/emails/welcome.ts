@@ -10,7 +10,16 @@ export function welcomeHtml(name: string): string {
 <body style="margin:0;padding:0;background-color:#faf9f5;font-family:Georgia,serif;">
   <div style="max-width:580px;margin:0 auto;padding:48px 24px;">
 
-    <h1 style="margin:0 0 36px 0;font-size:22px;color:#141310;letter-spacing:-0.3px;">Epigram</h1>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 36px 0;border-collapse:collapse;">
+      <tr>
+        <td style="vertical-align:middle;padding:0 10px 0 0;">
+          <img src="https://epi-gram.app/epigram_logo.png" alt="" width="28" height="28" style="display:block;border:0;outline:none;text-decoration:none;height:28px;width:28px;" />
+        </td>
+        <td style="vertical-align:middle;font-family:Georgia,serif;font-size:22px;color:#141310;letter-spacing:-0.3px;font-weight:bold;line-height:28px;">
+          Epigram
+        </td>
+      </tr>
+    </table>
 
     <div style="color:#141310;font-size:16px;line-height:1.75;">
 

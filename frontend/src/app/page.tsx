@@ -276,7 +276,7 @@ export default function LandingPage() {
       </div>
 
       {/* Newsletter Banner */}
-      <div style={{ background: 'rgba(161,98,7,0.08)', padding: '52px 16%', borderTop: '1px solid rgba(161,98,7,0.4)', borderBottom: '1px solid rgba(161,98,7,0.4)' }}>
+      <div style={{ background: 'rgba(161,98,7,0.08)', padding: '52px 16%' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '40px', flexWrap: 'wrap' }}>
           {/* Left: copy */}
           <div style={{ flex: '1 1 320px', minWidth: 0 }}>

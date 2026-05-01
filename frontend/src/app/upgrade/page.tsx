@@ -6,6 +6,7 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 
 function UpgradePageContent() {
   const { showCheckoutSuccess, setShowCheckoutSuccess } = useAuthGuard({ requireAuth: false });
@@ -18,6 +19,7 @@ function UpgradePageContent() {
       router.push("/auth/signup");
       return;
     }
+    posthog.capture('upgrade_plan_selected', { plan_type: planType });
     const result = await startCheckout(planType);
     if (result.url) {
       window.location.href = result.url;

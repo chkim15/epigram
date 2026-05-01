@@ -7,6 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { auth } from '@/lib/auth/client';
 import { supabase } from '@/lib/supabase/client';
+import posthog from 'posthog-js';
 
 function SignInForm() {
   const router = useRouter();
@@ -98,6 +99,11 @@ function SignInForm() {
     if (error) {
       setError(error.message);
     } else {
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) {
+        posthog.identify(currentUser.id, { email: currentUser.email });
+      }
+      posthog.capture('user_signed_in', { method: 'email' });
       router.push('/problems');
     }
   };

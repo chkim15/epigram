@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { User, AuthError } from '@supabase/supabase-js';
 import { auth } from '@/lib/auth/client';
+import posthog from 'posthog-js';
 
 interface AuthState {
   user: User | null;
@@ -61,6 +62,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     set({ isLoading: true });
     await auth.signOut();
+    posthog.reset();
     set({ user: null, isAuthenticated: false, isLoading: false });
   },
 

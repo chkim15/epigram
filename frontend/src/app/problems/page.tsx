@@ -7,6 +7,7 @@ import ProblemsListView from "@/components/problems/ProblemsListView";
 import CompanySidebar from "@/components/problems/CompanySidebar";
 import { supabase } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
+import posthog from "posthog-js";
 
 interface ProblemWithTopics {
   id: string;
@@ -98,6 +99,7 @@ function ProblemsPageContent() {
     const isBookmarked = bookmarkedSet.has(problemId);
     if (isBookmarked) {
       setBookmarkedIds((prev) => prev.filter((id) => id !== problemId));
+      posthog.capture('problem_unbookmarked', { problem_id: problemId });
       await supabase
         .from('user_bookmarks')
         .delete()
@@ -105,6 +107,7 @@ function ProblemsPageContent() {
         .eq('problem_id', problemId);
     } else {
       setBookmarkedIds((prev) => [...prev, problemId]);
+      posthog.capture('problem_bookmarked', { problem_id: problemId });
       await supabase
         .from('user_bookmarks')
         .insert({ user_id: user.id, problem_id: problemId });

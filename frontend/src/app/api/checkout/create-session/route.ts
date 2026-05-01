@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-10-29.clover',
@@ -114,6 +115,16 @@ export async function POST(request: NextRequest) {
       metadata: {
         supabase_user_id: user.id,
         plan_type: planType,
+      },
+    });
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: 'checkout_session_created',
+      properties: {
+        plan_type: planType,
+        has_promo_code: !!promoCode,
       },
     });
 

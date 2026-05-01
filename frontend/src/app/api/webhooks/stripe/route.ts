@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-10-29.clover',
@@ -183,6 +184,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     console.log(`[Checkout] Successfully updated user profile for user ${userId}`);
   }
 
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: userId,
+    event: 'subscription_created',
+    properties: {
+      plan_id: planId,
+      subscription_id: subscriptionId,
+    },
+  });
+
   console.log(`[Checkout] ✅ Subscription created for user ${userId}: ${subscriptionId} (${planId})`);
 }
 
@@ -338,6 +349,17 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
     receipt_url: invoicePayment.hosted_invoice_url,
   });
 
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: subscription.user_id,
+    event: 'payment_succeeded',
+    properties: {
+      invoice_id: invoicePayment.id,
+      amount_cents: invoicePayment.amount_paid,
+      currency: invoicePayment.currency,
+    },
+  });
+
   console.log(`Payment succeeded for invoice: ${invoice.id}`);
 }
 
@@ -382,6 +404,24 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
       status: 'failed',
       payment_method: invoicePayment.charge ? 'card' : null,
       receipt_url: invoicePayment.hosted_invoice_url,
+    });
+  }
+
+  if (subscription) {
+    const posthog = getPostHogClient();
+    const invoicePaymentForCapture = invoice as unknown as {
+      id: string;
+      amount_due: number;
+      currency: string;
+    };
+    posthog.capture({
+      distinctId: subscription.user_id,
+      event: 'payment_failed',
+      properties: {
+        invoice_id: invoicePaymentForCapture.id,
+        amount_cents: invoicePaymentForCapture.amount_due,
+        currency: invoicePaymentForCapture.currency,
+      },
     });
   }
 

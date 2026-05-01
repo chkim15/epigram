@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase/client";
 import { Problem, Subproblem } from "@/types/database";
 import { useInterviewTimer } from "@/hooks/useInterviewTimer";
 import { useAuthStore } from "@/stores/authStore";
+import posthog from "posthog-js";
 import InterviewTimer from "./InterviewTimer";
 import InterviewProblemDisplay from "./InterviewProblemDisplay";
 
@@ -108,6 +109,7 @@ export default function InterviewSession({
       }
 
       timer.start();
+      posthog.capture('mock_interview_started', { problem_count: 3 });
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to load problems"
@@ -127,6 +129,11 @@ export default function InterviewSession({
 
   const handleEndInterview = async () => {
     timer.pause();
+    posthog.capture('mock_interview_completed', {
+      elapsed_seconds: timer.elapsedSeconds,
+      overtime_seconds: timer.overtimeSeconds,
+      problem_count: problems.length,
+    });
     onComplete(problems, [], timer.elapsedSeconds, timer.overtimeSeconds);
   };
 

@@ -7,6 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { auth } from '@/lib/auth/client';
 import { supabase } from '@/lib/supabase/client';
+import posthog from 'posthog-js';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -101,6 +102,7 @@ export default function SignUpPage() {
     } else {
       // Set flag to prevent auto-redirect
       setJustSignedUp(true);
+      posthog.capture('user_signed_up', { method: 'email' });
       // For email signup, always redirect to verify-email page
       // Don't wait for auth state change
       router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);

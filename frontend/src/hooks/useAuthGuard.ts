@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import { supabase } from "@/lib/supabase/client";
+import posthog from "posthog-js";
 
 export function useAuthGuard(options?: { requireAuth?: boolean }) {
   const requireAuth = options?.requireAuth ?? true;
@@ -22,6 +23,16 @@ export function useAuthGuard(options?: { requireAuth?: boolean }) {
   useEffect(() => {
     if (user) {
       useSubscriptionStore.getState().fetchSubscription();
+    }
+  }, [user]);
+
+  // Identify user in PostHog when authenticated
+  useEffect(() => {
+    if (user) {
+      posthog.identify(user.id, {
+        email: user.email,
+        name: user.user_metadata?.full_name,
+      });
     }
   }, [user]);
 
