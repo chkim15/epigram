@@ -24,6 +24,7 @@ export async function POST(request: Request) {
       email,
       reactivate_existing: true,
       send_welcome_email: true,
+      double_opt_override: 'off',
       utm_source: 'epigram_website',
     }),
   })
