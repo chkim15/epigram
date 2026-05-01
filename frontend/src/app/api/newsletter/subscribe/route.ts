@@ -20,7 +20,12 @@ export async function POST(request: Request) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ email, reactivate_existing: true }),
+    body: JSON.stringify({
+      email,
+      reactivate_existing: true,
+      send_welcome_email: true,
+      utm_source: 'epigram_website',
+    }),
   })
 
   const text = await res.text()
