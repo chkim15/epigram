@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { Playfair_Display, DM_Sans } from 'next/font/google';
+import { Faq } from "@/components/marketing/Faq";
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
@@ -29,48 +30,13 @@ const faqs = [
   },
   {
     q: "What if I'm confused even after reading the solution?",
-    a: "Email us directly and we'll explain personally — every question gets a real response, not a template. Premium users get up to 3 email support a week. For deeper help, 1-on-1 tutoring with the author is available from $49.",
+    a: "Email us directly and we'll explain personally — every question gets a real response, not a template. Premium users get up to 3 email support a week. For deeper help, 1-on-1 tutoring with the author is available from $120 per session.",
   },
   {
     q: "How often are new problems added?",
     a: "Every 2–3 days. Premium users get priority access the moment new problems go live. Spotted a problem in your own interview? Submit it — accepted problems earn Premium credit and attribution of your choice.",
   },
 ];
-
-function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-  return (
-    <section className="py-20" style={{ background: '#e9e6dc' }}>
-      <div className="mx-auto max-w-4xl px-8">
-        <p style={{ color: '#a16207', fontSize: '13px', fontWeight: 600, letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '12px' }}>
-          Common Questions
-        </p>
-        <h2 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(22px, 2.8vw, 38px)', fontWeight: 700, color: '#141310', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: '48px' }}>FAQ</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
-          {faqs.map((item, i) => (
-            <div
-              key={i}
-              style={{ border: '1px solid rgb(220,218,210)', borderRadius: '12px', background: '#faf9f5', cursor: 'pointer' }}
-              onClick={() => setOpenIndex(openIndex === i ? null : i)}
-            >
-              <div className="flex items-center justify-between" style={{ padding: '20px 24px' }}>
-                <span style={{ fontSize: '15px', color: '#141310', fontWeight: 500 }}>{item.q}</span>
-                <span style={{ color: '#9b9b93', fontSize: '20px', marginLeft: '16px', flexShrink: 0 }}>
-                  {openIndex === i ? '−' : '+'}
-                </span>
-              </div>
-              {openIndex === i && (
-                <div style={{ padding: '0 24px 20px', fontSize: '14px', color: '#4a4a42', lineHeight: 1.7 }}>
-                  {item.a}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 export default function LandingPage() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -767,7 +733,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <FaqSection />
+      <Faq items={faqs} />
 
       {/* Final CTA Section */}
       <section style={{ background: '#faf9f5', padding: '100px 16%' }}>
