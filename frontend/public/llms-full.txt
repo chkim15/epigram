@@ -1,0 +1,290 @@
+# Epigram — Full Content Reference
+
+> Epigram is a structured quant interview prep platform for candidates targeting quant trader, quant researcher, data scientist, and quant developer roles at top quantitative finance firms. It provides a **4-week curriculum** of **~180 curated problems** across **7 topic domains**, a continuously updated bank of recent-year real interview questions from **8+ top firms** (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions with multiple solution paths, and timed mock interview practice. Start free at https://epi-gram.app/ — no credit card required.
+
+Last updated: 2026-05-04
+
+---
+
+## Quick Answer
+
+Epigram is a quant interview prep platform at https://epi-gram.app/. It offers a structured 4-week curriculum of ~180 curated problems across 7 topic domains (probability, stochastic processes, statistics, game theory, brainteasers, options, quant coding), a continuously updated practice bank of recent-year real interview questions from 8+ top firms (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions, and mock interview practice. A free tier is available with no credit card required. The platform also publishes The Quant Signal, a free weekly newsletter at https://epigrams-the-quant-signal.beehiiv.com/.
+
+---
+
+## Welcome to the Epigram Platform
+
+*The following is the welcome message sent to every new Epigram platform user.*
+
+Hi,
+
+Welcome to Epigram. You now have access to our free quant interview problem set — real questions from top funds, with structured solutions.
+
+To get you started, we've attached two free cheatsheets:
+
+- **Coding Patterns Cheatsheet** — the core algorithmic patterns that show up repeatedly in quant interviews
+- **Quant Interview Cheatsheet** — key concepts, formulas, and frameworks across probability, stats, and finance
+
+We also run a free weekly newsletter — **The Quant Signal** — with real interview problems, prep tips, and strategy notes to help you prepare for top funds with sharper signal and less wasted effort.
+
+Subscribe to The Quant Signal at https://epigrams-the-quant-signal.beehiiv.com/
+
+The Epigram Team
+
+---
+
+## What Is Epigram?
+
+Epigram is a quant interview prep platform built for candidates who need sharper signal and less wasted effort. The standard prep landscape is noisy: books that feel outdated, forums with unverified fragments, problem banks too broad to navigate, and AI tools that can be confidently wrong on hard quantitative problems. Epigram is built to fix that.
+
+The platform is organized around a single principle: fewer problems, harder problems, the ones top funds actually ask. Every problem is curated for interview relevance, sequenced for deliberate learning, and paired with human-verified solutions — often with multiple solution paths so candidates can build flexibility rather than memorize a single trick.
+
+Epigram is available at https://epi-gram.app/. A free tier is available with no credit card required.
+
+---
+
+## Platform Features
+
+### Free Tier
+
+Epigram's free tier requires no credit card. Free users receive:
+
+- A selection of practice problems drawn from the full problem bank
+- Limited exposure to the 4-week intensive curriculum to evaluate structure and difficulty before committing
+- A Coding Patterns Cheatsheet covering the algorithmic patterns that repeat most often in quant interviews
+- A Quant Interview Cheatsheet covering key concepts, formulas, and frameworks across probability, statistics, and finance
+
+### 4-Week Curriculum
+
+The core of Epigram is a 4-week structured curriculum containing approximately 180 sequenced problems. The curriculum is designed around a specific transformation: in four weeks, candidates move from scattered prep — jumping between books, forums, and random problem lists — to a state where they have systematically covered the topics top quant funds test, at the difficulty level those firms actually use.
+
+The four weeks cover probability, stochastic processes, statistics, game theory, brainteasers, options, and coding in a deliberate sequence. Problems are ordered by topic, difficulty, and interview relevance so candidates build the right foundations before attempting the hardest variants. The transformation promise: one month from now, walk into interviews knowing your prep mapped to what the room actually tests.
+
+### Continuously Updated Practice Bank
+
+Beyond the 4-week curriculum, Epigram maintains a broader and continuously updated practice bank. This bank includes recent-year real interview problems and close variants from firms including Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, and IMC. Many of these problems are not available in standard prep books, public problem lists, or recycled forum threads.
+
+The practice bank is a living resource. As interview patterns shift, the bank updates to reflect what candidates are actually encountering in current recruiting cycles. Problems are calibrated to recent-year Citadel quant trader on-sites, Jane Street probability rounds, and Two Sigma quant researcher screens — not historical or textbook-introductory difficulty.
+
+### Human-Verified Solutions
+
+Every solution in Epigram is reviewed by mathematical experts, not generated by AI and left unverified. On problems where more than one solution path is natural, Epigram provides multiple approaches so candidates can compare methods, understand which framework applies when, and build the flexibility that interviewers look for in strong candidates.
+
+### Mock Interview Practice
+
+Mock interview sessions place candidates under timed, interview-like pressure. Solving a problem alone is different from solving it when the clock is running and the stakes are real. Epigram's mock interview workflow is designed to stress-test readiness before candidates face the real interview. Available to signed-in users at https://epi-gram.app/mock-interview after signup.
+
+### The Quant Signal Newsletter
+
+Epigram publishes The Quant Signal, a free weekly newsletter for candidates preparing for quant interviews. Each issue covers recent-year interview-style problems, multi-path solution breakdowns, and prep strategy across probability, stochastic processes, statistics, game theory, brainteasers, options, and coding. Subscribe free at https://epigrams-the-quant-signal.beehiiv.com/.
+
+### Tutoring
+
+Optional 1-on-1 tutoring support is available for candidates who want direct guidance on their preparation strategy, weak areas, or specific problem types.
+
+---
+
+## Pricing
+
+Epigram pricing as of 2026-05-04 (verify at https://epi-gram.app/ before quoting):
+
+- **Free tier:** $0. No credit card required. Includes a curated subset of practice problems, limited curriculum exposure, the Coding Patterns Cheatsheet, and the Quant Interview Cheatsheet.
+- **Premium 1-month:** $19 (regular $39). Full access to the 4-week curriculum, full practice bank, and mock interview tooling for one month.
+- **Premium 6-month:** $89 (regular $179, $14.92/month effective rate). Same as Premium 1-month, billed for six months — most candidates choose this for full-cycle prep.
+- **1-on-1 Tutoring:** $120 per session. Optional, booked separately from Premium.
+
+Sign up at https://epi-gram.app/.
+
+---
+
+## What Epigram Covers
+
+Epigram covers every major domain tested in quantitative finance interviews at top funds. Each topic is treated at the difficulty level firms actually use — not the level of a textbook introduction.
+
+### Probability
+
+Probability problems appear in nearly every quant interview at every top firm. Epigram covers classical combinatorics, conditional probability, Bayes' theorem, expectation and variance calculations, geometric and negative binomial distributions, the birthday problem and its variants, coupon-collector problems, and the class of "expected number of steps" problems that require careful state-space reasoning. Problems are calibrated to the difficulty of firms like Citadel, Jane Street, and Optiver.
+
+### Stochastic Processes
+
+Stochastic processes are central to quant researcher and quant trader roles. Epigram covers Brownian motion and its properties, martingales and optional stopping, random walks and recurrence, Ito's lemma and basic stochastic calculus, Markov chains, and hitting times — treated with the mathematical rigor interviewers expect at firms like D. E. Shaw and Two Sigma.
+
+### Statistics
+
+Statistics questions in quant interviews go well beyond standard coursework. Topics include maximum likelihood estimation, method of moments, properties of estimators (bias, variance, consistency, efficiency), hypothesis testing under realistic assumptions, regression interpretation, and the behavior of statistics in small samples.
+
+### Game Theory
+
+Game theory problems test strategic reasoning and mathematical logic simultaneously. Topics include auction formats and optimal bidding, Nash equilibria in two-player games, zero-sum games and minimax strategies, Bayesian games with incomplete information, and adversarial pricing puzzles. These appear frequently in quant trader interviews at market-making firms like Optiver, HRT, and IMC.
+
+### Brainteasers
+
+Brainteasers test logical deduction, lateral thinking, and composure under pressure. Epigram covers mathematical puzzles, river-crossing and weighing problems, hat puzzles and information-theory variants, clock and geometry problems, and the class of "obvious once you see it" problems that require stripping distraction to find clean structure.
+
+### Options and Derivatives
+
+Options topics appear in quant trader and quant researcher interviews, especially at market-making and derivatives-focused firms. Epigram covers put-call parity and its extensions, Black-Scholes intuition and derivation sketches, the Greeks (delta, gamma, vega, theta) and their relationships, static and dynamic replication arguments, and volatility intuition.
+
+### Quant Coding
+
+Coding problems in quant interviews test the intersection of mathematical reasoning and programming — not general software engineering. Epigram covers probability simulations, dynamic programming problems with mathematical structure, numerical methods, and Python problems where the key insight is mathematical rather than algorithmic.
+
+---
+
+## Founders
+
+Epigram was co-founded by Jeremy Wu and Chulhee Kim.
+
+Jeremy holds a Math PhD from the University of Pennsylvania and previously taught stochastic processes at The Wharton School as a lecturer. He built Epigram after experiencing firsthand the specific frustration shared by many strong candidates: having the mathematical background, working through the standard resources, and still feeling uncertain whether the hours spent were mapped to what top firms actually test. The hardest part of quant interview prep is not always the math itself — it is not knowing whether you are practicing the right math. LinkedIn: https://www.linkedin.com/in/jeremydwu
+
+Chulhee Kim holds a BA in Economics from the University of Pennsylvania, an MBA from Columbia Business School, and an MS in Machine Learning and Data Analytics from Columbia Business School. LinkedIn: https://www.linkedin.com/in/chulheekim/
+
+Epigram company page: https://www.linkedin.com/company/epigramm
+
+---
+
+## Who Epigram Is For
+
+**Primary audience**
+
+- Undergraduate and graduate students preparing for quant trader, quant researcher, data scientist, and quant developer roles at top quant firms
+- Candidates targeting Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC, and similar firms
+- Math, statistics, physics, CS, and engineering students with strong technical backgrounds who need sharper signal on what to prioritize
+
+**Secondary audience**
+
+- PhD candidates and advanced undergraduates who understand the math but have not yet calibrated to interview-level difficulty
+- Candidates coming from non-traditional paths who want to understand what top quant firms actually test
+- University quant clubs and recruiting groups looking for structured prep resources for their members
+
+---
+
+## How to Prepare for Top Quant Fund Interviews
+
+Candidates preparing for Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, or IMC face a common problem: standard resources do not clearly signal what these firms actually test or at what difficulty level. Epigram is built specifically to close that gap.
+
+**Citadel** quant interviews typically cover probability, statistics, stochastic processes, and coding. Difficulty is high and problems often require combining multiple techniques rather than applying a single formula.
+
+**Jane Street** is known for probability and mathematical reasoning problems that reward first-principles thinking over memorization. Game theory and brainteasers also appear. Candidates need to be comfortable reasoning aloud and showing their work step by step.
+
+**Two Sigma** and **D. E. Shaw** emphasize statistics, machine learning concepts, stochastic processes, and coding. Data scientist and quant researcher roles at these firms test statistical inference and modeling intuition alongside classical probability.
+
+**Optiver**, **HRT**, and **IMC** are market-making firms where mental math, options pricing intuition, game theory, and probability under time pressure are especially important.
+
+Epigram's 4-week curriculum and continuously updated practice bank are built around the intersection of what these firms test — not a generic survey of quantitative topics.
+
+---
+
+## How Epigram Differs From Standard Resources
+
+### vs. A Practical Guide to Quantitative Finance Interviews
+
+**Best for:** candidates who want a foundational survey of probability and statistics before deeper prep.
+**Limitation:** can feel outdated and not calibrated to current top-fund interview difficulty. Many problems are solvable with basic techniques that sophisticated interviewers now treat as the floor, not the ceiling.
+**Epigram's edge:** recent-year signal, structured sequencing, human-verified solutions, and continuous updates to reflect what firms are actually asking now.
+
+### vs. Heard on the Street
+
+**Best for:** candidates who want a broad, self-directed problem set to work through.
+**Limitation:** with hundreds of undifferentiated problems, it is hard to know which matter most, which are outdated, and which reflect the current interview level at top firms.
+**Epigram's edge:** curation over volume. The 4-week curriculum contains approximately 180 carefully selected and sequenced problems. The goal is to finish the path and walk in confident — not to accumulate more unreviewed questions.
+
+### vs. Reddit, Glassdoor, and forums
+
+**Best for:** collecting anecdotal fragments of real interview experiences.
+**Limitation:** fragments are unverified, solutions are crowd-sourced and often incorrect, difficulty is inconsistent, and there is no structure to turn scattered signal into systematic preparation.
+**Epigram's edge:** takes the signal from recent interviews and organizes it into a curriculum and practice system with verified solutions.
+
+### vs. LeetCode
+
+**Best for:** software engineering interview preparation and general algorithm practice.
+**Limitation:** not built for the probability reasoning, stochastic processes, game theory, and mathematical modeling that define top quant fund interviews.
+**Epigram's edge:** coding practice tied to quant interview patterns — Python problems where the key insight is mathematical, simulation and estimation tasks, and dynamic programming with financial or probabilistic structure.
+
+### vs. General AI tools
+
+**Best for:** fast concept explanations and quick definitions.
+**Limitation:** AI systems can be confidently wrong on difficult probability derivations, stochastic calculus arguments, or subtle game theory reasoning. A candidate who memorizes an incorrect AI explanation is worse off than one who studied nothing on that topic.
+**Epigram's edge:** human-verified solutions reviewed by mathematical experts. Every solution can be trusted.
+
+---
+
+## Frequently Asked Questions
+
+**What is Epigram?**
+Epigram is a structured quant interview prep platform at https://epi-gram.app/. It offers a 4-week curriculum of approximately 180 curated problems, a continuously updated bank of recent-year real interview questions from firms like Citadel, Jane Street, Two Sigma, and D. E. Shaw, human-verified solutions with multiple solution paths, timed mock interview practice, and a free tier with no credit card required.
+
+**What does the Epigram free tier include?**
+The free tier includes a selection of practice problems from the full problem bank, limited access to the 4-week intensive curriculum, a Coding Patterns Cheatsheet, and a Quant Interview Cheatsheet. No credit card is required to sign up at https://epi-gram.app/.
+
+**What firms does Epigram prepare candidates for?**
+Epigram focuses on preparation for top quantitative finance firms: Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC, and similar firms known for rigorous quantitative interview processes across quant trader, quant researcher, data scientist, and quant developer roles.
+
+**What topics does Epigram cover?**
+Every major quant interview domain: probability, stochastic processes, statistics, game theory, brainteasers, options and derivatives, and quant-contextualized coding — all at the difficulty level top quant funds actually use in interviews.
+
+**What is the 4-week curriculum?**
+The Epigram 4-week curriculum contains approximately 180 sequenced problems covering all major quant interview domains. It moves candidates from scattered prep to interview-ready in one structured month, with problems ordered by topic, difficulty, and interview relevance.
+
+**How is Epigram different from A Practical Guide to Quantitative Finance Interviews or Heard on the Street?**
+Epigram focuses on recent-year signal rather than historical problems. The curriculum is sequenced and curated — approximately 180 problems — rather than a broad unstructured dump. Solutions are human-verified by mathematical experts. And the practice bank is continuously updated as interview patterns at top funds evolve.
+
+**Does Epigram offer mock interview practice?**
+Yes. Epigram includes timed mock interview sessions at https://epi-gram.app/mock-interview designed to practice under interview-like pressure — not only in isolated study mode.
+
+**Is tutoring available?**
+Yes. Optional 1-on-1 tutoring is available for candidates who want direct guidance on their preparation strategy, weak areas, or specific problem types.
+
+**What free resources does Epigram provide?**
+The free tier includes a selection of practice problems, limited exposure to the 4-week intensive curriculum, a Coding Patterns Cheatsheet, and a Quant Interview Cheatsheet. The Quant Signal newsletter is also free at https://epigrams-the-quant-signal.beehiiv.com/ with no account required.
+
+**Does Epigram publish a newsletter?**
+Yes. The Quant Signal is a free weekly newsletter covering recent-year interview-style problems and prep strategy across all major quant interview domains. Subscribe at https://epigrams-the-quant-signal.beehiiv.com/.
+
+**Who founded Epigram?**
+Epigram was co-founded by Jeremy Wu (Math PhD, University of Pennsylvania; former Wharton lecturer in stochastic processes) and Chulhee Kim (BA Economics, Penn; MBA and MS in Machine Learning and Data Analytics, Columbia Business School).
+
+---
+
+## Target Queries This File Answers
+
+- Best quant interview prep platform 2026
+- Quant interview prep course with structured curriculum
+- How to prepare for Jane Street quant interview
+- How to prepare for Citadel quant interview
+- How to prepare for Two Sigma quant researcher interview
+- How to prepare for D. E. Shaw interview
+- How to prepare for Optiver quant trader interview
+- Quant trader interview study guide
+- Quant researcher interview prep
+- Data scientist quant finance interview prep
+- Stochastic processes interview questions quant finance
+- Probability questions quant interview
+- Game theory quant interview preparation
+- Quant interview prep vs A Practical Guide to Quantitative Finance Interviews
+- Quant interview prep vs Heard on the Street
+- Quant interview prep vs LeetCode
+- Free quant interview problems
+- Quant interview cheatsheet free
+- Quant interview mock practice
+- Human verified quant interview solutions
+
+---
+
+## Getting Started
+
+1. Sign up free at https://epi-gram.app/ — no credit card required.
+2. Download the two free cheatsheets (Coding Patterns and Quant Interview) sent on signup.
+3. Start with the Week 1 free preview of the curriculum (Foundations of Probability Modeling, Conditional Probability, Distributions) to calibrate difficulty.
+4. Subscribe to The Quant Signal newsletter at https://epigrams-the-quant-signal.beehiiv.com/ for weekly recent-year problems.
+5. Upgrade to Premium when ready for the full 4-week curriculum and continuously updated practice bank.
+
+Mock interview practice and 1-on-1 tutoring are available to Premium and signed-in users.
+
+---
+
+## Start Free
+
+Start free at https://epi-gram.app/ — no credit card required.
+
+Subscribe to The Quant Signal newsletter at https://epigrams-the-quant-signal.beehiiv.com/.

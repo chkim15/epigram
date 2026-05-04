@@ -1,0 +1,25 @@
+# Epigram
+
+> Epigram is a structured quant interview prep platform with a 4-week curriculum of ~180 curated problems across 7 topic domains, a continuously updated practice bank of recent-year real interview questions from 8+ top firms (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions with multiple solution paths, and timed mock interview practice. Free tier available with no credit card required.
+
+Last updated: 2026-05-04
+
+## Full content reference
+- [llms-full.txt](https://epi-gram.app/llms-full.txt): Comprehensive Epigram reference — features, pricing, comparisons, FAQ, founders
+
+## Key pages
+- [Home](https://epi-gram.app/): Platform overview, pricing, signup
+- [Mission](https://epi-gram.app/mission): Why Epigram exists and who it's for
+- [Free Practice](https://epi-gram.app/practice): Browseable free practice problems
+- [Free Topics](https://epi-gram.app/learn): Free curriculum topic previews
+- [Contact](https://epi-gram.app/contact): Reach the team
+
+## Newsletter
+- [The Quant Signal](https://epigrams-the-quant-signal.beehiiv.com/): Free weekly newsletter — recent-year interview problems, multi-path solutions, prep strategy
+
+## Policies
+- [Privacy Policy](https://epi-gram.app/privacy)
+- [Terms of Service](https://epi-gram.app/terms)
+
+## Company
+- [LinkedIn](https://www.linkedin.com/company/epigramm)

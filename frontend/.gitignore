@@ -40,6 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# llms.txt artifacts — synced from repo root by scripts/sync-llms.mjs (prebuild)
-public/llms.txt
-public/llms-full.txt
+# llms.txt files are committed directly to public/ — edit at repo root then run npm run sync:llms locally
