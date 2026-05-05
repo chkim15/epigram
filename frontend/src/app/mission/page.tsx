@@ -55,9 +55,13 @@ export default function MissionPage() {
       {/* Mission Content */}
       <section className="px-6 py-20">
         <div className="mx-auto max-w-3xl">
-          <h1 className="text-4xl font-bold text-black mb-12 text-left">
+          <h1 className="text-4xl font-bold text-black mb-3 text-left">
             Why We Built Epigram
           </h1>
+
+          <p className="text-sm mb-10" style={{ color: "#6b6b62" }}>
+            Last updated: <time dateTime="2026-05-04">May 4, 2026</time>
+          </p>
 
           <div className="prose prose-lg max-w-none">
             <p className="text-lg text-gray-700 mb-6 leading-relaxed">
@@ -72,6 +76,33 @@ export default function MissionPage() {
               At Epigram, we see AI not as a replacement, but as a tool. Like any tool, it has both strengths and weaknesses. Our mission is to guide students in using AI the right way: as a partner in active learning that helps them build problem-solving skills, gain confidence, and achieve academic success.
             </p>
           </div>
+
+          <nav
+            aria-label="Continue exploring"
+            className="mt-12 border-t pt-8"
+            style={{ borderColor: "rgb(220,218,210)" }}
+          >
+            <h2 className="text-xl font-semibold mb-4" style={{ color: "#141310" }}>
+              Continue exploring
+            </h2>
+            <ul style={{ display: "grid", gap: "10px", listStyle: "none", padding: 0 }}>
+              <li>
+                <Link href="/practice" style={{ color: "#a16207", fontSize: "16px", textDecoration: "none" }}>
+                  Free quant interview practice problems →
+                </Link>
+              </li>
+              <li>
+                <Link href="/learn" style={{ color: "#a16207", fontSize: "16px", textDecoration: "none" }}>
+                  Free curriculum topic previews →
+                </Link>
+              </li>
+              <li>
+                <Link href="/" style={{ color: "#a16207", fontSize: "16px", textDecoration: "none" }}>
+                  Back to home →
+                </Link>
+              </li>
+            </ul>
+          </nav>
         </div>
       </section>
     </div>

@@ -27,7 +27,9 @@ export default function PrivacyPage() {
         <h1 style={{ fontFamily: "var(--font-playfair, Playfair Display, serif)", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 700, color: "#141310", lineHeight: 1.15, letterSpacing: "-1px", marginBottom: "12px" }}>
           Privacy Policy
         </h1>
-        <p style={{ fontSize: "13px", color: "#9b9b93", marginBottom: "48px" }}>Last modified: May 1, 2026</p>
+        <p style={{ fontSize: "13px", color: "#9b9b93", marginBottom: "48px" }}>
+          Last modified: <time dateTime="2026-05-01">May 1, 2026</time>
+        </p>
 
         <div style={{ fontSize: "15px", color: "#4A5B78", lineHeight: 1.8 }}>
 
@@ -168,6 +170,32 @@ export default function PrivacyPage() {
             Please contact us with any questions or comments about this Privacy Policy at{" "}
             <a href="mailto:info@epi-gram.app" style={{ color: "#a16207" }}>info@epi-gram.app</a>.
           </p>
+
+          <nav
+            aria-label="Continue exploring"
+            style={{ marginTop: "48px", paddingTop: "32px", borderTop: "1px solid rgb(240,238,230)" }}
+          >
+            <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#141310", marginBottom: "12px" }}>
+              Continue exploring
+            </h2>
+            <ul style={{ display: "grid", gap: "8px", listStyle: "none", padding: 0, fontSize: "14px" }}>
+              <li>
+                <Link href="/practice" style={{ color: "#a16207", textDecoration: "none" }}>
+                  Free quant interview practice problems →
+                </Link>
+              </li>
+              <li>
+                <Link href="/learn" style={{ color: "#a16207", textDecoration: "none" }}>
+                  Free curriculum topic previews →
+                </Link>
+              </li>
+              <li>
+                <Link href="/mission" style={{ color: "#a16207", textDecoration: "none" }}>
+                  Why we built Epigram →
+                </Link>
+              </li>
+            </ul>
+          </nav>
         </div>
       </main>
 

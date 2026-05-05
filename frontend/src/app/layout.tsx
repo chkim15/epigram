@@ -29,6 +29,18 @@ export const metadata: Metadata = {
     template: `%s — ${SITE.name}`,
   },
   description: SITE.description,
+  authors: [
+    {
+      name: SITE.founders.jeremy.name,
+      url: SITE.founders.jeremy.linkedin,
+    },
+    {
+      name: SITE.founders.chulhee.name,
+      url: SITE.founders.chulhee.linkedin,
+    },
+  ],
+  creator: SITE.founders.jeremy.name,
+  publisher: SITE.name,
   icons: {
     icon: "/epigram_logo.svg",
   },

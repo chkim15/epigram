@@ -36,6 +36,7 @@
 - [x] Section 8: Verification
 - [x] Section 9: Final summary
 - [x] Section 10: AEO audit quick-win pass (Phase 1.5)
+- [x] Section 11: AEO audit second quick-win pass (Phase 1.6)
 
 ---
 
@@ -353,3 +354,33 @@
   - Schema diff sanity-checked: `qaPageSchema` and `courseSchema` now emit `author` blocks pointing to Jeremy's LinkedIn.
   - File-level grep confirmed `<time dateTime=` appears in both `/learn/[topicSlug]` and `/practice/[slug]` pages.
 - **Deferred to Phase 2:** RSS/Atom feed, `/docs` knowledge section, Q&A-style heading rewrites of full topic content, contact page expansion (currently 75/100 and acceptable for a thin contact page).
+
+---
+
+## Section 11: AEO audit second quick-win pass (Phase 1.6)
+- **Status:** Complete
+- **Trigger:** Re-run of aeo-audit.sh after Section 10 brought score 75 → 77 (avg agent eval 57 → 64). Three signals still had obvious cheap lift left: Evidence Density still flagged 0% author attribution (auditor checks HTML/`<meta>` level, not just JSON-LD); Freshness only at 30% pages with date signals (only `/learn/*` had them); Internal linking 7/10 (legal/info pages still had no outbound links to content).
+- **Files modified:**
+  - `frontend/src/app/layout.tsx` (added `authors`, `creator`, `publisher` to root metadata — emits `<meta name="author">` and Next.js's standard creator/publisher tags on every page)
+  - `frontend/src/app/privacy/page.tsx` (wrapped existing "May 1, 2026" in `<time dateTime="2026-05-01">`; added "Continue exploring" nav with /practice, /learn, /mission links)
+  - `frontend/src/app/terms/page.tsx` (same — `<time>` wrap + Continue exploring nav)
+  - `frontend/src/app/mission/page.tsx` (added "Last updated" `<time>` element below H1; added Continue exploring nav with /practice, /learn, / links)
+  - `frontend/src/app/contact/page.tsx` (added `Link` import; added "Page last updated" `<time>` element below subtitle; added Continue exploring nav with /practice, /learn, /mission, / links)
+- **Files created:** none
+- **Audit signals expected to improve:**
+  - **Evidence Density 61 → expected ≥80** — `<meta name="author">` now emitted globally via `metadata.authors`, satisfies HTML-level author attribution check.
+  - **Freshness 54 → expected ≥75** — `<time>` elements now on /learn/* (×3, already had), /privacy, /terms, /mission, /contact, /practice/* — i.e. 7+/10 pages crawled have visible date signals.
+  - **Internal linking 7/10 → expected 10/10** — /privacy, /terms, /mission, /contact each gained a "Continue exploring" nav with 3-4 outbound links to content pages.
+  - **Content structure 5/10 → expected ≥7/10** — added H2 "Continue exploring" plus visible H1 dates create real heading hierarchy on the previously flat legal/info pages.
+- **Key decisions:**
+  - Used Next.js's first-class `metadata.authors` array rather than a manual `other: { author: ... }` field — Next.js renders this as `<meta name="author">` automatically and the array form is supported by Next.js 15.
+  - Added `creator: SITE.founders.jeremy.name` and `publisher: SITE.name` for completeness — these emit `<meta name="creator">` and `<meta name="publisher">`, both checked by some AEO scrapers.
+  - Did NOT add a date signal to the homepage — landing pages don't conventionally have "Last updated" copy, and the page already has plenty of other strong signals (FAQ, founder credentials, structured data). Adding one would be visible UX clutter for marginal audit gain.
+  - The "Continue exploring" pattern was chosen over a sitewide footer because (a) the existing legal pages already have a separate functional footer (Home/Terms/Privacy), and (b) "Continue exploring" with descriptive link text is what AEO crawlers reward — anchor text like "Free quant interview practice problems" is much stronger than just "Practice".
+- **Issues / TODOs:**
+  - **USER ACTION:** redeploy to Vercel and re-run aeo-audit.sh on `https://epi-gram.app/`. Expected overall score 77 → 85+ (A range).
+  - If Evidence Density still shows 0% author attribution after this pass, the auditor likely wants visible byline text on every page (not just `<meta>`). Mitigation: add a tiny "By Jeremy Wu" line under H1 on /learn/* and /practice/*. Hold until next audit confirms.
+- **Verification performed:**
+  - `cd frontend && npm run build` — clean, no TypeScript errors.
+  - Diff review: every change is additive (no removals or layout shifts that could regress UX).
+- **Deferred to Phase 2:** RSS/Atom feed (genuinely needs content hub), `/docs` knowledge section, Q&A-style heading rewrites, dynamic OG image variants per page.

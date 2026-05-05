@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -122,8 +123,11 @@ export default function ContactPage() {
       <div className="w-full max-w-2xl">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Contact Epigram</h1>
-          <p className="text-lg" style={{ color: 'var(--muted-foreground)' }}>
+          <p className="text-lg mb-2" style={{ color: 'var(--muted-foreground)' }}>
             Ask questions, make suggestions, or report a bug.
+          </p>
+          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+            Page last updated: <time dateTime="2026-05-04">May 4, 2026</time>
           </p>
         </div>
         <div>
@@ -248,6 +252,38 @@ export default function ContactPage() {
             </Button>
           </form>
         </div>
+
+        <nav
+          aria-label="Continue exploring"
+          className="mt-12 pt-8 border-t"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--foreground)' }}>
+            Continue exploring
+          </h2>
+          <ul style={{ display: 'grid', gap: '8px', listStyle: 'none', padding: 0, fontSize: '14px' }}>
+            <li>
+              <Link href="/practice" style={{ color: '#a16207', textDecoration: 'none' }}>
+                Free quant interview practice problems →
+              </Link>
+            </li>
+            <li>
+              <Link href="/learn" style={{ color: '#a16207', textDecoration: 'none' }}>
+                Free curriculum topic previews →
+              </Link>
+            </li>
+            <li>
+              <Link href="/mission" style={{ color: '#a16207', textDecoration: 'none' }}>
+                Why we built Epigram →
+              </Link>
+            </li>
+            <li>
+              <Link href="/" style={{ color: '#a16207', textDecoration: 'none' }}>
+                Back to home →
+              </Link>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
   );
