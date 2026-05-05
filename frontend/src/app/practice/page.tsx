@@ -4,6 +4,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema, itemListSchema } from "@/lib/schema";
 import { SITE } from "@/lib/site";
 import { supabase } from "@/lib/supabase/client";
+import { MathContent } from "@/lib/utils/katex";
+import { stripLatexForPlainText } from "@/lib/utils/latex-text";
 
 export const revalidate = 3600;
 
@@ -24,13 +26,13 @@ export const metadata: Metadata = {
 type FreeProblemListing = {
   problem_id: string;
   difficulty: string | null;
-  problem_text: string | null;
+  problem_name: string | null;
 };
 
 async function getFreeProblems(): Promise<FreeProblemListing[]> {
   const { data, error } = await supabase
     .from("problems")
-    .select("problem_id, difficulty, problem_text")
+    .select("problem_id, difficulty, problem_name")
     .eq("is_free", true)
     .eq("included", true)
     .order("problem_id", { ascending: true });
@@ -38,17 +40,11 @@ async function getFreeProblems(): Promise<FreeProblemListing[]> {
   return data as FreeProblemListing[];
 }
 
-function shortPreview(text: string | null): string {
-  if (!text) return "";
-  const stripped = text.replace(/\$/g, "").replace(/\\\w+/g, " ").replace(/\s+/g, " ").trim();
-  return stripped.length > 180 ? stripped.slice(0, 180) + "…" : stripped;
-}
-
 export default async function PracticeIndexPage() {
   const problems = await getFreeProblems();
 
   const itemList = problems.map((p) => ({
-    name: p.problem_id,
+    name: stripLatexForPlainText(p.problem_name) || p.problem_id,
     url: `${SITE.url}/practice/${p.problem_id}`,
   }));
 
@@ -120,17 +116,8 @@ export default async function PracticeIndexPage() {
                   className="block"
                   style={{ color: "#141310", textDecoration: "none" }}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span
-                      style={{
-                        fontFamily: "var(--font-geist-mono, monospace)",
-                        fontSize: "13px",
-                        color: "#4a4a42",
-                      }}
-                    >
-                      {p.problem_id}
-                    </span>
-                    {p.difficulty ? (
+                  {p.difficulty ? (
+                    <div className="mb-2">
                       <span
                         style={{
                           fontSize: "11px",
@@ -142,11 +129,22 @@ export default async function PracticeIndexPage() {
                       >
                         {p.difficulty}
                       </span>
-                    ) : null}
+                    </div>
+                  ) : null}
+                  <div
+                    style={{
+                      color: "#141310",
+                      fontSize: "16px",
+                      fontWeight: 500,
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    {p.problem_name ? (
+                      <MathContent content={p.problem_name} />
+                    ) : (
+                      "View problem →"
+                    )}
                   </div>
-                  <p style={{ color: "#141310", fontSize: "15px", lineHeight: 1.55, margin: 0 }}>
-                    {shortPreview(p.problem_text) || "View problem →"}
-                  </p>
                 </Link>
               </li>
             ))}
@@ -161,7 +159,7 @@ export default async function PracticeIndexPage() {
             Want the full set?
           </h2>
           <p style={{ color: "#4a4a42", fontSize: "15px", lineHeight: 1.65 }}>
-            The full Epigram practice bank covers 8+ top firms with continuously
+            The full Epigram practice bank covers 15+ top firms with continuously
             updated recent-year problems. The 4-week intensive curriculum sequences
             ~180 curated problems across 7 topic domains.
           </p>

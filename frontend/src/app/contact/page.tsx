@@ -255,7 +255,7 @@ export default function ContactPage() {
 
         <nav
           aria-label="Continue exploring"
-          className="mt-12 pt-8 border-t"
+          className="mt-24 pt-16 border-t"
           style={{ borderColor: 'var(--border)' }}
         >
           <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--foreground)' }}>

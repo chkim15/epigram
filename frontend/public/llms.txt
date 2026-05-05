@@ -1,6 +1,6 @@
 # Epigram
 
-> Epigram is a structured quant interview prep platform with a 4-week curriculum of ~180 curated problems across 7 topic domains, a continuously updated practice bank of recent-year real interview questions from 8+ top firms (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions with multiple solution paths, and timed mock interview practice. Free tier available with no credit card required.
+> Epigram is a structured quant interview prep platform with a 4-week curriculum of ~180 curated problems across 7 topic domains, a continuously updated practice bank of recent-year real interview questions from 15+ top firms (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions with multiple solution paths, and timed mock interview practice. Free tier available with no credit card required.
 
 Last updated: 2026-05-04
 

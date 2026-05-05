@@ -149,32 +149,6 @@ export default function TermsPage() {
             If you need to contact us, email us at{" "}
             <a href="mailto:info@epi-gram.app" style={{ color: "#a16207" }}>info@epi-gram.app</a>.
           </p>
-
-          <nav
-            aria-label="Continue exploring"
-            style={{ marginTop: "48px", paddingTop: "32px", borderTop: "1px solid rgb(240,238,230)" }}
-          >
-            <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#141310", marginBottom: "12px" }}>
-              Continue exploring
-            </h2>
-            <ul style={{ display: "grid", gap: "8px", listStyle: "none", padding: 0, fontSize: "14px" }}>
-              <li>
-                <Link href="/practice" style={{ color: "#a16207", textDecoration: "none" }}>
-                  Free quant interview practice problems →
-                </Link>
-              </li>
-              <li>
-                <Link href="/learn" style={{ color: "#a16207", textDecoration: "none" }}>
-                  Free curriculum topic previews →
-                </Link>
-              </li>
-              <li>
-                <Link href="/mission" style={{ color: "#a16207", textDecoration: "none" }}>
-                  Why we built Epigram →
-                </Link>
-              </li>
-            </ul>
-          </nav>
         </div>
       </main>
 

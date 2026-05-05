@@ -1,3 +1,5 @@
+"use client";
+
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import React, { useMemo, useState, useEffect } from 'react';

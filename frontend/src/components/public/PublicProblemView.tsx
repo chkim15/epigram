@@ -6,6 +6,7 @@ import { MathContent } from "@/lib/utils/katex";
 
 export type PublicProblem = {
   problem_id: string;
+  problem_name?: string | null;
   problem_text: string | null;
   hint?: string | null;
   solution_text?: string | null;
@@ -36,15 +37,21 @@ export function PublicProblemView({ problem }: { problem: PublicProblem }) {
       ) : null}
 
       <section>
-        <h2
+        <div
+          role="heading"
+          aria-level={2}
           className="text-xl font-semibold mb-3"
           style={{
             color: "#141310",
             fontFamily: "var(--font-playfair, serif)",
           }}
         >
-          The problem
-        </h2>
+          {problem.problem_name ? (
+            <MathContent content={problem.problem_name} />
+          ) : (
+            "Problem"
+          )}
+        </div>
         <div
           className="prose max-w-none"
           style={{ fontSize: "16px", lineHeight: 1.7, color: "#141310" }}

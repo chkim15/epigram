@@ -6,11 +6,13 @@ import { qaPageSchema, breadcrumbSchema } from "@/lib/schema";
 import { SITE } from "@/lib/site";
 import { supabase } from "@/lib/supabase/client";
 import { PublicProblemView } from "@/components/public/PublicProblemView";
+import { stripLatexForPlainText } from "@/lib/utils/latex-text";
 
 export const revalidate = 3600;
 
 type FreeProblem = {
   problem_id: string;
+  problem_name: string | null;
   problem_text: string | null;
   correct_answer: string | null;
   hint: string | null;
@@ -23,7 +25,7 @@ async function getFreeProblem(slug: string): Promise<FreeProblem | null> {
   const { data, error } = await supabase
     .from("problems")
     .select(
-      "problem_id, problem_text, correct_answer, hint, solution_text, difficulty, updated_at"
+      "problem_id, problem_name, problem_text, correct_answer, hint, solution_text, difficulty, updated_at"
     )
     .eq("problem_id", slug)
     .eq("is_free", true)
@@ -43,7 +45,10 @@ export async function generateMetadata({
   if (!problem) {
     return { title: "Problem not found" };
   }
-  const title = `Quant interview practice problem: ${problem.problem_id}`;
+  const cleanName = stripLatexForPlainText(problem.problem_name);
+  const title = cleanName
+    ? `${cleanName} — Quant Interview Practice`
+    : `Quant interview practice problem: ${problem.problem_id}`;
   const description = (problem.problem_text ?? "")
     .replace(/\$/g, "")
     .replace(/\\\w+/g, "")
@@ -99,7 +104,7 @@ export default async function PracticeProblemPage({
             Free Practice
           </Link>
           <span className="mx-2">/</span>
-          <span>{problem.problem_id}</span>
+          <span>Problem</span>
         </nav>
 
         <h1
@@ -113,16 +118,17 @@ export default async function PracticeProblemPage({
           Quant Interview Practice Problem
         </h1>
 
-        <p
-          className="mb-2 text-sm"
-          style={{
-            color: "#6b6b62",
-            fontFamily: "var(--font-geist-mono, monospace)",
-          }}
-        >
-          {problem.problem_id}
-          {problem.difficulty ? ` · ${problem.difficulty}` : ""}
-        </p>
+        {problem.difficulty ? (
+          <p
+            className="mb-2 text-sm"
+            style={{
+              color: "#6b6b62",
+              fontFamily: "var(--font-geist-mono, monospace)",
+            }}
+          >
+            {problem.difficulty}
+          </p>
+        ) : null}
 
         {problem.updated_at ? (
           <p className="mb-8 text-sm" style={{ color: "#6b6b62" }}>

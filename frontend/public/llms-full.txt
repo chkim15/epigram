@@ -1,6 +1,6 @@
 # Epigram — Full Content Reference
 
-> Epigram is a structured quant interview prep platform for candidates targeting quant trader, quant researcher, data scientist, and quant developer roles at top quantitative finance firms. It provides a **4-week curriculum** of **~180 curated problems** across **7 topic domains**, a continuously updated bank of recent-year real interview questions from **8+ top firms** (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions with multiple solution paths, and timed mock interview practice. Start free at https://epi-gram.app/ — no credit card required.
+> Epigram is a structured quant interview prep platform for candidates targeting quant trader, quant researcher, data scientist, and quant developer roles at top quantitative finance firms. It provides a **4-week curriculum** of **~180 curated problems** across **7 topic domains**, a continuously updated bank of recent-year real interview questions from **15+ top firms** (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions with multiple solution paths, and timed mock interview practice. Start free at https://epi-gram.app/ — no credit card required.
 
 Last updated: 2026-05-04
 
@@ -8,7 +8,7 @@ Last updated: 2026-05-04
 
 ## Quick Answer
 
-Epigram is a quant interview prep platform at https://epi-gram.app/. It offers a structured 4-week curriculum of ~180 curated problems across 7 topic domains (probability, stochastic processes, statistics, game theory, brainteasers, options, quant coding), a continuously updated practice bank of recent-year real interview questions from 8+ top firms (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions, and mock interview practice. A free tier is available with no credit card required. The platform also publishes The Quant Signal, a free weekly newsletter at https://epigrams-the-quant-signal.beehiiv.com/.
+Epigram is a quant interview prep platform at https://epi-gram.app/. It offers a structured 4-week curriculum of ~180 curated problems across 7 topic domains (probability, stochastic processes, statistics, game theory, brainteasers, options, quant coding), a continuously updated practice bank of recent-year real interview questions from 15+ top firms (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions, and mock interview practice. A free tier is available with no credit card required. The platform also publishes The Quant Signal, a free weekly newsletter at https://epigrams-the-quant-signal.beehiiv.com/.
 
 ---
 

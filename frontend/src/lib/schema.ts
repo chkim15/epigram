@@ -13,6 +13,7 @@
  *   - ItemList (index/listing pages — /practice, /learn)
  */
 import { SITE } from "./site";
+import { stripLatexForPlainText } from "./utils/latex-text";
 
 export function organizationSchema() {
   return {
@@ -89,6 +90,7 @@ export function breadcrumbSchema(items: { name: string; url: string }[]) {
  */
 export function qaPageSchema(problem: {
   problem_id: string;
+  problem_name?: string | null;
   problem_text: string | null;
   correct_answer?: string | null;
   hint?: string | null;
@@ -112,13 +114,19 @@ export function qaPageSchema(problem: {
       }
     : undefined;
 
+  const cleanName = stripLatexForPlainText(problem.problem_name);
+  const questionName =
+    cleanName ||
+    problem.problem_text ||
+    "Quant interview practice problem";
+
   return {
     "@context": "https://schema.org",
     "@type": "QAPage",
     ...(problem.updated_at ? { dateModified: problem.updated_at } : {}),
     mainEntity: {
       "@type": "Question",
-      name: problem.problem_text ?? "Quant interview practice problem",
+      name: questionName,
       text: problem.problem_text ?? "",
       author,
       ...(accepted ? { acceptedAnswer: accepted } : {}),
