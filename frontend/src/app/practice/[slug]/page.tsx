@@ -103,15 +103,41 @@ export default async function PracticeProblemPage({
         </nav>
 
         <h1
-          className="text-3xl font-semibold mb-8"
+          className="text-3xl font-semibold mb-2"
           style={{
             fontFamily: "var(--font-playfair, serif)",
             color: "#141310",
             letterSpacing: "-0.5px",
           }}
         >
-          Practice problem
+          Quant Interview Practice Problem
         </h1>
+
+        <p
+          className="mb-2 text-sm"
+          style={{
+            color: "#6b6b62",
+            fontFamily: "var(--font-geist-mono, monospace)",
+          }}
+        >
+          {problem.problem_id}
+          {problem.difficulty ? ` · ${problem.difficulty}` : ""}
+        </p>
+
+        {problem.updated_at ? (
+          <p className="mb-8 text-sm" style={{ color: "#6b6b62" }}>
+            Last updated:{" "}
+            <time dateTime={problem.updated_at}>
+              {new Date(problem.updated_at).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </time>
+          </p>
+        ) : (
+          <div className="mb-8" />
+        )}
 
         <PublicProblemView problem={problem} />
       </div>

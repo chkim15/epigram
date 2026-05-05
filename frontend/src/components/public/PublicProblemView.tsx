@@ -35,73 +35,98 @@ export function PublicProblemView({ problem }: { problem: PublicProblem }) {
         </div>
       ) : null}
 
-      <div
-        className="prose max-w-none"
-        style={{ fontSize: "16px", lineHeight: 1.7, color: "#141310" }}
-      >
-        {problem.problem_text ? (
-          <MathContent content={problem.problem_text} />
-        ) : (
-          <p>(This problem has no main statement; subproblems only.)</p>
-        )}
-      </div>
-
-      {problem.hint ? (
-        <details
-          open={showHint}
-          onToggle={(e) => setShowHint((e.target as HTMLDetailsElement).open)}
+      <section>
+        <h2
+          className="text-xl font-semibold mb-3"
           style={{
-            border: "1px solid rgb(220,218,210)",
-            borderRadius: "12px",
-            padding: "16px 20px",
-            background: "#faf9f5",
+            color: "#141310",
+            fontFamily: "var(--font-playfair, serif)",
           }}
         >
-          <summary
+          The problem
+        </h2>
+        <div
+          className="prose max-w-none"
+          style={{ fontSize: "16px", lineHeight: 1.7, color: "#141310" }}
+        >
+          {problem.problem_text ? (
+            <MathContent content={problem.problem_text} />
+          ) : (
+            <p>(This problem has no main statement; subproblems only.)</p>
+          )}
+        </div>
+      </section>
+
+      {problem.hint ? (
+        <section>
+          <h2 className="sr-only">Hint</h2>
+          <details
+            open={showHint}
+            onToggle={(e) => setShowHint((e.target as HTMLDetailsElement).open)}
             style={{
-              cursor: "pointer",
-              fontWeight: 600,
-              color: "#a16207",
-              fontSize: "14px",
-              letterSpacing: "1px",
-              textTransform: "uppercase",
+              border: "1px solid rgb(220,218,210)",
+              borderRadius: "12px",
+              padding: "16px 20px",
+              background: "#faf9f5",
             }}
           >
-            Hint
-          </summary>
-          <div className="mt-3 prose max-w-none" style={{ fontSize: "15px", lineHeight: 1.7 }}>
-            <MathContent content={problem.hint} />
-          </div>
-        </details>
+            <summary
+              style={{
+                cursor: "pointer",
+                fontWeight: 600,
+                color: "#a16207",
+                fontSize: "14px",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+              }}
+            >
+              Hint
+            </summary>
+            <div
+              className="mt-3 prose max-w-none"
+              style={{ fontSize: "15px", lineHeight: 1.7 }}
+            >
+              <MathContent content={problem.hint} />
+            </div>
+          </details>
+        </section>
       ) : null}
 
       {problem.solution_text ? (
-        <details
-          open={showSolution}
-          onToggle={(e) => setShowSolution((e.target as HTMLDetailsElement).open)}
-          style={{
-            border: "1px solid rgb(220,218,210)",
-            borderRadius: "12px",
-            padding: "16px 20px",
-            background: "#ffffff",
-          }}
-        >
-          <summary
+        <section>
+          <h2 className="sr-only">Solution</h2>
+          <details
+            open={showSolution}
+            onToggle={(e) =>
+              setShowSolution((e.target as HTMLDetailsElement).open)
+            }
             style={{
-              cursor: "pointer",
-              fontWeight: 600,
-              color: "#141310",
-              fontSize: "14px",
-              letterSpacing: "1px",
-              textTransform: "uppercase",
+              border: "1px solid rgb(220,218,210)",
+              borderRadius: "12px",
+              padding: "16px 20px",
+              background: "#ffffff",
             }}
           >
-            Solution
-          </summary>
-          <div className="mt-3 prose max-w-none" style={{ fontSize: "15px", lineHeight: 1.7 }}>
-            <MathContent content={problem.solution_text} />
-          </div>
-        </details>
+            <summary
+              style={{
+                cursor: "pointer",
+                fontWeight: 600,
+                color: "#141310",
+                fontSize: "14px",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+              }}
+            >
+              Solution
+            </summary>
+            <div
+              className="mt-3 prose max-w-none"
+              style={{ fontSize: "15px", lineHeight: 1.7 }}
+            >
+              <MathContent content={problem.solution_text} />
+            </div>
+          </details>
+        </section>
       ) : null}
 
       <div

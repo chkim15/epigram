@@ -35,6 +35,7 @@
 - [x] Section 7: Public mirror routes
 - [x] Section 8: Verification
 - [x] Section 9: Final summary
+- [x] Section 10: AEO audit quick-win pass (Phase 1.5)
 
 ---
 
@@ -319,3 +320,36 @@
 - The `/learn/[topicSlug]` pages currently render hand-written intros rather than the actual MDX curriculum content. Phase 2 will wire up the MDX rendering pipeline used at `/curriculum/[weekId]/[topicId]`.
 - `/auth/signup` CTAs do not yet pass a `?next=` return URL. Low priority — standard signup flow lands on the curriculum after onboarding, which is acceptable.
 - Pre-existing ESLint warnings (ChatSidebar, ProblemViewer, etc.) were not addressed; out of scope.
+
+---
+
+## Section 10: AEO audit quick-win pass (Phase 1.5)
+- **Status:** Complete
+- **Trigger:** First post-deploy run of [aeo-audit.sh](https://aeo-audit.sh) scored the live site **B / 75/100** with 13/16 checks passing. Three checks failed (Internal linking 4/10, Content structure 5/10, RSS/Atom feed missing). Agent-evaluation signals also flagged Freshness (45/100), Quotability (55), Answer Readiness (56), Evidence Density (59) — all rooted in the public mirror routes shipping single-paragraph, single-H1, low-link pages in Phase 1.
+- **Files modified:**
+  - `frontend/src/lib/schema.ts` (qaPageSchema + courseSchema gain `author` and `dateModified`)
+  - `frontend/src/app/learn/[topicSlug]/page.tsx` (TOPIC_INTROS restructured into definition / whatItCovers / whyItMatters; H2 sections; `<time>` element; cross-topic nav)
+  - `frontend/src/app/practice/[slug]/page.tsx` (specific H1 "Quant Interview Practice Problem"; problem_id + difficulty subtitle; `<time>` element)
+  - `frontend/src/components/public/PublicProblemView.tsx` (visible "The problem" H2; sr-only H2s for Hint and Solution sections)
+- **Files created:** none
+- **Audit signals addressed:**
+  - **Content structure 5/10 → expected ≥7/10** — `/learn/[topicSlug]` now has 2 visible H2 sections inside `<article>`; `/practice/[slug]` has 1 visible + 2 sr-only H2s.
+  - **Internal linking 4/10 → expected ≥7/10** — `/learn/[topicSlug]` now lists the other 2 free topics + a "Browse all topics" + "Browse free practice problems" link.
+  - **Freshness 45 → expected ≥65** — every `/learn/[topicSlug]` and `/practice/[slug]` now has `<time dateTime="…">Last updated: …</time>`. Schema also emits `dateModified`.
+  - **Evidence Density 59 → expected ≥75** — `qaPageSchema` and `courseSchema` now include `author` (Jeremy Wu, with LinkedIn URL, jobTitle, credentials).
+  - **Answer Readiness 56 → expected ≥70** — every TOPIC_INTROS entry now opens with a definitional first sentence ("Conditional probability is the probability of an event given that another event has occurred…").
+  - **Quotability 55 → expected ≥70** — H2 boundaries make passage extraction trivial for AI agents.
+- **Key decisions:**
+  - `TOPIC_PAGE_LAST_UPDATED = "2026-05-04"` is hard-coded in `learn/[topicSlug]/page.tsx`. Bump manually when intros are edited. Acceptable since intros are not yet a frequently-updated artifact.
+  - `/practice/[slug]` H1 chosen as "Quant Interview Practice Problem" (deliberate, descriptive, keyword-rich) rather than deriving from problem text. Problem ID and difficulty go in a subtitle. This avoids LaTeX in H1 and keeps every problem page aligned on a strong, indexable H1.
+  - Hint and Solution remain inside `<details>` for UX (user-collapsible). Added `<h2 className="sr-only">` siblings so AI agents and screen readers see proper section structure without changing the visual UI.
+  - Did NOT join `quant_topics` into the practice query for a more specific H1 — out-of-scope query change with marginal benefit; the descriptive H1 + subtitle is sufficient.
+- **Issues / TODOs:**
+  - **USER ACTION:** re-run aeo-audit.sh after redeploy and confirm overall ≥85/100. If it still flags Internal linking on the homepage, consider adding visible footer links to `/practice` and `/learn` (currently the homepage is fine — its 88/100 came from sample of 10 with /learn pages dragging the average).
+  - RSS/Atom feed remains unfixed — legitimately Phase 2 work, needs a content hub to be meaningful.
+  - The "Other free topic previews" nav on `/learn/[topicSlug]` only links between topics 1–3. When more topics get the `is_free` flag, expand `FREE_TOPIC_NUMS` and the nav scales automatically.
+- **Verification performed:**
+  - `cd frontend && npm run build` — clean, no TypeScript errors.
+  - Schema diff sanity-checked: `qaPageSchema` and `courseSchema` now emit `author` blocks pointing to Jeremy's LinkedIn.
+  - File-level grep confirmed `<time dateTime=` appears in both `/learn/[topicSlug]` and `/practice/[slug]` pages.
+- **Deferred to Phase 2:** RSS/Atom feed, `/docs` knowledge section, Q&A-style heading rewrites of full topic content, contact page expansion (currently 75/100 and acceptable for a thin contact page).

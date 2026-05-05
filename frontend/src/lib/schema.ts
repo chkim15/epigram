@@ -93,23 +93,34 @@ export function qaPageSchema(problem: {
   correct_answer?: string | null;
   hint?: string | null;
   solution_text?: string | null;
+  updated_at?: string | null;
 }) {
   const url = `${SITE.url}/practice/${problem.problem_id}`;
+  const author = {
+    "@type": "Person" as const,
+    name: SITE.founders.jeremy.name,
+    url: SITE.founders.jeremy.linkedin,
+    jobTitle: SITE.founders.jeremy.role,
+    description: SITE.founders.jeremy.credentials,
+  };
   const accepted = problem.solution_text
     ? {
         "@type": "Answer" as const,
         text: problem.solution_text,
         url,
+        author,
       }
     : undefined;
 
   return {
     "@context": "https://schema.org",
     "@type": "QAPage",
+    ...(problem.updated_at ? { dateModified: problem.updated_at } : {}),
     mainEntity: {
       "@type": "Question",
       name: problem.problem_text ?? "Quant interview practice problem",
       text: problem.problem_text ?? "",
+      author,
       ...(accepted ? { acceptedAnswer: accepted } : {}),
     },
   };
@@ -124,6 +135,7 @@ export function courseSchema(topic: {
   weekTitle: string;
   weekNum: number;
   topicNum: number;
+  dateModified?: string;
 }) {
   return {
     "@context": "https://schema.org",
@@ -135,6 +147,14 @@ export function courseSchema(topic: {
       name: SITE.name,
       sameAs: SITE.url,
     },
+    author: {
+      "@type": "Person",
+      name: SITE.founders.jeremy.name,
+      url: SITE.founders.jeremy.linkedin,
+      jobTitle: SITE.founders.jeremy.role,
+      description: SITE.founders.jeremy.credentials,
+    },
+    ...(topic.dateModified ? { dateModified: topic.dateModified } : {}),
   };
 }
 

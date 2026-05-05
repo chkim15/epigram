@@ -10,23 +10,57 @@ import { slugify } from "@/lib/utils/slugify";
 /** Topic numbers exposed via /learn/[topicSlug]. Matches W1 T1–T3 free problems. */
 const FREE_TOPIC_NUMS = [1, 2, 3] as const;
 
+/** Bump this when TOPIC_INTROS or page structure is edited. ISO date. */
+const TOPIC_PAGE_LAST_UPDATED = "2026-05-04";
+
+type TopicIntro = {
+  /** 1-2 sentences. Must open with "X is Y." (definition lead for AEO Answer Readiness). */
+  definition: string;
+  /** 2-3 sentences listing concepts and scope. */
+  whatItCovers: string;
+  /** 2-3 sentences on interview relevance and firm calibration. */
+  whyItMatters: string;
+};
+
 type ResolvedTopic = {
   topicNum: number;
   title: string;
   weekNum: number;
   weekTitle: string;
-  intro: string;
+  intro: TopicIntro;
 };
 
 /**
  * Topic intros for the free preview pages. Hand-written to give AI engines
- * and search crawlers something substantive to index — without giving away
- * the full curriculum content (which lives behind auth at /curriculum/...).
+ * and search crawlers structured, citable content. Each topic opens with a
+ * definition (AEO Answer Readiness) and is split into three H2 sections
+ * (AEO Quotability / Content Structure).
  */
-const TOPIC_INTROS: Record<number, string> = {
-  1: "Foundations of Probability Modeling sits at the very start of the Epigram 4-week curriculum because every other topic — distributions, stochastic processes, statistics, even brainteasers — assumes you can set up a clean probability model from a verbal interview prompt. This topic covers sample spaces, events, axioms of probability, equally-likely outcomes, basic combinatorial counting (permutations, combinations, multinomial coefficients), and the inclusion-exclusion principle. The level is calibrated to interview problems firms like Citadel, Jane Street, and Optiver actually ask in first-round screens, where the trap is rarely a hard formula and almost always a sloppy model.",
-  2: "Conditional Probability and Bayes' theorem are tested in nearly every quant interview at every top firm, and they are the single most common source of wrong answers from otherwise strong candidates. This topic covers the definition of conditional probability, the multiplication rule, the law of total probability, Bayes' theorem in both its 2-event and partition forms, and the standard set of trap problems (the Monty Hall family, false-positive medical-test problems, the two-children problem, prosecutor's fallacy). Mastery of this topic unlocks roughly a third of all probability interview questions.",
-  3: "Distributions covers the discrete and continuous distributions that appear repeatedly in quant interviews: Bernoulli, Binomial, Geometric, Negative Binomial, Poisson, Uniform, Exponential, Normal, and the relationships between them (Poisson as a Binomial limit, Exponential as the memoryless continuous analog of Geometric). Interviewers expect not just memorized formulas but the ability to recognize which distribution applies from a verbal description and to compute expectations and probabilities from first principles. This topic also introduces moment-generating functions at the level needed to derive sums of independent random variables — a setup used heavily in Week 1's Topics 4–6 and throughout Weeks 2 and 3.",
+const TOPIC_INTROS: Record<number, TopicIntro> = {
+  1: {
+    definition:
+      "Foundations of probability modeling is the discipline of translating verbal interview prompts into clean mathematical probability models. It is the prerequisite skill that every other quant interview topic — distributions, stochastic processes, statistics, even brainteasers — silently assumes.",
+    whatItCovers:
+      "This topic covers sample spaces, events, axioms of probability, equally-likely outcomes, basic combinatorial counting (permutations, combinations, multinomial coefficients), and the inclusion-exclusion principle. The emphasis is on setting up the model correctly before computing — an interviewer can usually tell within 30 seconds whether a candidate has internalized the modeling step.",
+    whyItMatters:
+      "The level is calibrated to interview problems firms like Citadel, Jane Street, and Optiver actually ask in first-round screens. The trap is rarely a hard formula and almost always a sloppy model — wrong sample space, double-counted outcomes, or mis-applied independence. Mastering this topic prevents the most common failure mode in early-round quant probability rounds.",
+  },
+  2: {
+    definition:
+      "Conditional probability is the probability of an event given that another event has occurred, written P(A | B). Bayes' theorem is the formal rule for inverting that conditional — computing P(A | B) from P(B | A), the prior P(A), and the marginal P(B).",
+    whatItCovers:
+      "This topic covers the definition of conditional probability, the multiplication rule, the law of total probability, Bayes' theorem in both its 2-event and partition forms, and the standard set of trap problems: the Monty Hall family, false-positive medical-test problems, the two-children problem, and prosecutor's fallacy. Each trap exposes a different intuitive error that interviewers deliberately probe.",
+    whyItMatters:
+      "Conditional probability and Bayes' theorem are tested in nearly every quant interview at every top firm, and they are the single most common source of wrong answers from otherwise strong candidates. Mastery of this topic unlocks roughly a third of all probability interview questions and is foundational for the statistics and stochastic-processes weeks that follow.",
+  },
+  3: {
+    definition:
+      "Distributions are functions that assign probabilities to outcomes of a random variable. The discrete and continuous distributions covered in this topic — Bernoulli, Binomial, Geometric, Negative Binomial, Poisson, Uniform, Exponential, and Normal — are the building blocks for every probability model used in quant interviews.",
+    whatItCovers:
+      "This topic covers the standard discrete and continuous distributions and the relationships between them: Poisson as a Binomial limit, Exponential as the memoryless continuous analog of Geometric, Normal as the limiting distribution via the Central Limit Theorem. It also introduces moment-generating functions at the level needed to derive sums of independent random variables.",
+    whyItMatters:
+      "Interviewers expect not just memorized formulas but the ability to recognize which distribution applies from a verbal description and to compute expectations and probabilities from first principles. This setup is used heavily in Week 1 Topics 4–6 and throughout Weeks 2 and 3 — getting it cold here pays back across the whole curriculum.",
+  },
 };
 
 function findFreeTopicBySlug(slug: string): ResolvedTopic | null {
@@ -36,17 +70,39 @@ function findFreeTopicBySlug(slug: string): ResolvedTopic | null {
         FREE_TOPIC_NUMS.includes(topic.topicNum as 1 | 2 | 3) &&
         slugify(topic.title) === slug
       ) {
+        const intro = TOPIC_INTROS[topic.topicNum];
+        if (!intro) return null;
         return {
           topicNum: topic.topicNum,
           title: topic.title,
           weekNum: week.weekNum,
           weekTitle: week.title,
-          intro: TOPIC_INTROS[topic.topicNum] ?? "",
+          intro,
         };
       }
     }
   }
   return null;
+}
+
+/** Other free topics (excluding the current one) for cross-topic nav. */
+function getOtherFreeTopics(currentTopicNum: number) {
+  const all: { topicNum: number; title: string; weekNum: number }[] = [];
+  for (const week of COURSE_WEEKS) {
+    for (const topic of week.topics) {
+      if (
+        FREE_TOPIC_NUMS.includes(topic.topicNum as 1 | 2 | 3) &&
+        topic.topicNum !== currentTopicNum
+      ) {
+        all.push({
+          topicNum: topic.topicNum,
+          title: topic.title,
+          weekNum: week.weekNum,
+        });
+      }
+    }
+  }
+  return all.sort((a, b) => a.topicNum - b.topicNum);
 }
 
 export async function generateMetadata({
@@ -59,7 +115,9 @@ export async function generateMetadata({
   if (!topic) return { title: "Topic not found" };
 
   const title = `${topic.title} — Quant Interview Prep`;
-  const description = topic.intro.slice(0, 160) || `${topic.title} — free preview from the Epigram 4-week quant interview curriculum.`;
+  const description =
+    topic.intro.definition.slice(0, 160) ||
+    `${topic.title} — free preview from the Epigram 4-week quant interview curriculum.`;
 
   return {
     title,
@@ -83,12 +141,20 @@ export default async function LearnTopicPage({
   const topic = findFreeTopicBySlug(topicSlug);
   if (!topic) notFound();
 
+  const otherFreeTopics = getOtherFreeTopics(topic.topicNum);
+  const lastUpdatedDisplay = new Date(TOPIC_PAGE_LAST_UPDATED).toLocaleDateString(
+    "en-US",
+    { year: "numeric", month: "long", day: "numeric" }
+  );
+
   return (
     <main
       className="min-h-screen overflow-y-auto"
       style={{ background: "#faf9f5", height: "100vh" }}
     >
-      <JsonLd data={courseSchema(topic)} />
+      <JsonLd
+        data={courseSchema({ ...topic, dateModified: TOPIC_PAGE_LAST_UPDATED })}
+      />
       <JsonLd
         data={breadcrumbSchema([
           { name: "Home", url: SITE.url },
@@ -118,7 +184,7 @@ export default async function LearnTopicPage({
         </div>
 
         <h1
-          className="text-4xl font-semibold mb-6"
+          className="text-4xl font-semibold mb-3"
           style={{
             fontFamily: "var(--font-playfair, serif)",
             color: "#141310",
@@ -129,12 +195,99 @@ export default async function LearnTopicPage({
           {topic.title}
         </h1>
 
+        <p
+          className="mb-8 text-sm"
+          style={{ color: "#6b6b62" }}
+        >
+          Last updated:{" "}
+          <time dateTime={TOPIC_PAGE_LAST_UPDATED}>{lastUpdatedDisplay}</time>
+        </p>
+
         <article
           className="prose max-w-none"
           style={{ fontSize: "17px", lineHeight: 1.7, color: "#141310" }}
         >
-          <p style={{ marginBottom: "1.25em" }}>{topic.intro}</p>
+          <p style={{ marginBottom: "1.5em", fontWeight: 500 }}>
+            {topic.intro.definition}
+          </p>
+
+          <h2
+            className="text-2xl font-semibold mt-10 mb-4"
+            style={{
+              color: "#141310",
+              fontFamily: "var(--font-playfair, serif)",
+            }}
+          >
+            What this topic covers
+          </h2>
+          <p style={{ marginBottom: "1.25em" }}>{topic.intro.whatItCovers}</p>
+
+          <h2
+            className="text-2xl font-semibold mt-10 mb-4"
+            style={{
+              color: "#141310",
+              fontFamily: "var(--font-playfair, serif)",
+            }}
+          >
+            Why it matters for quant interviews
+          </h2>
+          <p style={{ marginBottom: "1.25em" }}>{topic.intro.whyItMatters}</p>
         </article>
+
+        {otherFreeTopics.length > 0 ? (
+          <nav
+            aria-label="Other free topics"
+            className="mt-12 border-t pt-8"
+            style={{ borderColor: "rgb(220,218,210)" }}
+          >
+            <h2
+              className="text-xl font-semibold mb-4"
+              style={{ color: "#141310" }}
+            >
+              Other free topic previews
+            </h2>
+            <ul style={{ display: "grid", gap: "10px", listStyle: "none", padding: 0 }}>
+              {otherFreeTopics.map((t) => (
+                <li key={t.topicNum}>
+                  <Link
+                    href={`/learn/${slugify(t.title)}`}
+                    style={{
+                      color: "#a16207",
+                      fontSize: "16px",
+                      textDecoration: "none",
+                    }}
+                  >
+                    Topic {t.topicNum}: {t.title} →
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link
+                  href="/learn"
+                  style={{
+                    color: "#a16207",
+                    fontSize: "16px",
+                    textDecoration: "none",
+                  }}
+                >
+                  Browse all topics →
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/practice"
+                  style={{
+                    color: "#a16207",
+                    fontSize: "16px",
+                    textDecoration: "none",
+                  }}
+                >
+                  Browse free practice problems →
+                </Link>
+              </li>
+            </ul>
+          </nav>
+        ) : null}
 
         <div
           className="mt-12 border-t pt-8"
