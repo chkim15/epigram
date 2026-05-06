@@ -45,7 +45,7 @@ export function welcomeHtml(name: string): string {
       </p>
 
       <p style="margin:0 0 32px 0;">
-        <a href="https://epigrams-the-quant-signal.beehiiv.com/"
+        <a href="https://thequantsignal.substack.com/"
            style="display:inline-block;background-color:#141310;color:#faf9f5;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:15px;font-family:Georgia,serif;">
           Subscribe to The Quant Signal &rarr;
         </a>

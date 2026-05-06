@@ -7,6 +7,7 @@ import Image from "next/image";
 
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 import { Faq } from "@/components/marketing/Faq";
+import NewsletterModal from "@/components/marketing/NewsletterModal";
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
@@ -39,27 +40,12 @@ const faqs = [
 ];
 
 export default function LandingPage() {
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-  async function handleNewsletterSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newsletterEmail) return;
-    setNewsletterStatus('loading');
-    try {
-      const res = await fetch('/api/newsletter/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: newsletterEmail }),
-      });
-      setNewsletterStatus(res.ok ? 'success' : 'error');
-    } catch {
-      setNewsletterStatus('error');
-    }
-  }
+  const [newsletterOpen, setNewsletterOpen] = useState(false);
 
   return (
     <div className={`min-h-screen overflow-y-auto scroll-smooth ${playfair.variable} ${dmSans.variable}`} style={{ backgroundColor: '#faf9f5', height: '100vh' }}>
+      <NewsletterModal isOpen={newsletterOpen} onClose={() => setNewsletterOpen(false)} />
+
       {/* Announcement Bar */}
       <div style={{ background: 'rgba(161,98,7,0.12)', borderBottom: '1px solid rgba(161,98,7,0.4)', padding: '9px 16px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
         <span style={{ background: '#a16207', color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '4px', flexShrink: 0 }}>Launch Offer</span>
@@ -256,36 +242,20 @@ export default function LandingPage() {
               Real interview problems, prep tips, and strategy notes — to help you prepare for top funds with sharper signal and less wasted effort.
             </p>
           </div>
-          {/* Right: form */}
-          <div style={{ flex: '1 1 320px', minWidth: 0 }}>
-            {newsletterStatus === 'success' ? (
-              <p style={{ fontSize: '15px', color: '#15803d', fontWeight: 500 }}>
-                ✓ You&apos;re subscribed. Watch for The Quant Signal each week.
-              </p>
-            ) : (
-              <form onSubmit={handleNewsletterSubmit} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={newsletterEmail}
-                  onChange={e => setNewsletterEmail(e.target.value)}
-                  required
-                  style={{ flex: '1 1 200px', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgb(220,218,210)', background: '#ffffff', color: '#141310', fontSize: '14px', outline: 'none' }}
-                />
-                <button
-                  type="submit"
-                  disabled={newsletterStatus === 'loading'}
-                  style={{ padding: '10px 20px', borderRadius: '8px', background: '#a16207', color: '#fff', fontSize: '14px', fontWeight: 600, border: 'none', cursor: newsletterStatus === 'loading' ? 'not-allowed' : 'pointer', flexShrink: 0, opacity: newsletterStatus === 'loading' ? 0.7 : 1 }}
-                >
-                  {newsletterStatus === 'loading' ? 'Subscribing…' : 'Subscribe'}
-                </button>
-                {newsletterStatus === 'error' && (
-                  <p style={{ width: '100%', fontSize: '13px', color: '#b91c1c', marginTop: '4px' }}>
-                    Something went wrong — please try again.
-                  </p>
-                )}
-              </form>
-            )}
+          {/* Right: fake input + button CTA */}
+          <div style={{ flex: '1 1 320px', minWidth: 0, maxWidth: '420px' }}>
+            <button
+              onClick={() => setNewsletterOpen(true)}
+              style={{ width: '100%', padding: '6px 6px 6px 16px', borderRadius: '10px', background: '#ffffff', border: '1px solid rgb(220,218,210)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}
+            >
+              <span style={{ fontSize: '14px', color: '#9b9b93', fontWeight: 400 }}>Email address</span>
+              <span style={{ padding: '10px 18px', borderRadius: '7px', background: '#a16207', color: '#fff', fontSize: '14px', fontWeight: 600, flexShrink: 0 }}
+                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = '#8b5006')}
+                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '#a16207')}
+              >
+                Subscribe →
+              </span>
+            </button>
           </div>
         </div>
       </div>

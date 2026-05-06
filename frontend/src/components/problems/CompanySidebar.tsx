@@ -4,102 +4,67 @@ import { useState } from "react";
 import { Search, Lock } from "lucide-react";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import SubscribeModal from "@/components/subscription/SubscribeModal";
+import NewsletterModal from "@/components/marketing/NewsletterModal";
 
 function NewsletterCard() {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email) return;
-    setStatus('loading');
-    try {
-      const res = await fetch('/api/newsletter/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      setStatus(res.ok ? 'success' : 'error');
-    } catch {
-      setStatus('error');
-    }
-  }
+  const [open, setOpen] = useState(false);
 
   return (
-    <div
-      className="mt-6 p-4 rounded-xl"
-      style={{
-        background: 'rgba(161,98,7,0.08)',
-      }}
-    >
-      <span
+    <>
+      <NewsletterModal isOpen={open} onClose={() => setOpen(false)} />
+      <div
+        className="mt-6 p-4 rounded-xl"
         style={{
-          display: 'inline-block',
-          background: '#a16207',
-          color: '#fff',
-          fontSize: '9px',
-          fontWeight: 700,
-          letterSpacing: '1.2px',
-          textTransform: 'uppercase',
-          padding: '2px 6px',
-          borderRadius: '3px',
-          marginBottom: '10px',
+          background: 'rgba(161,98,7,0.08)',
         }}
       >
-        Free Newsletter
-      </span>
-      <h4
-        style={{
-          fontFamily: 'var(--font-playfair, serif)',
-          fontSize: '17px',
-          fontWeight: 700,
-          color: 'var(--foreground)',
-          lineHeight: 1.2,
-          marginBottom: '6px',
-        }}
-      >
-        The Quant Signal
-      </h4>
-      <p style={{ fontSize: '12px', color: 'var(--muted-foreground)', lineHeight: 1.5, marginBottom: '12px' }}>
-        Weekly interview problems, prep tips, and strategy notes for top quant funds.
-      </p>
-      {status === 'success' ? (
-        <p style={{ fontSize: '12px', color: '#15803d', fontWeight: 500 }}>
-          ✓ Subscribed. See you in your inbox each week.
+        <span
+          style={{
+            display: 'inline-block',
+            background: '#a16207',
+            color: '#fff',
+            fontSize: '9px',
+            fontWeight: 700,
+            letterSpacing: '1.2px',
+            textTransform: 'uppercase',
+            padding: '2px 6px',
+            borderRadius: '3px',
+            marginBottom: '10px',
+          }}
+        >
+          Free Newsletter
+        </span>
+        <h4
+          style={{
+            fontFamily: 'var(--font-playfair, serif)',
+            fontSize: '17px',
+            fontWeight: 700,
+            color: 'var(--foreground)',
+            lineHeight: 1.2,
+            marginBottom: '6px',
+          }}
+        >
+          The Quant Signal
+        </h4>
+        <p style={{ fontSize: '12px', color: 'var(--muted-foreground)', lineHeight: 1.5, marginBottom: '12px' }}>
+          Weekly interview problems, prep tips, and strategy notes for top quant funds.
         </p>
-      ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-          <input
-            type="email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-3 py-2 text-xs rounded-lg border bg-white focus:outline-none"
-            style={{ borderColor: 'rgb(220,218,210)', color: 'var(--foreground)' }}
-          />
-          <button
-            type="submit"
-            disabled={status === 'loading'}
-            className="w-full px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer"
-            style={{
-              background: '#a16207',
-              color: '#fff',
-              border: 'none',
-              opacity: status === 'loading' ? 0.7 : 1,
-              cursor: status === 'loading' ? 'not-allowed' : 'pointer',
-            }}
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full cursor-pointer"
+          style={{ padding: '4px 4px 4px 10px', borderRadius: '8px', background: '#ffffff', border: '1px solid rgb(220,218,210)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}
+        >
+          <span style={{ fontSize: '11px', color: '#9b9b93', fontWeight: 400 }}>Email address</span>
+          <span
+            style={{ padding: '6px 10px', borderRadius: '5px', background: '#a16207', color: '#fff', fontSize: '11px', fontWeight: 600, flexShrink: 0 }}
+            onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = '#8b5006')}
+            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '#a16207')}
           >
-            {status === 'loading' ? 'Subscribing…' : 'Subscribe'}
-          </button>
-          {status === 'error' && (
-            <p style={{ fontSize: '11px', color: '#b91c1c' }}>
-              Something went wrong — try again.
-            </p>
-          )}
-        </form>
-      )}
-    </div>
+            Subscribe →
+          </span>
+        </button>
+      </div>
+    </>
   );
 }
 
