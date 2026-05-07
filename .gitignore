@@ -39,3 +39,6 @@ frontend/.next/
 .idea/
 .mcp.json
 .vercel
+
+# macOS
+.DS_Store
