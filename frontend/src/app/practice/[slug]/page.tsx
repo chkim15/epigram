@@ -5,34 +5,109 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { qaPageSchema, breadcrumbSchema } from "@/lib/schema";
 import { SITE } from "@/lib/site";
 import { supabase } from "@/lib/supabase/client";
-import { PublicProblemView } from "@/components/public/PublicProblemView";
+import {
+  PublicProblemView,
+  type PublicProblem,
+  type PublicSubproblem,
+} from "@/components/public/PublicProblemView";
 import { stripLatexForPlainText } from "@/lib/utils/latex-text";
 
 export const revalidate = 3600;
 
-type FreeProblem = {
-  problem_id: string;
-  problem_name: string | null;
-  problem_text: string | null;
-  correct_answer: string | null;
-  hint: string | null;
-  solution_text: string | null;
-  difficulty: string | null;
+/**
+ * Internal type — extends PublicProblem with the UUID `id` (needed for joins,
+ * not for rendering) and the timestamp fields used in metadata + schema.
+ */
+type FreeProblemFull = PublicProblem & {
+  id: string;
+  created_at: string | null;
   updated_at: string | null;
 };
 
-async function getFreeProblem(slug: string): Promise<FreeProblem | null> {
-  const { data, error } = await supabase
+async function getFreeProblem(slug: string): Promise<FreeProblemFull | null> {
+  // 1. Main problem row
+  const { data: problem, error } = await supabase
     .from("problems")
     .select(
-      "problem_id, problem_name, problem_text, correct_answer, hint, solution_text, difficulty, updated_at"
+      "id, problem_id, problem_name, problem_text, correct_answer, hint, difficulty, created_at, updated_at"
     )
     .eq("problem_id", slug)
     .eq("is_free", true)
     .eq("included", true)
     .maybeSingle();
-  if (error || !data) return null;
-  return data as FreeProblem;
+  if (error || !problem) return null;
+
+  // 2. Top-level solutions (subproblem_id IS NULL)
+  const { data: topLevelSolutions } = await supabase
+    .from("solutions")
+    .select("solution_text, solution_order")
+    .eq("problem_id", problem.id)
+    .is("subproblem_id", null)
+    .order("solution_order", { ascending: true });
+
+  // 3. Subproblems + their solutions (parallelized within Promise.all)
+  const { data: subRows } = await supabase
+    .from("subproblems")
+    .select("id, key, problem_text, correct_answer, hint")
+    .eq("problem_id", problem.id)
+    .order("key", { ascending: true });
+
+  const subproblems: PublicSubproblem[] = await Promise.all(
+    (subRows ?? []).map(async (sp) => {
+      const { data: subSolutions } = await supabase
+        .from("solutions")
+        .select("solution_text, solution_order")
+        .eq("subproblem_id", sp.id)
+        .order("solution_order", { ascending: true });
+      return {
+        id: sp.id,
+        key: sp.key,
+        problem_text: sp.problem_text,
+        correct_answer: sp.correct_answer,
+        hint: sp.hint,
+        solutions: subSolutions ?? [],
+      };
+    })
+  );
+
+  return {
+    id: problem.id,
+    problem_id: problem.problem_id,
+    problem_name: problem.problem_name,
+    problem_text: problem.problem_text,
+    correct_answer: problem.correct_answer,
+    hint: problem.hint,
+    difficulty: problem.difficulty,
+    created_at: problem.created_at,
+    updated_at: problem.updated_at,
+    topLevelSolutions: topLevelSolutions ?? [],
+    subproblems,
+  };
+}
+
+/**
+ * Compute the canonical Q&A `acceptedAnswer.text` for a given problem.
+ * Prefers a top-level solution; falls back to concatenated subproblem
+ * solutions in `key` order.
+ */
+function buildAnswerText(problem: FreeProblemFull): string | null {
+  const topLevel = problem.topLevelSolutions[0]?.solution_text;
+  if (topLevel) return topLevel;
+
+  const parts: string[] = [];
+  for (const sp of problem.subproblems) {
+    const solText = sp.solutions[0]?.solution_text;
+    if (solText) parts.push(`(${sp.key}) ${solText}`);
+  }
+  return parts.length > 0 ? parts.join("\n\n") : null;
+}
+
+function countAllSolutions(problem: FreeProblemFull): number {
+  let count = problem.topLevelSolutions.length;
+  for (const sp of problem.subproblems) {
+    count += sp.solutions.length;
+  }
+  return count;
 }
 
 export async function generateMetadata({
@@ -49,10 +124,11 @@ export async function generateMetadata({
   const title = cleanName
     ? `${cleanName} — Quant Interview Practice`
     : `Quant interview practice problem: ${problem.problem_id}`;
-  const description = (problem.problem_text ?? "")
-    .replace(/\$/g, "")
-    .replace(/\\\w+/g, "")
-    .slice(0, 160) || SITE.description;
+  const description =
+    (problem.problem_text ?? "")
+      .replace(/\$/g, "")
+      .replace(/\\\w+/g, "")
+      .slice(0, 160) || SITE.description;
 
   return {
     title,
@@ -76,12 +152,27 @@ export default async function PracticeProblemPage({
   const problem = await getFreeProblem(slug);
   if (!problem) notFound();
 
+  const answerText = buildAnswerText(problem);
+  const answerCount = countAllSolutions(problem);
+
   return (
     <main
       className="min-h-screen overflow-y-auto"
       style={{ background: "#faf9f5", height: "100vh" }}
     >
-      <JsonLd data={qaPageSchema(problem)} />
+      <JsonLd
+        data={qaPageSchema({
+          problem_id: problem.problem_id,
+          problem_name: problem.problem_name,
+          problem_text: problem.problem_text,
+          correct_answer: problem.correct_answer,
+          hint: problem.hint,
+          created_at: problem.created_at,
+          updated_at: problem.updated_at,
+          answerText,
+          answerCount,
+        })}
+      />
       <JsonLd
         data={breadcrumbSchema([
           { name: "Home", url: SITE.url },

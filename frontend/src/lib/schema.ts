@@ -94,8 +94,12 @@ export function qaPageSchema(problem: {
   problem_text: string | null;
   correct_answer?: string | null;
   hint?: string | null;
-  solution_text?: string | null;
+  created_at?: string | null;
   updated_at?: string | null;
+  /** Concatenated answer text (top-level solution OR joined subproblem solutions). */
+  answerText: string | null;
+  /** Total count of solution rows (top-level + subproblem). Required by Google's QAPage spec. */
+  answerCount: number;
 }) {
   const url = `${SITE.url}/practice/${problem.problem_id}`;
   const author = {
@@ -105,10 +109,10 @@ export function qaPageSchema(problem: {
     jobTitle: SITE.founders.jeremy.role,
     description: SITE.founders.jeremy.credentials,
   };
-  const accepted = problem.solution_text
+  const accepted = problem.answerText
     ? {
         "@type": "Answer" as const,
-        text: problem.solution_text,
+        text: problem.answerText,
         url,
         author,
       }
@@ -128,6 +132,8 @@ export function qaPageSchema(problem: {
       "@type": "Question",
       name: questionName,
       text: problem.problem_text ?? "",
+      answerCount: problem.answerCount,
+      ...(problem.created_at ? { datePublished: problem.created_at } : {}),
       author,
       ...(accepted ? { acceptedAnswer: accepted } : {}),
     },

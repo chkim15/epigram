@@ -37,6 +37,7 @@
 - [x] Section 9: Final summary
 - [x] Section 10: AEO audit quick-win pass (Phase 1.5)
 - [x] Section 11: AEO audit second quick-win pass (Phase 1.6)
+- [x] Section 12: Q&A schema fix for /practice/[slug] (GSC indexing)
 
 ---
 
@@ -384,3 +385,44 @@
   - `cd frontend && npm run build` — clean, no TypeScript errors.
   - Diff review: every change is additive (no removals or layout shifts that could regress UX).
 - **Deferred to Phase 2:** RSS/Atom feed (genuinely needs content hub), `/docs` knowledge section, Q&A-style heading rewrites, dynamic OG image variants per page.
+
+---
+
+## Section 12: Q&A schema fix for /practice/[slug] (GSC indexing)
+- **Status:** Complete
+- **Trigger:** Google Search Console URL Inspection on `/practice/quant_interview_fundamental_qdsi_p40` flagged 2 critical Q&A schema issues + 1 optional warning:
+  - `Missing field "answerCount"` (CRITICAL — required by Google's QAPage spec)
+  - `Either "acceptedAnswer" or "suggestedAnswer" should be specified` (CRITICAL)
+  - `Missing field "datePublished"` (optional)
+  These issues likely contributed to 13 practice URLs sitting in "Crawled - currently not indexed."
+- **Root cause discovered via DB inspection:**
+  - `getFreeProblem()` was reading the legacy `problems.solution_text` column.
+  - That column is **NULL for all 30 free problems** in production.
+  - Solutions live in the `solutions` table now, joined by `problem_id` (UUID) with `subproblem_id IS NULL`. 24/30 free problems have a top-level solution this way.
+  - The other 6 free problems are subproblem-structured (parts a/b/c) — solutions live on `solutions.subproblem_id = subproblems.id`. (Problem IDs: p70, p86, p95, p96, p97, p98 — Geometric/Poisson/combinatorics topics.)
+  - Bottom line: all 30 free problems have real solutions; the public route just wasn't reading them.
+- **Files modified:**
+  - `frontend/src/app/practice/[slug]/page.tsx` — `getFreeProblem()` now does 3 sequential reads: problem row → top-level solutions → subproblems-with-solutions (parallelized via Promise.all). Page also computes `answerText` and `answerCount` (sum of top-level + subproblem solutions) and passes them to `qaPageSchema`.
+  - `frontend/src/components/public/PublicProblemView.tsx` — refactored to render two cases: top-level solution (24 problems, original UI) OR subproblem-structured (6 problems, each Part {key} with its own H3 + statement + collapsible hint + collapsible solution). Extracted shared `<CollapsibleBlock>` helper. Type signature now requires `topLevelSolutions[]` and `subproblems[]` from the page.
+  - `frontend/src/lib/schema.ts` — `qaPageSchema()` signature changed: now accepts `answerText` (canonical answer string for `acceptedAnswer.text`), `answerCount` (Google-required), and `created_at` (used for `mainEntity.datePublished`). The legacy `solution_text` parameter is removed.
+- **Files created:** none
+- **Schema output for `/practice/quant_interview_fundamental_qdsi_p40` after redeploy:**
+  - `mainEntity.answerCount: 1`
+  - `mainEntity.datePublished: "2026-02-15T08:52:27.579175+00:00"`
+  - `mainEntity.acceptedAnswer.text: "<full solution_text from solutions table>"`
+  - `mainEntity.acceptedAnswer.author.name: "Jeremy Wu"` (and url, jobTitle, description)
+  - All 3 GSC-flagged issues resolved.
+- **Key decisions:**
+  - **Sequential reads instead of nested Supabase joins** — `ChatSidebar` and `ProblemViewer` already use this pattern. Supabase's nested-relation syntax is finicky and the per-page latency is fine since `revalidate = 3600` ISR caches the rendered page.
+  - **Subproblem solutions concatenated for `acceptedAnswer.text`** — `(a) <sol_a>\n\n(b) <sol_b>\n\n(c) <sol_c>`. Google sees a single coherent answer with all parts, which is the right semantic for a multi-part interview question.
+  - **Visible solution rendering on the page** — solutions are now in collapsible `<details>` blocks, not just JSON-LD. This addresses the deeper "Crawled - currently not indexed" issue (Google indexes visible HTML more strongly than JSON-LD-only content). Each free problem page now has 1500+ chars of unique answer text on average.
+  - **Did NOT touch `/practice` index** — the listing only shows problem_id + difficulty + 180-char preview, no solution data needed.
+  - **Did NOT touch the authenticated `/problems/[slug]` route** — it has its own (more complex) ProblemViewer; out of scope.
+- **Issues / TODOs:**
+  - **USER ACTION:** redeploy to Vercel.
+  - **USER ACTION:** in Search Console URL Inspection, click "Page changed?" + "Request Indexing" for 5-10 of the 13 "Crawled - currently not indexed" practice URLs. Re-evaluation expected in 1-3 days.
+  - **USER ACTION:** verify with Google's Rich Results Test against `https://epi-gram.app/practice/quant_interview_fundamental_qdsi_p40` after deploy — expect zero critical issues.
+- **Verification performed:**
+  - `cd frontend && npm run build` — clean, no TypeScript errors.
+  - DB queries confirmed all 30 free problems have at least 1 solution row (24 top-level, 6 via subproblems).
+  - Type signatures aligned: `PublicProblem` (in PublicProblemView) and `FreeProblemFull` (in page.tsx) now share the same `topLevelSolutions[]` and `subproblems[]` shape.
