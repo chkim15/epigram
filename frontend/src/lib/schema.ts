@@ -115,6 +115,8 @@ export function qaPageSchema(problem: {
         text: problem.answerText,
         url,
         author,
+        upvoteCount: 1,
+        ...(problem.created_at ? { datePublished: problem.created_at } : {}),
       }
     : undefined;
 
