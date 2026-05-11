@@ -88,6 +88,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('[Webhook] Handler error:', error);
+    try {
+      getPostHogClient().captureException(error, undefined, {
+        route: '/api/webhooks/stripe',
+        event_type: event.type,
+        event_id: event.id,
+      });
+    } catch {}
     return NextResponse.json(
       { error: 'Webhook handler failed' },
       { status: 500 }
@@ -299,6 +306,15 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       .from('user_profiles')
       .update({ subscription_tier: 'free' })
       .eq('user_id', sub.user_id);
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: sub.user_id,
+      event: 'subscription_canceled',
+      properties: {
+        subscription_id: subscription.id,
+      },
+    });
 
     console.log(`Subscription deleted for user: ${sub.user_id}`);
   }

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import posthog from 'posthog-js';
 import { UserSubscription, SubscriptionPlan } from '@/types/database';
 import { supabase } from '@/lib/supabase/client';
 
@@ -98,6 +99,10 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   },
 
   startCheckout: async (planType: 'monthly' | 'six_month', promoCode?: string) => {
+    posthog.capture('subscribe_clicked', {
+      plan_type: planType,
+      has_promo_code: !!promoCode,
+    });
     set({ isLoading: true, error: null });
     try {
       const headers = await getAuthHeaders();

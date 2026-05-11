@@ -131,6 +131,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('Checkout session creation error:', error);
+    try {
+      getPostHogClient().captureException(error, undefined, {
+        route: '/api/checkout/create-session',
+      });
+    } catch {}
     return NextResponse.json(
       { error: 'Failed to create checkout session' },
       { status: 500 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, BookOpen, X, SquarePen, MessagesSquare, Sigma } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -655,10 +656,14 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
 
     try {
       // Call the real API
+      // Only send the distinct_id header if PostHog actually has one — sending an
+      // empty string causes the server to skip capture silently.
+      const phDistinctId = posthog.get_distinct_id?.();
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(phDistinctId ? { 'X-POSTHOG-DISTINCT-ID': phDistinctId } : {}),
         },
         body: JSON.stringify({
           message: userMessage.content,
@@ -1024,7 +1029,14 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
               backgroundColor: activeTab === tab.id ? 'var(--sidebar-accent)' : 'transparent',
               color: activeTab === tab.id ? 'var(--foreground)' : 'var(--muted-foreground)'
             }}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              setActiveTab(tab.id);
+              if (tab.id === 'solutions' && currentProblem?.id) {
+                posthog.capture('problem_solution_revealed', {
+                  problem_id: currentProblem.id,
+                });
+              }
+            }}
           >
             <tab.icon className="h-3 w-3 mr-1" />
             {tab.label}

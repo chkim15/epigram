@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import posthog from 'posthog-js';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +43,24 @@ interface PageWidthOption {
 }
 
 export default function PDFViewer({ pdfUrl, className = '' }: PDFViewerProps) {
+  // Fire pdf_opened once per distinct pathname. Strip query string so short-lived
+  // Supabase signed-URL tokens don't get persisted as event properties, and so
+  // refreshed signed URLs for the same file don't trigger duplicate captures.
+  const lastTrackedPathRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!pdfUrl) return;
+    let path = pdfUrl;
+    try {
+      path = new URL(pdfUrl, window.location.origin).pathname;
+    } catch {
+      // Leave path as the original string if URL parsing fails.
+    }
+    if (lastTrackedPathRef.current !== path) {
+      lastTrackedPathRef.current = path;
+      posthog.capture('pdf_opened', { pdf_path: path });
+    }
+  }, [pdfUrl]);
+
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);

@@ -1,0 +1,117 @@
+[
+  {
+    "event": "user_signed_up",
+    "description": "Fires after successful new account creation (email or Google OAuth). distinct_id = Supabase user UUID.",
+    "file": "src/stores/authStore.ts (email) and src/app/auth/callback/route.ts (Google)"
+  },
+  {
+    "event": "user_signed_in",
+    "description": "Fires after successful login of existing user (email or Google OAuth).",
+    "file": "src/stores/authStore.ts (email) and src/app/auth/callback/route.ts (Google)"
+  },
+  {
+    "event": "user_signed_out",
+    "description": "Fires immediately before posthog.reset() on logout.",
+    "file": "src/stores/authStore.ts"
+  },
+  {
+    "event": "onboarding_completed",
+    "description": "Fires when a new user completes the onboarding flow.",
+    "file": "src/app/auth/onboarding/page.tsx"
+  },
+  {
+    "event": "problem_viewed",
+    "description": "Fires when a problem is rendered to the user.",
+    "file": "src/components/problems/ProblemViewer.tsx"
+  },
+  {
+    "event": "problem_solution_revealed",
+    "description": "Fires when user clicks the Solutions tab to reveal a problem's solution.",
+    "file": "src/components/ai/ChatSidebar.tsx"
+  },
+  {
+    "event": "problem_answer_submitted",
+    "description": "Fires when user submits an answer to a problem; includes correctness.",
+    "file": "src/components/problems/ProblemViewer.tsx"
+  },
+  {
+    "event": "problem_bookmarked",
+    "description": "Fires when user bookmarks a problem from the problems list.",
+    "file": "src/app/problems/page.tsx"
+  },
+  {
+    "event": "problem_unbookmarked",
+    "description": "Fires when user removes a bookmark from the problems list.",
+    "file": "src/app/problems/page.tsx"
+  },
+  {
+    "event": "tutor_session_started",
+    "description": "Fires when an AI tutor session begins.",
+    "file": "src/components/ai/AITutorPage.tsx"
+  },
+  {
+    "event": "tutor_message_sent",
+    "description": "Fires when the user sends a message in a tutor session.",
+    "file": "src/components/ai/AITutorPage.tsx"
+  },
+  {
+    "event": "chat_message_sent",
+    "description": "Server-side. Fires when the chat API handles an AI chat message. distinct_id propagated via X-POSTHOG-DISTINCT-ID header.",
+    "file": "src/app/api/chat/route.ts"
+  },
+  {
+    "event": "mock_interview_started",
+    "description": "Fires when a mock interview session begins.",
+    "file": "src/components/interview/InterviewSession.tsx"
+  },
+  {
+    "event": "mock_interview_completed",
+    "description": "Fires when a mock interview session completes.",
+    "file": "src/components/interview/InterviewSession.tsx"
+  },
+  {
+    "event": "pdf_opened",
+    "description": "Fires when a PDF document is opened in the PDF viewer.",
+    "file": "src/components/pdf/PDFViewer.tsx"
+  },
+  {
+    "event": "newsletter_modal_opened",
+    "description": "Fires when the newsletter (Substack) modal is opened. Substack iframe handles the subscription itself, so this is the latest client-side signal we have.",
+    "file": "src/app/page.tsx"
+  },
+  {
+    "event": "upgrade_plan_selected",
+    "description": "Fires when user selects a plan on the upgrade page (pre-checkout).",
+    "file": "src/app/upgrade/page.tsx"
+  },
+  {
+    "event": "subscribe_clicked",
+    "description": "Fires when a user triggers checkout via startCheckout(). Captures plan_type and promo code presence.",
+    "file": "src/stores/subscriptionStore.ts"
+  },
+  {
+    "event": "checkout_session_created",
+    "description": "Server-side. Fires when the Stripe checkout session is created.",
+    "file": "src/app/api/checkout/create-session/route.ts"
+  },
+  {
+    "event": "subscription_created",
+    "description": "Server-side. Fires on Stripe webhook checkout.session.completed.",
+    "file": "src/app/api/webhooks/stripe/route.ts"
+  },
+  {
+    "event": "subscription_canceled",
+    "description": "Server-side. Fires from TWO sources: (1) user-initiated cancel via /api/subscription/cancel, and (2) Stripe webhook customer.subscription.deleted (final confirmation).",
+    "file": "src/app/api/subscription/cancel/route.ts and src/app/api/webhooks/stripe/route.ts"
+  },
+  {
+    "event": "payment_succeeded",
+    "description": "Server-side. Fires on Stripe webhook invoice.payment_succeeded.",
+    "file": "src/app/api/webhooks/stripe/route.ts"
+  },
+  {
+    "event": "payment_failed",
+    "description": "Server-side. Fires on Stripe webhook invoice.payment_failed.",
+    "file": "src/app/api/webhooks/stripe/route.ts"
+  }
+]

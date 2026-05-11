@@ -36,6 +36,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     const { data, error } = await auth.signInWithEmail(email, password);
     if (!error && data.user) {
+      // Note: posthog.identify + capture('user_signed_in') happens in auth/signin/page.tsx
+      // (single source of truth so the event isn't double-counted). Don't duplicate here.
       set({ user: data.user, isAuthenticated: true });
     }
     set({ isLoading: false });
@@ -53,6 +55,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     const { data, error } = await auth.signUpWithEmail(email, password, fullName);
     if (!error && data && data.user && data.session) {
+      // Note: posthog.capture('user_signed_up') happens in auth/signup/page.tsx
+      // (single source of truth so the event isn't double-counted). identify happens
+      // in useAuthGuard once the user lands on a guarded route.
       set({ user: data.user, isAuthenticated: true });
     }
     set({ isLoading: false });
@@ -61,6 +66,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signOut: async () => {
     set({ isLoading: true });
+    posthog.capture('user_signed_out');
     await auth.signOut();
     posthog.reset();
     set({ user: null, isAuthenticated: false, isLoading: false });
@@ -69,10 +75,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkAuth: async () => {
     set({ isLoading: true });
     const { user } = await auth.getUser();
-    set({ 
-      user, 
+    // Note: posthog.identify happens in useAuthGuard (single source of truth so
+    // we don't have multiple identify call sites scattered across the codebase).
+    set({
+      user,
       isAuthenticated: !!user,
-      isLoading: false 
+      isLoading: false
     });
   },
 

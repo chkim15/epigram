@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 // Initialize AI clients
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
@@ -141,6 +142,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Capture chat event server-side, correlating to client distinct_id when provided.
+    try {
+      const distinctId = req.headers.get('X-POSTHOG-DISTINCT-ID');
+      if (distinctId) {
+        const posthog = getPostHogClient();
+        posthog.capture({
+          distinctId,
+          event: 'chat_message_sent',
+          properties: {
+            model,
+            has_image: !!image,
+            has_problem_context: !!currentProblem,
+            problem_id: currentProblem?.id,
+            history_length: conversationHistory?.length ?? 0,
+          },
+        });
+      }
+    } catch (e) {
+      console.error('PostHog chat capture failed:', e);
+    }
+
 
     // Check if the message is asking for visual explanation
     const visualKeywords = /\b(plot|graph|visuali[sz]e|show\s+(me\s+)?visual|draw|chart|diagram|illustrate)\b/i;
@@ -205,6 +227,10 @@ CRITICAL RULES:
 
   } catch (error) {
     console.error('Chat API Error:', error);
+    try {
+      const distinctId = req.headers.get('X-POSTHOG-DISTINCT-ID') || undefined;
+      getPostHogClient().captureException(error, distinctId, { route: '/api/chat' });
+    } catch {}
     return NextResponse.json(
       { error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }

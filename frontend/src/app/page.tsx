@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import posthog from "posthog-js";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -245,7 +246,10 @@ export default function LandingPage() {
           {/* Right: fake input + button CTA */}
           <div style={{ flex: '1 1 320px', minWidth: 0, maxWidth: '420px' }}>
             <button
-              onClick={() => setNewsletterOpen(true)}
+              onClick={() => {
+                posthog.capture('newsletter_modal_opened', { source: 'landing_page' });
+                setNewsletterOpen(true);
+              }}
               style={{ width: '100%', padding: '6px 6px 6px 16px', borderRadius: '10px', background: '#ffffff', border: '1px solid rgb(220,218,210)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}
             >
               <span style={{ fontSize: '14px', color: '#9b9b93', fontWeight: 400 }}>Email address</span>

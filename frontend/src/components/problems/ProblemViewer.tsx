@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { supabase } from "@/lib/supabase/client";
 import { Problem, Subproblem, Document, UserAnswer } from "@/types/database";
 import { useProblemStore } from "@/stores/problemStore";
@@ -242,7 +243,12 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
 
   useEffect(() => {
     if (currentProblem) {
-      
+      posthog.capture('problem_viewed', {
+        problem_id: currentProblem.id,
+        difficulty: currentProblem.difficulty,
+        is_free: currentProblem.is_free,
+      });
+
       fetchSubproblems(currentProblem.id);
       fetchHints(currentProblem.id);
       checkBookmarkStatus(currentProblem.id);
@@ -578,12 +584,12 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
         .select('id')
         .eq('user_id', user.id)
         .eq('problem_id', problemId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error checking bookmark status:', error);
       }
-      
+
       setIsBookmarked(!!data);
     } catch (err) {
       console.error('Error checking bookmark status:', err);
@@ -637,12 +643,12 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
         .select('id')
         .eq('user_id', user.id)
         .eq('problem_id', problemId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error checking completed status:', error);
       }
-      
+
       setIsCompleted(!!data);
     } catch (err) {
       console.error('Error checking completed status:', err);
@@ -1120,6 +1126,14 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
         ...prev,
         [key]: [newAnswer, ...(prev[key] || [])]
       }));
+
+      posthog.capture('problem_answer_submitted', {
+        problem_id: currentProblem.id,
+        subproblem_id: subproblemId,
+        attempt_number: attemptNumber,
+        is_correct: isCorrect,
+        difficulty: currentProblem.difficulty,
+      });
 
       // Don't reset submitted state - keep it until user interacts with input
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, X, ImagePlus, Lightbulb, Sparkles, Sigma, MessageSquare } from "lucide-react";
 import Image from "next/image";
@@ -682,8 +683,18 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
       if (newSessionId) {
         currentSessionId = newSessionId;
         setSessionId(newSessionId);
+        posthog.capture('tutor_session_started', {
+          session_id: newSessionId,
+          has_image: !!imageUrl,
+        });
       }
     }
+
+    posthog.capture('tutor_message_sent', {
+      session_id: currentSessionId,
+      has_image: !!pastedImage,
+      message_length: messageContent.length,
+    });
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -710,10 +721,14 @@ const AITutorPage = forwardRef<AITutorPageRef, AITutorPageProps>(({ initialSessi
     }
 
     try {
+      // Only send the distinct_id header if PostHog actually has one — sending an
+      // empty string causes the server to skip capture silently.
+      const phDistinctId = posthog.get_distinct_id?.();
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(phDistinctId ? { 'X-POSTHOG-DISTINCT-ID': phDistinctId } : {}),
         },
         body: JSON.stringify({
           message: apiMessageContent,
