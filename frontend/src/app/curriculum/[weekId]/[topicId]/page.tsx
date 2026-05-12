@@ -9,7 +9,7 @@ import "katex/dist/katex.min.css";
 import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseContent from "@/components/course/CourseContent";
-import { getTopicBySlug } from "@/data/course/course-structure";
+import { COURSE_WEEKS, getTopicBySlug } from "@/data/course/course-structure";
 import { loadTopicData } from "@/data/course/load-topic";
 import { preprocessMdx } from "@/lib/mdx/preprocess";
 import {
@@ -44,6 +44,15 @@ const mdxComponents = {
   GoldBox,
   GrayBox,
 };
+
+export async function generateStaticParams() {
+  return COURSE_WEEKS.flatMap((week) =>
+    week.topics.map((topic) => ({
+      weekId: week.slug,
+      topicId: topic.slug,
+    }))
+  );
+}
 
 export default async function TopicPage({
   params,
