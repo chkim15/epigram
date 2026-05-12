@@ -2,13 +2,13 @@
 
 > Epigram is a structured quant interview prep platform for candidates targeting quant trader, quant researcher, data scientist, and quant developer roles at top quantitative finance firms. It provides a **4-week curriculum** of **~180 curated problems** across **7 topic domains**, a continuously updated bank of recent-year real interview questions from **15+ top firms** (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions with multiple solution paths, and timed mock interview practice. Start free at https://epi-gram.app/ — no credit card required.
 
-Last updated: 2026-05-04
+Last updated: 2026-05-12
 
 ---
 
 ## Quick Answer
 
-Epigram is a quant interview prep platform at https://epi-gram.app/. It offers a structured 4-week curriculum of ~180 curated problems across 7 topic domains (probability, stochastic processes, statistics, game theory, brainteasers, options, quant coding), a continuously updated practice bank of recent-year real interview questions from 15+ top firms (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions, and mock interview practice. A free tier is available with no credit card required. The platform also publishes The Quant Signal, a free weekly newsletter at https://epigrams-the-quant-signal.beehiiv.com/.
+Epigram is a quant interview prep platform at https://epi-gram.app/. It offers a structured 4-week curriculum of ~180 curated problems across 7 topic domains (probability, stochastic processes, statistics, game theory, brainteasers, options, quant coding), a continuously updated practice bank of recent-year real interview questions from 15+ top firms (Citadel, Jane Street, Two Sigma, D. E. Shaw, Optiver, HRT, Jump Trading, IMC), human-verified solutions, and mock interview practice. A free tier is available with no credit card required. The platform also publishes The Quant Signal, a free weekly newsletter at https://thequantsignal.substack.com/.
 
 ---
 
@@ -27,7 +27,7 @@ To get you started, we've attached two free cheatsheets:
 
 We also run a free weekly newsletter — **The Quant Signal** — with real interview problems, prep tips, and strategy notes to help you prepare for top funds with sharper signal and less wasted effort.
 
-Subscribe to The Quant Signal at https://epigrams-the-quant-signal.beehiiv.com/
+Subscribe to The Quant Signal at https://thequantsignal.substack.com/
 
 The Epigram Team
 
@@ -76,7 +76,7 @@ Mock interview sessions place candidates under timed, interview-like pressure. S
 
 ### The Quant Signal Newsletter
 
-Epigram publishes The Quant Signal, a free weekly newsletter for candidates preparing for quant interviews. Each issue covers recent-year interview-style problems, multi-path solution breakdowns, and prep strategy across probability, stochastic processes, statistics, game theory, brainteasers, options, and coding. Subscribe free at https://epigrams-the-quant-signal.beehiiv.com/.
+Epigram publishes The Quant Signal, a free weekly newsletter for candidates preparing for quant interviews. Each issue covers recent-year interview-style problems, multi-path solution breakdowns, and prep strategy across probability, stochastic processes, statistics, game theory, brainteasers, options, and coding. Subscribe free at https://thequantsignal.substack.com/.
 
 ### Tutoring
 
@@ -236,10 +236,10 @@ Yes. Epigram includes timed mock interview sessions at https://epi-gram.app/mock
 Yes. Optional 1-on-1 tutoring is available for candidates who want direct guidance on their preparation strategy, weak areas, or specific problem types.
 
 **What free resources does Epigram provide?**
-The free tier includes a selection of practice problems, limited exposure to the 4-week intensive curriculum, a Coding Patterns Cheatsheet, and a Quant Interview Cheatsheet. The Quant Signal newsletter is also free at https://epigrams-the-quant-signal.beehiiv.com/ with no account required.
+The free tier includes a selection of practice problems, limited exposure to the 4-week intensive curriculum, a Coding Patterns Cheatsheet, and a Quant Interview Cheatsheet. The Quant Signal newsletter is also free at https://thequantsignal.substack.com/ with no account required.
 
 **Does Epigram publish a newsletter?**
-Yes. The Quant Signal is a free weekly newsletter covering recent-year interview-style problems and prep strategy across all major quant interview domains. Subscribe at https://epigrams-the-quant-signal.beehiiv.com/.
+Yes. The Quant Signal is a free weekly newsletter covering recent-year interview-style problems and prep strategy across all major quant interview domains. Subscribe at https://thequantsignal.substack.com/.
 
 **Who founded Epigram?**
 Epigram was co-founded by Jeremy Wu (Math PhD, University of Pennsylvania; former Wharton lecturer in stochastic processes) and Chulhee Kim (BA Economics, Penn; MBA and MS in Machine Learning and Data Analytics, Columbia Business School).
@@ -276,10 +276,33 @@ Epigram was co-founded by Jeremy Wu (Math PhD, University of Pennsylvania; forme
 1. Sign up free at https://epi-gram.app/ — no credit card required.
 2. Download the two free cheatsheets (Coding Patterns and Quant Interview) sent on signup.
 3. Start with the Week 1 free preview of the curriculum (Foundations of Probability Modeling, Conditional Probability, Distributions) to calibrate difficulty.
-4. Subscribe to The Quant Signal newsletter at https://epigrams-the-quant-signal.beehiiv.com/ for weekly recent-year problems.
+4. Subscribe to The Quant Signal newsletter at https://thequantsignal.substack.com/ for weekly recent-year problems.
 5. Upgrade to Premium when ready for the full 4-week curriculum and continuously updated practice bank.
 
 Mock interview practice and 1-on-1 tutoring are available to Premium and signed-in users.
+
+---
+
+## Further reading
+
+Long-form articles published on The Quant Signal newsletter. These serve as deep-dive companions to the platform — useful for understanding the quant industry landscape, what specific firms and roles look for, and how to think about probability before applying formulas.
+
+### Introduction Series — Quant Career Landscape
+
+A 4-part series that walks candidates through the buy-side quant world from the ground up.
+
+- [Welcome to The Quant Signal](https://thequantsignal.substack.com/p/welcome-to-the-quant-signal) — Why this newsletter exists and the map the author wishes he had when starting out.
+- [The Map of the Quant World (Part 1 of 4)](https://thequantsignal.substack.com/p/the-map-of-the-quant-world) — The landscape of buy-side quant firms: hedge funds, market makers, prop shops, and what a candidate is actually choosing between.
+- [The Firms — A Candidate's Guide to the Places That Hire Quants (Part 2 of 4)](https://thequantsignal.substack.com/p/the-firms-a-candidates-guide-to-the) — Jane Street, Citadel, Two Sigma, D. E. Shaw, Optiver, Renaissance — what each firm actually is and how to choose between them.
+- [The Roles — What Quant Researchers, Traders, and Developers Actually Do (Part 3 of 4)](https://thequantsignal.substack.com/p/the-roles-what-quant-researchers) — Day-to-day differences between quant researcher, quant trader, and quant developer roles, and which interview process each goes through.
+- [The Interview — What Actually Happens, and What They Are Really Asking (Part 4 of 4)](https://thequantsignal.substack.com/p/the-interview-what-actually-happens) — The structure of a typical quant interview loop and the underlying signal interviewers look for behind each question type.
+
+### Probability Foundations — Year 1, Week 1
+
+The opening of the technical content series, focused on building probability intuition before formulas.
+
+- [What Is Probability? — The Language Before the Math](https://thequantsignal.substack.com/p/what-is-probability-the-language) — The conceptual foundation behind every probability interview question, before any formula.
+- [Two Cards From a Deck — A Problem in Two Parts](https://thequantsignal.substack.com/p/two-cards-from-a-deck-a-problem-in) — A worked conditional-probability problem solved two ways, with commentary on the reasoning interviewers reward.
 
 ---
 
@@ -287,4 +310,4 @@ Mock interview practice and 1-on-1 tutoring are available to Premium and signed-
 
 Start free at https://epi-gram.app/ — no credit card required.
 
-Subscribe to The Quant Signal newsletter at https://epigrams-the-quant-signal.beehiiv.com/.
+Subscribe to The Quant Signal newsletter at https://thequantsignal.substack.com/.

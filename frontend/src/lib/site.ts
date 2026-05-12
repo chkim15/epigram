@@ -31,6 +31,6 @@ export const SITE = {
   },
   newsletter: {
     name: "The Quant Signal",
-    url: "https://epigrams-the-quant-signal.beehiiv.com/",
+    url: "https://thequantsignal.substack.com/",
   },
 } as const;

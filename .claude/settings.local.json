@@ -26,7 +26,8 @@
       "Skill(update-config:*)",
       "Bash(kill -9 94763)",
       "Bash(/Users/chulhee/src/epigram/frontend/node_modules/.bin/next dev *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "WebFetch(domain:thequantsignal.substack.com)"
     ],
     "defaultMode": "acceptEdits"
   },
