@@ -9,7 +9,7 @@ A math learning platform: PDF-to-JSON conversion for extracting problems from ex
 ## Architecture
 
 1. **Backend** (`backend/`): Python PDF processing pipeline using Mathpix API
-2. **Frontend** (`frontend/`): Next.js 15 app with problem viewer, AI chat (Claude via AWS Bedrock), PDF viewer, subscriptions/payments
+2. **Frontend** (`frontend/`): Next.js 15 app with problem viewer, AI chat (GPT-5 via Azure OpenAI), PDF viewer, subscriptions/payments
 3. **Editor Tools** (`editor/`): Standalone HTML editors for problem curation
 
 ## Environment Variables
@@ -19,15 +19,23 @@ A math learning platform: PDF-to-JSON conversion for extracting problems from ex
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key    # Admin ops (account deletion)
-GOOGLE_API_KEY=your_google_ai_key                  # Server-side only
-OPENAI_API_KEY=your_openai_key                     # Server-side only
-AWS_ACCESS_KEY_ID=your_aws_key                     # Bedrock (Claude)
-AWS_SECRET_ACCESS_KEY=your_aws_secret              # Bedrock (Claude)
-AWS_REGION=us-east-1                               # Bedrock region
+AZURE_OPENAI_API_KEY=your_azure_key                # Primary chat/grading (GPT-5)
+AZURE_OPENAI_ENDPOINT=https://...openai.azure.com  # Azure resource endpoint
+AZURE_OPENAI_DEPLOYMENT_NAME_GPT5=gpt-5-chat       # Chat deployment
+AZURE_OPENAI_DEPLOYMENT_NAME_GPT5_NANO=gpt-5-nano  # Grading deployment
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-5-mini            # Fallback mini deployment
+OPENAI_API_KEY=your_openai_key                     # Fallback when Azure key absent
+GOOGLE_API_KEY=your_google_ai_key                  # Gemini (server-side)
 STRIPE_SECRET_KEY=your_stripe_secret               # Payments
 STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret   # Stripe webhooks
+STRIPE_PRICE_MONTHLY=price_xxx                     # Monthly plan price ID
+STRIPE_PRICE_SIX_MONTH=price_xxx                   # Six-month plan price ID
 RESEND_API_KEY=your_resend_key                     # Email
 NEXT_PUBLIC_APP_URL=https://your-domain.com        # App URL for redirects
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=phc_xxx          # PostHog analytics
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com  # PostHog host
+NEXT_PUBLIC_CAL_LINK=your_cal_link                 # Cal.com booking
+NEXT_PUBLIC_CAL_INTRO_CALL_LINK=your_cal_intro     # Cal.com intro call
 ```
 
 ### Backend (project root `.env`)
@@ -68,7 +76,7 @@ See `backend/DATABASE_SCHEMA.md` for detailed schema documentation.
 
 ### Migrations
 
-Apply all files in filename order from `supabase/migrations/` (currently 24 migrations).
+Apply all files in filename order from `supabase/migrations/`.
 
 ## JSON Data Structure
 

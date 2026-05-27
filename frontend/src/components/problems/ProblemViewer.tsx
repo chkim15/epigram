@@ -1314,7 +1314,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
               {/* Main Problem */}
               <Card className="w-full border-0 shadow-none" style={{ backgroundColor: 'transparent' }}>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-start gap-2">
+                  <CardTitle className="text-lg flex items-start gap-2" data-problem-id={currentProblem.problem_id}>
                     <div className="flex flex-col gap-1">
                       <span className="flex items-baseline gap-1">
                         <span>{currentProblemIndex + 1}.</span>
@@ -1338,7 +1338,6 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                         </span>
                       )}
                     </div>
-                    <span className="text-xs font-normal" style={{ color: 'var(--background)' }}>({currentProblem.problem_id})</span>
                     <div className="ml-auto flex items-center gap-2">
                       <div className="relative inline-block group">
                         <Button
