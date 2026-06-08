@@ -47,13 +47,13 @@ Since $\mathbb{P}(\text{output H}) = \mathbb{P}(\text{output T}) = p(1-p)$, each
 
 For $p=0.99$: $\mathbb{E}[\text{flips}]=1/(2\times0.99\times0.01)\approx\mathbf{50.5}$.
 
-The algorithm: given current parameter $p_0=1/2$:
+The algorithm maintains a running target $q$ (the remaining probability mass to assign to $A$), initialised at $q=1/2$. At each step, flip the coin (bias $b$):
 
-1.  Toss coin. If $p\geq b$ and $X=H$: output $A$. Else if $X=T$: update $p\to(p-b)/(1-b)$ and repeat.
+- If $q \geq b$: H (prob $b$) $\to$ output $A$; T (prob $1-b$) $\to$ set $q \gets (q-b)/(1-b)$ and continue.
 
-2.  If $p<b$ and $X=T$: output $B$. Else if $X=H$: update $p\to p/b$ and repeat.
+- If $q < b$: T (prob $1-b$) $\to$ output $B$; H (prob $b$) $\to$ set $q \gets q/b$ and continue.
 
-Correctness: $\mathbb{P}(\text{output }A)=p_0=1/2$ (by induction on the recursion).
+Correctness: $\mathbb{P}(\text{output }A)=q_0=1/2$ at every recursive level (by induction).
 
 **Comparison:**
 
@@ -103,7 +103,9 @@ At most one cycle can have length $>50$ (since $51+51=102>100$). So: $$\mathbb{P
   = \sum_{k=51}^{100}\frac{1}{k}$$ (A random permutation of $n$ elements has a cycle of length $k$ with probability $1/k$, for $k\leq n$.)
 
 $$\mathbb{P}(\text{success}) = 1 - \sum_{k=51}^{100}\frac{1}{k}
-  \approx 1 - \ln 2 \approx 1 - 0.6931 = 0.3069$$ (The exact value is $1 - \sum_{k=51}^{100}1/k \approx \boxed{0.3118}$; the approximation $1-\ln2$ uses $\sum_{k=51}^{100}1/k\approx\int_{50}^{100}dx/x=\ln2$.)
+  \approx \boxed{0.3118}$$
+
+**Approximation:** using the integral bound $\sum_{k=51}^{100}1/k \approx \int_{50}^{100}dx/x = \ln 2 \approx 0.693$ gives $\mathbb{P}(\text{success})\approx 1 - \ln 2 \approx 0.307$, close to the exact value.
 
 **Why the loop strategy is brilliant:** It correlates the prisoners' strategies. Instead of $P=1/2^{100}$ (random, independent), it achieves $P\approx31\%$ by ensuring all prisoners' fates are tied to the *same* permutation's cycle structure.
 

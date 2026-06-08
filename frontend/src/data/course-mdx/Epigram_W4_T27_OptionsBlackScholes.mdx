@@ -72,29 +72,27 @@ Risk-free profit today: $10 - 8 + 100 - 99.88 = \boxed{\$2.12}$, with zero payof
 :::
 
 ::: solutionbox
-**(a) Risk-neutral probability.**
+**(a) Risk-neutral probability.** $$p^* = \frac{S_0 e^{rT} - S_d}{S_u - S_d}
+  = \frac{50\,e^{0.05} - 40}{65 - 40}
+  = \frac{52.56 - 40}{25}
+  = \frac{12.56}{25} \approx \boxed{0.5025}$$
 
-With discrete discounting, $(1+r)=1.05$. Set $(1+r)S_0 = p^* S_u + (1-p^*)S_d$: $$1.05\times50 = 65p^* + 40(1-p^*)
-  \implies 52.5 = 40 + 25p^*
-  \implies p^* = \frac{12.5}{25} = \boxed{0.5}$$
+**(b) Call price.** Payoffs at expiry: $C_u = \max(65-55,0)=10$, $C_d = \max(40-55,0)=0$. $$C = e^{-0.05}\bigl[0.5025\times10 + 0.4975\times0\bigr]
+  = e^{-0.05}\times5.025
+  \approx \boxed{\$4.78}$$
 
-**(b) Call price.** Payoffs: $C_u = \max(65-55,0)=10$, $C_d = \max(40-55,0)=0$. $$C_0 = \frac{1}{1.05}\bigl[0.5\times10 + 0.5\times0\bigr]
-  = \frac{5}{1.05}
-  \approx \boxed{\$4.76}$$
+**(c) Replicating portfolio ($\Delta$ shares $+$ bond $B$).** $$\Delta = \frac{C_u - C_d}{S_u - S_d} = \frac{10-0}{65-40}
+  = \frac{10}{25} = 0.40 \text{ shares}$$ $$B = e^{-rT}\frac{C_d\,S_u - C_u\,S_d}{S_u - S_d}
+  = e^{-0.05}\frac{0\times65 - 10\times40}{25}
+  = e^{-0.05}\times(-16) \approx -\$15.22$$ (Borrow \$15.22 at the risk-free rate.)
 
-**(c) Replicating portfolio ($\Delta$ shares $+$ bond $B$).**
+Portfolio value: $0.40\times50 - 15.22 = 20.00 - 15.22 = \boxed{\$4.78}$
 
-Require $\Delta S_u + 1.05B = C_u$ and $\Delta S_d + 1.05B = C_d$: $$65\Delta + 1.05B = 10,\qquad 40\Delta + 1.05B = 0$$ Subtracting: $25\Delta = 10 \Rightarrow \Delta = \dfrac{10}{25} = 0.40$ shares.
+Verify at expiry:
 
-From the down equation: $1.05B = -16 \Rightarrow B = -\dfrac{16}{1.05} \approx -\$15.24$.
+- Up: $0.40\times65 - 15.22\times e^{0.05} = 26.00-16.00=\$10$
 
-Portfolio value today: $$V_0 = 0.4\times50 - \frac{16}{1.05} = 20 - 15.238 = \boxed{\$4.76}$$  matches part (b) by no-arbitrage.
-
-Verify payoffs:
-
-- Up: $0.4\times65 + 1.05\times(-16/1.05) = 26 - 16 = \$10$
-
-- Down: $0.4\times40 + 1.05\times(-16/1.05) = 16 - 16 = \$0$
+- Down: $0.40\times40 - 16.00 = 16.00-16.00=\$0$
 
 **Key takeaway:** Risk-neutral pricing and replicating portfolio always give the same answer by no-arbitrage. $\Delta=0.40$ means you hold 40% of a share to hedge 1 call.
 :::
@@ -116,39 +114,31 @@ Verify payoffs:
 
 $S_{uu}=50\times1.44=72.00$, $S_{ud}=50\times1.02=51.00$, $S_{dd}=50\times0.7225=36.12$.
 
-**(b) Risk-neutral probability.** $$p^* = \frac{(1+r) - d}{u - d}
-  = \frac{1.03 - 0.85}{1.2 - 0.85}
-  = \frac{0.18}{0.35}
-  = \boxed{\frac{18}{35}\approx0.5143}$$
+**(b) Risk-neutral probability.** $$p^* = \frac{e^{0.03} - 0.85}{1.2 - 0.85}
+  = \frac{1.0305 - 0.85}{0.35}
+  \approx \boxed{0.5157}$$
 
 **(c) European put ($K=\$52$).**
 
-Terminal payoffs: $P_{uu}=0$, $P_{ud}=1$, $P_{dd}=52-36.125=15.875$.
+Terminal payoffs: $P_{uu}=0$, $P_{ud}=\max(52-51,0)=1$, $P_{dd}=\max(52-36.12,0)=15.88$.
 
-Period-1 values (discount by $1/(1+r)=1/1.03$): $$P_u = \frac{1}{1.03}\!\left(\tfrac{18}{35}\times0
-        + \tfrac{17}{35}\times1\right)
-  = \frac{17}{35\times1.03} \approx \$0.4716$$ $$P_d = \frac{1}{1.03}\!\left(\tfrac{18}{35}\times1
-        + \tfrac{17}{35}\times15.875\right)
-  = \frac{8.225}{1.03} \approx \$7.985$$
+Period-1 values: $$P_u = e^{-0.03}(0.5157\times0 + 0.4843\times1) \approx \$0.470$$ $$P_d = e^{-0.03}(0.5157\times1 + 0.4843\times15.88) \approx \$7.963$$
 
-Period-0: $$P_0 = \frac{1}{1.03}\!\left(\tfrac{18}{35}\times0.4716
-        + \tfrac{17}{35}\times7.985\right)
-  \approx \frac{4.121}{1.03}
-  \approx \boxed{\$4.00}$$
+Period-0: $$P_0 = e^{-0.03}(0.5157\times0.470 + 0.4843\times7.963)
+  \approx \boxed{\$3.98}$$
 
 **(d) American put.**
 
-At each node, take $\max(\text{intrinsic value},\;\text{continuation value})$.
+At each node, compare the continuation value to the intrinsic value $\max(K-S,0)$.
 
-*Up node ($S_u=60$):* Intrinsic $=\max(52-60,0)=0$. Continuation $=0.4716 > 0$. Do not exercise: $P_u^{\text{Am}}=0.4716$.
+*Up node ($S_u=60$):* Intrinsic $=\max(52-60,0)=0$. Continuation $=0.470$. Keep: $P_u^{\text{Am}}=0.470$.
 
-*Down node ($S_d=42.50$):* Intrinsic $=52-42.5=9.50$. Continuation $=7.985 < 9.50$. **Early exercise is optimal**: $P_d^{\text{Am}}=9.50$.
+*Down node ($S_d=42.50$):* Intrinsic $=\max(52-42.50,0)=9.50$. Continuation $=7.963 < 9.50$. **Early exercise is optimal**: $P_d^{\text{Am}}=9.50$.
 
-*Time 0:* Intrinsic $=52-50=2$. Continuation value: $$P_0^{\text{cont}} = \frac{1}{1.03}\!\left(\tfrac{18}{35}\times0.4716
-  + \tfrac{17}{35}\times9.50\right)
-  \approx \frac{4.857}{1.03} \approx 4.715$$ Since $4.715 > 2$, do not exercise at time 0. $$\boxed{P_0^{\text{Am}} \approx \$4.72}$$
+Period-0: $$P_0^{\text{Am}} = e^{-0.03}(0.5157\times0.470 + 0.4843\times9.50)
+  \approx \boxed{\$4.70}$$
 
-The American put is worth more than the European put (\$4.72 vs \$4.00) because early exercise at the down node is optimal --- intrinsic value \$9.50 exceeds the continuation value \$7.99.
+The American put is worth more than the European put (\$4.70 vs \$3.98) because early exercise at the down node is optimal --- the put is deep in-the-money and the benefit of receiving $\$9.50$ immediately exceeds the continuation value of \$7.96.
 
 **Key takeaway:** American puts can be worth more than European puts due to early exercise. Early exercise is rational when the intrinsic value exceeds the continuation (time) value --- typically for deep in-the-money puts when interest rates are positive.
 :::
@@ -176,15 +166,12 @@ Portfolio Delta: $0.6\times1 - 0.6 = 0$. Delta-neutral.
 
 **(b) Portfolio change for $\Delta S = +\$1$.**
 
-Using the Delta approximation:
+Delta-neutral means the *first-order* sensitivity is zero. To first order: $\Delta V \approx 0$.
 
-- Short call changes by $\approx -\Delta\cdot\Delta S = -0.6\times1 = -\$0.60$.
+To second order (Gamma effect): $$\Delta V \approx \underbrace{0}_{\text{Delta}} + \frac{1}{2}\,\Gamma_{\text{portfolio}}
+  \,(\Delta S)^2$$ Since you are short the call, $\Gamma_{\text{portfolio}} = -0.05$. $\Delta V \approx \frac{1}{2}\times(-0.05)\times1^2 = -\$0.025$.
 
-- Long 0.6 shares change by $+0.6\times1 = +\$0.60$.
-
-Net change: $$\Delta V_{\text{portfolio}} \approx -0.60 + 0.60 = \boxed{\$0}$$ This is *exactly* what Delta-neutrality means: to first order, small stock price moves do not change the portfolio value.
-
-**Note on second-order effects:** For large moves, the Gamma of the short call ($-0.05$) causes a *second-order* loss of $\frac{1}{2}\times0.05\times(\Delta S)^2$. But for a \$1 move, this is only $\approx\$0.025$ --- small relative to the first-order effect that exactly cancels.
+The hedge is imperfect for large moves due to Gamma.
 
 **(c) Gamma $=0.05$.**
 

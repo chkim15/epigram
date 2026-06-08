@@ -63,13 +63,9 @@ $$\boxed{\mathbb{P}(\text{more than 220 heads}) \approx \mathbb{P}(Z>2) \approx 
 ::: solutionbox
 Let $H_8\sim\mathrm{Bin}(8,1/2)$ and $H_{10}\sim\mathrm{Bin}(10,1/2)$ independently. We want $\mathbb{P}(H_8 > H_{10})$.
 
-**Direct computation.** $\mathbb{P}(H_8 > H_{10}) = \sum_{j=1}^{8}\mathbb{P}(H_8=j)\mathbb{P}(H_{10}<j)
-= \sum_{j=1}^{8}\dfrac{\binom{8}{j}}{256}\sum_{k=0}^{j-1}
-\dfrac{\binom{10}{k}}{1024}$.
-
-The total sample space has $2^8\cdot2^{10}=2^{18}=262{,}144$ equally likely outcomes. Counting favorable outcomes gives:
-
-$$\boxed{\mathbb{P}(H_8>H_{10}) = \frac{15{,}751}{65{,}536} \approx 24.0\%}$$
+**Direct computation (numerical enumeration).** $$\mathbb{P}(H_8>H_{10})
+  = \sum_{j=1}^{8}\mathbb{P}(H_8=j)\mathbb{P}(H_{10}<j)
+  = \sum_{j=1}^{8}\frac{\binom{8}{j}}{256}\sum_{k=0}^{j-1}\frac{\binom{10}{k}}{1024}$$ The total sample space has $2^8\cdot2^{10}=2^{18}=262{,}144$ equally likely outcomes. Summing the 8 terms above (each a product of Binomial PMF values) gives: $$\boxed{\mathbb{P}(H_8>H_{10}) = \frac{15{,}751}{65{,}536} \approx 24.0\%}$$
 
 **Intuition / CLT check.** $D = H_8 - H_{10}$ has $\mathbb{E}[D]=4-5=-1 < 0$ and $\mathop{\mathrm{Var}}(D)=8\cdot\tfrac{1}{4}+10\cdot\tfrac{1}{4}
 = \tfrac{9}{2}$. So $D$ is centred below zero, making $\mathbb{P}(D>0)<1/2$ reasonable. (The CLT gives $\mathbb{P}(Z>1/\sqrt{4.5})\approx 31.8\%$, which is less accurate here because $n$ is small.)
@@ -182,28 +178,21 @@ Since $(n-1)S^2/\sigma^2\sim\chi^2(n-1)$: $$\mathop{\mathrm{Var}}(S^2)
 :::
 
 ::: solutionbox
-**The answer is *exactly* $\boldsymbol{1/2}$**, not just approximately. The proof is a coin-flip symmetry argument.
+**The answer is exactly $1/2$.**
 
-**Exact proof via symmetry.** Replace $H_A$ with $H_A' = 2021 - H_A$ (flip all of A's 2021 coins) and $H_B$ with $H_B' = 1010 - H_B$ (flip all of B's 1010 coins). Since the coins are fair, $(H_A', H_B')$ has the same joint distribution as $(H_A, H_B)$. Therefore: $$\mathbb{P}(H_A > 2H_B) = \mathbb{P}(H_A' > 2H_B')
-  = \mathbb{P}(2021-H_A > 2(1010-H_B))$$ $$= \mathbb{P}(2021 - H_A > 2020 - 2H_B)
-  = \mathbb{P}(1 > H_A - 2H_B)$$ Since $H_A - 2H_B$ is *integer-valued*: $$\mathbb{P}(1 > H_A - 2H_B) = \mathbb{P}(H_A - 2H_B \leq 0) = \mathbb{P}(H_A \leq 2H_B)$$ So we have established: $$\mathbb{P}(H_A > 2H_B) = \mathbb{P}(H_A \leq 2H_B)$$ Since $\{H_A > 2H_B\}$ and $\{H_A \leq 2H_B\}$ are complementary (they partition the sample space and have zero overlap): $$\mathbb{P}(H_A > 2H_B) + \mathbb{P}(H_A \leq 2H_B) = 1
-  \implies \mathbb{P}(H_A > 2H_B) = \mathbb{P}(H_A \leq 2H_B) = \boxed{\frac{1}{2}}$$ **This is exact, not an approximation.**
+**Symmetry argument.** Replace $H_A$ with $H_A' = 2021 - H_A$ (flip all of A's coins) and $H_B$ with $H_B' = 1010 - H_B$ (flip all of B's coins). Since the coins are fair: $$H_A'\sim\mathrm{Bin}(2021,1/2), \qquad
+  H_B'\sim\mathrm{Bin}(1010,1/2)$$ with the same joint distribution as $(H_A, H_B)$. Now: $$\mathbb{P}(H_A > 2H_B)
+  = \mathbb{P}(H_A' > 2H_B')
+  = \mathbb{P}(2021-H_A > 2(1010-H_B))$$ $$= \mathbb{P}(2021-H_A > 2020-2H_B)
+  = \mathbb{P}(1 > H_A - 2H_B)
+  = \mathbb{P}(H_A - 2H_B < 1)$$ Since $H_A$ and $H_B$ are integer-valued: $$\mathbb{P}(H_A - 2H_B < 1) = \mathbb{P}(H_A - 2H_B \leq 0)
+  = \mathbb{P}(H_A \leq 2H_B)$$ So we have shown: $$\mathbb{P}(H_A > 2H_B) = \mathbb{P}(H_A \leq 2H_B)$$ Since these two events are complementary (they partition the sample space), each has probability $1/2$: $$\boxed{\mathbb{P}(H_A > 2H_B) = \frac{1}{2}}$$
 
-**Why the "$1$" in $2021 = 2\times1010+1$ is essential.** The symmetry works because flipping all coins transforms $H_A > 2H_B$ into $H_A - 2H_B < 1$, which for integer-valued $H_A - 2H_B$ is exactly $H_A \leq 2H_B$. If $2021$ were replaced by any even number $2m$ (so $n_A=2n_B$), the transformation would give $H_A < 2H_B$, and $\{H_A > 2H_B\}$, $\{H_A = 2H_B\}$, $\{H_A < 2H_B\}$ would be three non-empty events, spoiling the exact $1/2$.
+**Why does the "1" matter?** The symmetry works because $2021 = 2\times1010 + 1$, giving the crucial "$1>$" which translates to "$\leq0$" for integers. If the relationship were $H_A > 2H_B + c$ for $c\neq1$, or if $H_A > 2H_B$ with $2021=2\times1010$ (even), the events would not perfectly swap under coin-flipping and the probability would not be exactly $1/2$.
 
-**CLT as a consistency check (not a proof of exactness).** Let $D = H_A - 2H_B$. Then $\mathbb{E}[D] = \frac{2021}{2} - 2\cdot\frac{1010}{2}
-= \frac{1}{2}$ and $\mathop{\mathrm{Var}}(D) = \frac{2021}{4} + 4\cdot\frac{1010}{4}
-= \frac{6061}{4}$.
+**Numerical verification (small cases):**
 
-By CLT, $D \approx N\!\left(\tfrac{1}{2}, \tfrac{6061}{4}\right)$. We want $\mathbb{P}(D \geq 1)$. With continuity correction: $$\mathbb{P}(D\geq1) \approx \mathbb{P}\!\left(N\geq 0.5\right)
-  = \mathbb{P}\!\left(Z \geq \frac{0.5-0.5}{\sqrt{6061}/2}\right)
-  = \mathbb{P}(Z\geq0) = \frac{1}{2}$$
-
-Interestingly, the CLT with continuity correction gives exactly $1/2$ here as well --- but this is a coincidence of the normal approximation, not a proof. The symmetry argument above is the only rigorous justification for the *exact* answer.
-
-**Numerical verification (all exact):**
-
-**Key takeaway:** The answer is exactly $1/2$. The proof requires recognising the coin-flip symmetry and using the integer-valued structure to convert a strict inequality to a non-strict one. The CLT with continuity correction also gives $1/2$ here, but only the symmetry argument is an exact proof. This problem tests whether you can identify the elegant exact argument over a brute-force CLT calculation.
+**Key takeaway:** The exact relationship $n_A = 2n_B + 1$ is the key structural feature. The coin-flip symmetry swaps $H_A > 2H_B$ with $H_A \leq 2H_B$, giving exactly $1/2$. This problem tests whether you can identify the right symmetry --- the CLT only gives $\approx 1/2$ (since $\mathbb{E}[H_A-2H_B]=1/2>0$), but the exact answer requires the integer-valued symmetry argument.
 :::
 
 # Technique Summary

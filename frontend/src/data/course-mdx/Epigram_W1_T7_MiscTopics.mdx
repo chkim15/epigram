@@ -202,29 +202,13 @@ Note $\mathbb{E}[D_1 D_2] < \mathbb{E}[D^2]$ since $\mathop{\mathrm{Var}}(D)=\ma
 
 **$\mathbb{E}[M^2]$ where $M$ is the median of 5 dice.**
 
-The median of 5 i.i.d. dice is the 3rd order statistic $D_{(3)}$. Its PMF: $\mathbb{P}(D_{(3)}=k)$ = probability exactly 3 or more of 5 dice show $\leq k$ AND exactly 3 or more show $\geq k$.
-
-More carefully: $\mathbb{P}(D_{(3)}=k) = \mathbb{P}(D_{(3)}\leq k)
-- \mathbb{P}(D_{(3)}\leq k-1)$.
-
-$\mathbb{P}(D_{(3)}\leq k) = \mathbb{P}(\text{at least 3 of 5 dice}
-\leq k) = \sum_{j=3}^{5}\binom{5}{j}(k/6)^j(1-k/6)^{5-j}$.
-
-Rather than expanding the full table, use the general formula for $\mathbb{E}[D_{(k)}^2]$ via the Beta-Binomial: $$\mathbb{E}[D_{(3)}] = \sum_{k=1}^6 k\cdot\mathbb{P}(D_{(3)}=k)$$
-
-Computing $\mathbb{P}(D_{(3)}=k)$ for $k=1,\ldots,6$:
-
-Let $p_k=k/6$. $\mathbb{P}(D_{(3)}\leq k)=\sum_{j=3}^5\binom{5}{j}p_k^j
-(1-p_k)^{5-j}$.
+The median of 5 i.i.d. dice is the 3rd order statistic $D_{(3)}$. Using $\mathbb{P}(D_{(3)}=k) = \mathbb{P}(D_{(3)}\leq k) - \mathbb{P}(D_{(3)}\leq k-1)$ where $\mathbb{P}(D_{(3)}\leq k) = \sum_{j=3}^5\binom{5}{j}(k/6)^j(1-k/6)^{5-j}$, let $p_k=k/6$:
 
 Note: $\mathbb{P}(D_{(3)}=k)$ is symmetric around $k=3.5$ since the die is symmetric around $3.5$.
 
 $$\mathbb{E}[M^2] \approx 13.62$$
 
-**Comparison:** $$\mathbb{E}[M^2] \approx 13.62
-  < \mathbb{E}[D_1 D_2] = 12.25? \quad\text{No:}\quad
-  12.25 < 13.62 < 15.17$$ $$\boxed{\mathbb{E}[D_1 D_2] = 12.25 < \mathbb{E}[M^2] \approx 13.62 < \mathbb{E}[D^2]
-  \approx 15.17}$$
+**Comparison:** $$\boxed{\mathbb{E}[D_1 D_2] = 12.25 \ <\ \mathbb{E}[M^2] \approx 13.62 \ <\ \mathbb{E}[D^2] \approx 15.17}$$
 
 **Intuition:**
 

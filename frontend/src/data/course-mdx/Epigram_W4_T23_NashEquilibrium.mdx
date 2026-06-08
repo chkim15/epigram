@@ -92,7 +92,7 @@ Check each cell for mutual best responses:
 
 Let $p$ = Prob(Alice plays Opera) and $q$ = Prob(Bob plays Opera).
 
-**Bob's mixing condition** (Alice must be indifferent): $$\mathbb{E}[\text{Alice}|\text{Opera}] = \mathbb{E}[\text{Alice}|\text{Football}]$$ $$2q + 0(1-q) = 0\cdot q + 1\cdot(1-q)
+**Bob's mixing condition** (Alice must be indifferent): $$\mathop{\mathrm{\mathbb{E}}}[\text{Alice}|\text{Opera}] = \mathop{\mathrm{\mathbb{E}}}[\text{Alice}|\text{Football}]$$ $$2q + 0(1-q) = 0\cdot q + 1\cdot(1-q)
   \implies 2q = 1-q
   \implies q = \frac{1}{3}$$
 
@@ -102,9 +102,9 @@ Let $p$ = Prob(Alice plays Opera) and $q$ = Prob(Bob plays Opera).
 
 **Mixed NE:** Alice plays Opera with probability $2/3$; Bob plays Opera with probability $1/3$.
 
-**(c) Expected payoffs at mixed NE.** $$\mathbb{E}[\text{Alice}] = 2\cdot\tfrac{2}{3}\cdot\tfrac{1}{3}
+**(c) Expected payoffs at mixed NE.** $$\mathop{\mathrm{\mathbb{E}}}[\text{Alice}] = 2\cdot\tfrac{2}{3}\cdot\tfrac{1}{3}
   + 0 + 0 + 1\cdot\tfrac{1}{3}\cdot\tfrac{2}{3}
-  = \tfrac{4}{9}+\tfrac{2}{9} = \frac{2}{3}$$ $$\mathbb{E}[\text{Bob}] = 1\cdot\tfrac{2}{3}\cdot\tfrac{1}{3}
+  = \tfrac{4}{9}+\tfrac{2}{9} = \frac{2}{3}$$ $$\mathop{\mathrm{\mathbb{E}}}[\text{Bob}] = 1\cdot\tfrac{2}{3}\cdot\tfrac{1}{3}
   + 0 + 0 + 2\cdot\tfrac{1}{3}\cdot\tfrac{2}{3}
   = \tfrac{2}{9}+\tfrac{4}{9} = \frac{2}{3}$$ Both players get expected payoff $2/3$ at the mixed NE --- *worse* than either pure NE payoff.
 
@@ -142,7 +142,7 @@ Solving $q_1=q_2=q$ by symmetry: $q = (100-q)/2 \Rightarrow 2q=100-q \Rightarrow
 
 Cournot lies between monopoly (high price, low output) and perfect competition (zero price). Each firm would prefer to produce the monopoly share ($q=25$), but deviating to $q=100/3$ is rational since the best response to $q_j=25$ is $q_i=(100-25)/2=37.5>25$.
 
-**Key takeaway:** Cournot NE: $q_i=a/(n+1)$, $P=a/(n+1)$ for $n$ symmetric firms with demand $P=a-Q$ and zero costs. As $n\to\infty$, the outcome approaches perfect competition.
+**Key takeaway:** Cournot NE (zero cost): $q_i^*=a/(n+1)$, $P^*=a/(n+1)$. General form (cost $c$): $q_i^*=(a-c)/(n+1)$. As $n\to\infty$, the outcome approaches perfect competition ($P\to c$).
 :::
 
 # Zero-Sum and Multi-Player Games
@@ -181,7 +181,7 @@ No pure NE exists.
 
 **(b) Mixed strategy NE.**
 
-Let Player 1 play H with prob $p$. Player 2 is indifferent between H and T: $$\mathbb{E}_2[\text{H}] = \mathbb{E}_2[\text{T}]
+Let Player 1 play H with prob $p$. Player 2 is indifferent between H and T: $$\mathop{\mathrm{\mathbb{E}}}_2[\text{H}] = \mathop{\mathrm{\mathbb{E}}}_2[\text{T}]
   \implies -p + (1-p) = p - (1-p)
   \implies 1-2p = 2p-1 \implies p=\tfrac{1}{2}$$ By symmetry, Player 2 also plays H with $q=1/2$.
 
@@ -199,33 +199,41 @@ Let Player 1 play H with prob $p$. Player 2 is indifferent between H and T: $$\m
 :::
 
 ::: solutionbox
-**Payoff matrix** (row player's score when winning; losses and ties $=0$):
+**Payoff matrix** (row player's score; $-$ of this for column):
 
-|  | **R** | **P** | **S** |
+|  | **Rock** | **Paper** | **Scissors** |
 |---|---|---|---|
-| **R** | $0$ | $0$ | $2$ |
-| **P** | $1$ | $0$ | $0$ |
-| **S** | $0$ | $1$ | $0$ |
+| **Rock** | $0$ | $-1$ | $+2$ |
+| **Paper** | $+1$ | $0$ | $-1$ |
+| **Scissors** | $-2$ | $+1$ | $0$ |
 
-**Key:** winning with Rock $=2$; winning with Paper or Scissors $=1$; losing or tying $=0$.
+**Finding the minimax strategy.**
 
-**Expected payoff against each opponent pure action.** Let your mixed strategy be $(x,y,z)$ for (R, P, S): $$u(\text{vs R}) = y, \qquad u(\text{vs P}) = z, \qquad u(\text{vs S}) = 2x$$
+Let the row player use $(p_R, p_P, p_S)$. The *opponent* (column player) must be indifferent among their three choices at the row player's optimal strategy:
 
-**Minimax optimisation.** You want to maximise your guaranteed payoff: $$\max_{x+y+z=1,\;x,y,z\geq0}\;\min\{y,\;z,\;2x\}$$ At the optimum, all three quantities must be equal (otherwise shift weight to increase the minimum): $$y = z = 2x$$ With $x+y+z=1$: $x + 2x + 2x = 5x = 1 \Rightarrow x = 1/5$.
+Expected opponent payoff against each column: $$\begin{align*}
+  \text{vs Rock}: & \quad 0\cdot p_R - 1\cdot p_P + 2\cdot p_S = 0 \\
+  \text{vs Paper}: & \quad 1\cdot p_R + 0\cdot p_P - 1\cdot p_S = 0 \\
+  \text{vs Scissors}: & \quad -2\cdot p_R + 1\cdot p_P + 0\cdot p_S = 0
+\end{align*}$$
 
-$$\boxed{x = \Pr(R) = \frac{1}{5},\quad
-         y = \Pr(P) = \frac{2}{5},\quad
-         z = \Pr(S) = \frac{2}{5}}$$
+From equation 2: $p_R = p_S$. Substitute into equation 1: $-p_P + 2p_S = 0 \Rightarrow p_P = 2p_S$. Also: $p_R+p_P+p_S=1 \Rightarrow p_S + 2p_S + p_S = 1 \Rightarrow 4p_S=1$.
 
-**Verify guaranteed payoff:** $u(\text{vs R}) = 2/5$,$u(\text{vs P}) = 2/5$,$u(\text{vs S}) = 2(1/5) = 2/5$.
+$$\boxed{p_R = \frac{1}{4},\quad p_P = \frac{1}{2},\quad p_S = \frac{1}{4}}$$
 
-Against any opponent mixed strategy, by linearity, your expected payoff is still $\geq 2/5$.
+**Verify:** Row player's expected score against any pure column:
 
-**Why does Rock get the lowest probability?** Rock has the highest reward ($+2$), which makes it attractive for the opponent to counter with Paper. To prevent the opponent from profitably playing Paper, Rock must be played *less* often. Counterintuitively, the strongest individual move gets the lowest weight.
+- vs Rock: $0(1/4)+1(1/2)+(-2)(1/4) = 1/2-1/2 = 0$
 
-$$\boxed{\text{Guaranteed expected score per round} = \frac{2}{5}}$$
+- vs Paper: $(-1)(1/4)+0(1/2)+1(1/4) = -1/4+1/4 = 0$
 
-**Key takeaway:** In an asymmetric zero-sum game, make the opponent indifferent by setting $u(\text{vs each pure}) = v$ (the game value). The minimax strategy here is $(1/5, 2/5, 2/5)$, not the naive $(1/3, 1/3, 1/3)$. Rock's higher reward means it must be played less frequently.
+- vs Scissors: $2(1/4)+(-1)(1/2)+0(1/4) = 1/2-1/2 = 0$
+
+Against any mixed strategy the opponent uses, the row player's expected score $= 0$ (since it is 0 against every pure strategy).
+
+**Interpretation.** Rock wins double points, so it is "dangerous" --- playing Rock too often invites Paper. The optimal strategy downweights Scissors (which loses to Rock for $-2$ points) and upweights Paper. The asymmetric payoffs require playing Paper twice as often as Rock or Scissors.
+
+**Key takeaway:** In an asymmetric zero-sum game, the optimal mixed strategy is found by making the *opponent* indifferent --- not yourself. The strategy $(1/4, 1/2, 1/4)$ guarantees 0 expected payoff regardless of the opponent's strategy.
 :::
 
 ::: {.premiumproblem number="6" difficulty="veryhard" problemId="game_theory_qdsi_p4"}
@@ -233,38 +241,36 @@ $$\boxed{\text{Guaranteed expected score per round} = \frac{2}{5}}$$
 :::
 
 ::: solutionbox
-**Win condition.** You win iff you chose the *smallest* integer held by *exactly one* player. If you choose $k$, you win in exactly two mutually exclusive cases:
+**Win condition.** A player choosing $k$ wins iff: (i) neither other player chose $k$, and (ii) for every $j<k$, at least one other player chose $j$ (so $j$ is not uniquely held by a third player).
 
-- **Case A:** Both other players chose $j>k$ --- then $k$ is unique and is the smallest.
+**Win probability function.** For a symmetric strategy where all players use distribution $(p_1, p_2,
+\ldots)$ on positive integers: $$W(k) = \underbrace{(1-p_k)^2}_{\text{neither other chose }k}
+  \times \prod_{j=1}^{k-1}\underbrace{\bigl[1-(1-p_j)^2\bigr]}_{\text{at least one other chose }j}$$
 
-- **Case B:** Both other players chose the *same* $j<k$ --- then $j$ is not unique (two players hold it), $k$ is unique, and no smaller unique exists.
+**NE condition.** In a symmetric NE, all strategies $k$ in the support must give equal win probability: $W(k) = W(k')$ for all $k, k'$ with $p_k, p_{k'} > 0$.
 
-**Win probability formula.** Let $F(k)=\sum_{j=1}^k q_j$ and $S(k-1)=\sum_{j=1}^{k-1}q_j^2$. Then: $$u(k) = \underbrace{(1-F(k))^2}_{\text{Case A}}
-        + \underbrace{S(k-1)}_{\text{Case B}}$$
+**Structure of the NE.**
 
-**Equilibrium condition.** In a symmetric NE, all $k$ in the support give equal win probability $v$: $u(k) = v$ for all $k$ with $q_k>0$.
+The NE has support on all positive integers with *decreasing* probabilities. To see why: $W(1) = (1-p_1)^2$ decreases in $p_1$. $W(2) = (1-p_2)^2[1-(1-p_1)^2]$ gains from larger $p_1$ (the product term) but loses from larger $p_2$. For indifference, choosing higher $k$ must be compensated by lower $p_k$.
 
-The support must be infinite: if the support ended at $K$, choosing $K+1$ would win whenever the other two tie on any $j\leq K$ (Case B), giving $u(K+1)>u(K)$ --- profitable deviation. So every positive integer is played.
+**Approximate geometric NE.** For a geometric distribution $p_k = p(1-p)^{k-1}$, the indifference condition $W(1)=W(2)$ gives: $$(1-p)^2 = \bigl(1-p(1-p)\bigr)^2\bigl[1-(1-p)^2\bigr]$$ Solving numerically: $p^*\approx0.394$.
 
-**Characterisation via tail sums.** Let $T_k = \sum_{j\geq k}q_j$ (tail probability, $T_1=1$). Note $1-F(k)=T_{k+1}$ and $S(k-1)=U_1-U_k$ where $U_k=\sum_{j\geq k}q_j^2$.
+However, verifying $W(3) = W(1)$ at this $p$ shows $W(3) < W(1)$, meaning 3 is not in the support of the NE at this parameter. A true NE requires simultaneously solving indifference for all $k$ in the support, which involves an infinite system of equations with no clean closed form.
 
-Taking $k\to\infty$ in $u(k)=v$ gives $v=U_1$. Substituting back: $$\boxed{U_k = T_{k+1}^2 \quad\text{for all }k\geq1}$$ This single identity fully characterises the NE distribution.
+**Key properties of the symmetric NE:**
 
-**Recursion for probabilities.** Since $q_k^2 = U_k - U_{k+1} = T_{k+1}^2 - T_{k+2}^2$ and $q_k = T_k - T_{k+1}$: $$T_{k+2} = \sqrt{T_{k+1}^2 - (T_k-T_{k+1})^2}, \qquad T_1=1$$ with $T_2$ determined by requiring $\sum q_k=1$, giving $T_2\approx0.5437$.
+- Probabilities are *decreasing* in $k$: always choose smaller numbers with higher probability.
 
-**First few equilibrium probabilities:**
+- The support is infinite (all positive integers have positive probability).
 
-| $k$ | $q_k$ | $k$ | $q_k$ |
-|---|---|---|---|
-| 1 | $\approx 0.4563$ | 6 | $\approx 0.0217$ |
-| 2 | $\approx 0.2481$ | 7 | $\approx 0.0118$ |
-| 3 | $\approx 0.1349$ | 8 | $\approx 0.0064$ |
-| 4 | $\approx 0.0733$ | 9 | $\approx 0.0035$ |
-| 5 | $\approx 0.0399$ | 10 | $\approx 0.0019$ |
+- The NE is approximately geometric with decay factor $\approx
+          0.6$ per step: $p_k\approx0.4\times0.6^{k-1}$.
 
-**Equilibrium value.** Each player wins with probability $v = T_2^2 \approx (0.5437)^2 \approx 0.296$ at the NE. (Slightly less than $1/3$, since ties --- nobody wins --- occur with positive probability.)
+- Each player's expected win probability at the NE $=1/3$ (since the game is symmetric: either 0, 1, or all 3 players win, so expected winners per round $\leq 1$; in the symmetric NE, each has equal claim to the win).
 
-**Key takeaway:** The symmetric NE is the unique distribution satisfying $U_k = T_{k+1}^2$. Play smaller numbers more often. The exact probabilities decrease faster than geometric (approximately $q_{k+1}/q_k \approx 0.54$ for small $k$, then faster). Do not play any fixed pure strategy --- any predictable choice is exploitable.
+**Intuition.** Choosing 1 is attractive (no smaller number to beat it) but risky (if two choose 1, neither wins). Choosing large $k$ is safe (unlikely others chose it) but useless (someone likely chose a smaller unique number). The NE balances these forces by randomising with a probability that decreases geometrically with $k$.
+
+**Key takeaway:** This game has no pure NE (any pure strategy can be beaten by the opponents coordinating). The symmetric mixed NE assigns decreasing probability to higher numbers, approximately geometric. The exact NE requires solving an infinite system of indifference conditions numerically.
 :::
 
 # Technique Summary
@@ -277,8 +283,8 @@ Taking $k\to\infty$ in $u(k)=v$ gives $v=U_1$. Substituting back: $$\boxed{U_k =
 | **Dominant strategy** | If one strategy always dominates, it is played in every NE. Iterate elimination: IESDS. |
 | **Zero-sum mixed NE** | Make the opponent indifferent. Minimax theorem guarantees existence. Game value $= 0$ if symmetric. |
 | **Asymmetric payoffs** | Higher-reward actions get *lower* mixed probability (to discourage opponents from countering them). |
-| **Cournot NE** | $q_i^* = a/((n+1)c)$ for linear demand $P=a-Q$, marginal cost $c$, $n$ symmetric firms. |
+| **Cournot NE** | $q_i^* = (a-c)/(n+1)$ for linear demand $P=a-Q$, marginal cost $c\geq0$, $n$ symmetric firms ($c=0$ gives $q_i^*=a/(n+1)$). |
 | **Battle of the Sexes** | 3 NE: 2 pure (coordinate), 1 mixed (payoff $=2/3$ each). Mixed NE payoff $<$ pure NE payoffs. |
-| **Smallest unique number** | NE characterised by $U_k=T_{k+1}^2$. Probabilities decrease: $q_1\approx0.456$, $q_2\approx0.248$, ...; value $v\approx0.296$. |
+| **Smallest unique number** | Symmetric NE: geometric-like, $p_k\approx0.4\times0.6^{k-1}$. Support is all positive integers. |
 
 :::

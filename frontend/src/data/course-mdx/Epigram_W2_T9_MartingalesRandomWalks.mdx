@@ -105,8 +105,6 @@ The total number of orderings is $\dbinom{2n}{n}$. Therefore: $$\mathbb{P}(\text
   = \frac{\dfrac{1}{n+1}\dbinom{2n}{n}}{\dbinom{2n}{n}}
   = \boxed{\frac{1}{n+1}}$$
 
-**Proof via the Cycle Lemma.** Consider the $2n$ people arranged in a circle (equivalently, the $2n$ cyclic rotations of any linear ordering). Exactly $n$ of the $2n$ rotations are valid (start at a \$5-person and never go negative). Wait --- the Cycle Lemma says exactly $n$ out of $2n+1$\... let us use the Reflection Principle.
-
 **Reflection Principle proof.** Let $p_k$ = position after $k$ people (running count of surplus \$5 bills). A bad path is one that first hits $-1$ at some step $k$. By the reflection principle, the number of bad paths from $(0,0)$ to $(2n,0)$ equals the number of all paths from $(0,-2)$ to $(2n,0)$, which is $\dbinom{2n}{n-1}$.
 
 $$\mathbb{P}(\text{valid}) = 1 - \frac{\dbinom{2n}{n-1}}{\dbinom{2n}{n}}

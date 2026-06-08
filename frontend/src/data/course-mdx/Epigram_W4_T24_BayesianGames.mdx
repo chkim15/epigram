@@ -99,26 +99,12 @@ Since the payoff is $+1$ for exact correctness and $-1$ otherwise, any guess oth
 ::: solutionbox
 **(a) Deriving $b^*(v) = v/2$.**
 
-**Method: symmetric equilibrium guess-and-verify.** Suppose all bidders use a strictly increasing strategy $b(\cdot)$. Bidder 1 with value $v$ chooses bid $b$ to maximise: $$\Pi(b,v) = (v-b)\cdot\mathbb{P}(\text{win})
-  = (v-b)\cdot\mathbb{P}(b^*(V_2)<b)
-  = (v-b)\cdot b^{-1}(b)$$ (since $V_2 = b^{-1}(\text{opponent's bid})$ and $V_2\sim U[0,1]$, $\mathbb{P}(V_2 < b^{-1}(b)) = b^{-1}(b)$).
+Guess that all bidders use a linear strategy $b^*(v) = \alpha v$ for some $\alpha \in (0,1)$. Bidder 1 with value $v$ chooses actual bid $b$ to maximise: $$\Pi(b,v) = (v-b)\cdot\mathbb{P}(\alpha V_2 < b)
+  = (v-b)\cdot\frac{b}{\alpha}$$ since $V_2\sim U[0,1]$ implies $\mathbb{P}(V_2 < b/\alpha) = b/\alpha$ (for $b\leq\alpha$).
 
-In equilibrium, bidder 1 optimally chooses $b=b^*(v)$, so $b^{-1}(b)=v$.
-
-Taking first-order condition: $\frac{d}{db}[(v-b)\cdot b^{-1}(b)]=0$ and using the inverse function, we instead set up the differential equation.
-
-**Method: differential equation.** Let $\phi = (b^*)^{-1}$, so $\phi(b)$ = type who bids $b$. FOC at equilibrium: $$\frac{d}{db}[(v-b)\phi(b)] = 0
-  \implies -(b)\phi(b) + (v-b)\phi'(b) = 0
-  \implies \phi'(b) = \frac{\phi(b)}{v-b}$$ Substituting $v = b/\phi(b)\cdot\phi(b) + b = b$ at the symmetric point\...
-
-**Cleaner: directly assume $b^*(v) = \alpha v$ and find $\alpha$.**
-
-If all bidders use $b_j = \alpha V_j$: $$\Pi(\alpha v, v) = (v - \alpha v)\cdot\mathbb{P}(\alpha V_2 < \alpha v)
-  = v(1-\alpha)\cdot v = v^2(1-\alpha)$$ Bidder 1 wants to optimise over their actual bid $b$: $$\Pi(b,v) = (v-b)\cdot\mathbb{P}(\alpha V_2 < b)
-  = (v-b)\cdot\frac{b}{\alpha}$$ FOC in $b$: $\frac{d}{db}[(v-b)\frac{b}{\alpha}] = \frac{1}{\alpha}[v-2b]=0
-\implies b^*= v/2$, so $\alpha = 1/2$.
-
-$$\boxed{b^*(v) = \frac{v}{2}}$$
+First-order condition: $$\frac{d}{db}\!\left[(v-b)\frac{b}{\alpha}\right]
+  = \frac{1}{\alpha}(v - 2b) = 0
+  \implies b^* = \frac{v}{2}$$ So $\alpha = 1/2$, confirming the linear guess. $$\boxed{b^*(v) = \frac{v}{2}}$$
 
 **(b) Expected profit.** $$\Pi(v) = (v - v/2)\cdot\mathbb{P}(V_2/2 < v/2)
   = \frac{v}{2}\cdot v = \frac{v^2}{2}$$ Ex-ante expected profit (integrating over $v\sim U[0,1]$): $$\mathbb{E}[\Pi] = \int_0^1 \frac{v^2}{2}\,dv = \frac{1}{6}$$
@@ -150,49 +136,47 @@ Expected revenue: $\mathbb{E}[P^{(1)}_{(n)}]=\frac{n-1}{n}\cdot\frac{n}{n+1}
 ::: solutionbox
 **(a) Revenue Equivalence Theorem (RET).**
 
-*Any two auction mechanisms that (i) always allocate the object to the highest-value bidder, and (ii) give the same expected utility to the lowest-type bidder (typically zero), generate the same expected payment rule and therefore the same expected seller revenue.*
+*Any two auction formats that (i) always allocate the object to the highest-value bidder, and (ii) give a zero payoff to the lowest-type bidder, generate the same expected revenue for the seller.*
 
-Under the IPV model with $n$ risk-neutral bidders and values $V_i\stackrel{\text{iid}}{\sim}U[0,1]$, the following four formats all yield the same expected revenue: first-price sealed-bid, second-price (Vickrey), English, and all-pay. $$\mathbb{E}[\text{revenue}] = \mathbb{E}[V_{(n-1:n)}] = \frac{n-1}{n+1}$$ For $n=2$: $\mathbb{E}[\text{rev}]=1/3$. For $n=3$: $1/2$. For $n=4$: $3/5$.
+More precisely: if all bidders play their symmetric equilibrium strategy, the seller's expected revenue is the same across all such mechanisms. For $n$ bidders with $V_i\stackrel{\text{iid}}{\sim}U[0,1]$, the common expected revenue equals the expected second-highest value: $$\mathbb{E}[\text{revenue}] = \mathbb{E}[V_{(n-1:n)}] = \frac{n-1}{n+1}$$ where $V_{(n-1:n)}$ is the second-highest order statistic. For $n=2$: $\mathbb{E}[\text{rev}] = \mathbb{E}[\min(V_1,V_2)] = 1/3$.
 
 **(b) Second-price (Vickrey) auction: dominant strategy.**
 
-The winner pays the *second-highest* bid. Bidding your true value $b_i = v_i$ is a **weakly dominant strategy**.
+In a second-price auction (winner pays the second-highest bid): **bidding your true value $b_i = v_i$ is a weakly dominant strategy.**
 
-*Why:* Your own bid affects whether you win but *not* the price you pay when you win (price $=$ highest competing bid). So your best strategy is simply to win exactly when winning is profitable --- i.e. when the highest rival bid is below your value $v$. This is achieved by bidding $v$ truthfully: $$\boxed{b^*(v) = v}$$ Overbidding can cause you to win at a loss; underbidding can cause you to miss profitable wins. Both are weakly dominated by truthful bidding.
+*Proof:*
 
-**(c) Conditions for revenue equivalence.**
+- If $b_i > \max_{j\neq i}b_j$: you win and pay the second-highest bid $p$. Profit $= v_i - p$. Deviating to any $b_i' > p$ also wins with same payment. Deviating to $b_i' < p$ loses --- worse if $v_i > p$, same if $v_i \leq p$.
 
-1.  **Independent private values (IPV):** each bidder knows their own value and it is independent of others' values.
+- If $b_i < \max_{j\neq i}b_j$: you lose. Deviating upward to win costs $p > v_i$ (since $p$ = someone else's bid $> b_i$ in the relevant case) --- gives negative profit.
 
-2.  **Risk neutrality:** bidders maximise expected payoff.
+In all cases, truthful bidding is weakly dominant.
 
-3.  **Symmetric bidders:** values drawn i.i.d. from the same distribution.
+**Expected revenue check:** Under truthful bidding, the second-price auction's revenue $=$ second-highest value $= V_{(n-1:n)}$. For $n=2$: $\mathbb{E}[\min(V_1,V_2)] = 1/3$. Same as first-price.
+
+**(c) Conditions for RET.** The Revenue Equivalence Theorem holds when:
+
+1.  **Private values:** each bidder's value depends only on their own information (not on others' valuations --- no interdependencies).
+
+2.  **Symmetric bidders:** values drawn i.i.d. from the same distribution.
+
+3.  **Risk neutrality:** all bidders maximise expected payoff (not expected utility with risk aversion).
 
 4.  **Efficient allocation:** the object always goes to the highest-value bidder.
 
-5.  **Equal participation payoff for the lowest type:** the bidder with value $v=0$ earns zero expected surplus.
+5.  **Zero profit for lowest type:** a bidder with the lowest possible valuation gets zero expected surplus.
 
-6.  **No binding budget constraints or distortions:** bidders can make required payments; no reserve prices or entry asymmetries (unless applied consistently).
+**(d) When RET fails.**
 
-**(d) When RET fails: risk-averse bidders.**
+*Risk aversion:* Risk-averse bidders shade their bids less in a first-price auction (the certain loss of paying a high price is more painful than the uncertain loss). This raises first-price revenue above second-price revenue.
 
-**First-price vs second-price with risk-averse bidders:**
+*Correlated values:* If $V_1$ and $V_2$ are positively correlated (e.g. common value auctions such as oil field bidding, where all bidders are trying to estimate the same underlying value), first-price and second-price revenues differ.
 
-- In a **second-price** auction, truthful bidding remains optimal even with risk aversion (the dominant strategy argument does not rely on risk neutrality).
+*All-pay auction* (bidders pay regardless of winning): under $U[0,1]$, the BNE bidding strategy is $b^*(v)=v^2/2$ (for $n=2$). Expected revenue $= 2\cdot\mathbb{E}[v^2/2] = \mathbb{E}[V^2] = 1/3$ --- same as first-price by RET. *But* all-pay auctions are efficient and satisfy RET conditions, so they are actually RET-equivalent here.
 
-- In a **first-price** auction, a risk-averse bidder dislikes the uncertainty of losing. They bid more aggressively than a risk-neutral bidder --- shading less below their true value --- to reduce the probability of losing.
+A genuine failure: the **English auction with affiliated values** (Milgrom-Weber 1982). With correlated/affiliated values, the English auction yields *strictly higher* revenue than the second-price sealed-bid, which in turn yields more than first-price.
 
-- Result: first-price revenue $>$ second-price revenue under risk aversion.
-
-Other failures of RET:
-
-- **Common-value / correlated values** (e.g. oil field auctions): the English auction raises more revenue than sealed-bid formats (Milgrom--Weber, 1982).
-
-- **Asymmetric bidder distributions**.
-
-- **Reserve prices, entry costs, or budget constraints**.
-
-**Key takeaway:** RET says all "standard" auction formats are revenue-equivalent under IPV, risk neutrality, symmetry, and efficiency. Second-price $\Rightarrow$ bid truthfully (dominant strategy). First-price $\Rightarrow$ shade to $(n-1)/n\cdot v$. Both give $\mathbb{E}[\text{rev}]=(n-1)/(n+1)$. RET breaks most commonly via risk aversion (raises first-price revenue) or correlated values (raises English auction revenue).
+**Key takeaway:** RET says first-price $\equiv$ second-price $\equiv$ all-pay $\equiv$ English --- in expected revenue --- under the four conditions. Second-price $\Rightarrow$ bid truthfully (dominant strategy, robust). First-price $\Rightarrow$ shade bid to $(n-1)/n\cdot v$. Both give expected revenue $(n-1)/(n+1)$.
 :::
 
 # Technique Summary

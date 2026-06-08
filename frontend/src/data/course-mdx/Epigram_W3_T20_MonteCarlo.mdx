@@ -99,14 +99,17 @@ No rejection needed --- 100% efficient.
 
 2.  $\hat{e}_n = \frac{1}{n}\sum_{i=1}^n N_i$.
 
-*Convergence:* $\mathop{\mathrm{Var}}(N) = e-e^2+... \approx e(e-2)/...$ More precisely, $\mathop{\mathrm{Var}}(N)=3-e\approx 0.282$. SE$(\hat{e}_n) = \sqrt{(3-e)/n}\approx 0.531/\sqrt{n}$. For $\pm0.01$ accuracy: $n\approx(0.531/0.01)^2\approx2{,}820$.
+*Convergence:* Using $\mathbb{P}(N=k)=(k-1)/k!$ and $\mathbb{E}[N(N-1)]
+= \sum_{k=2}^\infty k(k-1)\cdot(k-1)/k!
+= \sum_{k=2}^\infty (k-1)^2/(k-1)!
+= \sum_{j=1}^\infty j^2/j! = 2e$: $$\mathbb{E}[N^2] = \mathbb{E}[N(N-1)]+\mathbb{E}[N] = 2e+e = 3e$$ $$\mathop{\mathrm{Var}}(N) = 3e - e^2 = e(3-e) \approx 0.767$$ $$\text{SE}(\hat{e}_n) = \sqrt{e(3-e)/n} \approx \frac{0.876}{\sqrt{n}}$$ For $\pm0.01$ accuracy: $n\approx(0.876/0.01)^2\approx7{,}700$.
 
 **Key comparison:**
 
-**Key takeaway:** Both converge at rate $1/\sqrt{n}$ (CLT). The $e$ estimator is more efficient (smaller variance) because $\mathop{\mathrm{Var}}(N)\approx0.28$ while the $\pi$ estimator has variance $\approx16p(1-p)\approx2.69$. The $\pi$ estimator requires $\sim10\times$ more samples for the same precision.
+**Key takeaway:** Both converge at rate $1/\sqrt{n}$ (CLT). The $e$ estimator is more efficient: $\mathop{\mathrm{Var}}(N)=e(3-e)\approx0.77$, giving SE $\approx0.876/\sqrt{n}$, while the $\pi$ estimator has SE $\approx1.64/\sqrt{n}$ (variance $\approx2.69$). The $\pi$ estimator requires roughly $3.5\times$ more samples for the same absolute precision.
 :::
 
-::: {.premiumproblem number="3" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p78"}
+::: {.premiumproblem number="3" difficulty="medium" problemId="quant_interview_market_finance_qdsi_p2"}
 **Monte Carlo Estimation of a Gaussian Interval Probability.** $X\sim N(0,\sigma^2)$. Estimate $p=\mathbb{P}(-2\sigma\leq X\leq2\sigma)$ using Monte Carlo. Find the required sample size for $\pm0.001$ precision at 95% confidence.
 :::
 
@@ -176,7 +179,7 @@ Each $I_i\sim\mathrm{Bern}(p)$ with $\mathop{\mathrm{Var}}(I_i)=p(1-p)$. A 95% c
 | **Rejection sampling** | Draw from proposal, accept with prob $\propto$ target/proposal. Acceptance rate $= 1/M$. |
 | **Disk sampling** | Rejection (box): $78.5\%$ efficient. Polar: $r=\sqrt{U}$ (100%). |
 | **MC $\pi$** | $\hat{\pi}=4\times\mathbb{P}(X^2+Y^2\leq1)$. SE $\approx 1.64/\sqrt{n}$. |
-| **MC $e$** | $e=\mathbb{E}[N]$, $N=\min k:\sum U_i>1$. $\mathbb{P}(N>k)=1/k!$. SE $\approx 0.53/\sqrt{n}$. |
+| **MC $e$** | $e=\mathbb{E}[N]$, $N=\min k:\sum U_i>1$. $\mathbb{P}(N>k)=1/k!$. $\mathop{\mathrm{Var}}(N)=e(3-e)\approx0.77$. SE $\approx 0.876/\sqrt{n}$. |
 | **Binomial MC sample size** | $n\geq(z_{\alpha/2})^2 p(1-p)/\varepsilon^2$. For $\varepsilon=0.001$, 95% CI: $n\approx167{,}000$. |
 | **Triangle sampling** | Draw $r_1,r_2\sim U(0,1)$; if $r_1+r_2>1$ reflect. $P=r_1A+r_2B+(1-r_1-r_2)C$. |
 

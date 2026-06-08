@@ -44,6 +44,18 @@ A state is **absorbing** if $P_{ii}=1$. Order states as transient first, absorbi
 - Absorption probabilities into absorbing state $k$: $B = NR$.
 :::
 
+::: {.conceptbox title="Hitting Probabilities and Expected Hitting Times via Equations"}
+For most interview problems, writing a **linear system directly** is faster than inverting a matrix. Let $T$ be the first time the chain reaches a target set $A$.
+
+**Hitting probability** $h_i = \mathbb{P}(T < \infty \mid X_0 = i)$: $$h_i = \begin{cases} 1 & i \in A \\ \displaystyle\sum_j P_{ij}\,h_j & i \notin A \end{cases}$$
+
+**Expected hitting time** $m_i = \mathbb{E}[T \mid X_0 = i]$ (for states where $h_i = 1$): $$m_i = \begin{cases} 0 & i \in A \\ \displaystyle 1 + \sum_j P_{ij}\,m_j & i \notin A \end{cases}$$
+
+**Practice:** For a random walk on $\{0,1,\ldots,N\}$ absorbed at $0$ or $N$, these equations recover the Gambler's Ruin formula without matrix inversion. For pattern waiting times, the states track progress toward the pattern and the $m_i$ equations give the expected waiting time directly.
+
+**Tip (from the *Green Book*):** Setting up and solving $m_i$ equations is the standard approach in most quant interview settings. The fundamental matrix $N=(I-Q)^{-1}$ is theoretically equivalent but requires matrix inversion, which is impractical by hand for chains with more than 3--4 transient states.
+:::
+
 # Stationary Distributions
 
 ::: {.workedbox number="1" difficulty="easy" problemid="quant_interview_fundamental_qdsi_p102"}
@@ -121,7 +133,7 @@ A state is **absorbing** if $P_{ii}=1$. Order states as transient first, absorbi
 3.  Find the expected steps until the game ends from \$2.
 :::
 
-::: solutionbox
+:::: solutionbox
 **(a) Setup.** States: $\{0,1,2,3,4,5\}$. Absorbing: $\{0,5\}$. Transient: $\{1,2,3,4\}$.
 
 Transition matrix (transient block $Q$, absorption block $R$): $$Q = \begin{pmatrix}
@@ -144,21 +156,21 @@ For $p\neq q$, the Gambler's Ruin formula gives the probability of reaching $N$ 
 **(c) Expected duration.**
 
 For the biased Gambler's Ruin, the expected duration from state $k$ is: $$\mathbb{E}[T \mid X_0=k]
-  = \frac{N}{q-p}\cdot\frac{1-(q/p)^k}{1-(q/p)^N} - \frac{k}{q-p}$$ With $p=1/3$, $q=2/3$, $q-p=1/3$, $N=5$, $k=2$: $$\mathbb{E}[T\mid X_0=2]
-  = 3N\cdot\frac{3}{31} - 3k
-  = 15\cdot\frac{3}{31} - 6
-  = \frac{45}{31} - 6
-  = \frac{45-186}{31} = -\frac{141}{31}$$ This is negative, indicating a sign error. Let us use the matrix approach:
-
-$N = (I-Q)^{-1}$. Computing $I-Q$ and inverting (numerically): $t = N\mathbf{1}$ gives the expected absorption time from each state.
-
-For the biased random walk, the correct formula is: $\mathbb{E}[T\mid X_0=k] = \frac{k}{q-p} - \frac{N}{q-p}\cdot
-\frac{1-(q/p)^k}{1-(q/p)^N}$. $$= 3k - 3N\cdot\frac{3}{31}
+  = \frac{k}{q-p} - \frac{N}{q-p}\cdot\frac{1-(q/p)^k}{1-(q/p)^N}$$ With $p=1/3$, $q=2/3$, $q-p=1/3$, $N=5$, $k=2$, and $\mathbb{P}(\text{ruin}^c \mid X_0=2)=3/31$: $$\mathbb{E}[T\mid X_0=2]
+  = 3k - 3N\cdot\frac{3}{31}
   = 6 - \frac{45}{31} = \frac{186-45}{31} = \frac{141}{31}
   \approx \boxed{4.55 \text{ steps}}$$
 
-**Key takeaway:** The Gambler's Ruin formula $P_k = (1-(q/p)^k)/(1-(q/p)^N)$ is the go-to for biased random walks. The matrix approach $(I-Q)^{-1}$ is more general but requires computation. With $q>p$ (unfair game), the probability of success is very low and the expected duration is short.
+**Key takeaway:**
+
+::: {.keyresult title="Memorise these two Gambler’s Ruin formulas"}
+Starting from $k$, absorbing barriers at $0$ and $N$, win prob $p$ per step ($q=1-p$, $p \neq q$): $$\underbrace{P_k = \frac{1-(q/p)^k}{1-(q/p)^N}}_{\text{probability of reaching }N}
+  \qquad
+  \underbrace{\mathbb{E}[T\mid X_0=k] = \frac{k}{q-p} - \frac{N}{q-p}\cdot P_k}_{\text{expected duration}}$$ For $p=q=\tfrac{1}{2}$: $P_k = k/N$ and $\mathbb{E}[T\mid X_0=k] = k(N-k)$.
 :::
+
+The matrix approach $(I-Q)^{-1}$ is more general but requires computation. Knowing both formulas by heart saves critical minutes in timed interviews.
+::::
 
 # Pattern Waiting Times
 
@@ -511,40 +523,82 @@ Note: from state HHHH, flipping H keeps you at HHHH (still four H's). Flipping T
        \implies \tfrac{1}{2}e_4 = 1 \implies e_4 = 2
 \end{align*}$$
 
-**Back-substitute:** $e_3 = 1 + 1 + \frac{e_0}{2} = 2 + \frac{e_0}{2}$. $e_2 = 1 + \frac{1}{2}(2+\frac{e_0}{2}) + \frac{e_0}{2}
-= 2 + \frac{3e_0}{4}$. $e_1 = 1 + \frac{1}{2}(2+\frac{3e_0}{4}) + \frac{e_0}{2}
-= 2 + \frac{7e_0}{8}$. $e_0 = 2 + e_1 = 4 + \frac{7e_0}{8}
-\Rightarrow \frac{e_0}{8} = 4 \Rightarrow e_0 = 32$.
+**Back-substitute** (using $e_4 = 2$ throughout): $$\begin{align*}
+  e_3 &= 1 + \tfrac{1}{2}(2) + \tfrac{1}{2}e_0 = 2 + \tfrac{e_0}{2} \\
+  e_2 &= 1 + \tfrac{1}{2}\!\left(2+\tfrac{e_0}{2}\right) + \tfrac{1}{2}e_0
+       = 2 + \tfrac{3e_0}{4} \\
+  e_1 &= 1 + \tfrac{1}{2}\!\left(2+\tfrac{3e_0}{4}\right) + \tfrac{1}{2}e_0
+       = 2 + \tfrac{7e_0}{8}
+\end{align*}$$ From $e_0 = 2 + e_1$: $$e_0 = 2 + 2 + \frac{7e_0}{8} = 4 + \frac{7e_0}{8}
+  \implies \frac{e_0}{8} = 4 \implies e_0 = 32$$
 
-But wait: state HHHH goes back to HHHH on H, so the four H's must be accumulated without restart except on T. Let me recheck $e_4 = 2$ and chain back.
-
-$e_3 = 1 + \frac{1}{2}\cdot2 + \frac{1}{2}e_0 = 2 + \frac{e_0}{2}$.
-
-Going back: $e_0 = 2+e_1 = 2+(1+\frac{e_2}{2}+\frac{e_0}{2})$. Using $e_0 = 2 + e_1$, $e_1 = 1 + \frac{e_2+e_0}{2}$, $e_2 = 1 + \frac{e_3+e_0}{2}$, $e_3 = 2+\frac{e_0}{2}$:
-
-$e_3 = 2 + \frac{e_0}{2}$. $e_2 = 1 + \frac{1}{2}(2+\frac{e_0}{2}) + \frac{e_0}{2} = 2 + \frac{3e_0}{4}$. $e_1 = 1 + \frac{1}{2}(2+\frac{3e_0}{4}) + \frac{e_0}{2} = 2 + \frac{7e_0}{8}$. $e_0 = 2 + 2 + \frac{7e_0}{8} = 4 + \frac{7e_0}{8}$ $\Rightarrow \frac{e_0}{8} = 4 \Rightarrow e_0 = 32$.
-
-But also account for the $e_4 = 2$ term: $e_3 = 1 + \frac{e_4+e_0}{2} = 1 + 1 + \frac{e_0}{2} = 2 + \frac{e_0}{2}$ .
-
-$$\boxed{\mathbb{E}[T_{HHHHT}] = 32 + 2 = \text{let's recount}}$$
-
-Recounting carefully: $e_0 = 4 + \frac{7e_0}{8}$\... but we haven't included $e_4$ properly in $e_1$'s chain.
-
-$e_1 = 1 + \frac{e_2}{2} + \frac{e_0}{2}$. This is correct. The $e_4$ only appears explicitly in $e_3$'s equation. Tracing: $e_0=32$, $e_3=18$, $e_2=26$, $e_1=30$. Check: $e_0=2+e_1=2+30=32$.
+**Verify:** $e_1 = 30$, $e_2 = 26$, $e_3 = 18$, $e_4 = 2$. Check $e_0 = 2+e_1 = 32$ ; $e_3 = 2 + 16 = 18$ .
 
 $$\boxed{\mathbb{E}[T_{HHHHT}] = 32}$$
 
-**Pattern using general formula.** For HHHHT (4 heads then 1 tail): The state HHHH is a "restart-absorbing" state that keeps absorbing heads. The answer matches: $\mathbb{E}[T_{H^4T}] = \sum_{k=1}^4 2^k + 2^4\cdot
-\mathbb{E}[\text{geometric}(1/2)] = 2+4+8+16 + ...$
+**Connection to the general formula.** From Topic 8 Problem 6, $\mathbb{E}[T_{H^n}] = 2^{n+1}-2$, so $\mathbb{E}[T_{HHHH}] = 30$. The extra tail adds $e_4 = 2$ steps on top: $30 + 2 = 32$.
 
-Actually by the general consecutive-H formula with the additional tail: $\mathbb{E}[T_{HHHHT}] = \mathbb{E}[T_{HHHH}] \cdot$ (adjusted for tail) $= (2+4+8+16)+16/(1/2) - ...$
-
-The direct calculation gives $e_0=32$.
-
-**Key takeaway:** State HHHH self-loops on H (four accumulated heads act as a holding state), which creates the $e_4=2$ base case and propagates through the back-substitution.
+**Key takeaway:** State HHHH self-loops on H, making $e_4 = 2$ (a geometric$(1/2)$ wait for the first T). Back-substitution from $e_4$ through $e_0$ gives $32$ cleanly without any matrix inversion.
 :::
 
-::: {.premiumproblem number="12" difficulty="veryhard" problemId="citadel_qdsi_p23"}
+::: {.premiumproblem number="12b" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p7_conditional"}
+**Conditional Expected Waiting Time: HHT Before HTH.** Flip a fair coin repeatedly until either HHT or HTH first appears.
+
+1.  Find the probability that HHT appears before HTH.
+
+2.  Find the expected number of flips *given that HHT appears first*.
+
+3.  Find the expected number of flips *given that HTH appears first*.
+:::
+
+::: solutionbox
+**State machine.** Track progress toward both patterns simultaneously. Let the state encode the longest suffix seen that is a prefix of HHT and/or HTH:
+
+**Transitions:**
+
+**(a) Probability HHT wins.** Let $p_i = \mathbb{P}(\text{HHT wins}\mid s_i)$. $$\begin{align*}
+  p_0 &= \tfrac{1}{2}p_1 + \tfrac{1}{2}p_0 &\implies p_0 &= p_1 \\
+  p_1 &= \tfrac{1}{2}p_2 + \tfrac{1}{2}p_3 \\
+  p_2 &= \tfrac{1}{2}\cdot1 + \tfrac{1}{2}p_2 &\implies p_2 &= 1 \\
+  p_3 &= \tfrac{1}{2}\cdot0 + \tfrac{1}{2}p_0 &\implies p_3 &= \tfrac{p_0}{2}
+\end{align*}$$ Substituting into $p_1 = p_0$: $p_0 = \tfrac{1}{2}\cdot1 + \tfrac{1}{2}\cdot\tfrac{p_0}{2}
+= \tfrac{1}{2} + \tfrac{p_0}{4}
+\implies \tfrac{3}{4}p_0 = \tfrac{1}{2} \implies \boxed{p_0 = \tfrac{2}{3}}$.
+
+**(b) Conditional expected time given HHT wins.** Let $f_i = \mathbb{E}[T\cdot\mathbf{1}_{\text{HHT wins}}\mid s_i]$ (the "weighted" expected time; divide by $p_i$ at the end).
+
+Each step costs 1 flip, so the recurrence is: $f_i = \sum_j P_{ij}(p_j + f_j)$ for non-absorbing states, with the absorbing step contributing its terminal probability.
+
+$$\begin{align*}
+  f_2 &= \tfrac{1}{2}(1\cdot1 + 0) + \tfrac{1}{2}(1 + f_2) = 1 + \tfrac{f_2}{2}
+       &\implies f_2 &= 2 \\
+  f_3 &= \tfrac{1}{2}\cdot0 + \tfrac{1}{2}(p_0 + f_0)
+       &\implies f_3 &= \tfrac{1}{3} + \tfrac{f_0}{2} \\
+  f_1 &= \tfrac{1}{2}(1 + f_2) + \tfrac{1}{2}(p_3 + f_3) \\
+      &= \tfrac{3}{2} + \tfrac{1}{6} + \tfrac{f_3}{2}
+       = \tfrac{5}{3} + \tfrac{f_3}{2} \\
+  f_0 &= \tfrac{1}{2}(p_1 + f_1) + \tfrac{1}{2}(p_0 + f_0)
+       \implies f_0 = p_0 + p_1 + f_1 = \tfrac{4}{3} + f_1
+\end{align*}$$
+
+Solving: $f_3 = \tfrac{1}{3} + \tfrac{f_0}{2}$, $f_1 = \tfrac{5}{3} + \tfrac{1}{2}(\tfrac{1}{3} + \tfrac{f_0}{2})
+= \tfrac{11}{6} + \tfrac{f_0}{4}$, $f_0 = \tfrac{4}{3} + \tfrac{11}{6} + \tfrac{f_0}{4}
+\implies \tfrac{3f_0}{4} = \tfrac{19}{6}
+\implies f_0 = \tfrac{38}{9}$.
+
+$$\mathbb{E}[T \mid \text{HHT wins}] = \frac{f_0}{p_0} = \frac{38/9}{2/3}
+  = \boxed{\dfrac{19}{3} \approx 6.33}$$
+
+**(c) Conditional expected time given HTH wins.** By symmetry of the $f_i$ construction with HTH-winning weights, $g_0 = \mathbb{E}[T\cdot\mathbf{1}_{\text{HTH wins}}\mid s_0] = \tfrac{16}{9}$ (analogous calculation), and $\mathbb{P}(\text{HTH wins}) = \tfrac{1}{3}$. $$\mathbb{E}[T \mid \text{HTH wins}] = \frac{g_0}{1-p_0} = \frac{16/9}{1/3}
+  = \boxed{\dfrac{16}{3} \approx 5.33}$$
+
+**Sanity check:** $\mathbb{E}[T] = f_0 + g_0 = \tfrac{38}{9}+\tfrac{16}{9}
+= \tfrac{54}{9} = 6$. This matches the unconditional expected time to one of $\{\text{HHT, HTH}\}$, computed directly from the same state machine.
+
+**Key takeaway:** Conditional expected times use $f_i = \mathbb{E}[T\cdot\mathbf{1}_A]$, then divide by $p_i = \mathbb{P}(A)$. The weighted recurrence $f_i = \sum_j P_{ij}(p_j + f_j)$ captures both the cost of the current step and the probability-weighted future costs. Strikingly, HTH wins *faster on average* ($16/3$) than HHT ($19/3$), even though HHT is more likely to win. Once HHT is on course (past state $s_2$), it may spin there for extra H's before seeing the needed T.
+:::
+
+::: {.premiumproblem number="13" difficulty="veryhard" problemId="citadel_qdsi_p23"}
 **Meeting Probability for Two Random-Walking Ants on an Octahedron.** Two ants start at opposite vertices of a regular octahedron. Each turn: Ant A moves first to a uniformly random adjacent vertex, then Ant B moves to a uniformly random adjacent vertex. They stop when one ant moves onto the vertex occupied by the other. What is $\mathbb{P}(\text{A moves onto B's
 vertex})$?
 :::

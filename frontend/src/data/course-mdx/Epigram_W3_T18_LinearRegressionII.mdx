@@ -27,7 +27,7 @@ Let $\hat{\beta}$, $\hat{\sigma}^2$, $R^2$ etc. denote the original quantities.
 
 **(i) Coefficient estimates $\hat{\beta}$: unchanged.** Doubling every observation is equivalent to weighting all observations equally by 2. The OLS formula $\hat{\beta}=(X^\top X)^{-1}X^\top y$ doubles both $X^\top X$ and $X^\top y$, and they cancel: $\hat{\beta}_{\text{dup}}=(2X^\top X)^{-1}(2X^\top y)=\hat{\beta}$.
 
-**(ii) Standard errors: halved. $t$-statistics: multiplied by $\sqrt{2}$.** $\hat{\sigma}^2_{\text{dup}} = \text{RSS}_{\text{dup}}/(2n-p)
+**(ii) Standard errors: halved. $t$-statistics: doubled.** $\hat{\sigma}^2_{\text{dup}} = \text{RSS}_{\text{dup}}/(2n-p)
 \approx 2\,\text{RSS}/(2n) = \hat{\sigma}^2$ (same variance estimate). $\mathop{\mathrm{Var}}(\hat{\beta}_{\text{dup}})=\hat{\sigma}^2(2X^\top X)^{-1}
 = \frac{1}{2}\mathop{\mathrm{Var}}(\hat{\beta})$. Standard error $\to$ SE/$\sqrt{2}$. $t$-statistic $= \hat{\beta}/\text{SE}
 \to \sqrt{2}\cdot t$.

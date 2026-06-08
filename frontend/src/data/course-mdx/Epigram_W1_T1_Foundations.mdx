@@ -1,251 +1,439 @@
 ::: learningobjectives
-1.  **Set up any probability problem** from scratch --- define the sample space $\Omega$, identify the event $A$, and compute $\mathbb{P}(A)$ for uniform probability spaces.
+1.  **Apply the multiplication principle, permutations, and combinations** to count sample spaces and compute probabilities exactly --- the building block behind every counting problem in interviews.
 
-2.  **Apply complementary counting** to handle "at least one" problems, including the Birthday Paradox and its generalisation.
+2.  **Use complementary counting** to sidestep hard direct counts: compute $1 - \mathbb{P}(\text{none})$ whenever "at least one" appears.
 
-3.  **Use the Inclusion-Exclusion Principle** to compute probabilities involving overlapping events and consecutive patterns.
+3.  **State and apply the Inclusion-Exclusion Principle** for overlapping events --- both the two-event and general $n$-event form --- and recognise when it is the right tool.
 
-4.  **Count arrangements under constraints** --- circular permutations, non-adjacent selections, and the block trick for consecutive groups.
+4.  **Count circular arrangements correctly** by fixing one element to remove rotational symmetry, giving $(n-1)!$ orderings.
 
-5.  **Derive and apply the derangement formula**, and know that $\mathbb{P}(\text{derangement}) \approx 1/e$ for $n \geq 5$.
+5.  **Compute derangement probabilities** using $D_n/n!$ and the approximation $e^{-1} \approx 36.8\%$ for large $n$.
 
-6.  **Solve geometric probability problems** by mapping events onto regions and computing areas --- including chord intersection and semicircle containment.
+6.  **Set up and solve geometric probability problems** by identifying the favorable region and computing area (or length) ratios over a uniform sample space.
 
-7.  **Recognise and exploit symmetry** as the fastest path to an answer in interview settings.
-
-*Problems 1--6 build all of the above skills. Problems 7--11 and A1--A2 are the level you need to crack final rounds at Citadel, Jane Street, and Two Sigma.*
+7.  **Apply stars-and-bars** to count distributions of identical objects into distinct bins, and adapt the formula for restricted cases.
 :::
 
 # Introduction: What Is Probability?
 
-Probability is the mathematics of uncertainty. In quantitative finance and trading, every model, every bet, and every risk estimate rests on probabilistic foundations. The goal of this topic is to build the *problem-solving toolkit* that lets you crack interview questions under pressure in 5--10 minutes.
+Probability is the mathematics of uncertainty. In quantitative finance and trading, every model, every bet, and every risk estimate rests on probabilistic foundations. The goal of this topic is not to introduce you to introductory probability (you already know the basics), but to build the *problem-solving toolkit* that lets you crack interview questions under pressure in 5--10 minutes.
 
 ::: {.conceptbox title="The Three Ingredients of Any Probability Problem"}
 1.  **Sample space** $\Omega$: the set of all possible outcomes.
 
-2.  **Event** $A \subseteq \Omega$: outcomes you care about.
+2.  **Event** $A \subseteq \Omega$: the set of outcomes you care about.
 
-3.  **Probability measure** $\mathbb{P}$: $\mathbb{P}(\Omega)=1$, $\mathbb{P}(\emptyset)=0$, countable additivity.
+3.  **Probability measure** $\mathbb{P}$: satisfies $\mathbb{P}(\Omega)=1$, $\mathbb{P}(\emptyset)=0$, and countable additivity.
 
-For **uniform** spaces: $\mathbb{P}(A) = |A|/|\Omega| = \text{favourable}/\text{total}$.
+For **uniform probability spaces** (equally likely outcomes): $$\mathbb{P}(A) = \frac{|A|}{|\Omega|} = \frac{\text{number of favourable outcomes}}{\text{total number of outcomes}}$$ This is the workhorse formula. Most interview problems reduce to counting $|A|$ and $|\Omega|$.
 :::
 
-**Interview strategy:** (1) Identify $\Omega$. (2) Count $|A|$ --- directly or via complementary counting / IEP. (3) Sanity-check boundary cases.
+**The interview strategy.** When you see a probability problem:
+
+1.  Identify $\Omega$. Is it finite and uniform? (If yes, count.)
+
+2.  Identify $A$. Can you count it directly, or do you need inclusion-exclusion / complementary counting?
+
+3.  Check: does the answer make sense at boundary cases ($n=1$, $p=0$, etc.)?
 
 # Counting Fundamentals
+
+## The Multiplication Principle
+
+If task 1 can be done in $m$ ways and task 2 (independent of task 1) can be done in $n$ ways, then both tasks together can be done in $m \times n$ ways.
 
 ## Permutations and Combinations
 
 ::: {.conceptbox title="Key Formulas"}
 $$\begin{align*}
-  \text{Permutations (ordered):}\quad
-    & P(n,k) = \frac{n!}{(n-k)!} \\[4pt]
-  \text{Combinations (unordered):}\quad
-    & \dbinom{n}{k} = \frac{n!}{k!\,(n-k)!}
-\end{align*}$$ *Order matters $\Rightarrow$ permutation. Order doesn't $\Rightarrow$ combination.*
+\text{Permutations (ordered):}\quad & P(n,k) = \frac{n!}{(n-k)!} = n(n-1)\cdots(n-k+1) \\[4pt]
+\text{Combinations (unordered):}\quad & \dbinom{n}{k} = \frac{n!}{k!\,(n-k)!}
+\end{align*}$$ Remember: "*If order matters, it's a permutation. If order doesn't matter, it's a combination.*"
 :::
 
-## Warm-Up
+**Interview shortcut.** For small $k$, compute $\dbinom{n}{k}$ as: $$\dbinom{n}{k} = \underbrace{\frac{n \cdot (n-1) \cdot \ldots \cdot (n-k+1)}{k!}}_{\text{$k$ terms in numerator}}$$ For example: $\dbinom{52}{2} = \frac{52 \times 51}{2} = 1326$.
 
-::: {.workedbox number="1" difficulty="easy" problemid="citadel_qdsi_p28"}
+## The First Problem: Warm-Up with Coin Tosses
+
+Before diving into techniques, let's try the simplest possible question.
+
+::: {.workedbox number="W1" difficulty="easy" problemid=""}
 **Majority Heads in Three Coin Tosses.** Flip a fair coin three times. What is the probability of getting more heads than tails?
 :::
 
 ::: solutionbox
-$|\Omega|=8$. Favourable (#H $\geq 2$): $\{$HHH, HHT, HTH, THH$\}$ = 4 outcomes. $$\mathbb{P} = \frac{4}{8} = \frac{1}{2}$$ **Slick:** Odd tosses $\Rightarrow$ no ties $\Rightarrow$ by symmetry $\mathbb{P}(\#H>\#T)=\mathbb{P}(\#T>\#H)=\tfrac{1}{2}$.
+**Step 1: Define $\Omega$.** Each toss is H or T, so $|\Omega| = 2^3 = 8$. All outcomes equally likely.
 
-**Key takeaway:** For any odd number of fair coin tosses, majority heads has probability $\tfrac{1}{2}$ by symmetry --- no calculation needed.
+**Step 2: Count favourable outcomes.** "More heads than tails" means at least 2 heads:
+
+Favourable: $\{$HHH, HHT, HTH, THH$\}$ --- that's 4 outcomes.
+
+**Step 3: Compute.** $$\mathbb{P}(\text{more heads than tails}) = \frac{4}{8} = \frac{1}{2}$$
+
+**Slick reasoning (symmetry):** By symmetry of a fair coin, $\mathbb{P}(\#H > \#T) = \mathbb{P}(\#T > \#H)$. These two events are mutually exclusive and exhaustive (ties happen with prob 0 when $n$ is odd\... wait, $n=3$ is odd so no ties possible). Therefore each has probability $\frac{1}{2}$.
+
+**Key takeaway:** For an odd number of fair coin tosses, the probability of majority heads equals the probability of majority tails equals $\frac{1}{2}$ by symmetry --- no calculation needed.
 :::
 
 ::: {.freeproblem number="2" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p40"}
-**Parity of Heads in Coin Tosses.** Flip 10 fair coins. What is the probability the number of heads is even?
+**Parity of Heads in Coin Tosses.** Flip 10 fair coins. What is the probability that the number of heads is even?
 
-*Hint: try the algebraic trick $(p+(1-p))^n \pm ((1-p)-p)^n$.*
+*Hint: Count using binomial coefficients, OR use a generating function / algebraic trick.*
 :::
 
 ::: solutionbox
-**Method 1 --- Direct:** $|A|=\dbinom{10}{0}+\dbinom{10}{2}+\cdots+\dbinom{10}{10}=512$, $\mathbb{P}=512/1024=\tfrac{1}{2}$.
+**Method 1 --- Direct counting.** The number of ways to get exactly $2k$ heads out of 10 is $\dbinom{10}{2k}$. Summing over even counts: $$|A| = \dbinom{10}{0}+\dbinom{10}{2}+\dbinom{10}{4}+\dbinom{10}{6}+\dbinom{10}{8}+\dbinom{10}{10}
+  = 1+45+210+210+45+1 = 512$$ So $\mathbb{P}(\text{even heads}) = \dfrac{512}{1024} = \dfrac{1}{2}$.
 
-**Method 2 --- Algebraic trick:** $\mathbb{P}(\text{even heads}) = \dfrac{1+(1-2p)^n}{2}\Big|_{p=1/2} = \dfrac{1}{2}$ for all $n\geq1$.
+**Method 2 --- Algebraic trick (interview favourite).** Use the identity: for any $p \in (0,1)$, $$\sum_{k \text{ even}} \dbinom{n}{k} p^k (1-p)^{n-k} = \frac{(p+(1-p))^n + ((1-p)-p)^n}{2} = \frac{1 + (1-2p)^n}{2}$$ At $p=\frac{1}{2}$: $\mathbb{P}(\text{even heads}) = \dfrac{1 + 0^n}{2} = \dfrac{1}{2}$ for all $n \geq 1$.
 
-**Method 3 --- Recurrence:** $a_n = \tfrac{1}{2}$ satisfies $a_n = p(1-a_{n-1})+(1-p)a_{n-1}$ when $a_{n-1}=\tfrac{1}{2}$.
+**Method 3 --- Induction.** Let $P_n = \mathbb{P}(\text{even heads in $n$ tosses})$. Then: $$P_n = \frac{1}{2}\underbrace{P_{n-1}}_{\text{new flip is T}} + \frac{1}{2}\underbrace{(1-P_{n-1})}_{\text{new flip is H, changes parity}}
+  = \frac{1}{2}$$ for all $n$, since the recurrence gives $P_n = \frac{1}{2}$ whenever $P_{n-1} = \frac{1}{2}$, and $P_1 = \frac{1}{2}$.
 
-**Key takeaway:** Parity of heads is always $\tfrac{1}{2}$ for any $n\geq1$ fair coin tosses.
+**Key takeaway:** Parity of heads is always exactly $\frac{1}{2}$ for any $n \geq 1$ fair coin tosses. The algebraic trick with $(p + (1-p))^n \pm ((1-p) - p)^n$ is a powerful competition technique.
 :::
 
-# Complementary Counting
+# The Birthday Problem: Complementary Counting
+
+One of the most important meta-techniques in probability is **complementary counting**: instead of computing $\mathbb{P}(A)$ directly, compute $1 - \mathbb{P}(A^c)$.
 
 ::: {.techniquebox title="Complementary Counting"}
-$\mathbb{P}(A)=1-\mathbb{P}(A^c)$. Use when "at least one" appears and the complement ("none" / "all different") is easier to count.
+$$\mathbb{P}(A) = 1 - \mathbb{P}(A^c)$$ **When to use it:** When "at least one" or "some" appears in the problem, and the complement ("none" or "all different") is easier to count.
 :::
 
 ::: {.freeproblem number="3" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p26"}
-**The Birthday Paradox.** Assume 365 equally likely birthdays. Find the smallest $n$ such that $\mathbb{P}(\text{at least two people share a birthday})>\tfrac{1}{2}$.
+**The Birthday Paradox.** Assume 365 equally likely birthdays (ignore leap years) and independence across people. Find the smallest $n$ such that $\mathbb{P}(\text{at least two people share a birthday}) > \dfrac{1}{2}$.
 :::
 
 ::: solutionbox
-$\mathbb{P}(\text{all distinct})=\prod_{k=0}^{n-1}(1-k/365)$. Approximation $\ln(1-x)\approx-x$: threshold at $n(n-1)>730\ln2\approx506$, so $\mathbf{n=23}$.
+**Step 1: Complement.** It is easier to compute $\mathbb{P}(\text{all $n$ birthdays are distinct})$.
 
-**Key takeaway:** Pairs grow as $\dbinom{n}{2}$, reaching $\sim365$ when $n\approx23$. General threshold: $n\approx1.18\sqrt{m}$ for pool size $m$.
+**Step 2: Count.** The total number of ways to assign $n$ birthdays is $365^n$. The number of ways all $n$ birthdays are distinct is $365 \times 364 \times \cdots \times (365-n+1) = \frac{365!}{(365-n)!}$. $$\mathbb{P}(\text{all distinct}) = \frac{365}{365} \cdot \frac{364}{365} \cdot \frac{363}{365} \cdots \frac{365-n+1}{365}
+  = \prod_{k=0}^{n-1}\left(1 - \frac{k}{365}\right)$$
+
+**Step 3: Approximate.** Take the log of $\mathbb{P}(\text{all distinct})$: $$\ln\mathbb{P}(\text{all distinct})
+  = \sum_{k=0}^{n-1} \ln\!\left(1 - \frac{k}{365}\right)$$
+
+*Why is the approximation valid?* For small $x$, the Taylor expansion gives $\ln(1-x) = -x - \tfrac{x^2}{2} - \cdots \approx -x$. Here $x = k/365$; for small $n$ the largest term is $(n-1)/365$, which stays well below 1, so the linear approximation is accurate (error $\lesssim 1\%$ for $n \leq 30$).
+
+Applying $\ln(1-x)\approx -x$ term by term: $$\ln\mathbb{P}(\text{all distinct})
+  \approx -\sum_{k=0}^{n-1}\frac{k}{365}
+  = -\frac{1}{365}\cdot\frac{n(n-1)}{2}$$ where the sum $\sum_{k=0}^{n-1} k = 0 + 1 + 2 + \cdots + (n-1) = \dfrac{n(n-1)}{2}$.
+
+**Step 4: Solve for $n$.** We need $\mathbb{P}(\text{all distinct}) < \tfrac{1}{2}$, i.e. $\ln\mathbb{P}(\text{all distinct}) < \ln\tfrac{1}{2} = -\ln 2 \approx -0.693$. $$-\frac{n(n-1)}{730} < -0.693
+  \implies n(n-1) > 0.693 \times 730 \approx 506$$ Solve $n^2 - n - 506 > 0$: the positive root is $n = \tfrac{1 + \sqrt{1 + 4 \times 506}}{2} = \tfrac{1 + \sqrt{2025}}{2} = \tfrac{1+45}{2} = 23$.
+
+So $n = 23$.
+
+**Verification:**
+
+**Key insight:** The answer ($n=23$) is surprisingly small because the number of *pairs* of people grows as $\dbinom{n}{2} = \frac{n(n-1)}{2}$, which reaches $\sim 365$ much sooner than $n$ does.
+
+**Interview follow-up:** How does this generalise? If there are $m$ equally likely values, the threshold is approximately $n \approx \sqrt{2m \ln 2} \approx 1.18\sqrt{m}$.
 :::
 
-# Combinatorial Techniques
+# Combinatorial Counting Techniques
+
+## Stars and Bars
+
+::: {.conceptbox title="Stars and Bars Formula"}
+The number of ways to write $n$ as an ordered sum of $k$ non-negative integers equals: $$\dbinom{n+k-1}{k-1}$$ The number of ways with strictly positive integers (each part $\geq 1$) equals: $$\dbinom{n-1}{k-1}$$
+:::
+
+## Avoiding Adjacency: A Bijection Trick
+
+A common interview technique is counting selections with *no two adjacent* elements.
 
 ::: {.techniquebox title="Non-Adjacent Selection"}
-Choose $k$ from $\{1,\ldots,n\}$ with no two adjacent: $\dbinom{n-k+1}{k}$ ways. (Substitute $y_i=x_i-(i-1)$ to absorb gap constraints.)
+To choose $k$ elements from $\{1,2,\ldots,n\}$ with no two adjacent: substitute $y_i = x_i - (i-1)$ (shift down by the number of gaps used). This reduces to choosing $k$ from $n-k+1$ without restriction: $$\text{Number of ways} = \dbinom{n-k+1}{k}$$
 :::
 
 ::: {.freeproblem number="4" difficulty="medium" problemId="citadel_qdsi_p26"}
-**Probability of Choosing Three Non-Consecutive Integers.** From $\{1,\ldots,10\}$, pick 3 distinct numbers uniformly at random. What is the probability no two are adjacent?
+**Probability of Choosing Three Non-Consecutive Integers.** From the numbers $\{1, 2, \ldots, 10\}$, pick 3 distinct numbers uniformly at random. What is the probability that no two chosen numbers are adjacent?
 :::
 
 ::: solutionbox
-Total: $\dbinom{10}{3}=120$. Favourable: $\dbinom{8}{3}=56$. $\mathbb{P} = 56/120 = \mathbf{7/15}$.
+**Step 1: Total outcomes.** $|\Omega| = \dbinom{10}{3} = 120$.
 
-**Key takeaway:** Memorise $\dbinom{n-k+1}{k}$ --- it turns a constrained adjacency problem into an unconstrained one.
+**Step 2: Favourable outcomes.** We want 3 numbers from $\{1,\ldots,10\}$ with no two adjacent.
+
+Using the formula above with $n=10$, $k=3$: $$|A| = \dbinom{10-3+1}{3} = \dbinom{8}{3} = 56$$
+
+**Verification (bijection):** Let the chosen numbers be $x_1 < x_2 < x_3$. "No two adjacent" means $x_2 \geq x_1+2$ and $x_3 \geq x_2+2$. Define $y_1 = x_1$, $y_2 = x_2-1$, $y_3 = x_3-2$. Then $1 \leq y_1 < y_2 < y_3 \leq 8$, which is exactly $\dbinom{8}{3} = 56$ choices.
+
+**Step 3: Probability.** $$\mathbb{P} = \frac{56}{120} = \frac{7}{15}$$
+
+**Key takeaway:** The bijection trick (shifting indices to absorb the gap constraints) turns a constrained counting problem into an unconstrained one. Memorise the formula $\dbinom{n-k+1}{k}$ for no-adjacent selections.
 :::
 
-# Inclusion-Exclusion Principle
+# The Inclusion-Exclusion Principle
 
 ::: {.conceptbox title="Inclusion-Exclusion Principle (IEP)"}
-$$\mathbb{P}\!\Bigl(\bigcup_{i=1}^n A_i\Bigr)
-  = \sum_i\mathbb{P}(A_i) - \sum_{i<j}\mathbb{P}(A_i\cap A_j)
-  + \sum_{i<j<k}\mathbb{P}(A_i\cap A_j\cap A_k) - \cdots$$ Signal phrase: **"at least one"**.
+For events $A_1, A_2, \ldots, A_n$: $$\mathbb{P}\!\left(\bigcup_{i=1}^n A_i\right)
+  = \sum_i \mathbb{P}(A_i) - \sum_{i < j}\mathbb{P}(A_i \cap A_j) + \sum_{i < j < k}\mathbb{P}(A_i \cap A_j \cap A_k) - \cdots$$ **Useful form:** $\mathbb{P}(A \cup B) = \mathbb{P}(A)+\mathbb{P}(B)-\mathbb{P}(A \cap B)$.
+
+**Complementary form:** $\mathbb{P}\!\left(\bigcap_{i=1}^n A_i^c\right) = 1 - \mathbb{P}\!\left(\bigcup_{i=1}^n A_i\right)$ --- use when "none of" is the event of interest.
 :::
 
+::: {.techniquebox title="When to Use IEP"}
+Recognise IEP situations by the phrase **"at least one"** or when events overlap in complex ways. Classic applications: birthday problems, derangements, hitting at least one target.
+:::
+
+## Consecutive Patterns: Overlapping Events
+
 ::: {.freeproblem number="5" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p3"}
-**Probability of Consecutive Sixes in Three Dice Rolls.** Roll a fair six-sided die 3 times. What is the probability of getting at least one occurrence of the consecutive pattern $66$?
+**Probability of Consecutive Sixes in Three Dice Rolls.** Roll a fair six-sided die 3 times. What is the probability of getting *at least one occurrence* of the consecutive pattern $66$?
 :::
 
 ::: solutionbox
-Let $A=\{\text{rolls 1,2 both 6}\}$, $B=\{\text{rolls 2,3 both 6}\}$. $$\mathbb{P}(A\cup B)=\frac{1}{36}+\frac{1}{36}-\frac{1}{216}=\frac{11}{216}\approx5.1\%$$ **Key takeaway:** Define $A_i=\{\text{pattern starts at }i\}$, apply IEP. Intersection $A_i\cap A_{i+1}$ is the longer overlapping pattern.
+**Step 1: Define events.** Let $A = \{\text{rolls 1 and 2 are both 6}\}$ and $B = \{\text{rolls 2 and 3 are both 6}\}$.
+
+We want $\mathbb{P}(A \cup B)$.
+
+**Step 2: Apply IEP.** $$\mathbb{P}(A) = \frac{1}{6^2} = \frac{1}{36}, \qquad
+  \mathbb{P}(B) = \frac{1}{36}, \qquad
+  \mathbb{P}(A \cap B) = \mathbb{P}(666) = \frac{1}{6^3} = \frac{1}{216}$$ $$\mathbb{P}(A \cup B) = \frac{1}{36} + \frac{1}{36} - \frac{1}{216}
+  = \frac{6}{216} + \frac{6}{216} - \frac{1}{216} = \frac{11}{216}$$
+
+**Sanity check:** $\frac{11}{216} \approx 5.1\%$. Intuitively this should be small but slightly less than $\frac{2}{36} \approx 5.6\%$ (the naive double-counting answer), which checks out.
+
+**Key takeaway:** Whenever the problem says "at least one consecutive pattern," define $A_i = \{\text{pattern starts at position }i\}$ and apply IEP. The intersection of $A_i$ and $A_{i+1}$ corresponds to the longer pattern starting one position earlier.
 :::
 
 # Circular Arrangements
 
 ::: {.conceptbox title="Circular Permutations"}
-Fix one person: $(n-1)!$ total. Block of $k$ friends: $(n-k)!\cdot k!$ arrangements. $$\mathbb{P}(\text{$k$ friends consecutive}) = \frac{k!\,(n-k)!}{(n-1)!}$$
+In circular arrangements, we fix one person (say, person 1) to eliminate rotational equivalence. Then: $$\begin{align*}
+  \text{Circular permutations of $n$ distinct objects} &= (n-1)! \\
+  \text{Circular permutations with $k$ objects fixed together} &= \frac{(n-k)! \cdot k!}{(n-1)!} \cdot (n-1)! = (n-k)! \cdot k!
+\end{align*}$$
+
+**General principle:** To find the probability that $k$ specific people sit consecutively, treat them as a single block. The number of circular arrangements with this block is $(n-k)! \cdot k!$, and the total is $(n-1)!$.
 :::
 
 ::: {.freeproblem number="6" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p70"}
-**Adjacent Friends Around a Round Table.** **Part 1.** 5 people, 2 friends. $\mathbb{P}(\text{friends adjacent})$? **Part 2.** Generalise to $n$ people, $k$ friends all consecutive.
+**Adjacent Friends Around a Round Table.**
+
+**Part 1.** Five people sit uniformly at random around a round table. Two of them are friends. Find the probability the two friends sit next to each other.
+
+**Part 2.** Extend to $n$ people where $k$ specific people are friends, and we want the probability that all $k$ friends sit consecutively (as one block) around the circle.
 :::
 
 ::: solutionbox
-**Part 1.** Fix one friend; 4 positions, 2 adjacent: $\mathbb{P}=\mathbf{1/2}$.
+**Part 1.**
 
-**Part 2.** $\mathbb{P} = \dfrac{k!\,(n-k)!}{(n-1)!}$. Verify $n=5, k=2$: $12/24=1/2$.
+**Method 1 (Fix one friend):** Fix friend $A$. There are $(5-1)! = 24$ equally likely circular arrangements of the remaining 4 people. Friend $B$ can sit in any of the 4 remaining positions; exactly 2 of these are adjacent to $A$ (one on each side). $$\mathbb{P}(\text{friends adjacent}) = \frac{2}{4} = \frac{1}{2}$$
 
-**Key takeaway:** Always fix one person first. The block trick handles all consecutive-group problems.
+**Method 2 (Direct counting):** Total circular arrangements: $(5-1)! = 24$. Treat $\{A,B\}$ as a block: $(5-2)! \times 2! = 6 \times 2 = 12$ arrangements with them adjacent. $$\mathbb{P} = \frac{12}{24} = \frac{1}{2}$$
+
+**Part 2.**
+
+Total circular arrangements: $(n-1)!$.
+
+Treat all $k$ friends as one block: the block can be arranged internally in $k!$ ways, and there are $(n-k+1-1)! = (n-k)!$ ways to arrange the block and the other $n-k$ people in a circle.
+
+Favourable: $(n-k)! \cdot k!$
+
+$$\boxed{\mathbb{P}(\text{all $k$ friends consecutive}) = \frac{(n-k)!\cdot k!}{(n-1)!} = \frac{k!\,(n-k)!}{(n-1)!}}$$
+
+**Verification:** For $n=5$, $k=2$: $\dfrac{2! \cdot 3!}{4!} = \dfrac{2 \times 6}{24} = \dfrac{1}{2}$.
+
+**Intuition:** We can also think of this as follows. Fix all $n-k$ non-friends. The $k$ friends must fill $k$ consecutive seats out of the $n$ possible "slots" in the circle. The probability is $\frac{k!(n-k)!}{(n-1)!} = \frac{1}{\dbinom{n-1}{k-1}}$.
 :::
 
-# Advanced Counting and Geometric Probability
+# Advanced Counting: Cards, Derangements, and Geometric Probability
 
-## Card Dealing
+## Card Dealing Problems
+
+The next problem is harder and involves applying IEP to a more complex event. This is a classic example of what you'd see at Citadel or Jane Street.
 
 ::: {.premiumproblem number="7" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p17"}
-**Probability Each Player Receives an Ace.** A 52-card deck is dealt to 4 players (13 cards each). What is the probability every player receives at least one ace?
+**Probability Each Player Receives an Ace.** A standard 52-card deck is dealt uniformly at random to 4 players, 13 cards each. What is the probability that *each* player receives at least one ace?
 :::
 
 ::: solutionbox
-**Step 1: Total number of equally likely deals.** A deal assigns 13 cards to each of 4 labeled players: $$|\Omega| = \binom{52}{13}\binom{39}{13}\binom{26}{13}\binom{13}{13}
-  = \frac{52!}{(13!)^4}$$
+**Setup.** Let $A_i = \{\text{player }i\text{ receives no aces}\}$. We want $\mathbb{P}(\overline{A_1} \cap \overline{A_2} \cap \overline{A_3} \cap \overline{A_4}) = 1 - \mathbb{P}(A_1 \cup A_2 \cup A_3 \cup A_4)$.
 
-**Step 2: Each player must receive exactly 1 ace.** There is no other way to give all 4 players at least one ace (only 4 aces exist). The number of ways to assign the 4 distinct aces to the 4 labeled players is: $$4!$$
+Apply IEP. By symmetry, all players are equivalent.
 
-**Step 3: Deal the remaining 48 non-ace cards.** Each player already has 1 ace and needs 12 more cards from the 48 non-aces: $$\binom{48}{12}\binom{36}{12}\binom{24}{12}\binom{12}{12}
-  = \frac{48!}{(12!)^4}$$
+**Number of ways to deal 52 cards into 4 groups of 13:** $$|\Omega| = \dbinom{52}{13}\dbinom{39}{13}\dbinom{26}{13}\dbinom{13}{13} = \frac{52!}{(13!)^4}$$
 
-**Step 4: Favorable deals.** $$|\text{favorable}| = 4!\cdot\frac{48!}{(12!)^4}$$
+**$\mathbb{P}(A_i)$:** Player $i$ gets no aces $\Leftrightarrow$ all 4 aces go to the other 3 players. Player $i$ gets 13 cards from the 48 non-aces: $$\mathbb{P}(A_i) = \frac{\dbinom{48}{13}\dbinom{39}{13}\dbinom{26}{13}}{\dbinom{52}{13}\dbinom{39}{13}\dbinom{26}{13}} = \frac{\dbinom{48}{13}}{\dbinom{52}{13}} = \frac{48!\,39!}{52!\,35!} = \frac{39 \cdot 38 \cdot 37 \cdot 36}{52 \cdot 51 \cdot 50 \cdot 49}$$
 
-**Step 5: Compute the probability.** $$\mathbb{P}(\text{each player has an ace})
-  = \frac{4!\cdot\dfrac{48!}{(12!)^4}}{\dfrac{52!}{(13!)^4}}
-  = 4!\cdot\frac{48!}{52!}\cdot\frac{(13!)^4}{(12!)^4}$$
+**$\mathbb{P}(A_i \cap A_j)$:** Players $i$ and $j$ together get no aces. Combined they get 26 cards from 48 non-aces: $$\mathbb{P}(A_i \cap A_j) = \frac{\dbinom{48}{26}}{\dbinom{52}{26}} = \frac{48!\,26!}{52!\,22!} = \frac{26 \cdot 25 \cdot 24 \cdot 23}{52 \cdot 51 \cdot 50 \cdot 49}$$
 
-**Step 6: Simplify.** $$\frac{48!}{52!} = \frac{1}{52\cdot51\cdot50\cdot49},
-  \qquad
-  \left(\frac{13!}{12!}\right)^4 = 13^4$$ $$\mathbb{P}(\text{each player has an ace})
-  = \frac{4!\cdot 13^4}{52\cdot51\cdot50\cdot49}$$ Using $52 = 4\cdot13$ to cancel with $4! = 24$: $$= \frac{24\cdot13^4}{4\cdot13\cdot51\cdot50\cdot49}
-  = \frac{6\cdot13^3}{51\cdot50\cdot49}$$
+**$\mathbb{P}(A_i \cap A_j \cap A_k)$:** Three players together get no aces. Combined they get 39 cards from 48 non-aces: $$\mathbb{P}(A_i \cap A_j \cap A_k) = \frac{\dbinom{48}{39}}{\dbinom{52}{39}} = \frac{48!\,13!}{52!\,9!} = \frac{13 \cdot 12 \cdot 11 \cdot 10}{52 \cdot 51 \cdot 50 \cdot 49}$$
 
-$$\boxed{
-  \mathbb{P}(\text{each player has an ace})
-  = \frac{24\cdot 13^4}{52\cdot 51\cdot 50\cdot 49}
-  = \frac{6\cdot 13^3}{51\cdot 50\cdot 49}
-  = \frac{2197}{20825}
-  \approx 10.5\%
-  }$$
+**IEP:** $$\mathbb{P}(A_1 \cup \cdots \cup A_4) = \dbinom{4}{1}\frac{39\cdot38\cdot37\cdot36}{52\cdot51\cdot50\cdot49} - \dbinom{4}{2}\frac{26\cdot25\cdot24\cdot23}{52\cdot51\cdot50\cdot49} + \dbinom{4}{3}\frac{13\cdot12\cdot11\cdot10}{52\cdot51\cdot50\cdot49}$$
 
-**Key takeaway:** The direct-counting approach --- assign aces first, then deal non-aces --- is cleaner than IEP here. Despite 4 aces for 4 players, the probability each receives one is only $\approx 1$ in $9.5$, because most deals concentrate two or more aces in the same hand.
+Denominator: $52 \cdot 51 \cdot 50 \cdot 49 = 6\,497\,400$. $$\begin{align*}
+  \dbinom{4}{1} \cdot 39\cdot38\cdot37\cdot36 &= 4 \times 1\,873\,692 = 7\,494\,768 \\
+  \dbinom{4}{2} \cdot 26\cdot25\cdot24\cdot23 &= 6 \times 358\,800 = 2\,152\,800 \\
+  \dbinom{4}{3} \cdot 13\cdot12\cdot11\cdot10 &= 4 \times 17\,160 = 68\,640
+\end{align*}$$
+
+$$\mathbb{P}(A_1 \cup \cdots \cup A_4) = \frac{7\,494\,768 - 2\,152\,800 + 68\,640}{6\,497\,400} = \frac{5\,410\,608}{6\,497\,400} \approx 0.8327$$
+
+$$\boxed{\mathbb{P}(\text{each player gets an ace}) = 1 - 0.8327 \approx 0.1073 \approx 10.73\%}$$
+
+**Key insight:** The IEP terms alternate in sign and shrink rapidly; keeping all three gives an accurate answer. The counter-intuitive result is that despite 4 aces for 4 players, a fair deal gives each player an ace only about 1 in 9 times.
 :::
 
 ## Derangements
 
+A **derangement** is a permutation where no element appears in its original position. This is a foundational combinatorics result.
+
 ::: {.keyresult title="Derangement Formula"}
-$D_n = n!\sum_{k=0}^{n}(-1)^k/k!\approx n!/e$. For $n\geq5$: $\mathbb{P}(\text{derangement})\approx1/e\approx36.8\%$.
+The number of derangements of $n$ objects is: $$D_n = n!\sum_{k=0}^{n}(-1)^k \frac{1}{k!}
+  = n!\left(1 - 1 + \frac{1}{2!} - \frac{1}{3!} + \cdots + \frac{(-1)^n}{n!}\right)$$ For large $n$: $D_n \approx \dfrac{n!}{e}$, so $\mathbb{P}(\text{derangement}) = \dfrac{D_n}{n!} \approx \dfrac{1}{e} \approx 36.8\%$.
 :::
 
-::: {.premiumproblem number="8" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p25"}
-**The Derangement Problem.** 5 firms, 5 cover letters placed randomly. Probability no letter goes to the correct firm?
+::: {.premiumproblem number="8" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p25"}
+**The Derangement Problem.** There are 5 firms and 5 cover letters, one intended for each firm. Letters are placed into envelopes uniformly at random. What is the probability that *no* letter goes to the correct firm?
 :::
 
 ::: solutionbox
-$$\mathbb{P} = \sum_{k=0}^{5}\frac{(-1)^k}{k!}
-  = 1-1+\tfrac{1}{2}-\tfrac{1}{6}+\tfrac{1}{24}-\tfrac{1}{120}
-  = \frac{44}{120}=\frac{11}{30}\approx36.7\%$$ **Key takeaway:** $\approx1/e$ for $n\geq5$. Recurrence: $D_n=(n-1)(D_{n-1}+D_{n-2})$.
+**Let $A_i = \{\text{letter }i\text{ goes to firm }i\}$.** We want $\mathbb{P}(\overline{A_1}\cap\cdots\cap\overline{A_5})$.
+
+**By IEP:** $$\mathbb{P}(\text{derangement}) = \sum_{k=0}^{5}(-1)^k\dbinom{5}{k}\frac{(5-k)!}{5!} = \sum_{k=0}^{5}\frac{(-1)^k}{k!}$$ $$= 1 - 1 + \frac{1}{2} - \frac{1}{6} + \frac{1}{24} - \frac{1}{120}
+  = \frac{60 - 60 + 30 - 10 + 2 - 1}{120} = \frac{44}{120} = \frac{11}{30} \approx 36.7\%$$
+
+This is already very close to $1/e \approx 36.8\%$.
+
+**Recurrence approach (for interview):** $D_n = (n-1)(D_{n-1}+D_{n-2})$ with $D_1=0$, $D_2=1$.
+
+**Key takeaway:** The probability of a random permutation being a derangement converges rapidly to $1/e$ as $n$ increases. For $n \geq 5$, $1/e$ is accurate to within $0.1\%$.
 :::
 
-## Geometric Probability
+# Geometric Probability
 
-::: {.techniquebox title="Geometric Probability"}
-$\mathbb{P}(A)=\text{measure of favourable region}/\text{total measure}$. Identify the right sample space, map the event geometrically, then compute. **Always draw the picture.**
+**Geometric probability** extends the idea of uniform probability to continuous settings. The sample space is now a geometric region, and: $$\mathbb{P}(A) = \frac{\text{measure of favourable region}}{\text{measure of total region}}$$ where "measure" could be length, area, angle, etc. The key is identifying the right geometric space.
+
+::: {.techniquebox title="Geometric Probability Setup"}
+1.  Identify the correct sample space (e.g., the square $[0,1]^2$ for two independent uniforms).
+
+2.  Translate the event $A$ into a geometric region within that space.
+
+3.  Compute the area (or length, or volume) of that region.
+
+Diagrams are your friend --- draw the sample space and shade the favourable region.
 :::
 
 ::: {.premiumproblem number="9" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p24"}
-**Probability All Random Points Lie in a Semicircle.** Pick $N$ points uniformly on a circle's circumference. What is the probability all $N$ lie within some semicircle?
+**Probability All Random Points Lie in a Semicircle.** Pick $N$ points independently and uniformly at random on the circumference of a circle. What is the probability that all $N$ points lie within *some* semicircle?
 :::
 
 ::: solutionbox
-Let $A_i=\{\text{all other }N-1\text{ points in the semicircle clockwise from }i\}$. Events are mutually exclusive, $\mathbb{P}(A_i)=(1/2)^{N-1}$. $$\boxed{\mathbb{P} = \frac{N}{2^{N-1}}}$$ **Key takeaway:** Mutual exclusivity of $A_1,\ldots,A_N$ is the key step.
+**Key insight:** There exists a semicircle containing all $N$ points if and only if one of the points is the "leftmost" (clockwise boundary) of such a semicircle.
+
+**Step 1:** For a specific point $P_i$, define $A_i = \{\text{all other $N-1$ points lie in the semicircle starting clockwise from }P_i\}$.
+
+$\mathbb{P}(A_i) = \left(\dfrac{1}{2}\right)^{N-1}$ (each other point independently falls in the half-circle, probability $\frac{1}{2}$).
+
+**Step 2:** The events $A_1, \ldots, A_N$ are mutually exclusive (for a given configuration, the clockwise-boundary semicircle is unique), so: $$\mathbb{P}(\text{all in some semicircle}) = N \cdot \left(\frac{1}{2}\right)^{N-1} = \frac{N}{2^{N-1}}$$
+
+**Verification:**
+
+- $N=1$: $\frac{1}{1} = 1$. (One point is trivially in any semicircle.)
+
+- $N=2$: $\frac{2}{2} = 1$. (Two points are always in some semicircle.)
+
+- $N=3$: $\frac{3}{4}$. (Classic result.)
+
+- $N=4$: $\frac{4}{8} = \frac{1}{2}$.
+
+**Key takeaway:** The mutual exclusivity of $A_1,\ldots,A_N$ is the subtle step. It holds because if all points fit in a semicircle, there is a unique semicircle with the minimum arc, and exactly one point is its clockwise boundary.
 :::
 
 ::: {.premiumproblem number="10" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p10"}
-**Probability Two Random Chords Intersect.** Choose chords by picking four endpoints uniformly on a circle. What is the probability the chords intersect?
+**Probability Two Random Chords Intersect.** You draw a circle and choose two chords at random. What is the probability that the two chords intersect?
 :::
 
 :::: solutionbox
-4 random points $\to$ 3 equally likely pairings. Chords intersect iff endpoints alternate; exactly 1 of 3 pairings does this. $$\boxed{\mathbb{P} = \frac{1}{3}}$$
+**Careful setup (avoid Bertrand paradox):** We choose each chord by picking its two endpoints uniformly on the circle. So we have four random points $A, B, C, D$ uniform on the circle.
+
+**Step 1:** Fix the four points. There are $\dbinom{4}{2}/2 = 3$ ways to pair them into two chords:
+
+- $\{AB, CD\}$: chords $AB$ and $CD$.
+
+- $\{AC, BD\}$: chords $AC$ and $BD$.
+
+- $\{AD, BC\}$: chords $AD$ and $BC$.
+
+**Step 2:** Two chords intersect inside the circle if and only if their endpoints *alternate* around the circle. For 4 points in order $P_1, P_2, P_3, P_4$, the only intersecting pairing is $\{P_1P_3, P_2P_4\}$.
+
+**Step 3:** Given 4 random points in general position on the circle, exactly one of the three pairings is the "crossing" pairing. We're choosing one pairing uniformly at random, so: $$\mathbb{P}(\text{chords intersect}) = \frac{1}{3}$$
+
+**Key takeaway:** This is a beautiful application of symmetry --- four uniformly random points give 3 equally likely pairings, exactly 1 of which crosses. The answer $\frac{1}{3}$ is robust to the specific distribution on the circle.
 
 ::: {.warningbox title=""}
-Different chord-sampling methods give different answers (Bertrand's paradox). Always clarify the sampling method in an interview.
+Different ways of "choosing a chord at random" give different answers (Bertrand's paradox). This solution uses the "uniform endpoints" method. Always clarify the sampling method in an interview.
 :::
 ::::
 
 ::: {.premiumproblem number="11" difficulty="veryhard" problemId="quant_interview_fundamental_qdsi_p86"}
-**Triangle Formation from Random Stick Breaks.** **(1)** Unit stick cut at two uniform points. $\mathbb{P}(\text{triangle})$? **(2)** First cut uniform; break the longer piece at a uniform point. $\mathbb{P}(\text{triangle})$?
+**Triangle Formation from Random Stick Breaks.**
+
+**Part (1).** A unit stick is cut at two points chosen independently and uniformly on $(0,1)$. What is the probability the three pieces form a triangle?
+
+**Part (2).** Break a unit stick into two pieces at a uniformly random point. Then break the *longer* piece at a uniformly random point along its length. What is the probability the pieces form a triangle?
 :::
 
 ::: solutionbox
-**(1)** Event = each piece $<1/2$ = two triangles in $[0,1]^2$, total area $1/4$. $\boxed{\mathbb{P}_1=1/4}$.
+**Part (1).**
 
-**(2)** Condition on first cut $U\sim\mathrm{Unif}(0,\tfrac{1}{2})$, second $V\sim\mathrm{Unif}(U,1)$. Need $V>1/2$ and $V<U+1/2$: $$\mathbb{P}_2 = 2\int_0^{1/2}\frac{U}{1-U}\,dU = 2\ln2-1\approx38.6\%$$ **Key takeaway:** Breaking the longer piece raises the probability from 25% to $\approx$`<!-- -->`{=html}38.6%.
+Let the cuts be at $U, V \sim \text{Unif}(0,1)$ independently. The three pieces have lengths $(\min(U,V),\, |U-V|,\, 1-\max(U,V))$.
+
+**Triangle inequality:** Three lengths $a, b, c$ with $a+b+c=1$ form a triangle iff each piece is $< \frac{1}{2}$. (If any piece $\geq \frac{1}{2}$, it exceeds the sum of the other two.)
+
+**Geometric probability:** Plot $(U,V)$ in the unit square $[0,1]^2$. The event "all pieces $< \frac{1}{2}$" corresponds to: $$\min(U,V) < \tfrac{1}{2}, \quad |U-V| < \tfrac{1}{2}, \quad 1-\max(U,V) < \tfrac{1}{2}$$ This is equivalent to: $U < \frac{1}{2}$, $V < \frac{1}{2}$, and $|U-V| < \frac{1}{2}$ --- or --- $U > \frac{1}{2}$, $V > \frac{1}{2}$, and $|U-V| < \frac{1}{2}$.
+
+The favourable region is two triangles, each with area $\frac{1}{8}$, so total area $= \frac{1}{4}$.
+
+$$\boxed{\mathbb{P}(\text{triangle, Part 1}) = \frac{1}{4}}$$
+
+**Part (2).**
+
+Let the first cut be at $U \sim \text{Unif}(0,1)$. WLOG assume $U < \frac{1}{2}$ (longer piece is $[U,1]$). The second cut is at $V \sim \text{Unif}(U,1)$ within the longer piece.
+
+Three pieces: $a = U$, $b = V-U$, $c = 1-V$. Need all $< \frac{1}{2}$.
+
+**Condition:**
+
+- $a = U < \frac{1}{2}$: always true (WLOG).
+
+- $c = 1-V < \frac{1}{2}$: $V > \frac{1}{2}$.
+
+- $b = V - U < \frac{1}{2}$: $V < U + \frac{1}{2}$.
+
+By symmetry we integrate: $$\mathbb{P}(\text{triangle}) = \int_0^{1/2} 2 \int_{\max(U, 1/2)}^{\min(1, U+1/2)} \frac{1}{1-U}\,dV\,dU$$
+
+For $U \in (0, \frac{1}{2})$: integrating $V$ from $\frac{1}{2}$ to $U + \frac{1}{2}$ gives length $U$, so the inner integral is $\frac{U}{1-U}$.
+
+$$\mathbb{P} = 2\int_0^{1/2} \frac{U}{1-U}\,dU = 2\left[\ln 2 - \frac{1}{2}\right] = 2\ln 2 - 1 \approx 0.386$$
+
+$$\boxed{\mathbb{P}(\text{triangle, Part 2}) = 2\ln 2 - 1 \approx 38.6\%}$$
+
+**Comparison:** Breaking uniformly (Part 1) gives 25%; breaking the longer piece (Part 2) gives $\approx 38.6\%$. Intuitively, breaking the longer piece makes extreme-length pieces less likely, increasing triangle probability.
 :::
 
-# Additional Exercises
+# Additional Exercises (Premium)
+
+The following additional problems extend the material and are typical of real quant interview questions.
 
 ::: {.premiumproblem number="A1" difficulty="hard" problemId="citadel_qdsi_p24"}
-**Average Chord Length of the Unit Circle.** What is the expected distance between two randomly chosen points on a unit circle?
+**Average Chord Length of the Unit Circle.** What is the average (expected) distance between two randomly chosen points on a unit circle?
 
-*Hint: chord length $= 2|\sin(\Delta\theta/2)|$; integrate over $\Delta\theta\sim\mathrm{Unif}(0,\pi)$.*
+*Hint: Use the parametrisation $(\cos\theta_1, \sin\theta_1)$ and $(\cos\theta_2, \sin\theta_2)$ with $\theta_1, \theta_2 \sim \text{Unif}(0, 2\pi)$. The chord length is $2|\sin(\Delta\theta/2)|$ where $\Delta\theta = \theta_1 - \theta_2$.*
 :::
 
-::: {.premiumproblem number="A2" difficulty="medium" problemId="quant_interview_fundamental_qdsi_p69"}
-**Balanced Assignment of Seniors Across Teams.** 16 people (4 seniors, 12 juniors) partitioned into 4 labeled groups of 4. $\mathbb{P}(\text{each group has exactly 1 senior})$?
+::: {.premiumproblem number="A2" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p69"}
+**Balanced Assignment of Seniors Across Teams.** There are 16 people: 4 seniors and 12 juniors. They are partitioned uniformly at random into 4 labeled groups of size 4. What is the probability that each group contains exactly 1 senior?
 
-*Hint: count ways to assign 4 seniors to 4 groups, one per group.*
+*Hint: Count the number of ways to assign 4 seniors to 4 groups (one per group), then divide by the total ways to assign 4 seniors to 16 seats.*
 :::
 
-# Technique Summary
+# Key Techniques Summary
 
 ::: {.techniquesummary title="Topic 1 Technique Toolkit"}
 

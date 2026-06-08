@@ -113,9 +113,7 @@ Portfolio value tomorrow: $$\begin{align*}
 
 Guaranteed payoff = \$125 regardless of outcome.
 
-**Cost today:** \$100 (stock) $-$ \$0 (casino bet is free to enter, cost only when losing).
-
-Actually: cost today is just \$100 for the stock; casino bets cost nothing upfront. Tomorrow you receive \$125 guaranteed, having paid \$100 today. $$\text{Risk-free profit} = 125 - 100 = \boxed{\$25}$$
+**Cost today:** \$100 for the stock. The casino bet requires no upfront stake --- you simply agree to pay or receive \$75 depending on the outcome (like a forward contract). This is the standard framing for derivative pricing: only the hedge asset costs money today. $$\text{Risk-free profit} = 125 - 100 = \boxed{\$25}$$
 
 **Why does this work?** The up/down ratio is $200/50=4$, while the casino's payoff ratio is $1:1$. This mismatch creates an arbitrage --- the casino's odds don't reflect the actual stock volatility.
 
@@ -202,27 +200,15 @@ For $j=0$: $\phi(1)=1$ (sum of all probabilities).
 
 **Step 4: Minimum number of digits.** Minimum = four 5s + two digits for $2^4$ = **6 digits**. A 5-digit representation requires one digit $= 2^4 = 16 > 9$. Impossible.
 
-**Step 5: Find the smallest number.**
+**Step 5: Find smallest and largest.**
 
-To minimise, use as *few digits as possible* (fewer digits $\Rightarrow$ smaller number). Factorisations of $16 = 2^4$ into allowed digits:
+*Option A:* digits $\{2, 5, 5, 5, 5, 8\}$, product $=2\times5^4\times8=10000$.
 
-- $8\times2$ (2 digits) $\to$ multiset $\{2,5,5,5,5,8\}$, ascending $= 255558$
+*Option B:* digits $\{4, 4, 5, 5, 5, 5\}$, product $=4^2\times5^4=10000$.
 
-- $4\times4$ (2 digits) $\to$ multiset $\{4,4,5,5,5,5\}$, ascending $= 445555$
+$$\boxed{\text{Smallest: }255558 \qquad \text{Largest: }855552}$$
 
-- $2\times2\times2\times2$ (4 digits) $\to$ more digits, larger number
-
-Since $255558 < 445555$: $$\boxed{\text{Smallest: }255558}$$
-
-**Step 6: Find the largest number.**
-
-To maximise, use as *many digits as possible* (more digits $\Rightarrow$ larger number). Expand $2^4$ fully into individual 2s: $$2\times2\times2\times2 \quad(\text{4 digits for the power-of-2 part})$$ Digit multiset: $\{2,2,2,2,5,5,5,5\}$ (8 digits). Arrange descending: $$\boxed{\text{Largest: }55552222}$$
-
-**Check:** $2^4\times5^4 = 16\times625 = 10000$.
-
-**Remark:** If extra 1s were allowed (product unchanged), there would be no largest number --- any number can be made bigger by appending more 1s. The problem assumes no trivial 1-insertion.
-
-**Key takeaway:** For *smallest*: minimise digit count, use largest single-digit combinations ($8\times2$ beats $4\times4$ beats $2^4$). For *largest*: maximise digit count, split every composite digit into smaller factors.
+**Key takeaway:** Prime factorise the target. Identify which digits can contribute each prime factor. Minimise digit count by using the *largest possible single-digit combinations*. Arrange digits in ascending order for the smallest number, descending for the largest.
 :::
 
 ::: {.premiumproblem number="8" difficulty="medium" problemId=""}

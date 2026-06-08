@@ -179,28 +179,18 @@ The expected value is **infinite** because of the positive probability that $H_1
 :::
 
 ::: solutionbox
-**Let $e_i$ = expected crossings to reach Island $N$ from Island $i$.**
+**Reframe as consecutive successes.** Each bridge crossing from island $i$ to $i+1$ succeeds with prob $1/2$. A failure on any crossing resets you to Island 0. You need $N$ consecutive successes. Let $E$ = expected crossings from Island 0 until you reach Island $N$.
 
-Boundary: $e_N = 0$. For $i < N$: each attempt to cross to Island $i+1$ succeeds with prob $1/2$ (safe bridge) or resets to Island 0 with prob $1/2$ (faulty bridge). $$e_i = 1 + \frac{1}{2}\,e_{i+1} + \frac{1}{2}\,e_0$$ By symmetry, we need $e_0$. Summing over $i=0,1,\ldots,N-1$: $$e_0 = 1 + \frac{1}{2}\,e_1 + \frac{1}{2}\,e_0
-  \implies \frac{1}{2}e_0 = 1 + \frac{1}{2}e_1
-  \implies e_0 = 2 + e_1$$ Applying this recurrence repeatedly: $e_i = 2(N-i) + \frac{N-i}{1}\cdot e_0$\... Let us instead observe: $$e_i - e_{i+1} = 1 + \frac{1}{2}e_0$$ So consecutive differences are all equal to $c = 1 + e_0/2$. Since $e_N = 0$: $$e_0 = N \cdot c = N\!\left(1 + \frac{e_0}{2}\right)
-  \implies e_0\!\left(1 - \frac{N}{2}\right) = N
-  \implies e_0 = \frac{N}{1-N/2} = \frac{2N}{2-N}$$ This is valid only for $N < 2$, which is wrong. Let us redo more carefully.
+**Recurrence.** Let $e_k$ = expected additional crossings needed when you have just successfully completed $k$ consecutive crossings (i.e. you are now on Island $k$): $$e_k = 1 + \frac{1}{2}\,e_{k+1} + \frac{1}{2}\,e_0,
+  \qquad e_N = 0$$ The next crossing either succeeds (move to $k+1$, prob $1/2$) or fails (reset to Island 0, prob $1/2$). From the $k=0$ equation: $$e_0 = 1 + \frac{1}{2}e_1 + \frac{1}{2}e_0
+  \implies e_0 = 2 + e_1$$ Subtracting adjacent equations: $e_k - e_{k+1} = 1 + \tfrac{1}{2}e_0$ for all $k < N$. So all consecutive differences equal $c = 1 + e_0/2$. Since $e_N = 0$: $e_k = (N-k)\cdot c$, so $e_0 = N\cdot c$. Substituting $c = 1 + e_0/2$: $$e_0 = N + \frac{N e_0}{2}
+  \implies e_0\!\left(1 - \frac{N}{2}\right) = N$$ This approach tangles because the recurrence implicitly assumes $N < 2$. The cleaner route: let $e_k$ be the expected crossings to complete crossing $k$ given you are *starting fresh from Island 0* after finishing crossing $k-1$. Then $e_1 = 2$ (geometric with $p=1/2$) and each successive crossing resets on failure: $$e_k = 2 + 2\,e_{k-1}$$ Unrolling: $e_N = 2(1 + 2 + 4 + \cdots + 2^{N-1}) = 2(2^N - 1)$.
 
-The $N$ crossings are in sequence. For crossing $i$ (from island $i-1$ to $i$), with reset to 0 on failure, define $X_i$ = number of attempts for crossing $i$. Each $X_i \sim \mathrm{Geometric}(1/2)$ but with resets. Using the *negative binomial* structure:
+$$\boxed{\mathbb{E}[\text{crossings}] = 2^{N+1} - 2}$$
 
-Each individual crossing needs $\mathrm{Geometric}(1/2)$ attempts *in isolation*. But a reset sends you back to crossing 1, so the crossings are not independent.
+**Verify:** $N=1$: $\mathbb{E}=2$ (geometric with $p=1/2$). $N=2$: $\mathbb{E}=6$ (expected crossings for 2 consecutive successes).
 
-**Total crossings via symmetry:** Think of it as needing $N$ consecutive successes in a sequence of Bernoulli(1/2) trials, with any failure resetting the count. This is the "consecutive successes" problem.
-
-Let $E$ = expected trials for $N$ consecutive successes (each success prob $1/2$). Recurrence: $E = 2(1 + E) - 1$ is incorrect; the standard result is: $$E = \sum_{k=1}^{N} 2^k = 2^{N+1} - 2$$
-
-$$\boxed{\mathbb{E}[\text{crossings}] = 2(2^N - 1) = 2^{N+1} - 2}$$
-
-**Verify:** $N=1$: $\mathbb{E}=2$ (geometric with $p=1/2$). $N=2$: $\mathbb{E}=6$ (must cross 2 consecutive bridges without reset).
-
-**Key takeaway:** Consecutive-success problems give exponential expected times. The recurrence for $e_k = \mathbb{E}[\text{crossings from 0
-to complete crossing }k]$ gives $e_k = 2 + 2e_{k-1}$, yielding $e_N = 2^{N+1}-2$.
+**Key takeaway:** Consecutive-success problems give exponential expected times. Let $e_k$ = expected crossings to complete crossing $k$ given a fresh restart after crossing $k-1$; then $e_k = 2 + 2e_{k-1}$ with $e_1=2$, yielding $e_N = 2^{N+1}-2$.
 :::
 
 ::: {.premiumproblem number="8" difficulty="hard" problemId="quant_interview_fundamental_qdsi_p29"}
