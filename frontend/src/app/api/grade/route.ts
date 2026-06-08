@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
 
-// Initialize OpenAI client
-let openai: OpenAI | null = null;
+// Use Node runtime — the Bedrock SDK / AWS SigV4 signing stack is not edge-compatible
+export const runtime = 'nodejs';
 
 interface GradeRequest {
   userAnswer: string;
@@ -22,15 +22,41 @@ const GRADING_PROMPT = `Check if the student answer equals the correct answer ma
 {"isCorrect": true/false, "confidence": 0.0-1.0, "feedback": "short text"}
 When writing feedback, address the student directly using "you" (e.g. "Your answer..." or "You got...") instead of referring to them as "the student" or "student answer".`;
 
+// Claude may wrap JSON in prose or markdown fences even when told not to.
+// Try increasingly lenient strategies; throw if none yield valid JSON.
+function extractJson(text: string): unknown {
+  const trimmed = text.trim();
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // fall through
+  }
+
+  // Strip a leading ```json / ``` fence and trailing ``` fence
+  const unfenced = trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+  try {
+    return JSON.parse(unfenced);
+  } catch {
+    // fall through
+  }
+
+  // Last resort: grab the first balanced-looking object
+  const start = trimmed.indexOf('{');
+  const end = trimmed.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    return JSON.parse(trimmed.slice(start, end + 1));
+  }
+
+  throw new Error('Could not extract JSON from model response');
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // Check for API keys
-    const apiKey = process.env.AZURE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-    const isAzure = !!process.env.AZURE_OPENAI_API_KEY;
-
-    if (!apiKey) {
+    // Require AWS Bedrock credentials
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
+        { error: 'AWS Bedrock credentials not configured' },
         { status: 500 }
       );
     }
@@ -45,38 +71,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Temporary kill switch: forbid GPT grading when DISABLE_GPT_API is set.
-    // Fall back to exact string matching so grading still works.
-    if (process.env.DISABLE_GPT_API === 'true') {
-      const isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
-      return NextResponse.json({
-        isCorrect,
-        confidence: 1.0,
-        feedback: isCorrect ? 'Correct!' : 'Incorrect',
-        explanation: 'Graded by exact match'
-      });
-    }
-
-    // Configure OpenAI client for GPT-5-nano
-    if (isAzure && process.env.AZURE_OPENAI_ENDPOINT) {
-      const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5_NANO || 'gpt-5-nano';
-      const azureBaseURL = `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${deploymentName}`;
-
-      openai = new OpenAI({
-        apiKey: process.env.AZURE_OPENAI_API_KEY!,
-        baseURL: azureBaseURL,
-        defaultQuery: { 'api-version': '2025-04-01-preview' },
-        defaultHeaders: {
-          'api-key': process.env.AZURE_OPENAI_API_KEY!,
-        },
-      });
-    } else if (process.env.OPENAI_API_KEY) {
-      openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
-    } else {
-      throw new Error('No OpenAI API key configured');
-    }
+    // Configure Claude Sonnet client on AWS Bedrock (global cross-region inference profile)
+    const client = new AnthropicBedrock({
+      awsRegion: process.env.AWS_REGION || 'us-east-1',
+      awsAccessKey: process.env.AWS_ACCESS_KEY_ID,
+      awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY,
+    });
+    const model = process.env.BEDROCK_GRADING_MODEL || 'global.anthropic.claude-sonnet-4-6';
 
     // Build the grading query
     const query = problemText
@@ -91,28 +92,31 @@ Student Answer: ${userAnswer}
 
 Grade the student's answer.`;
 
-    // Get grading result from GPT-5-nano
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-5-nano',
-      messages: [
-        { role: 'system', content: GRADING_PROMPT },
-        { role: 'user', content: query }
-      ],
-      max_completion_tokens: 2000,
+    // Get grading result from Claude Sonnet (system prompt is a top-level field on the Messages API)
+    const completion = await client.messages.create({
+      model,
+      max_tokens: 1024,
+      system: GRADING_PROMPT,
+      messages: [{ role: 'user', content: query }],
     });
 
-    const message = completion.choices[0]?.message;
-    const messageAsUnknown = message as unknown as { reasoning_content?: string; text?: string };
-    const response = message?.content || messageAsUnknown?.reasoning_content || messageAsUnknown?.text;
+    // Concatenate text content blocks
+    let response = '';
+    for (const block of completion.content) {
+      if (block.type === 'text') {
+        response += block.text;
+      }
+    }
+    response = response.trim();
 
     if (!response) {
-      console.error('No response content from OpenAI');
-      throw new Error('No response from OpenAI');
+      console.error('No text content from Bedrock');
+      throw new Error('No response from Bedrock');
     }
 
     try {
-      // Parse the JSON response
-      const gradeResult: GradeResponse = JSON.parse(response);
+      // Parse the JSON response (robust to fences / surrounding prose)
+      const gradeResult = extractJson(response) as GradeResponse;
 
       // Validate response structure
       if (typeof gradeResult.isCorrect !== 'boolean' ||
@@ -140,23 +144,29 @@ Grade the student's answer.`;
   } catch (error) {
     console.error('Grading API Error:', error);
 
-    if (error instanceof Error) {
-      if (error.message.includes('401')) {
-        return NextResponse.json(
-          { error: 'Invalid API key' },
-          { status: 401 }
-        );
-      } else if (error.message.includes('404')) {
-        return NextResponse.json(
-          { error: 'GPT-5-nano model not found. Check deployment configuration.' },
-          { status: 404 }
-        );
-      } else if (error.message.includes('429')) {
-        return NextResponse.json(
-          { error: 'Rate limit exceeded' },
-          { status: 429 }
-        );
-      }
+    const status = (error as { status?: number })?.status;
+    const name = (error as { name?: string })?.name;
+
+    if (status === 403 || name === 'AccessDeniedException') {
+      return NextResponse.json(
+        { error: 'Bedrock access denied — submit the Anthropic use-case form and verify IAM allows bedrock:InvokeModel for this model' },
+        { status: 403 }
+      );
+    } else if (status === 400 || name === 'ValidationException') {
+      return NextResponse.json(
+        { error: 'Invalid Bedrock model ID — ensure BEDROCK_GRADING_MODEL is the global inference profile (global.anthropic.claude-sonnet-4-6)' },
+        { status: 400 }
+      );
+    } else if (status === 404 || name === 'ResourceNotFoundException') {
+      return NextResponse.json(
+        { error: 'Bedrock model not found in region — check BEDROCK_GRADING_MODEL and AWS_REGION' },
+        { status: 404 }
+      );
+    } else if (status === 429 || name === 'ThrottlingException' || name === 'TooManyRequestsException') {
+      return NextResponse.json(
+        { error: 'Bedrock rate limit / throughput exceeded' },
+        { status: 429 }
+      );
     }
 
     return NextResponse.json(
