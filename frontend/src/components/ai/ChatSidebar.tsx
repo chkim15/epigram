@@ -375,7 +375,8 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'handouts' | 'solutions' | 'notes'>('chat');
+  // AI Tutor temporarily disabled — default to Solutions tab instead of 'chat'
+  const [activeTab, setActiveTab] = useState<'chat' | 'handouts' | 'solutions' | 'notes'>('solutions');
   const selectedModel = 'gpt-5';
   const [pastedImage, setPastedImage] = useState<{ url: string; file: File } | null>(null);
   const [currentSubproblems, setCurrentSubproblems] = useState<Subproblem[]>([]);
@@ -1005,14 +1006,15 @@ export default function ChatSidebar({ mode = 'problems', currentTopicId }: ChatS
     "What concepts do I need to review for this problem?"
   ];
 
+  // AI Tutor temporarily disabled — tab entries commented out to allow easy recovery later.
   const tabs = mode === 'problems'
     ? [
-        { id: 'chat', label: 'AI Tutor', icon: MessagesSquare },
+        // { id: 'chat', label: 'AI Tutor', icon: MessagesSquare },
         { id: 'solutions', label: 'Solutions', icon: BookOpen },
         { id: 'notes', label: 'Notes', icon: SquarePen }
       ] as const
     : [
-        { id: 'chat', label: 'AI Tutor', icon: MessagesSquare }
+        // { id: 'chat', label: 'AI Tutor', icon: MessagesSquare }
       ] as const;
 
   return (

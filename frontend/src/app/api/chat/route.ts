@@ -115,6 +115,14 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   try {
 
+    // Temporary kill switch: forbid all AI tutor usage when DISABLE_GPT_API is set
+    if (process.env.DISABLE_GPT_API === 'true') {
+      return NextResponse.json(
+        { error: 'The AI tutor is temporarily unavailable.' },
+        { status: 503 }
+      );
+    }
+
     // Check environment variables
     if (!process.env.GOOGLE_API_KEY) {
       console.error('GOOGLE_API_KEY is not set');

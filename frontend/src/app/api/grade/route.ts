@@ -45,6 +45,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Temporary kill switch: forbid GPT grading when DISABLE_GPT_API is set.
+    // Fall back to exact string matching so grading still works.
+    if (process.env.DISABLE_GPT_API === 'true') {
+      const isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
+      return NextResponse.json({
+        isCorrect,
+        confidence: 1.0,
+        feedback: isCorrect ? 'Correct!' : 'Incorrect',
+        explanation: 'Graded by exact match'
+      });
+    }
+
     // Configure OpenAI client for GPT-5-nano
     if (isAzure && process.env.AZURE_OPENAI_ENDPOINT) {
       const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME_GPT5_NANO || 'gpt-5-nano';
