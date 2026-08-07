@@ -570,7 +570,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonial Section */}
-      <section style={{ background: '#e9e6dc', padding: '100px 16%' }}>
+      <section style={{ background: '#e9e6dc', padding: '100px 16%', borderBottom: '1px solid rgb(220,218,210)' }}>
         <div style={{ maxWidth: '840px', margin: '0 auto', textAlign: 'center' }}>
           <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '28px' }}>What learners say</p>
           <span aria-hidden="true" style={{ display: 'block', fontFamily: 'var(--font-playfair, serif)', fontSize: '64px', lineHeight: 0.5, color: 'rgba(161,98,7,0.4)', marginBottom: '24px' }}>&ldquo;</span>
