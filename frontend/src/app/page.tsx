@@ -569,6 +569,20 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Testimonial Section */}
+      <section style={{ background: '#e9e6dc', padding: '100px 16%' }}>
+        <div style={{ maxWidth: '840px', margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '28px' }}>What learners say</p>
+          <span aria-hidden="true" style={{ display: 'block', fontFamily: 'var(--font-playfair, serif)', fontSize: '64px', lineHeight: 0.5, color: 'rgba(161,98,7,0.4)', marginBottom: '24px' }}>&ldquo;</span>
+          <blockquote style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(17px, 1.9vw, 24px)', fontStyle: 'italic', color: '#141310', lineHeight: 1.55, margin: 0 }}>
+            This course has been very helpful for my interview preparation. I appreciate both the breadth and depth of the material: it covers a wide range of important topics while still explaining the key ideas carefully. Since I do not come from a traditional quant finance background, the carefully selected topics were especially valuable, helping me build the missing context efficiently without having to spend months working through large textbooks on my own. The problem selection is also excellent, with many representative questions that closely match the style and difficulty of real interviews.
+          </blockquote>
+          <p style={{ fontSize: '14px', color: '#4A5B78', lineHeight: 1.6, marginTop: '32px' }}>
+            Postdoc in Mathematical Physics{' · '}Actively looking for quant finance roles
+          </p>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" style={{ background: '#e9e6dc', padding: '100px 16%' }}>
         <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '16px' }}>Pricing</p>
