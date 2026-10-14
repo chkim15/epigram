@@ -124,7 +124,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   console.log(`[Checkout] Subscription status: ${subscription.status}, trial_end: ${subscription.trial_end}`);
 
   // Determine plan ID based on price
-  const priceId = subscription.items.data[0]?.price.id;
+  // Billing period lives on the subscription item (moved off Subscription in API 2025-03-31.basil)
+  const item = subscription.items.data[0];
+  const priceId = item?.price.id;
   let planId = 'free';
 
   if (priceId === process.env.STRIPE_PRICE_MONTHLY) {
@@ -139,8 +141,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     status: string;
     trial_start: number | null;
     trial_end: number | null;
-    current_period_start: number;
-    current_period_end: number;
     cancel_at_period_end: boolean;
   };
 
@@ -165,8 +165,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       status: subData.status,
       trial_start: safeTimestamp(subData.trial_start),
       trial_end: safeTimestamp(subData.trial_end),
-      current_period_start: safeTimestamp(subData.current_period_start),
-      current_period_end: safeTimestamp(subData.current_period_end),
+      current_period_start: safeTimestamp(item?.current_period_start),
+      current_period_end: safeTimestamp(item?.current_period_end),
       has_used_trial: subData.trial_end ? true : false,
       cancel_at_period_end: subData.cancel_at_period_end || false,
     }, {
@@ -221,7 +221,9 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   }
 
   // Determine plan ID based on price
-  const priceId = subscription.items.data[0]?.price.id;
+  // Billing period lives on the subscription item (moved off Subscription in API 2025-03-31.basil)
+  const item = subscription.items.data[0];
+  const priceId = item?.price.id;
   let planId = 'free';
 
   if (priceId === process.env.STRIPE_PRICE_MONTHLY) {
@@ -235,8 +237,6 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     status: string;
     trial_start: number | null;
     trial_end: number | null;
-    current_period_start: number;
-    current_period_end: number;
     cancel_at_period_end: boolean;
     canceled_at: number | null;
   };
@@ -259,8 +259,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       status: subData.status,
       trial_start: safeTimestamp(subData.trial_start),
       trial_end: safeTimestamp(subData.trial_end),
-      current_period_start: safeTimestamp(subData.current_period_start),
-      current_period_end: safeTimestamp(subData.current_period_end),
+      current_period_start: safeTimestamp(item?.current_period_start),
+      current_period_end: safeTimestamp(item?.current_period_end),
       cancel_at_period_end: subData.cancel_at_period_end || false,
       canceled_at: safeTimestamp(subData.canceled_at),
     })
@@ -321,8 +321,9 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  const invoiceData = invoice as unknown as { subscription: string | null };
-  const subscriptionId = invoiceData.subscription;
+  // Subscription ID moved to invoice.parent in API 2025-03-31.basil
+  const subRef = invoice.parent?.subscription_details?.subscription;
+  const subscriptionId = typeof subRef === 'string' ? subRef : subRef?.id;
   if (!subscriptionId) {
     return;
   }
@@ -380,8 +381,9 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  const invoiceData = invoice as unknown as { subscription: string | null };
-  const subscriptionId = invoiceData.subscription;
+  // Subscription ID moved to invoice.parent in API 2025-03-31.basil
+  const subRef = invoice.parent?.subscription_details?.subscription;
+  const subscriptionId = typeof subRef === 'string' ? subRef : subRef?.id;
   if (!subscriptionId) {
     return;
   }
