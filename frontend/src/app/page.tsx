@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import posthog from "posthog-js";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -12,6 +12,18 @@ import NewsletterModal from "@/components/marketing/NewsletterModal";
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
+
+// Firm logos for the "Problems sourced from" bar, in display order.
+const firmLogos: { name: string; file: string; filter?: string }[] = [
+  { name: 'Citadel', file: 'citadel.svg' },
+  { name: 'Jane Street', file: 'jane-street.svg' },
+  { name: 'Two Sigma', file: 'two-sigma.svg' },
+  { name: 'D.E. Shaw', file: 'de-shaw.svg' },
+  { name: 'Optiver', file: 'optiver.svg' },
+  { name: 'Hudson River Trading', file: 'hrt.svg', filter: 'opacity(0.6)' },
+  { name: 'Jump Trading', file: 'jump-trading.svg' },
+  { name: 'IMC Trading', file: 'imc.svg' },
+];
 
 const faqs = [
   {
@@ -42,6 +54,7 @@ const faqs = [
 
 export default function LandingPage() {
   const [newsletterOpen, setNewsletterOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   return (
     <div className={`min-h-screen overflow-y-auto scroll-smooth ${playfair.variable} ${dmSans.variable}`} style={{ backgroundColor: '#faf9f5', height: '100vh' }}>
@@ -139,25 +152,29 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          style={{ color: '#4A5B78', fontSize: '16px', lineHeight: 1.7, marginBottom: '48px', maxWidth: '740px' }}
+          style={{ color: '#33415c', fontSize: '17px', lineHeight: 1.7, marginBottom: '20px', maxWidth: '740px' }}
         >
           The prep books are outdated. The forums are unverified. Epigram is built for one thing: the exact problems top funds actually ask, at the difficulty they actually ask them.
         </motion.p>
 
-        {/* Created by */}
+        {/* Subtext proof points */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.25 }}
-          style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}
+          transition={{ duration: 0.6, delay: 0.22 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '48px', maxWidth: '740px' }}
         >
-          <span style={{ fontSize: '13px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#9b9b93', fontWeight: 500 }}>
-            Created by
-          </span>
-          <span style={{ fontSize: '13px', color: '#4A5B78' }}>
-            Math PhD &amp; former Wharton lecturer
-          </span>
+          {[
+            'Real interview problems from the last three years, with new ones added every 2–3 days',
+            "Organized by firm, so you prepare for the company you're actually interviewing with",
+            'Step-by-step solutions checked by a Math PhD and former head of quant research, often with more than one approach',
+          ].map(point => (
+            <div key={point} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '17px', lineHeight: 1.6, fontWeight: 500, color: '#141310' }}>
+              <span style={{ color: '#a16207', fontWeight: 700, flexShrink: 0 }}>✓</span>{point}
+            </div>
+          ))}
         </motion.div>
+
 
         {/* CTA Buttons */}
         <motion.div
@@ -206,61 +223,26 @@ export default function LandingPage() {
           <span style={{ fontSize: '9px', color: '#9b9b93', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 600, flexShrink: 0 }}>
             Problems sourced from
           </span>
-          {[
-            { name: 'Citadel', file: 'citadel.svg' },
-            { name: 'Jane Street', file: 'jane-street.svg' },
-            { name: 'Two Sigma', file: 'two-sigma.svg' },
-            { name: 'D.E. Shaw', file: 'de-shaw.svg' },
-            { name: 'Optiver', file: 'optiver.svg' },
-            { name: 'Hudson River Trading', file: 'hrt.svg', filter: 'opacity(0.6)' },
-            { name: 'Jump Trading', file: 'jump-trading.svg' },
-            { name: 'IMC Trading', file: 'imc.svg' },
-          ].map(({ name, file, filter }) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={file}
-              src={`/company_logo/${file}`}
-              alt={name}
-              style={{ height: '24px', maxWidth: '100px', width: 'auto', filter: filter ?? 'brightness(0) opacity(0.45)', objectFit: 'contain', flexShrink: 0 }}
-            />
-          ))}
-          <span style={{ fontSize: '12px', color: '#9b9b93', fontWeight: 500, flexShrink: 0 }}>+ more</span>
-        </div>
-      </div>
-
-      {/* Newsletter Banner */}
-      <div style={{ background: 'rgba(161,98,7,0.08)', padding: '52px 16%' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '40px', flexWrap: 'wrap' }}>
-          {/* Left: copy */}
-          <div style={{ flex: '1 1 320px', minWidth: 0 }}>
-            <span style={{ display: 'inline-block', background: '#a16207', color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '4px', marginBottom: '16px' }}>
-              Free Weekly Newsletter
-            </span>
-            <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 700, color: '#141310', lineHeight: 1.2, marginBottom: '10px' }}>
-              The Quant Signal
-            </h3>
-            <p style={{ fontSize: '14px', color: '#4a4a42', lineHeight: 1.65, maxWidth: '420px' }}>
-              Real interview problems, prep tips, and strategy notes — to help you prepare for top funds with sharper signal and less wasted effort.
-            </p>
-          </div>
-          {/* Right: fake input + button CTA */}
-          <div style={{ flex: '1 1 320px', minWidth: 0, maxWidth: '420px' }}>
-            <button
-              onClick={() => {
-                posthog.capture('newsletter_modal_opened', { source: 'landing_page' });
-                setNewsletterOpen(true);
-              }}
-              style={{ width: '100%', padding: '6px 6px 6px 16px', borderRadius: '10px', background: '#ffffff', border: '1px solid rgb(220,218,210)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}
+          {/* Logos drift left to right on a loop: the list is drawn three times and slid by one copy's width, so wide screens never show a gap */}
+          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', WebkitMaskImage: 'linear-gradient(to right, transparent, #000 6%, #000 94%, transparent)', maskImage: 'linear-gradient(to right, transparent, #000 6%, #000 94%, transparent)' }}>
+            <motion.div
+              style={{ display: 'flex', alignItems: 'center', width: 'max-content' }}
+              animate={reduceMotion ? undefined : { x: ['-33.3333%', '0%'] }}
+              transition={{ duration: 30, ease: 'linear', repeat: Infinity }}
             >
-              <span style={{ fontSize: '14px', color: '#9b9b93', fontWeight: 400 }}>Email address</span>
-              <span style={{ padding: '10px 18px', borderRadius: '7px', background: '#a16207', color: '#fff', fontSize: '14px', fontWeight: 600, flexShrink: 0 }}
-                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = '#8b5006')}
-                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '#a16207')}
-              >
-                Subscribe →
-              </span>
-            </button>
+              {[...firmLogos, ...firmLogos, ...firmLogos].map(({ name, file, filter }, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={`${file}-${i}`}
+                  src={`/company_logo/${file}`}
+                  alt={i < firmLogos.length ? name : ''}
+                  aria-hidden={i >= firmLogos.length}
+                  style={{ height: '24px', maxWidth: '100px', width: 'auto', marginRight: '40px', filter: filter ?? 'brightness(0) opacity(0.45)', objectFit: 'contain', flexShrink: 0 }}
+                />
+              ))}
+            </motion.div>
           </div>
+          <span style={{ fontSize: '12px', color: '#9b9b93', fontWeight: 500, flexShrink: 0 }}>+ more</span>
         </div>
       </div>
 
@@ -269,7 +251,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: '800px' }}>
           <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '24px' }}>From the founder</p>
           {/* Avatar + quote */}
-          <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start', marginBottom: '40px' }}>
+          <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start', marginBottom: '0' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(161,98,7,0.1)', border: '2px solid rgba(161,98,7,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-playfair, serif)', fontSize: '24px', fontWeight: 700, color: '#a16207' }}>
               J
             </div>
@@ -277,10 +259,6 @@ export default function LandingPage() {
               &ldquo;I was preparing for top quant fund interviews. I had the mathematical background. I read the books everyone reads. And they felt like practice for a different exam. Too easy. Too broad. No way to tell which problems actually mattered. I spent hours on material that wasn&apos;t going to appear in the room — and I couldn&apos;t shake the feeling that my prep wasn&apos;t mapping to what I was about to face. I built Epigram because that resource shouldn&apos;t be this hard to find.<span style={{ color: '#a16207' }}>&rdquo;</span>
             </blockquote>
           </div>
-          {/* Attribution */}
-          <p style={{ fontSize: '14px', color: '#4A5B78', lineHeight: 1.6, paddingLeft: '96px' }}>
-            Founder{' · '}Math PhD from Penn{' · '}Former Wharton lecturer in stochastic processes
-          </p>
         </div>
       </section>
 
@@ -735,6 +713,42 @@ export default function LandingPage() {
 
       {/* FAQ Section */}
       <Faq items={faqs} />
+
+      {/* Newsletter Banner */}
+      <div style={{ background: 'rgba(161,98,7,0.08)', padding: '52px 16%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '40px', flexWrap: 'wrap' }}>
+          {/* Left: copy */}
+          <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+            <span style={{ display: 'inline-block', background: '#a16207', color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '4px', marginBottom: '16px' }}>
+              Free Weekly Newsletter
+            </span>
+            <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 700, color: '#141310', lineHeight: 1.2, marginBottom: '10px' }}>
+              The Quant Signal
+            </h3>
+            <p style={{ fontSize: '14px', color: '#4a4a42', lineHeight: 1.65, maxWidth: '420px' }}>
+              Real interview problems, prep tips, and strategy notes — to help you prepare for top funds with sharper signal and less wasted effort.
+            </p>
+          </div>
+          {/* Right: fake input + button CTA */}
+          <div style={{ flex: '1 1 320px', minWidth: 0, maxWidth: '420px' }}>
+            <button
+              onClick={() => {
+                posthog.capture('newsletter_modal_opened', { source: 'landing_page' });
+                setNewsletterOpen(true);
+              }}
+              style={{ width: '100%', padding: '6px 6px 6px 16px', borderRadius: '10px', background: '#ffffff', border: '1px solid rgb(220,218,210)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}
+            >
+              <span style={{ fontSize: '14px', color: '#9b9b93', fontWeight: 400 }}>Email address</span>
+              <span style={{ padding: '10px 18px', borderRadius: '7px', background: '#a16207', color: '#fff', fontSize: '14px', fontWeight: 600, flexShrink: 0 }}
+                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = '#8b5006')}
+                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '#a16207')}
+              >
+                Subscribe →
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Final CTA Section */}
       <section style={{ background: '#faf9f5', padding: '100px 16%' }}>
