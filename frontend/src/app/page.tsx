@@ -573,13 +573,26 @@ export default function LandingPage() {
       <section style={{ background: '#e9e6dc', padding: '100px 16%', borderBottom: '1px solid rgb(220,218,210)' }}>
         <div style={{ maxWidth: '840px', margin: '0 auto', textAlign: 'center' }}>
           <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '28px' }}>What learners say</p>
-          <span aria-hidden="true" style={{ display: 'block', fontFamily: 'var(--font-playfair, serif)', fontSize: '64px', lineHeight: 0.5, color: 'rgba(161,98,7,0.4)', marginBottom: '24px' }}>&ldquo;</span>
-          <blockquote style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(17px, 1.9vw, 24px)', fontStyle: 'italic', color: '#141310', lineHeight: 1.55, margin: 0 }}>
-            This course has been very helpful for my interview preparation. I appreciate both the breadth and depth of the material: it covers a wide range of important topics while still explaining the key ideas carefully. Since I do not come from a traditional quant finance background, the carefully selected topics were especially valuable, helping me build the missing context efficiently without having to spend months working through large textbooks on my own. The problem selection is also excellent, with many representative questions that closely match the style and difficulty of real interviews.
-          </blockquote>
-          <p style={{ fontSize: '14px', color: '#4A5B78', lineHeight: 1.6, marginTop: '32px' }}>
-            Postdoc in Mathematical Physics{' · '}Actively looking for quant finance roles
-          </p>
+          {[
+            {
+              quote: "This course has been very helpful for my interview preparation. I appreciate both the breadth and depth of the material: it covers a wide range of important topics while still explaining the key ideas carefully. Since I do not come from a traditional quant finance background, the carefully selected topics were especially valuable, helping me build the missing context efficiently without having to spend months working through large textbooks on my own. The problem selection is also excellent, with many representative questions that closely match the style and difficulty of real interviews.",
+              attribution: ['Postdoc in Mathematical Physics', 'Actively looking for quant finance roles'],
+            },
+            {
+              quote: "As someone who has gone through multiple quant interviews, I've found Epigram's problem sets to be comprehensive, well-curated, and highly relevant to actual interview questions — they've improved my interview performance over time. The medium-level questions are pitched at just the right difficulty for MSc quant students or relevant STEM graduates, while some of the hard-level problems are genuinely challenging and demand substantial amount of thinking. The 1-on-1 tutoring has been really helpful, guiding me through solutions and conveying the intuition of the core techniques behind them.",
+              attribution: ['MS Student', 'University of Glasgow'],
+            },
+          ].map(({ quote, attribution }, i) => (
+            <div key={attribution.join()} style={{ marginTop: i === 0 ? 0 : '56px', paddingTop: i === 0 ? 0 : '56px', borderTop: i === 0 ? 'none' : '1px solid rgb(220,218,210)' }}>
+              <span aria-hidden="true" style={{ display: 'block', fontFamily: 'var(--font-playfair, serif)', fontSize: '64px', lineHeight: 0.5, color: 'rgba(161,98,7,0.4)', marginBottom: '24px' }}>&ldquo;</span>
+              <blockquote style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 'clamp(17px, 1.9vw, 24px)', fontStyle: 'italic', color: '#141310', lineHeight: 1.55, margin: 0 }}>
+                {quote}
+              </blockquote>
+              <p style={{ fontSize: '14px', color: '#4A5B78', lineHeight: 1.6, marginTop: '32px' }}>
+                {attribution.join(' · ')}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
