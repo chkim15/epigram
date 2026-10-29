@@ -22,15 +22,15 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
     {
       id: 'monthly' as const,
       name: 'Monthly',
-      price: '$19',
+      price: '$39',
       period: '/mo',
     },
     {
       id: 'six_month' as const,
       name: '6 Months',
-      price: '$89',
+      price: '$179',
       period: '/6 mo',
-      savings: 'Save 22%',
+      savings: 'Save 23%',
       popular: true,
     },
   ];

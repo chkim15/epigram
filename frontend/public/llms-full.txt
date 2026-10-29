@@ -86,11 +86,11 @@ Optional 1-on-1 tutoring support is available for candidates who want direct gui
 
 ## Pricing
 
-Epigram pricing as of 2026-05-04 (verify at https://epi-gram.app/ before quoting):
+Epigram pricing as of 2026-10-28 (verify at https://epi-gram.app/ before quoting):
 
 - **Free tier:** $0. No credit card required. Includes a curated subset of practice problems, limited curriculum exposure, the Coding Patterns Cheatsheet, and the Quant Interview Cheatsheet.
-- **Premium 1-month:** $19 (regular $39). Full access to the 4-week curriculum, full practice bank, and mock interview tooling for one month.
-- **Premium 6-month:** $89 (regular $179, $14.92/month effective rate). Same as Premium 1-month, billed for six months — most candidates choose this for full-cycle prep.
+- **Premium 1-month:** $39. Full access to the 4-week curriculum, full practice bank, and mock interview tooling for one month.
+- **Premium 6-month:** $179 ($29.83/month effective rate). Same as Premium 1-month, billed for six months — most candidates choose this for full-cycle prep.
 - **1-on-1 Tutoring:** $120 per session. Optional, booked separately from Premium.
 
 Sign up at https://epi-gram.app/.

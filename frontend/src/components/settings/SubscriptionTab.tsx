@@ -219,8 +219,8 @@ export default function SubscriptionTab() {
             </h3>
             <div className="grid grid-cols-2 gap-3 mb-4">
               {[
-                { id: 'monthly' as const, name: 'Monthly', price: '$19/mo' },
-                { id: 'six_month' as const, name: '6 Months', price: '$89/6 mo', savings: 'Save 22%', popular: true },
+                { id: 'monthly' as const, name: 'Monthly', price: '$39/mo' },
+                { id: 'six_month' as const, name: '6 Months', price: '$179/6 mo', savings: 'Save 23%', popular: true },
               ].map((planOption) => (
                 <div
                   key={planOption.id}

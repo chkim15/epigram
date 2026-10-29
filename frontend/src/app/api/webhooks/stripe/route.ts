@@ -22,6 +22,15 @@ const supabaseAdmin = createClient(
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Map by billing interval, not price ID, so subscribers on older price IDs
+// (e.g. grandfathered launch-offer prices) keep their plan after a price change.
+function planIdForPrice(price: Stripe.Price | undefined): string {
+  if (price?.recurring?.interval !== 'month') return 'free';
+  if (price.recurring.interval_count === 1) return 'pro_monthly';
+  if (price.recurring.interval_count === 6) return 'pro_six_month';
+  return 'free';
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
@@ -127,13 +136,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Billing period lives on the subscription item (moved off Subscription in API 2025-03-31.basil)
   const item = subscription.items.data[0];
   const priceId = item?.price.id;
-  let planId = 'free';
-
-  if (priceId === process.env.STRIPE_PRICE_MONTHLY) {
-    planId = 'pro_monthly';
-  } else if (priceId === process.env.STRIPE_PRICE_SIX_MONTH) {
-    planId = 'pro_six_month';
-  }
+  const planId = planIdForPrice(item?.price);
   console.log(`[Checkout] Mapped price ${priceId} to plan: ${planId}`);
 
   // Create or update subscription record
@@ -223,14 +226,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   // Determine plan ID based on price
   // Billing period lives on the subscription item (moved off Subscription in API 2025-03-31.basil)
   const item = subscription.items.data[0];
-  const priceId = item?.price.id;
-  let planId = 'free';
-
-  if (priceId === process.env.STRIPE_PRICE_MONTHLY) {
-    planId = 'pro_monthly';
-  } else if (priceId === process.env.STRIPE_PRICE_SIX_MONTH) {
-    planId = 'pro_six_month';
-  }
+  const planId = planIdForPrice(item?.price);
 
   // Update subscription record
   const subData = subscription as unknown as {

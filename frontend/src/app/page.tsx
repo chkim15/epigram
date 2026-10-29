@@ -60,14 +60,6 @@ export default function LandingPage() {
     <div className={`min-h-screen overflow-y-auto scroll-smooth ${playfair.variable} ${dmSans.variable}`} style={{ backgroundColor: '#faf9f5', height: '100vh' }}>
       <NewsletterModal isOpen={newsletterOpen} onClose={() => setNewsletterOpen(false)} />
 
-      {/* Announcement Bar */}
-      <div style={{ background: 'rgba(161,98,7,0.12)', borderBottom: '1px solid rgba(161,98,7,0.4)', padding: '9px 16px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-        <span style={{ background: '#a16207', color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '4px', flexShrink: 0 }}>Launch Offer</span>
-        <span style={{ fontSize: '14px', color: '#141310' }}>
-          Sign up before <strong>Sep 1</strong>: <strong>50% off any paid plan</strong>
-        </span>
-      </div>
-
       {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-[#faf9f5]/80 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-16">
@@ -581,12 +573,6 @@ export default function LandingPage() {
           Start free.<br />Go deeper when you&apos;re ready.
         </h2>
 
-        {/* Launch offer banner */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#ffffff', border: '2px solid rgba(161,98,7,0.4)', borderRadius: '10px', padding: '14px 20px', marginBottom: '28px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600, color: '#a16207', flexShrink: 0 }}>Launch offer</span>
-          <span style={{ fontSize: '14px', color: '#141310' }}>Sign up before <span style={{ fontWeight: 700, color: '#a16207' }}>Sep 1</span> for <strong>50% off</strong> any paid plan — locked in for your entire committed period.</span>
-        </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', alignItems: 'stretch' }}>
 
           {/* Free */}
@@ -596,7 +582,7 @@ export default function LandingPage() {
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$0</span>
             </div>
             <p style={{ fontSize: '12px', color: '#9b9b93', marginBottom: '4px' }}>No credit card required</p>
-            <p style={{ fontSize: '11px', color: 'transparent', marginBottom: '24px', userSelect: 'none' }}>* Limited time launch offer</p>
+            <p aria-hidden="true" style={{ fontSize: '11px', color: 'transparent', marginBottom: '24px', userSelect: 'none' }}>&nbsp;</p>
             <div style={{ flex: 1 }}>
               {['Access to first topics of The 4-Week Intensive curriculum', 'Two interview cheatsheets', 'Core free-tier problems'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
@@ -616,8 +602,7 @@ export default function LandingPage() {
           <div style={{ background: '#ffffff', border: '1px solid rgb(240,238,230)', borderRadius: '14px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>Premium</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 500, color: '#9b9b93', lineHeight: 1, textDecoration: 'line-through' }}>$39</span>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$19</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$39</span>
               <span style={{ fontSize: '16px', color: '#9b9b93', fontWeight: 400 }}>/mo</span>
             </div>
             <p style={{ fontSize: '12px', color: '#9b9b93', marginBottom: '24px' }}>Billed every month · Cancel anytime</p>
@@ -647,13 +632,12 @@ export default function LandingPage() {
             </div>
             <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '8px' }}>Premium · 6 months</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '32px', fontWeight: 500, color: '#9b9b93', lineHeight: 1, textDecoration: 'line-through' }}>$179</span>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$89</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '48px', fontWeight: 700, color: '#141310', lineHeight: 1 }}>$179</span>
               <span style={{ fontSize: '16px', color: '#9b9b93', fontWeight: 400 }}>/6 mo</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '14px', fontWeight: 600, color: '#a16207' }}>$14.92/mo</span>
-              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', background: '#a16207', color: '#fff', borderRadius: '4px', padding: '2px 6px' }}>Save 22%</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '14px', fontWeight: 600, color: '#a16207' }}>$29.83/mo</span>
+              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', background: '#a16207', color: '#fff', borderRadius: '4px', padding: '2px 6px' }}>Save 23%</span>
             </div>
             <p style={{ fontSize: '12px', color: '#9b9b93', marginBottom: '24px' }}>Billed every 6 months · Cancel anytime</p>
             <div style={{ flex: 1 }}>
