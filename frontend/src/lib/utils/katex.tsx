@@ -15,6 +15,12 @@ const GraphRenderer = dynamic(
   }
 );
 
+// KaTeX's HTML contains literal "$" characters (the glyph for \$, and the TeX source in its MathML annotation).
+// renderMath's later passes re-scan the whole string for $...$ math, which pairs those characters and swallows
+// them: "\(\$2\)" showed as "2". Emit them as entities so the later passes cannot see them.
+const renderKatex = (tex: string, options: katex.KatexOptions): string =>
+  katex.renderToString(tex, options).replace(/\$/g, '&#36;');
+
 export function renderMath(text: string, documentId?: string): string {
   if (!text) return '';
   
@@ -37,7 +43,7 @@ export function renderMath(text: string, documentId?: string): string {
   // Process display math first - $$...$$ (including multi-line content)
   processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
     try {
-      return katex.renderToString(math.trim(), {
+      return renderKatex(math.trim(), {
         throwOnError: false,
         displayMode: true,
         trust: true,
@@ -51,7 +57,7 @@ export function renderMath(text: string, documentId?: string): string {
   // Process display math \[...\]
   processed = processed.replace(/\\\[([\s\S]*?)\\\]/g, (match, math) => {
     try {
-      return katex.renderToString(math.trim(), {
+      return renderKatex(math.trim(), {
         throwOnError: false,
         displayMode: true,
         trust: true,
@@ -65,7 +71,7 @@ export function renderMath(text: string, documentId?: string): string {
   // Process inline math \(...\) - handle multi-line content
   processed = processed.replace(/\\\(([\s\S]*?)\\\)/g, (match, math) => {
     try {
-      return katex.renderToString(math.trim(), {
+      return renderKatex(math.trim(), {
         throwOnError: false,
         displayMode: false,
         trust: true,
@@ -91,7 +97,7 @@ export function renderMath(text: string, documentId?: string): string {
     }
     
     try {
-      return katex.renderToString(math.trim(), {
+      return renderKatex(math.trim(), {
         throwOnError: false,
         displayMode: false,
         trust: true,
@@ -154,7 +160,7 @@ export function renderMath(text: string, documentId?: string): string {
       if (!cleanedLine) return '';
 
       try {
-        return katex.renderToString(cleanedLine, {
+        return renderKatex(cleanedLine, {
           throwOnError: false,
           displayMode: true,
           trust: true,
@@ -181,7 +187,7 @@ export function renderMath(text: string, documentId?: string): string {
       if (!cleanedLine) return '';
 
       try {
-        return katex.renderToString(cleanedLine, {
+        return renderKatex(cleanedLine, {
           throwOnError: false,
           displayMode: true,
           trust: true,
@@ -281,7 +287,7 @@ export function renderMath(text: string, documentId?: string): string {
   // Handle infinity symbol (∞) - convert to \infty
   processed = processed.replace(/∞/g, () => {
     try {
-      return katex.renderToString('\\infty', {
+      return renderKatex('\\infty', {
         throwOnError: false,
         displayMode: false,
         trust: true,
