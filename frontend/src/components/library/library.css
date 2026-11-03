@@ -1,0 +1,161 @@
+.library-protected {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.library-watermark {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.library-note {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  border-left: 3px solid #a16207;
+  background-color: var(--sidebar-background);
+  color: var(--foreground);
+}
+
+.library-print-notice {
+  display: none;
+}
+
+@media print {
+  .library-protected,
+  .library-watermark {
+    display: none !important;
+  }
+  .library-print-notice {
+    display: block;
+    padding: 2rem;
+  }
+}
+
+.library-body {
+  color: var(--foreground);
+  font-size: 0.975rem;
+  line-height: 1.7;
+}
+
+.library-body h1 { font-size: 1.875rem; font-weight: 700; line-height: 1.25; margin: 1.5rem 0 1rem; }
+.library-body h2 { font-size: 1.375rem; font-weight: 700; margin: 2.25rem 0 0.75rem; }
+.library-body h3 { font-size: 1.125rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+.library-body p { margin: 0.75rem 0; }
+.library-body ul { list-style: disc; padding-left: 1.5rem; margin: 0.75rem 0; }
+.library-body ol { list-style: decimal; padding-left: 1.5rem; margin: 0.75rem 0; }
+.library-body li { margin: 0.25rem 0; }
+.library-body a { color: #a16207; text-decoration: underline; }
+.library-body hr { border-color: var(--border); margin: 2rem 0; }
+.library-body blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--muted-foreground);
+}
+.library-body code { font-family: var(--font-geist-mono), monospace; font-size: 0.85em; }
+.library-body :not(pre) > code {
+  background-color: var(--sidebar-accent);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.library-code pre,
+.library-body pre {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.library-body pre.library-output {
+  background-color: var(--sidebar-background);
+  border-style: dashed;
+  max-height: 24rem;
+  overflow-y: auto;
+  margin-top: 0.25rem;
+}
+
+.library-chart {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0.75rem auto;
+  pointer-events: none;
+}
+
+.library-table,
+.library-body > table {
+  display: block;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.library-body table { border-collapse: collapse; font-size: 0.8rem; }
+.library-body th,
+.library-body td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.35rem 0.6rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.library-body > table th,
+.library-body > table td { text-align: left; white-space: normal; }
+.library-body th { font-weight: 600; }
+
+.library-body .katex-display { overflow-x: auto; overflow-y: hidden; }
+
+.library-lab {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid #a16207;
+  border-radius: 10px;
+  color: var(--foreground);
+  background-color: var(--sidebar-background);
+}
+.library-lab-title { font-size: 1rem; font-weight: 600; }
+.library-lab-instructions { font-size: 0.875rem; line-height: 1.6; margin: 0.25rem 0 0.75rem; }
+.library-lab-editor {
+  display: block;
+  width: 100%;
+  resize: vertical;
+  overflow: auto;
+  white-space: pre;
+  tab-size: 4;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #141310;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.library-lab-button {
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.library-lab-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.library-lab-run { background-color: #a16207; border-color: #a16207; color: #ffffff; }
+pre.library-lab-output {
+  overflow: auto;
+  max-height: 20rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-family: var(--font-geist-mono), monospace;
+}
+pre.library-lab-error { color: #a16207; }
