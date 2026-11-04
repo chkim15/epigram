@@ -87,14 +87,11 @@ function UpgradePageContent() {
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: "28px", background: "rgba(161,98,7,0.07)", border: "1px solid rgba(161,98,7,0.2)", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
-                <p style={{ fontSize: "12px", fontWeight: 600, color: "#a16207", marginBottom: 0 }}>Free 30-min intro call included</p>
-              </div>
               <button
                 className="cursor-pointer"
                 onClick={() => handleCheckout("monthly")}
                 disabled={isLoading}
-                style={{ width: "100%", padding: "13px", borderRadius: "8px", border: "none", background: "#a16207", color: "#fff", fontSize: "14px", fontWeight: 500, transition: "background 0.2s", opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+                style={{ marginTop: "28px", width: "100%", padding: "13px", borderRadius: "8px", border: "none", background: "#a16207", color: "#fff", fontSize: "14px", fontWeight: 500, transition: "background 0.2s", opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
                 onMouseEnter={e => { if (!isLoading) e.currentTarget.style.background = "#8b5006"; }}
                 onMouseLeave={e => { if (!isLoading) e.currentTarget.style.background = "#a16207"; }}
               >{ctaLabel("monthly")}</button>
@@ -122,14 +119,11 @@ function UpgradePageContent() {
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: "28px", background: "rgba(161,98,7,0.07)", border: "1px solid rgba(161,98,7,0.2)", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
-                <p style={{ fontSize: "12px", fontWeight: 600, color: "#a16207", marginBottom: 0 }}>Free 30-min intro call included</p>
-              </div>
               <button
                 className="cursor-pointer"
                 onClick={() => handleCheckout("six_month")}
                 disabled={isLoading}
-                style={{ width: "100%", padding: "13px", borderRadius: "8px", border: "none", background: "#a16207", color: "#fff", fontSize: "14px", fontWeight: 500, transition: "background 0.2s", opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+                style={{ marginTop: "28px", width: "100%", padding: "13px", borderRadius: "8px", border: "none", background: "#a16207", color: "#fff", fontSize: "14px", fontWeight: 500, transition: "background 0.2s", opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
                 onMouseEnter={e => { if (!isLoading) e.currentTarget.style.background = "#8b5006"; }}
                 onMouseLeave={e => { if (!isLoading) e.currentTarget.style.background = "#a16207"; }}
               >{ctaLabel("six_month")}</button>

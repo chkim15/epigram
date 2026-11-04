@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, CheckCircle, Circle, ChevronDown, ChevronUp, Star, Lock, X } from "lucide-react";
+import { Search, CheckCircle, Circle, ChevronDown, ChevronUp, Star, Lock } from "lucide-react";
 import { MathContent } from "@/lib/utils/katex";
 import { slugify } from "@/lib/utils/slugify";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
-import { useAuthStore } from "@/stores/authStore";
 import SubscribeModal from "@/components/subscription/SubscribeModal";
 
 interface ProblemRow {
@@ -82,22 +81,8 @@ export default function ProblemsListView({
 }: ProblemsListViewProps) {
   const router = useRouter();
   const { isPro } = useSubscriptionStore();
-  const { user } = useAuthStore();
   const [topicsExpanded, setTopicsExpanded] = useState(false);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
-
-  const dismissKey = user ? `intro_call_banner_dismissed_${user.id}` : null;
-  const [dismissed, setDismissed] = useState<boolean | null>(null);
-  useEffect(() => {
-    if (!dismissKey) return;
-    setDismissed(!!localStorage.getItem(dismissKey));
-  }, [dismissKey]);
-  const showOnboardingBanner = isPro && dismissed === false;
-
-  const handleDismiss = () => {
-    if (dismissKey) localStorage.setItem(dismissKey, '1');
-    setDismissed(true);
-  };
 
   return (
     <>
@@ -138,39 +123,6 @@ export default function ProblemsListView({
           </button>
         </div>
 
-        {/* Onboarding Call Banner — premium only, visible for 14 days after upgrade */}
-        {showOnboardingBanner && (
-          <div
-            className="rounded-xl p-5 w-fit relative flex flex-col justify-between"
-            style={{ backgroundColor: '#fffbf0', border: '1px solid rgba(161, 98, 7, 0.25)' }}
-          >
-            <button
-              onClick={handleDismiss}
-              className="absolute top-3 right-3 cursor-pointer"
-              style={{ color: 'var(--muted-foreground)' }}
-            >
-              <X size={14} />
-            </button>
-            <p className="text-xs font-medium mb-1" style={{ color: '#a16207', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
-              Free for Premium Members
-            </p>
-            <h2 className="text-base font-bold mb-1" style={{ color: 'var(--foreground)' }}>
-              Book your intro call
-            </h2>
-            <p className="text-sm mb-3" style={{ color: 'var(--muted-foreground)' }}>
-              30 min · personalized study plan + platform walkthrough
-            </p>
-            <button
-              onClick={() => router.push('/intro-call')}
-              className="self-start px-4 py-1.5 text-sm font-medium rounded-xl border cursor-pointer transition-opacity"
-              style={{ borderColor: 'rgba(161, 98, 7, 0.4)', color: '#a16207', backgroundColor: 'transparent' }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-            >
-              Book a call
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Topic Tags — expand/collapse */}
