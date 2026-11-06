@@ -39,9 +39,10 @@ function loadFilters(): Filters {
   try {
     const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) ?? "null");
     if (!saved || typeof saved !== "object") return EMPTY_FILTERS;
+    // Drop saved values from older versions of the page (e.g. renamed roles).
     return {
-      roles: stringArray(saved.roles),
-      levels: stringArray(saved.levels),
+      roles: stringArray(saved.roles).filter((r) => (JOB_ROLES as readonly string[]).includes(r)),
+      levels: stringArray(saved.levels).filter((l) => (JOB_LEVELS as readonly string[]).includes(l)),
       firms: stringArray(saved.firms),
       region: typeof saved.region === "string" ? saved.region : "",
       query: "",
@@ -111,9 +112,10 @@ export default function JobsBoard() {
     let cancelled = false;
     async function load() {
       const { data: { session } } = await supabase.auth.getSession();
+      // No `cache: "no-store"` here: it sends Cache-Control: no-cache, which makes the server skip
+      // its cached feed and refetch every firm. The response is already marked private, no-store.
       const response = await fetch("/api/jobs", {
         headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
-        cache: "no-store",
       });
       if (cancelled) return;
       if (response.status === 401) return setState({ kind: "signin" });
@@ -154,16 +156,21 @@ export default function JobsBoard() {
     }));
   }, [state, firmCounts]);
 
+  // Saved firms or locations can disappear when today's openings change; ignore those instead
+  // of silently showing zero results.
+  const activeFirms = useMemo(() => filters.firms.filter((f) => firmCounts.has(f)), [filters.firms, firmCounts]);
+  const activeRegion = regionOptions.includes(filters.region) ? filters.region : "";
+
   const filtered = useMemo(() => {
     const q = filters.query.trim().toLowerCase();
     return jobs.filter((j) =>
       (!filters.roles.length || filters.roles.includes(j.role)) &&
       (!filters.levels.length || filters.levels.includes(j.level)) &&
-      (!filters.firms.length || filters.firms.includes(j.firm)) &&
-      (!filters.region || j.regions.includes(filters.region)) &&
+      (!activeFirms.length || activeFirms.includes(j.firm)) &&
+      (!activeRegion || j.regions.includes(activeRegion)) &&
       (!q || `${j.title} ${j.firm} ${j.location}`.toLowerCase().includes(q))
     );
-  }, [jobs, filters]);
+  }, [jobs, filters.roles, filters.levels, filters.query, activeFirms, activeRegion]);
 
   const toggle = (key: FilterTab, value: string) =>
     setFilters((f) => ({ ...f, [key]: f[key].includes(value) ? f[key].filter((v) => v !== value) : [...f[key], value] }));
@@ -174,7 +181,7 @@ export default function JobsBoard() {
       return { ...f, firms: allOn ? f.firms.filter((n) => !names.includes(n)) : [...new Set([...f.firms, ...names])] };
     });
 
-  const hasFilters = filters.roles.length || filters.levels.length || filters.firms.length || filters.region || filters.query;
+  const hasFilters = filters.roles.length || filters.levels.length || activeFirms.length || activeRegion || filters.query;
 
   const prompt = (title: string, body: string, action?: { label: string; href: string }) => (
     <div className="flex-1 flex items-center justify-center p-8">
@@ -253,7 +260,7 @@ export default function JobsBoard() {
                 />
               </div>
               <select
-                value={filters.region}
+                value={activeRegion}
                 onChange={(e) => setFilters((f) => ({ ...f, region: e.target.value }))}
                 className="px-3 py-2 text-sm rounded-lg cursor-pointer"
                 style={inputStyle}
@@ -269,7 +276,7 @@ export default function JobsBoard() {
               <div role="tablist" className="flex overflow-x-auto" style={{ borderBottom: "1px solid var(--border)" }}>
                 {(Object.keys(TAB_LABELS) as FilterTab[]).map((key) => {
                   const active = tab === key;
-                  const selected = filters[key].length;
+                  const selected = key === "firms" ? activeFirms.length : filters[key].length;
                   return (
                     <button
                       key={key}

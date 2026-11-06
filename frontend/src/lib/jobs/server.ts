@@ -107,9 +107,10 @@ function htmlToText(s: string | undefined): string {
   return decodeEntities(decodeEntities(s ?? '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 8000);
 }
 
-/** Workday shows relative dates ("Posted 3 Days Ago"); turn them into an approximate ISO date. */
+/** Workday shows relative dates ("Posted 3 Days Ago"); turn them into an approximate ISO date.
+ *  "30+ Days Ago" has no exact age, so it gets no date rather than a misleading one. */
 function workdayPostedAt(postedOn: string | undefined): string | null {
-  if (!postedOn) return null;
+  if (!postedOn || /\+/.test(postedOn)) return null;
   const days = /today/i.test(postedOn) ? 0 : /yesterday/i.test(postedOn) ? 1 : Number(postedOn.match(/(\d+)\+?\s*days?/i)?.[1]);
   if (Number.isNaN(days)) return null;
   return new Date(Date.now() - days * 86_400_000).toISOString();
@@ -329,14 +330,21 @@ function getFirmJobs(firm: Firm) {
       const jobs = raws.map((raw) => tag(raw, firm)).filter((j): j is JobOpening => j !== null);
       return { fetchedAt: new Date().toISOString(), jobs };
     },
-    ['jobs-firm-v5', firm.name],
+    ['jobs-firm-v6', firm.name],
     { revalidate: REFRESH_SECONDS }
   )();
 }
 
 // A firm with nothing cached yet that is slow or down shouldn't hold up the page: answer with the
 // firms that are ready, and let the slow fetch finish (and fill the cache) in the background.
+// Once a firm has been slow or failed, later requests stop waiting for it for a while (a cache hit
+// still answers well inside the short wait), and only one fetch per firm runs at a time.
 const FIRM_DEADLINE_MS = 10000;
+const SLOW_FIRM_WAIT_MS = 1000;
+const SLOW_FIRM_COOLDOWN_MS = 10 * 60 * 1000;
+
+type FirmResult = Awaited<ReturnType<typeof getFirmJobs>>;
+const firmState = new Map<string, { inflight?: Promise<FirmResult>; slowUntil?: number }>();
 
 function withDeadline<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -348,16 +356,33 @@ function withDeadline<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+function loadFirm(firm: Firm): Promise<FirmResult> {
+  const state = firmState.get(firm.name) ?? {};
+  firmState.set(firm.name, state);
+  if (!state.inflight) {
+    const run = getFirmJobs(firm);
+    state.inflight = run;
+    run.then(
+      () => { state.slowUntil = undefined; },
+      (error) => {
+        state.slowUntil = Date.now() + SLOW_FIRM_COOLDOWN_MS;
+        console.error(`Jobs feed error (${firm.name}):`, error instanceof Error ? error.message : error);
+      }
+    ).finally(() => { if (state.inflight === run) state.inflight = undefined; });
+  }
+  const isSlow = (state.slowUntil ?? 0) > Date.now();
+  const wait = withDeadline(state.inflight, isSlow ? SLOW_FIRM_WAIT_MS : FIRM_DEADLINE_MS);
+  wait.catch(() => { state.slowUntil = Math.max(state.slowUntil ?? 0, Date.now() + SLOW_FIRM_COOLDOWN_MS); });
+  return wait;
+}
+
 /** Today's quant openings, refreshed at most every six hours per firm. */
 export async function getJobsFeed(): Promise<JobsFeed> {
-  const results = await Promise.allSettled(FIRMS.map((firm) => withDeadline(getFirmJobs(firm), FIRM_DEADLINE_MS)));
+  const results = await Promise.allSettled(FIRMS.map(loadFirm));
   const jobs: JobOpening[] = [];
   const fetched: string[] = [];
-  results.forEach((r, i) => {
-    if (r.status === 'rejected') {
-      console.error(`Jobs feed error (${FIRMS[i].name}):`, r.reason instanceof Error ? r.reason.message : r.reason);
-      return;
-    }
+  results.forEach((r) => {
+    if (r.status === 'rejected') return; // logged in loadFirm
     jobs.push(...r.value.jobs);
     fetched.push(r.value.fetchedAt);
   });
