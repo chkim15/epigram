@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Lock, Search } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import { supabase } from "@/lib/supabase/client";
-import { JOB_LEVELS, JOB_ROLES, type JobOpening, type JobsFeed } from "@/lib/jobs/types";
+import { FIRM_TYPES, JOB_LEVELS, JOB_ROLES, MORE_JOB_LINKS, type JobOpening, type JobsFeed } from "@/lib/jobs/types";
 
 type BoardState =
   | { kind: "loading" }
@@ -18,23 +18,41 @@ type BoardState =
 interface Filters {
   roles: string[];
   levels: string[];
+  firms: string[];
   region: string;
-  firm: string;
   query: string;
 }
 
-const EMPTY_FILTERS: Filters = { roles: [], levels: [], region: "", firm: "", query: "" };
+type FilterTab = "roles" | "levels" | "firms";
+
+const EMPTY_FILTERS: Filters = { roles: [], levels: [], firms: [], region: "", query: "" };
 const FILTERS_KEY = "epigram_jobs_filters";
 const PAGE = 40;
 const NEW_DAYS = 7;
+const TAB_LABELS: Record<FilterTab, string> = { roles: "Role", levels: "Experience level", firms: "Firm" };
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+}
 
 function loadFilters(): Filters {
   try {
-    const saved = localStorage.getItem(FILTERS_KEY);
-    return saved ? { ...EMPTY_FILTERS, ...JSON.parse(saved), query: "" } : EMPTY_FILTERS;
+    const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) ?? "null");
+    if (!saved || typeof saved !== "object") return EMPTY_FILTERS;
+    return {
+      roles: stringArray(saved.roles),
+      levels: stringArray(saved.levels),
+      firms: stringArray(saved.firms),
+      region: typeof saved.region === "string" ? saved.region : "",
+      query: "",
+    };
   } catch {
     return EMPTY_FILTERS;
   }
+}
+
+function levelLabel(level: string) {
+  return level === "Unspecified" ? "Level not stated" : level;
 }
 
 function postedLabel(postedAt: string | null): { text: string; isNew: boolean } | null {
@@ -65,10 +83,17 @@ function shortLocation(job: JobOpening) {
   return job.location.length <= 48 ? job.location : `${job.regions.slice(0, 3).join(", ")} +${Math.max(job.regions.length - 3, 1)} more`;
 }
 
+function countBy(jobs: JobOpening[], key: (j: JobOpening) => string) {
+  const counts = new Map<string, number>();
+  jobs.forEach((j) => counts.set(key(j), (counts.get(key(j)) ?? 0) + 1));
+  return counts;
+}
+
 export default function JobsBoard() {
   const router = useRouter();
   const [state, setState] = useState<BoardState>({ kind: "loading" });
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [tab, setTab] = useState<FilterTab>("roles");
   const [shown, setShown] = useState(PAGE);
 
   useEffect(() => setFilters(loadFilters()), []);
@@ -109,6 +134,9 @@ export default function JobsBoard() {
   }, []);
 
   const jobs = useMemo(() => (state.kind === "ready" ? state.feed.jobs : []), [state]);
+  const roleCounts = useMemo(() => countBy(jobs, (j) => j.role), [jobs]);
+  const levelCounts = useMemo(() => countBy(jobs, (j) => j.level), [jobs]);
+  const firmCounts = useMemo(() => countBy(jobs, (j) => j.firm), [jobs]);
 
   const regionOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -116,21 +144,37 @@ export default function JobsBoard() {
     return [...counts.entries()].filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]).map(([r]) => r);
   }, [jobs]);
 
-  const firmOptions = useMemo(() => [...new Set(jobs.map((j) => j.firm))].sort(), [jobs]);
+  // Firms grouped by type, largest first, hiding firms with no current quant openings.
+  const firmGroups = useMemo(() => {
+    const firms = state.kind === "ready" ? state.feed.firms : [];
+    return FIRM_TYPES.map((type) => ({
+      type,
+      names: firms.filter((f) => f.type === type && firmCounts.get(f.name)).map((f) => f.name)
+        .sort((a, b) => (firmCounts.get(b) ?? 0) - (firmCounts.get(a) ?? 0)),
+    }));
+  }, [state, firmCounts]);
 
   const filtered = useMemo(() => {
     const q = filters.query.trim().toLowerCase();
     return jobs.filter((j) =>
       (!filters.roles.length || filters.roles.includes(j.role)) &&
       (!filters.levels.length || filters.levels.includes(j.level)) &&
+      (!filters.firms.length || filters.firms.includes(j.firm)) &&
       (!filters.region || j.regions.includes(filters.region)) &&
-      (!filters.firm || j.firm === filters.firm) &&
       (!q || `${j.title} ${j.firm} ${j.location}`.toLowerCase().includes(q))
     );
   }, [jobs, filters]);
 
-  const toggle = (key: "roles" | "levels", value: string) =>
+  const toggle = (key: FilterTab, value: string) =>
     setFilters((f) => ({ ...f, [key]: f[key].includes(value) ? f[key].filter((v) => v !== value) : [...f[key], value] }));
+
+  const toggleGroup = (names: string[]) =>
+    setFilters((f) => {
+      const allOn = names.every((n) => f.firms.includes(n));
+      return { ...f, firms: allOn ? f.firms.filter((n) => !names.includes(n)) : [...new Set([...f.firms, ...names])] };
+    });
+
+  const hasFilters = filters.roles.length || filters.levels.length || filters.firms.length || filters.region || filters.query;
 
   const prompt = (title: string, body: string, action?: { label: string; href: string }) => (
     <div className="flex-1 flex items-center justify-center p-8">
@@ -157,7 +201,7 @@ export default function JobsBoard() {
     </div>
   );
 
-  const chip = (label: string, active: boolean, onClick: () => void) => (
+  const chip = (label: string, count: number | undefined, active: boolean, onClick: () => void) => (
     <button
       key={label}
       onClick={onClick}
@@ -169,10 +213,11 @@ export default function JobsBoard() {
       }}
     >
       {label}
+      {count !== undefined && <span style={{ opacity: 0.6, marginLeft: 6 }}>{count}</span>}
     </button>
   );
 
-  const selectStyle = { border: "1px solid var(--border)", backgroundColor: "#ffffff", color: "var(--foreground)" };
+  const inputStyle = { border: "1px solid var(--border)", backgroundColor: "#ffffff", color: "var(--foreground)" };
 
   return (
     <AppShell>
@@ -181,7 +226,7 @@ export default function JobsBoard() {
       {state.kind === "subscribe" &&
         prompt(
           "Subscribe to see open roles.",
-          `${state.total ? `${state.total} quant openings` : "Quant openings"} from ${state.firms || "top"} trading firms and funds, updated daily. Part of Epigram Premium.`,
+          `${state.total ? `${state.total} quant openings` : "Quant openings"} from ${state.firms || "top"} trading firms, funds and banks, updated daily. Part of Epigram Premium.`,
           { label: "Subscribe", href: "/upgrade" }
         )}
       {state.kind === "error" && prompt("Openings couldn't be loaded.", "Please try again in a few minutes.")}
@@ -189,52 +234,95 @@ export default function JobsBoard() {
       {state.kind === "ready" && (
         <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ backgroundColor: "var(--background)" }}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-            <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--foreground)" }}>Jobs</h1>
+            <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--foreground)" }}>Current Job Openings</h1>
             <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--muted-foreground)" }}>
-              {jobs.length} quant openings from {state.feed.firms.filter((f) => f.ok).length} trading firms and funds. Updated {new Date(state.feed.fetchedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.
+              {jobs.length} quant openings from {state.feed.firms.filter((f) => f.ok).length} trading firms, funds and banks. Updated{" "}
+              {new Date(state.feed.fetchedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.
             </p>
 
-            {/* Filters */}
-            <div className="flex flex-col gap-3 mb-6">
-              <div className="flex flex-wrap gap-2">{JOB_ROLES.map((r) => chip(r, filters.roles.includes(r), () => toggle("roles", r)))}</div>
-              <div className="flex flex-wrap gap-2">{JOB_LEVELS.map((l) => chip(l === "Unspecified" ? "Level not stated" : l, filters.levels.includes(l), () => toggle("levels", l)))}</div>
-              <div className="flex flex-wrap gap-2">
-                <select
-                  value={filters.region}
-                  onChange={(e) => setFilters((f) => ({ ...f, region: e.target.value }))}
-                  className="px-3 py-1.5 text-sm rounded-lg cursor-pointer"
-                  style={selectStyle}
-                  aria-label="Location"
-                >
-                  <option value="">All locations</option>
-                  {regionOptions.map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
-                <select
-                  value={filters.firm}
-                  onChange={(e) => setFilters((f) => ({ ...f, firm: e.target.value }))}
-                  className="px-3 py-1.5 text-sm rounded-lg cursor-pointer"
-                  style={selectStyle}
-                  aria-label="Firm"
-                >
-                  <option value="">All firms</option>
-                  {firmOptions.map((f) => <option key={f} value={f}>{f}</option>)}
-                </select>
-                <div className="relative flex-1 min-w-[180px]">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--muted-foreground)" }} />
-                  <input
-                    value={filters.query}
-                    onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
-                    placeholder="Search titles, e.g. machine learning"
-                    className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg outline-none"
-                    style={selectStyle}
-                  />
-                </div>
+            {/* Search and location */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--muted-foreground)" }} />
+                <input
+                  value={filters.query}
+                  onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
+                  placeholder="Search titles, e.g. machine learning"
+                  className="w-full pl-8 pr-3 py-2 text-sm rounded-lg outline-none"
+                  style={inputStyle}
+                />
+              </div>
+              <select
+                value={filters.region}
+                onChange={(e) => setFilters((f) => ({ ...f, region: e.target.value }))}
+                className="px-3 py-2 text-sm rounded-lg cursor-pointer"
+                style={inputStyle}
+                aria-label="Location"
+              >
+                <option value="">All locations</option>
+                {regionOptions.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+
+            {/* Filter tabs */}
+            <div className="rounded-xl mb-6" style={{ border: "1px solid var(--border)", backgroundColor: "var(--sidebar-background)" }}>
+              <div role="tablist" className="flex overflow-x-auto" style={{ borderBottom: "1px solid var(--border)" }}>
+                {(Object.keys(TAB_LABELS) as FilterTab[]).map((key) => {
+                  const active = tab === key;
+                  const selected = filters[key].length;
+                  return (
+                    <button
+                      key={key}
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setTab(key)}
+                      className="relative px-4 py-2.5 text-sm font-medium whitespace-nowrap cursor-pointer transition-colors"
+                      style={{ color: active ? "var(--foreground)" : "var(--muted-foreground)" }}
+                    >
+                      {TAB_LABELS[key]}
+                      {selected > 0 && (
+                        <span className="ml-1.5 px-1.5 rounded-full text-xs text-white" style={{ backgroundColor: "#a16207" }}>{selected}</span>
+                      )}
+                      {active && <span className="absolute left-3 right-3 bottom-0 h-0.5 rounded-full" style={{ backgroundColor: "var(--foreground)" }} />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div role="tabpanel" className="p-4">
+                {tab === "roles" && (
+                  <div className="flex flex-wrap gap-2">
+                    {JOB_ROLES.map((r) => chip(r, roleCounts.get(r) ?? 0, filters.roles.includes(r), () => toggle("roles", r)))}
+                  </div>
+                )}
+                {tab === "levels" && (
+                  <div className="flex flex-wrap gap-2">
+                    {JOB_LEVELS.map((l) => chip(levelLabel(l), levelCounts.get(l) ?? 0, filters.levels.includes(l), () => toggle("levels", l)))}
+                  </div>
+                )}
+                {tab === "firms" && (
+                  <div className="flex flex-col gap-4">
+                    {firmGroups.map(({ type, names }) => names.length > 0 && (
+                      <div key={type}>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-semibold uppercase" style={{ color: "#a16207", letterSpacing: "1px" }}>{type}</p>
+                          <button onClick={() => toggleGroup(names)} className="text-xs cursor-pointer" style={{ color: "var(--muted-foreground)" }}>
+                            {names.every((n) => filters.firms.includes(n)) ? "Clear all" : "Select all"}
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {names.map((n) => chip(n, firmCounts.get(n), filters.firms.includes(n), () => toggle("firms", n)))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>{filtered.length} matching</p>
-              {(filters.roles.length || filters.levels.length || filters.region || filters.firm || filters.query) ? (
+              {hasFilters ? (
                 <button onClick={() => setFilters(EMPTY_FILTERS)} className="text-sm cursor-pointer" style={{ color: "#a16207" }}>Clear filters</button>
               ) : null}
             </div>
@@ -255,7 +343,7 @@ export default function JobsBoard() {
                         </p>
                         <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>{job.title}</h2>
                         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-                          {job.role} · {job.level === "Unspecified" ? "Level not stated" : job.level} · {shortLocation(job)}
+                          {job.role} · {levelLabel(job.level)} · {shortLocation(job)}
                           {posted && ` · ${posted.text}`}
                         </p>
                       </div>
@@ -295,7 +383,29 @@ export default function JobsBoard() {
               </button>
             )}
 
-            <p className="text-xs mt-8" style={{ color: "var(--muted-foreground)" }}>
+            {/* Boards we can't list automatically */}
+            <div className="mt-10 rounded-xl p-5" style={{ border: "1px solid var(--border)" }}>
+              <h2 className="text-base font-semibold mb-1" style={{ color: "var(--foreground)" }}>Search more firms and job boards</h2>
+              <p className="text-sm mb-3" style={{ color: "var(--muted-foreground)" }}>
+                These don&apos;t share their openings in a form we can list here. Each link opens their own search.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {MORE_JOB_LINKS.map((l) => (
+                  <a
+                    key={l.label}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1 text-sm rounded-full border cursor-pointer hover:opacity-70"
+                    style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+                  >
+                    {l.label} ↗
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-xs mt-6" style={{ color: "var(--muted-foreground)" }}>
               Roles are grouped automatically from job titles, so a few may be mislabelled. Always check the firm&apos;s posting before applying.
             </p>
           </div>
