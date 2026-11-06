@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache';
-import type { FirmType, JobLevel, JobOpening, JobRole, JobsFeed } from './types';
+import type { FirmType, JobLevel, JobOpening, JobRole, JobsFeed, TaggedOpening } from './types';
 
 // Openings come from each firm's own careers system through the public JSON feeds their
 // careers pages use (Greenhouse, Lever, Ashby, Workday, Oracle). Every source here was checked
@@ -11,7 +11,7 @@ type Source =
   | { ats: 'workday'; host: string; tenant: string; site: string }
   | { ats: 'oracle'; host: string; siteNumber: string };
 
-interface Firm {
+export interface Firm {
   name: string;
   type: FirmType;
   source: Source;
@@ -176,30 +176,47 @@ async function fetchAshby(slug: string): Promise<RawJob[]> {
   }));
 }
 
-async function fetchWorkday(host: string, tenant: string, site: string): Promise<RawJob[]> {
+/** Stable id for a Workday posting, e.g. 'wd-db-R0450010' (the requisition number ends its path). */
+const workdayId = (tenant: string, externalPath: string) => `wd-${tenant}-${externalPath.split('_').pop() ?? externalPath}`;
+
+async function fetchWorkday(host: string, tenant: string, site: string, knownLocations?: Map<string, string>): Promise<RawJob[]> {
   const api = `https://${host}/wday/cxs/${tenant}/${site}`;
   const byPath = new Map<string, WorkdayPosting>();
-  // Workday pages 20 at a time; read up to 100 results per search term.
+  const search = (searchText: string, offset: number) =>
+    getJson<{ total?: number; jobPostings?: WorkdayPosting[] }>(`${api}/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ appliedFacets: {}, limit: 20, offset, searchText }),
+    });
+  const keep = (postings: WorkdayPosting[] | undefined) =>
+    (postings ?? []).filter((p) => p.externalPath && p.title).forEach((p) => byPath.set(p.externalPath, p));
+
+  // Workday pages 20 at a time. The first page gives the total; the rest (up to 100 results per
+  // term) are fetched in parallel.
   await searchAllTerms(async (searchText) => {
-    for (let offset = 0; offset < 100; offset += 20) {
-      const page = await getJson<{ total?: number; jobPostings?: WorkdayPosting[] }>(`${api}/jobs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ appliedFacets: {}, limit: 20, offset, searchText }),
-      });
-      const postings = page.jobPostings ?? [];
-      postings.filter((p) => p.externalPath && p.title).forEach((p) => byPath.set(p.externalPath, p));
-      if (postings.length < 20) break;
-    }
+    const first = await search(searchText, 0);
+    keep(first.jobPostings);
+    const total = Math.min(first.total ?? 0, 100);
+    const offsets = [];
+    for (let offset = 20; offset < total; offset += 20) offsets.push(offset);
+    const pages = await Promise.allSettled(offsets.map((offset) => search(searchText, offset)));
+    pages.forEach((p) => { if (p.status === 'fulfilled') keep(p.value.jobPostings); });
   }, host);
 
   const postings = [...byPath.values()];
-  // List results say only "3 Locations" for multi-city roles; look those up so location filters work.
-  const multi = postings.filter((p) => /^\d+ Locations$/i.test(p.locationsText ?? '')).slice(0, 60);
+  // List results say only "3 Locations" for multi-city roles. Look those up so location filters
+  // work, reusing locations already known from earlier refreshes (they don't change).
   const locations = new Map<string, string>();
-  await Promise.all(multi.map(async (p) => {
+  const multi = postings.filter((p) => /^\d+ Locations$/i.test(p.locationsText ?? ''));
+  const lookups: WorkdayPosting[] = [];
+  for (const p of multi) {
+    const known = knownLocations?.get(workdayId(tenant, p.externalPath));
+    if (known && !/^\d+ Locations$/i.test(known)) locations.set(p.externalPath, known);
+    else lookups.push(p);
+  }
+  await Promise.all(lookups.slice(0, 60).map(async (p) => {
     try {
-      const d = await getJson<WorkdayDetail>(`${api}${p.externalPath}`);
+      const d = await getJson<WorkdayDetail>(`${api}${p.externalPath}`, undefined, 0);
       const info = d.jobPostingInfo;
       if (info?.location) locations.set(p.externalPath, [info.location, ...(info.additionalLocations ?? [])].join('; '));
     } catch {
@@ -208,7 +225,7 @@ async function fetchWorkday(host: string, tenant: string, site: string): Promise
   }));
 
   return postings.map((p) => ({
-    id: `wd-${tenant}-${p.externalPath.split('_').pop() ?? p.externalPath}`,
+    id: workdayId(tenant, p.externalPath),
     title: p.title.trim(),
     location: locations.get(p.externalPath) ?? p.locationsText ?? '',
     department: '',
@@ -242,13 +259,13 @@ async function fetchOracle(host: string, siteNumber: string): Promise<RawJob[]> 
   }));
 }
 
-function fetchFirm(firm: Firm): Promise<RawJob[]> {
+function fetchFirm(firm: Firm, knownLocations?: Map<string, string>): Promise<RawJob[]> {
   const s = firm.source;
   switch (s.ats) {
     case 'greenhouse': return fetchGreenhouse(s.slug);
     case 'lever': return fetchLever(s.slug);
     case 'ashby': return fetchAshby(s.slug);
-    case 'workday': return fetchWorkday(s.host, s.tenant, s.site);
+    case 'workday': return fetchWorkday(s.host, s.tenant, s.site, knownLocations);
     case 'oracle': return fetchOracle(s.host, s.siteNumber);
   }
 }
@@ -299,7 +316,7 @@ const REGIONS: [string, RegExp][] = [
   ['Shanghai', /shanghai/i], ['Tokyo', /tokyo/i], ['Remote', /remote/i],
 ];
 
-function tag(raw: RawJob, firm: Firm): JobOpening | null {
+function tag(raw: RawJob, firm: Firm): TaggedOpening | null {
   const { title, department } = raw;
   if (NOT_QUANT.test(title)) return null;
   // Department names only help at trading firms; at banks they're too broad to trust.
@@ -318,16 +335,29 @@ function tag(raw: RawJob, firm: Firm): JobOpening | null {
     id: raw.id, firm: firm.name, firmType: firm.type, title, location: raw.location,
     regions: regions.length ? regions : raw.location ? [raw.location] : [],
     role, level, url: raw.url, postedAt: raw.postedAt, epigramLabel: firm.epigramLabel,
+    description: raw.description,
   };
 }
+
+/** One firm's quant openings with descriptions, fetched fresh (used by the daily refresh).
+ *  knownLocations (opening id -> location) skips lookups for openings already stored. */
+export async function fetchFirmOpenings(firm: Firm, knownLocations?: Map<string, string>): Promise<TaggedOpening[]> {
+  const raws = await fetchFirm(firm, knownLocations);
+  return raws.map((raw) => tag(raw, firm)).filter((j): j is TaggedOpening => j !== null);
+}
+
+export const JOB_FIRMS: readonly Firm[] = FIRMS;
 
 // Each firm is cached on its own: a feed that fails throws, so nothing is stored and the next
 // request retries it, while the other firms keep serving their cached openings.
 function getFirmJobs(firm: Firm) {
   return unstable_cache(
     async () => {
-      const raws = await fetchFirm(firm);
-      const jobs = raws.map((raw) => tag(raw, firm)).filter((j): j is JobOpening => j !== null);
+      // The page doesn't need descriptions, and leaving them out keeps each cache entry small.
+      const jobs: JobOpening[] = (await fetchFirmOpenings(firm)).map((j) => ({
+        id: j.id, firm: j.firm, firmType: j.firmType, title: j.title, location: j.location, regions: j.regions,
+        role: j.role, level: j.level, url: j.url, postedAt: j.postedAt, epigramLabel: j.epigramLabel,
+      }));
       return { fetchedAt: new Date().toISOString(), jobs };
     },
     ['jobs-firm-v6', firm.name],

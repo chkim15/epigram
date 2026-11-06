@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Lock, Search } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import { supabase } from "@/lib/supabase/client";
+import { openPostingWindow } from "@/components/jobs/openPosting";
+import ForYou from "@/components/jobs/ForYou";
 import { FIRM_TYPES, JOB_LEVELS, JOB_ROLES, MORE_JOB_LINKS, type JobOpening, type JobsFeed } from "@/lib/jobs/types";
 
 type BoardState =
@@ -27,6 +29,7 @@ type FilterTab = "roles" | "levels" | "firms";
 
 const EMPTY_FILTERS: Filters = { roles: [], levels: [], firms: [], region: "", query: "" };
 const FILTERS_KEY = "epigram_jobs_filters";
+const VIEW_KEY = "epigram_jobs_view";
 const PAGE = 40;
 const NEW_DAYS = 7;
 const TAB_LABELS: Record<FilterTab, string> = { roles: "Role", levels: "Experience level", firms: "Firm" };
@@ -64,22 +67,6 @@ function postedLabel(postedAt: string | null): { text: string; isNew: boolean } 
   return { text, isNew: days < NEW_DAYS };
 }
 
-// Opens the firm's posting in a separate pop-up window beside Epigram. Modifier clicks
-// (cmd/ctrl/shift/middle) keep the browser's normal behaviour, and the link's own
-// target="_blank" still works if pop-ups are blocked.
-function openPostingWindow(e: React.MouseEvent<HTMLAnchorElement>, url: string) {
-  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-  const width = Math.min(1100, window.screen.availWidth - 80);
-  const height = Math.min(900, window.screen.availHeight - 80);
-  const left = Math.max(0, Math.round((window.screen.availWidth - width) / 2));
-  const top = Math.max(0, Math.round((window.screen.availHeight - height) / 2));
-  const popup = window.open("about:blank", "_blank", `popup,width=${width},height=${height},left=${left},top=${top}`);
-  if (!popup) return;
-  e.preventDefault();
-  popup.opener = null;
-  popup.location.href = url;
-}
-
 function shortLocation(job: JobOpening) {
   return job.location.length <= 48 ? job.location : `${job.regions.slice(0, 3).join(", ")} +${Math.max(job.regions.length - 3, 1)} more`;
 }
@@ -95,6 +82,24 @@ export default function JobsBoard() {
   const [state, setState] = useState<BoardState>({ kind: "loading" });
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [tab, setTab] = useState<FilterTab>("roles");
+  const [view, setView] = useState<"for-you" | "all">("all");
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(VIEW_KEY) === "for-you") setView("for-you");
+    } catch {
+      // Remembering the view is a convenience only.
+    }
+  }, []);
+
+  const chooseView = (v: "for-you" | "all") => {
+    setView(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      // Remembering the view is a convenience only.
+    }
+  };
   const [shown, setShown] = useState(PAGE);
 
   useEffect(() => setFilters(loadFilters()), []);
@@ -247,6 +252,27 @@ export default function JobsBoard() {
               {new Date(state.feed.fetchedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.
             </p>
 
+            {/* View switch */}
+            <div className="inline-flex rounded-lg p-1 mb-6" style={{ backgroundColor: "var(--sidebar-background)", border: "1px solid var(--border)" }}>
+              {([["for-you", "For you"], ["all", "All openings"]] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => chooseView(key)}
+                  className="px-4 py-1.5 text-sm font-medium rounded-md cursor-pointer transition-colors"
+                  style={{
+                    backgroundColor: view === key ? "#141310" : "transparent",
+                    color: view === key ? "#ffffff" : "var(--muted-foreground)",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {view === "for-you" ? (
+              <ForYou />
+            ) : (
+            <>
             {/* Search and location */}
             <div className="flex flex-wrap gap-2 mb-3">
               <div className="relative flex-1 min-w-[200px]">
@@ -411,6 +437,9 @@ export default function JobsBoard() {
                 ))}
               </div>
             </div>
+
+            </>
+            )}
 
             <p className="text-xs mt-6" style={{ color: "var(--muted-foreground)" }}>
               Roles are grouped automatically from job titles, so a few may be mislabelled. Always check the firm&apos;s posting before applying.
