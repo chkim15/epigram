@@ -45,6 +45,22 @@ function postedLabel(postedAt: string | null): { text: string; isNew: boolean } 
   return { text, isNew: days < NEW_DAYS };
 }
 
+// Opens the firm's posting in a separate pop-up window beside Epigram. Modifier clicks
+// (cmd/ctrl/shift/middle) keep the browser's normal behaviour, and the link's own
+// target="_blank" still works if pop-ups are blocked.
+function openPostingWindow(e: React.MouseEvent<HTMLAnchorElement>, url: string) {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+  const width = Math.min(1100, window.screen.availWidth - 80);
+  const height = Math.min(900, window.screen.availHeight - 80);
+  const left = Math.max(0, Math.round((window.screen.availWidth - width) / 2));
+  const top = Math.max(0, Math.round((window.screen.availHeight - height) / 2));
+  const popup = window.open("about:blank", "_blank", `popup,width=${width},height=${height},left=${left},top=${top}`);
+  if (!popup) return;
+  e.preventDefault();
+  popup.opener = null;
+  popup.location.href = url;
+}
+
 function shortLocation(job: JobOpening) {
   return job.location.length <= 48 ? job.location : `${job.regions.slice(0, 3).join(", ")} +${Math.max(job.regions.length - 3, 1)} more`;
 }
@@ -175,8 +191,7 @@ export default function JobsBoard() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
             <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--foreground)" }}>Jobs</h1>
             <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--muted-foreground)" }}>
-              {jobs.length} quant openings from {state.feed.firms.filter((f) => f.ok).length} trading firms and funds, taken from their
-              official job boards. Updated {new Date(state.feed.fetchedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.
+              {jobs.length} quant openings from {state.feed.firms.filter((f) => f.ok).length} trading firms and funds. Updated {new Date(state.feed.fetchedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.
             </p>
 
             {/* Filters */}
@@ -254,6 +269,7 @@ export default function JobsBoard() {
                           href={job.url}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={(e) => openPostingWindow(e, job.url)}
                           className="px-4 py-1.5 text-sm font-medium rounded-lg cursor-pointer hover:opacity-90"
                           style={{ backgroundColor: "#a16207", color: "#ffffff" }}
                         >
