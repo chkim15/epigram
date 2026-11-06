@@ -65,17 +65,46 @@ CREATE TABLE IF NOT EXISTS public.user_cv_profiles (
   cv_file_name TEXT,
   cv_uploaded_at TIMESTAMPTZ,
 
-  -- Extracted by the server from the CV, then shown to the user to confirm or edit
+  -- Extracted by the server from the CV, then shown to the user to confirm or edit.
+  -- The JSONB sections are lists with a fixed shape (validated by the server before saving):
+  --
+  -- education:    [{ "institution": "University of Pennsylvania", "degree": "PhD",
+  --                  "field": "Mathematics", "start": "2018-08", "end": "2023-05",
+  --                  "gpa": "3.90/4.00", "thesis": "..." }]
+  --                degree is one of PhD | Master's | Bachelor's | Other; end null = ongoing
+  -- experiences:  [{ "organization": "Mina Analytics", "title": "Head of Quantitative Research",
+  --                  "type": "full-time", "start": "2024-02", "end": "2025-10",
+  --                  "location": "New York, NY", "highlights": ["Led ...", "Managed ..."],
+  --                  "skills": ["Econometrics", "Machine learning"] }]
+  --                type is one of full-time | internship | research | teaching | other
+  -- skills:       [{ "name": "Python", "category": "programming", "level": "proficient" }]
+  --                category: programming | math_stats | machine_learning | finance | tools
+  --                level: expert | proficient | familiar   (from wording like "Familiar with: C++")
+  -- achievements: [{ "title": "Putnam top 500", "type": "competition", "year": 2016 }]
+  --                type: competition | award | publication | certification | other
+  -- languages:    [{ "name": "Mandarin Chinese", "level": "native" }]
+  --                level: native | fluent | professional | basic
+  education JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(education) = 'array'),
+  experiences JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(experiences) = 'array'),
+  skills JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(skills) = 'array'),
+  achievements JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(achievements) = 'array'),
+  languages JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(languages) = 'array'),
+  summary TEXT,                               -- two or three sentences, shown on the profile
+
+  -- Derived from the lists above on every save, so filters and matching don't recompute them
   highest_degree TEXT CHECK (highest_degree IN ('PhD', 'Master''s', 'Bachelor''s', 'Other')),
   degree_field TEXT,
   graduation_year SMALLINT CHECK (graduation_year BETWEEN 1950 AND 2100),
   career_stage TEXT CHECK (career_stage IN ('Student', 'New grad', 'Experienced')),
-  years_experience NUMERIC(4, 1) CHECK (years_experience >= 0),
-  skills JSONB NOT NULL DEFAULT '[]'::jsonb,  -- e.g. [{"name": "Python", "level": "proficient"}]
-  summary TEXT,
+  years_experience NUMERIC(4, 1) CHECK (years_experience >= 0),  -- full-time roles only
+
   extracted_at TIMESTAMPTZ,
   extraction_model TEXT,
   confirmed_at TIMESTAMPTZ,                   -- set when the user confirms the profile
+
+  -- Entered by the user, never read from the CV: many postings state sponsorship terms.
+  -- e.g. {"US": "authorized", "UK": "needs_sponsorship"}; empty = not provided
+  work_authorization JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(work_authorization) = 'object'),
 
   -- What the user is looking for
   preferred_roles TEXT[] NOT NULL DEFAULT '{}',
