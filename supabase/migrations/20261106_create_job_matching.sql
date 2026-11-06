@@ -2,7 +2,9 @@
 --
 -- Access model (same idea as library_content): every table has RLS on. Writes happen only on the
 -- server (service role) after the Premium check, CV parsing and validation. Users may read their
--- own profile and matches; job_openings and job_refresh_runs are server-only.
+-- own profile and matches; job_openings, job_refresh_runs and user_epigram_signals are server-only.
+-- user_epigram_signals is internal and must never be shared outside Epigram (e.g. with employers)
+-- without the user's explicit opt-in.
 --
 -- Account deletion: rows cascade from auth.users. Files in the private `cvs` bucket do NOT cascade,
 -- so /api/delete-account must also remove cvs/<user_id>/ (handled in the step B code PR).
@@ -84,11 +86,19 @@ CREATE TABLE IF NOT EXISTS public.user_cv_profiles (
   --                type: competition | award | publication | certification | other
   -- languages:    [{ "name": "Mandarin Chinese", "level": "native" }]
   --                level: native | fluent | professional | basic
+  -- projects:     [{ "name": "GestaltMML", "url": "https://github.com/...",
+  --                  "description": "Multimodal ML for rare disease diagnosis",
+  --                  "skills": ["PyTorch", "Transformers"] }]
+  --                from the CV or added by the user; public GitHub repos may be read later
+  -- links:        { "github": "https://github.com/...", "linkedin": "...", "website": "...",
+  --                  "google_scholar": "..." }
   education JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(education) = 'array'),
   experiences JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(experiences) = 'array'),
   skills JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(skills) = 'array'),
   achievements JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(achievements) = 'array'),
   languages JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(languages) = 'array'),
+  projects JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(projects) = 'array'),
+  links JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(links) = 'object'),
   summary TEXT,                               -- two or three sentences, shown on the profile
 
   -- Derived from the lists above on every save, so filters and matching don't recompute them
@@ -134,7 +144,43 @@ CREATE TRIGGER update_user_cv_profiles_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- ---------------------------------------------------------------------------------------------
--- 4. Fit scores between each user's profile and the active openings (recomputed daily)
+-- 4. How each user is doing on Epigram itself (internal; never shown to the user)
+--    One summary row per user, recomputed daily by the server from existing tables:
+--    user_completed_problems (+ problems difficulty / quant topics / company_labels),
+--    user_problem_feedback (self_assessment, interview_seen, interview_firm), user_answers,
+--    mock_interview_sessions, course_topic_progress. Summaries only, no copies of answers.
+--    RLS on with no policies: only the server can read it.
+-- ---------------------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.user_epigram_signals (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+
+  problems_solved INTEGER NOT NULL DEFAULT 0,
+  -- {"easy": 4, "medium": 21, "hard": 9, "very_hard": 1}
+  solved_by_difficulty JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(solved_by_difficulty) = 'object'),
+  -- 0-100 per quant topic, from solved problems, attempts and self-assessment
+  -- {"Probability": 82, "Stochastic Processes": 64, "Brainteasers": 71}
+  topic_strengths JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(topic_strengths) = 'object'),
+  -- problems solved per company label, e.g. {"Jane Street": 2, "Citadel": 7}
+  firms_practised JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(firms_practised) = 'object'),
+  -- answers to "How did you do?": {"got_it": 30, "partial": 8, "stuck": 3}
+  self_assessment_counts JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(self_assessment_counts) = 'object'),
+  avg_attempts_per_problem NUMERIC(4, 2),
+
+  mock_interviews_completed INTEGER NOT NULL DEFAULT 0,
+  mock_interview_avg_score NUMERIC(5, 2),
+  mock_interview_best_score INTEGER,
+
+  course_topics_completed INTEGER NOT NULL DEFAULT 0,
+  course_progress_pct NUMERIC(5, 2) CHECK (course_progress_pct BETWEEN 0 AND 100),
+
+  last_active_at TIMESTAMPTZ,
+  computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.user_epigram_signals ENABLE ROW LEVEL SECURITY;
+
+-- ---------------------------------------------------------------------------------------------
+-- 5. Fit scores between each user's profile and the active openings (recomputed daily)
 -- ---------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.job_matches (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -158,7 +204,7 @@ CREATE POLICY "Users can view own job matches"
   USING (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------------------------
--- 5. Private bucket for uploaded CVs (PDF or Word, up to 5 MB)
+-- 6. Private bucket for uploaded CVs (PDF or Word, up to 5 MB)
 --    No storage policies: uploads and downloads go through the server, which checks the user,
 --    the Premium status and the file type before touching the bucket.
 -- ---------------------------------------------------------------------------------------------
