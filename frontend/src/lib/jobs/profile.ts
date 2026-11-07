@@ -21,7 +21,12 @@ const month = (v: unknown): string | null => {
   const s = str(v, 10);
   if (!s) return null;
   const m = s.match(/^(\d{4})(?:-(\d{1,2}))?/);
-  return m ? `${m[1]}-${(m[2] ?? '01').padStart(2, '0')}` : null;
+  if (!m) return null;
+  const year = Number(m[1]);
+  const mon = Number(m[2] ?? '1');
+  // Same year range as the database's graduation_year check; anything else is a misread.
+  if (year < 1950 || year > 2100 || mon < 1 || mon > 12) return null;
+  return `${m[1]}-${String(mon).padStart(2, '0')}`;
 };
 const oneOf = <T extends string>(v: unknown, options: readonly T[], fallback: T): T =>
   typeof v === 'string' && (options as readonly string[]).includes(v) ? (v as T) : fallback;
@@ -111,11 +116,35 @@ export function sanitizeSections(input: unknown): ExtractedSections {
 
 const DEGREE_RANK: Record<Degree, number> = { PhD: 3, "Master's": 2, "Bachelor's": 1, Other: 0 };
 
-function monthsBetween(start: string, end: string | null): number {
-  const [sy, sm] = start.split('-').map(Number);
-  const now = new Date();
-  const [ey, em] = end ? end.split('-').map(Number) : [now.getUTCFullYear(), now.getUTCMonth() + 1];
-  return Math.max(0, (ey - sy) * 12 + (em - sm) + 1);
+/** Month number (year * 12 + month index) for a 'YYYY-MM' string, or for now when null. */
+function monthIndex(m: string | null): number {
+  if (!m) {
+    const now = new Date();
+    return now.getUTCFullYear() * 12 + now.getUTCMonth();
+  }
+  const [y, mo] = m.split('-').map(Number);
+  return y * 12 + (mo - 1);
+}
+
+/** Months covered by a set of periods, counting overlapping months once (e.g. a job held during a postdoc). */
+function coveredMonths(periods: { start: string; end: string | null }[]): number {
+  const spans = periods
+    .map((p) => [monthIndex(p.start), monthIndex(p.end) + 1] as const)
+    .filter(([a, b]) => b > a)
+    .sort((x, y) => x[0] - y[0]);
+  let total = 0;
+  let curStart = -1;
+  let curEnd = -1;
+  for (const [a, b] of spans) {
+    if (a > curEnd) {
+      total += curEnd - curStart;
+      curStart = a;
+      curEnd = b;
+    } else if (b > curEnd) {
+      curEnd = b;
+    }
+  }
+  return total + (curEnd - curStart);
 }
 
 export function deriveFields(sections: ExtractedSections, stageOverride?: CareerStage | null) {
@@ -125,9 +154,9 @@ export function deriveFields(sections: ExtractedSections, stageOverride?: Career
   const studying = sections.education.some((e) => e.start && !e.end) || (gradYear !== null && gradYear > thisYear);
   // Full-time jobs count, and so do research posts (e.g. postdocs) that start after the highest degree.
   const gradMonth = top?.end ?? null;
-  const fullTimeMonths = sections.experiences
+  const fullTimeMonths = coveredMonths(sections.experiences
     .filter((e) => e.start && (e.type === 'full-time' || (e.type === 'research' && gradMonth !== null && e.start >= gradMonth)))
-    .reduce((sum, e) => sum + monthsBetween(e.start as string, e.end), 0);
+    .map((e) => ({ start: e.start as string, end: e.end })));
   const yearsExperience = Math.round((fullTimeMonths / 12) * 10) / 10;
 
   let careerStage: CareerStage | null = null;
@@ -180,6 +209,9 @@ async function extractWithModel(cvText: string): Promise<{ sections: ExtractedSe
     awsRegion: process.env.AWS_REGION || 'us-east-1',
     awsAccessKey: process.env.AWS_ACCESS_KEY_ID,
     awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY,
+    // The upload route has 60s in all; give up on the model in time for the keyword fallback.
+    timeout: 45_000,
+    maxRetries: 0,
   });
   const model = process.env.BEDROCK_GRADING_MODEL || 'global.anthropic.claude-sonnet-4-6';
   const completion = await client.messages.create({

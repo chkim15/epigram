@@ -58,13 +58,14 @@ export default function ForYou() {
 
   async function upload() {
     if (!file || !consent) return;
+    const back = stage.kind === "upload" ? stage.back : undefined;
     setStage({ kind: "reading" });
     const form = new FormData();
     form.append("file", file);
     form.append("consent", "yes");
     const res = await fetch("/api/jobs/profile", { method: "POST", headers: await authHeaders(), body: form });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return setStage({ kind: "upload", error: data.error ?? "Upload failed. Please try again." });
+    if (!res.ok) return setStage({ kind: "upload", error: data.error ?? "Upload failed. Please try again.", back });
     setFile(null);
     setStage({ kind: "review", profile: data.profile });
   }
@@ -96,6 +97,7 @@ export default function ForYou() {
     if (!window.confirm("Delete your CV, profile and matches from Epigram? This can't be undone.")) return;
     const res = await fetch("/api/jobs/profile", { method: "DELETE", headers: await authHeaders() });
     if (res.ok) setStage({ kind: "upload" });
+    else window.alert("Your CV couldn't be deleted. Please try again.");
   }
 
   const card = "rounded-xl p-5";

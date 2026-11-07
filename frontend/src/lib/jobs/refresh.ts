@@ -33,7 +33,9 @@ export async function refreshOpeningsAndMatches(firmType?: FirmType): Promise<Re
   }));
 
   const ok = results.filter((r) => r.openings);
-  const openings = ok.flatMap((r) => r.openings as TaggedOpening[]);
+  // One row per id: the same posting can come back twice (e.g. from two search terms), and a
+  // database upsert fails if one batch touches a row twice.
+  const openings = [...new Map(ok.flatMap((r) => r.openings as TaggedOpening[]).map((o) => [o.id, o])).values()];
   const { added, closed } = await store.saveOpenings(openings, ok.map((r) => r.firm), startedAt);
 
   const active = await store.activeOpenings();
@@ -69,8 +71,13 @@ export async function matchesWithOpenings(userId: string): Promise<{ matches: Jo
   const store = getJobsStore();
   const [matches, active] = await Promise.all([store.getMatches(userId), store.activeOpenings()]);
   const byId = new Map(active.map((o) => [o.id, o]));
-  // Everything is "first seen" on the very first refresh, so that run never counts as new.
-  const baseline = active.reduce((min, o) => (o.firstSeenAt < min ? o.firstSeenAt : min), active[0]?.firstSeenAt ?? '');
+  // A firm's first refresh finds all of its openings at once, so those never count as new. This is
+  // per firm: trading firms and banks refresh in separate runs, and firms can be added later.
+  const baseline = new Map<string, string>();
+  for (const o of active) {
+    const b = baseline.get(o.firm);
+    if (!b || o.firstSeenAt < b) baseline.set(o.firm, o.firstSeenAt);
+  }
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const views: JobMatchView[] = [];
   for (const m of matches) {
@@ -82,7 +89,7 @@ export async function matchesWithOpenings(userId: string): Promise<{ matches: Jo
         id: o.id, firm: o.firm, firmType: o.firmType, title: o.title, location: o.location, regions: o.regions,
         role: o.role, level: o.level, url: o.url, postedAt: o.postedAt, epigramLabel: o.epigramLabel,
         firstSeenAt: o.firstSeenAt,
-        isNew: o.firstSeenAt !== baseline && o.firstSeenAt >= dayAgo,
+        isNew: o.firstSeenAt !== baseline.get(o.firm) && o.firstSeenAt >= dayAgo,
       },
     });
   }

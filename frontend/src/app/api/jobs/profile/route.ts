@@ -49,7 +49,13 @@ export async function POST(request: NextRequest) {
     const kind = detectCvKind(bytes);
     if (!kind) return json({ error: 'Please upload a PDF or Word (.docx) file.' }, 400);
 
-    const text = await extractCvText(bytes, kind);
+    let text: string;
+    try {
+      text = await extractCvText(bytes, kind);
+    } catch (error) {
+      console.error('CV text extraction failed:', error instanceof Error ? error.message : error);
+      return json({ error: "We couldn't open this file. Is it password-protected or damaged? Try saving it again as a PDF." }, 400);
+    }
     if (text.length < 200) return json({ error: "We couldn't read text from this file. Is it a scanned image?" }, 400);
 
     const store = getJobsStore();
@@ -76,6 +82,8 @@ export async function POST(request: NextRequest) {
       consentAt: now,
     };
     await store.saveProfile(profile);
+    // Matches from the old CV no longer apply; new ones are made when the user confirms this profile.
+    await store.replaceMatches(viewer.userId, []);
     // Keep only the latest CV: remove the file this upload replaced.
     if (previous?.cvStoragePath && previous.cvStoragePath !== storagePath) await store.deleteCvFile(previous.cvStoragePath);
     return json({ profile });
@@ -95,7 +103,8 @@ export async function PUT(request: NextRequest) {
     const store = getJobsStore();
     const current = await store.getProfile(viewer.userId);
     if (!current) return json({ error: 'Upload a CV first.' }, 404);
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return json({ error: 'Invalid request.' }, 400);
 
     const sections = body.sections ? sanitizeSections(body.sections) : {
       education: current.education, experiences: current.experiences, skills: current.skills,

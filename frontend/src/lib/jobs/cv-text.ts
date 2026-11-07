@@ -74,7 +74,7 @@ function docxText(bytes: Uint8Array): string {
       const localExtraLen = buf.readUInt16LE(localOffset + 28);
       const start = localOffset + 30 + localNameLen + localExtraLen;
       const data = buf.subarray(start, start + compSize);
-      const xml = (method === 8 ? inflateRawSync(data) : data).toString('utf8');
+      const xml = (method === 8 ? inflateRawSync(data, { maxOutputLength: 20 * 1024 * 1024 }) : data).toString('utf8');
       return xml
         .replace(/<w:tab\/>/g, ' ')
         .replace(/<\/w:p>/g, '\n')

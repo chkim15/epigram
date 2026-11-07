@@ -26,9 +26,9 @@ export interface JobsStore {
   saveProfile(profile: CvProfile): Promise<void>;
   confirmedProfiles(): Promise<CvProfile[]>;
   saveCvFile(userId: string, fileName: string, bytes: Uint8Array, contentType: string): Promise<string>;
-  /** Removes the user's profile, matches and every CV file they uploaded. */
   /** Remove one stored CV file (used when a user uploads a new CV). Never throws. */
   deleteCvFile(storagePath: string): Promise<void>;
+  /** Removes the user's profile, matches and every CV file they uploaded. */
   deleteUserData(userId: string): Promise<void>;
   replaceMatches(userId: string, matches: JobMatch[]): Promise<void>;
   getMatches(userId: string): Promise<JobMatch[]>;
@@ -198,7 +198,7 @@ const supabaseStore: JobsStore = {
   kind: 'supabase',
   async saveOpenings(openings, okFirms, seenAt) {
     const db = admin();
-    const existing = new Set((await allRows<{ id: string }>((a, b) => db.from('job_openings').select('id').range(a, b))).map((r) => r.id));
+    const existing = new Set((await allRows<{ id: string }>((a, b) => db.from('job_openings').select('id').order('id').range(a, b))).map((r) => r.id));
     const row = (o: TaggedOpening) => ({
       id: o.id, firm: o.firm, firm_type: o.firmType, title: o.title, location: o.location, regions: o.regions,
       role: o.role, level: o.level, url: o.url, description: o.description, epigram_label: o.epigramLabel,
@@ -220,7 +220,7 @@ const supabaseStore: JobsStore = {
   },
   async activeOpenings() {
     const db = admin();
-    return (await allRows<OpeningRow>((a, b) => db.from('job_openings').select('*').eq('is_active', true).range(a, b))).map(toOpening);
+    return (await allRows<OpeningRow>((a, b) => db.from('job_openings').select('*').eq('is_active', true).order('id').range(a, b))).map(toOpening);
   },
   async logRun(run) {
     check(await admin().from('job_refresh_runs').insert({
@@ -237,7 +237,7 @@ const supabaseStore: JobsStore = {
   },
   async confirmedProfiles() {
     const db = admin();
-    return (await allRows<ProfileRow>((a, b) => db.from('user_cv_profiles').select('*').not('confirmed_at', 'is', null).range(a, b))).map(toProfile);
+    return (await allRows<ProfileRow>((a, b) => db.from('user_cv_profiles').select('*').not('confirmed_at', 'is', null).order('user_id').range(a, b))).map(toProfile);
   },
   async saveCvFile(userId, fileName, bytes, contentType) {
     const objectPath = `${userId}/${Date.now()}-${safeName(fileName)}`;
@@ -245,8 +245,12 @@ const supabaseStore: JobsStore = {
     return objectPath;
   },
   async deleteCvFile(storagePath) {
-    const { error } = await admin().storage.from('cvs').remove([storagePath]);
-    if (error) console.error('Old CV delete failed:', error.message);
+    try {
+      const { error } = await admin().storage.from('cvs').remove([storagePath]);
+      if (error) console.error('Old CV delete failed:', error.message);
+    } catch (error) {
+      console.error('Old CV delete failed:', error instanceof Error ? error.message : error);
+    }
   },
   async deleteUserData(userId) {
     const db = admin();
