@@ -65,6 +65,8 @@ function SignInForm() {
     // Check for confirmation success or error from query params
     if (searchParams.get('confirmed') === 'true') {
       setSuccessMessage('Email confirmed successfully! You can now sign in.');
+    } else if (searchParams.get('reset') === 'success') {
+      setSuccessMessage('Your password has been updated. Please sign in with your new password.');
     } else if (searchParams.get('error') === 'confirmation_failed') {
       setError('Email confirmation failed. Please try again or contact support.');
     }
