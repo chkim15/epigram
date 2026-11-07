@@ -27,6 +27,8 @@ export interface JobsStore {
   confirmedProfiles(): Promise<CvProfile[]>;
   saveCvFile(userId: string, fileName: string, bytes: Uint8Array, contentType: string): Promise<string>;
   /** Removes the user's profile, matches and every CV file they uploaded. */
+  /** Remove one stored CV file (used when a user uploads a new CV). Never throws. */
+  deleteCvFile(storagePath: string): Promise<void>;
   deleteUserData(userId: string): Promise<void>;
   replaceMatches(userId: string, matches: JobMatch[]): Promise<void>;
   getMatches(userId: string): Promise<JobMatch[]>;
@@ -108,6 +110,9 @@ const fileStore: JobsStore = {
     await fs.mkdir(path.dirname(full), { recursive: true });
     await fs.writeFile(full, bytes);
     return rel;
+  },
+  deleteCvFile: async (storagePath) => {
+    await fs.rm(path.join(DEV_DIR, 'cvs', storagePath), { force: true }).catch(() => undefined);
   },
   deleteUserData: async (userId) => {
     await withData((d) => { delete d.profiles[userId]; delete d.matches[userId]; }, true);
@@ -238,6 +243,10 @@ const supabaseStore: JobsStore = {
     const objectPath = `${userId}/${Date.now()}-${safeName(fileName)}`;
     check(await admin().storage.from('cvs').upload(objectPath, bytes, { contentType, upsert: false }));
     return objectPath;
+  },
+  async deleteCvFile(storagePath) {
+    const { error } = await admin().storage.from('cvs').remove([storagePath]);
+    if (error) console.error('Old CV delete failed:', error.message);
   },
   async deleteUserData(userId) {
     const db = admin();

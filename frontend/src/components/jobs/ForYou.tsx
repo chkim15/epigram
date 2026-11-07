@@ -12,7 +12,7 @@ import {
 
 type Stage =
   | { kind: "loading" }
-  | { kind: "upload"; error?: string }
+  | { kind: "upload"; error?: string; back?: Stage }
   | { kind: "reading" }
   | { kind: "review"; profile: CvProfile; saving?: boolean; error?: string }
   | { kind: "matches"; profile: CvProfile; matches: JobMatchView[]; openingsStored: number }
@@ -165,6 +165,11 @@ export default function ForYou() {
         <button onClick={upload} disabled={!file || !consent} className={primaryBtn} style={{ backgroundColor: GOLD, color: "#fff" }}>
           Upload and read my CV
         </button>
+        {stage.back && (
+          <button onClick={() => setStage(stage.back!)} className="ml-4 text-sm cursor-pointer" style={muted}>
+            Cancel, keep my current CV
+          </button>
+        )}
       </div>
     );
   }
@@ -284,8 +289,10 @@ export default function ForYou() {
               {profile.yearsExperience ? ` (~${profile.yearsExperience} yrs)` : ""}
             </p>
             <p className="text-sm" style={muted}>{prefs}</p>
+            {profile.cvFileName && <p className="text-xs mt-0.5" style={muted}>From {profile.cvFileName}</p>}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            <button onClick={() => setStage({ kind: "upload", back: stage })} className="text-sm cursor-pointer inline-flex items-center gap-1" style={{ color: "var(--foreground)" }}><FileUp size={14} /> Update CV</button>
             <button onClick={() => setStage({ kind: "review", profile })} className="text-sm cursor-pointer" style={{ color: GOLD }}>Edit profile</button>
             <button onClick={deleteCv} className="text-sm cursor-pointer inline-flex items-center gap-1" style={muted}><Trash2 size={14} /> Delete my CV</button>
           </div>

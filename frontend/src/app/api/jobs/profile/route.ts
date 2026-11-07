@@ -76,6 +76,8 @@ export async function POST(request: NextRequest) {
       consentAt: now,
     };
     await store.saveProfile(profile);
+    // Keep only the latest CV: remove the file this upload replaced.
+    if (previous?.cvStoragePath && previous.cvStoragePath !== storagePath) await store.deleteCvFile(previous.cvStoragePath);
     return json({ profile });
   } catch (error) {
     console.error('CV upload error:', error);
