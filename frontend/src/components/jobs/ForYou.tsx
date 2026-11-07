@@ -293,7 +293,7 @@ export default function ForYou() {
       </div>
 
       <p className="text-sm" style={muted}>
-        {matches.length ? `Your ${matches.length} best matches out of ${openingsStored} current openings. Updated daily.` : ""}
+        {matches.length ? `Your ${matches.length} best matches out of ${openingsStored} current openings, each with a fit score out of 100. Updated daily.` : ""}
       </p>
       {!matches.length && (
         <p className="text-sm py-8 text-center" style={muted}>
@@ -303,9 +303,9 @@ export default function ForYou() {
 
       {matches.map((m) => (
         <div key={m.openingId} className="rounded-xl p-4 flex gap-4" style={cardStyle}>
-          <div className="shrink-0 w-14 h-14 rounded-full grid place-content-center text-center" style={{ border: `3px solid ${m.score >= 80 ? GOLD : "var(--border)"}` }}>
+          <div className="shrink-0 w-14 h-14 rounded-full grid place-content-center text-center" title={`Fit score: ${m.score} out of 100`} aria-label={`Fit score ${m.score} out of 100`} style={{ border: `3px solid ${m.score >= 80 ? GOLD : "var(--border)"}` }}>
             <span className="text-lg font-bold leading-none" style={{ color: "var(--foreground)" }}>{m.score}</span>
-            <span className="text-[10px] leading-none" style={muted}>fit</span>
+            <span className="text-[10px] leading-none mt-0.5" style={muted}>/100</span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase mb-0.5" style={{ color: GOLD, letterSpacing: "1px" }}>

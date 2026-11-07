@@ -447,6 +447,13 @@ export default function LandingPage() {
               tags: ['TIMED', 'REAL INTERVIEW DIFFICULTY', 'INSTANT FEEDBACK'],
               badge: null,
             },
+            {
+              num: '04',
+              title: 'Roles that fit you, found every day',
+              body: 'Upload your CV once. Every morning we check current quant openings from 38 trading firms, funds and banks, and score each one out of 100 against your skills, experience and preferences, showing which skills match and which are missing. You always apply on the firm’s own site.',
+              tags: ['DAILY UPDATES', 'CV MATCHING', 'OFFICIAL JOB BOARDS'],
+              badge: 'PREMIUM',
+            },
           ].map(({ num, title, body, tags, badge }, i, arr) => (
             <div key={num} style={{ padding: '40px 48px', borderBottom: i < arr.length - 1 ? '1px solid rgb(220,218,210)' : 'none', background: '#faf9f5' }}>
               <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
@@ -623,7 +630,7 @@ export default function LandingPage() {
             </div>
             <p style={{ fontSize: '12px', color: '#9b9b93', marginBottom: '24px' }}>Billed every month · Cancel anytime</p>
             <div style={{ flex: 1 }}>
-              {['Full access to The 4-Week Intensive curriculum', 'Exclusive problems not found online', 'Unlimited mock interviews', 'Company filters', 'Priority access to new premium problems', 'Up to 3 expert email responses per week'].map(f => (
+              {['Full access to The 4-Week Intensive curriculum', 'Exclusive problems not found online', 'Unlimited mock interviews', 'Company filters', 'Daily job matches for your CV', 'Priority access to new premium problems', 'Up to 3 expert email responses per week'].map(f => (
                 <div key={f} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid rgb(240,238,230)', fontSize: '14px', color: '#4A5B78' }}>
                   <span style={{ color: '#a16207', fontWeight: 600, flexShrink: 0 }}>✓</span>{f}
                 </div>
