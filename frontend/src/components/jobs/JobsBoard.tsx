@@ -143,7 +143,9 @@ export default function JobsBoard() {
   const regionOptions = useMemo(() => {
     const counts = new Map<string, number>();
     jobs.forEach((j) => j.regions.forEach((r) => counts.set(r, (counts.get(r) ?? 0) + 1)));
-    return [...counts.entries()].filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]).map(([r]) => r);
+    // Biggest first; "Other" (places we couldn't match to a city) always last.
+    return [...counts.entries()].filter(([, n]) => n >= 3)
+      .sort((a, b) => Number(a[0] === "Other") - Number(b[0] === "Other") || b[1] - a[1]).map(([r]) => r);
   }, [jobs]);
 
   // Firms grouped by type, largest first, hiding firms with no current quant openings.

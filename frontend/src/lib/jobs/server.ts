@@ -292,12 +292,24 @@ const STUDENT_RX = /(currently pursuing|graduating (in|between)|recent graduate|
 const REGIONS: [string, RegExp][] = [
   ['New York', /new york|nyc|\bny\b|jersey city/i], ['Chicago', /chicago/i], ['Austin', /austin/i], ['Boston', /boston/i],
   ['Miami', /miami/i], ['San Francisco', /san francisco|bay area|berkeley|palo alto/i], ['Greenwich/Stamford', /greenwich|stamford/i],
-  ['Charlotte', /charlotte/i], ['Houston', /houston/i], ['Toronto', /toronto/i], ['Montreal', /montr[eé]al/i],
-  ['London', /london/i], ['Amsterdam', /amsterdam/i], ['Dublin', /dublin/i], ['Paris', /paris/i], ['Frankfurt', /frankfurt/i],
+  ['Charlotte', /charlotte/i], ['Houston', /houston/i], ['Dallas/Plano', /dallas|plano/i], ['Columbus', /columbus/i],
+  ['Wilmington', /wilmington/i], ['Seattle', /seattle/i], ['Westport', /westport/i], ['Toronto', /toronto/i], ['Montreal', /montr[eé]al/i],
+  ['London', /london|canary wharf/i], ['Glasgow', /glasgow/i], ['Amsterdam', /amsterdam/i], ['Dublin', /dublin/i], ['Paris', /paris/i], ['Frankfurt', /frankfurt/i], ['Berlin', /berlin/i], ['Munich', /munich|m[uü]nchen/i],
+  ['Warsaw', /warsaw|warszawa/i], ['Prague', /prague|praha/i], ['Budapest', /budapest/i], ['Denmark', /aarhus|copenhagen/i],
   ['Zug/Zurich', /zug|z[uü]rich/i], ['Geneva', /geneva/i], ['Hong Kong', /hong kong/i], ['Singapore', /singapore/i],
-  ['Sydney', /sydney/i], ['India', /mumbai|gurgaon|gurugram|bangalore|bengaluru|pune|hyderabad|chennai/i],
-  ['Shanghai', /shanghai/i], ['Tokyo', /tokyo/i], ['Remote', /remote/i],
+  ['Sydney', /sydney/i], ['India', /mumbai|gurgaon|gurugram|bangalore|bengaluru|pune|hyderabad|chennai|new delhi|gift city/i],
+  ['Dubai/Abu Dhabi', /dubai|abu dhabi/i], ['São Paulo', /s[aã]o paulo/i], ['Vietnam', /hanoi|ho chi minh/i],
+  ['Taipei', /taipei|taiwan/i], ['Seoul', /seoul/i], ['Manila', /manila/i], ['Hangzhou', /hangzhou/i],
+  ['Shanghai', /shanghai/i], ['Tokyo', /tokyo|japan/i], ['Tel Aviv', /tel aviv|ramat gan/i], ['Remote', /remote/i],
 ];
+
+/** A place we have no rule for: keep a clean city or country name, otherwise file it under Other. */
+function fallbackRegion(location: string): string {
+  const first = location.split(/[,;]/)[0].trim();
+  // Street addresses, "6 Locations", "Hanoi OR ..." and similar can't be shown as a filter option.
+  if (!first || /\d|locations?\b|\bor\b|campus|building/i.test(first) || first.length > 24) return 'Other';
+  return first === first.toUpperCase() ? first.charAt(0) + first.slice(1).toLowerCase() : first;
+}
 
 function tag(raw: RawJob, firm: Firm): JobOpening | null {
   const { title, department } = raw;
@@ -316,7 +328,7 @@ function tag(raw: RawJob, firm: Firm): JobOpening | null {
   const regions = REGIONS.filter(([, rx]) => rx.test(raw.location)).map(([name]) => name);
   return {
     id: raw.id, firm: firm.name, firmType: firm.type, title, location: raw.location,
-    regions: regions.length ? regions : raw.location ? [raw.location] : [],
+    regions: regions.length ? regions : [fallbackRegion(raw.location)],
     role, level, url: raw.url, postedAt: raw.postedAt, epigramLabel: firm.epigramLabel,
   };
 }
@@ -330,7 +342,7 @@ function getFirmJobs(firm: Firm) {
       const jobs = raws.map((raw) => tag(raw, firm)).filter((j): j is JobOpening => j !== null);
       return { fetchedAt: new Date().toISOString(), jobs };
     },
-    ['jobs-firm-v6', firm.name],
+    ['jobs-firm-v7', firm.name],
     { revalidate: REFRESH_SECONDS }
   )();
 }
