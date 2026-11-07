@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { getJobsStore } from '@/lib/jobs/store';
 
 // Create server-side Supabase client with service role for admin operations
 const supabaseAdmin = createClient(
@@ -40,6 +41,14 @@ export async function DELETE(request: NextRequest) {
         { error: 'Invalid or expired session' },
         { status: 401 }
       );
+    }
+
+    // Remove the user's uploaded CV files (database rows cascade with the user; storage files don't).
+    // Never let this block the account deletion itself.
+    try {
+      await getJobsStore().deleteUserData(user.id);
+    } catch (cvError) {
+      console.error('Could not remove CV data during account deletion:', cvError);
     }
 
     // Delete the user using admin client

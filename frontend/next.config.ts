@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
   },
   // Required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
+  // pdf.js breaks when bundled into server code; load it from node_modules instead
+  // (used by /api/jobs/profile to read uploaded CVs). Browser bundles are unaffected.
+  serverExternalPackages: ["pdfjs-dist"],
 };
 
 export default nextConfig;
