@@ -1581,7 +1581,28 @@
             console.error('Supabase library not loaded! Check CDN script.');
             alert('Error: Supabase library failed to load. Please refresh the page.');
         }
-        const supabase = _supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Saving needs the service-role key (anon can only read). It is typed in at runtime,
+        // kept in this tab's sessionStorage only, and must never be committed to this file.
+        function getServiceRoleKey() {
+            const stored = sessionStorage.getItem('epigram_service_role_key');
+            if (stored) return stored;
+            const entered = (prompt('Paste the Supabase service-role key to enable saving.\nCancel to open read-only.') || '').trim();
+            if (!entered) return null;
+            try {
+                const payload = JSON.parse(atob(entered.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+                if (payload.role !== 'service_role' || payload.ref !== 'sionddqweckwednamaeb') throw new Error();
+            } catch (e) {
+                alert('That is not the legacy service_role JWT for this project. Opening read-only.');
+                return null;
+            }
+            sessionStorage.setItem('epigram_service_role_key', entered);
+            return entered;
+        }
+        const SERVICE_ROLE_KEY = getServiceRoleKey();
+        if (!SERVICE_ROLE_KEY) console.warn('Read-only mode: saves will be rejected by the database.');
+        const supabase = _supabaseLib.createClient(SUPABASE_URL, SERVICE_ROLE_KEY || SUPABASE_ANON_KEY, {
+            auth: { persistSession: false, autoRefreshToken: false }
+        });
         let currentFileName = '';
         let originalFileName = '';
         let availableTopics = [];
