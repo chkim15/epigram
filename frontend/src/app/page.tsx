@@ -9,6 +9,7 @@ import Image from "next/image";
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 import { Faq } from "@/components/marketing/Faq";
 import NewsletterModal from "@/components/marketing/NewsletterModal";
+import DemoClip from "@/components/marketing/DemoClip";
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
@@ -424,7 +425,7 @@ export default function LandingPage() {
           The ones that appear in top fund interviews, at the difficulty they appear at, in the sequence that builds the right <span style={{ whiteSpace: 'nowrap' }}>mental models.</span>
         </p>
 
-        <div style={{ border: '1px solid rgb(220,218,210)', borderRadius: '16px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {[
             {
               num: '01',
@@ -432,6 +433,7 @@ export default function LandingPage() {
               body: 'Actual quant interview questions from 15+ top firms — exclusive, not on Glassdoor or Reddit — organized across 29 of the most frequently-tested topics.',
               tags: ['UP-TO-DATE', 'REAL INTERVIEW QUESTIONS', 'ALL KEY TECHNIQUES COVERED'],
               badge: null,
+              clip: { name: 'problems', address: 'epi-gram.app/problems', label: 'Filtering the problem library by topic, then searching for and opening a problem' },
             },
             {
               num: '02',
@@ -439,20 +441,30 @@ export default function LandingPage() {
               body: 'Every human-verified solution is a full walkthrough with multiple approaches and the exact intuition interviewers look for.',
               tags: ['FULL WALKTHROUGHS', 'MULTIPLE SOLUTION PATHS', 'VERIFIED BY EXPERTS'],
               badge: null,
+              clip: { name: 'solutions', address: 'epi-gram.app/problems', label: 'Rating an attempt to unlock a full step-by-step solution' },
             },
             {
               num: '03',
+              title: 'A four-week path from foundations to firm-ready',
+              body: 'The 4-Week Intensive takes you through 29 topics in order — concepts, worked examples, interview problems and code — so you always know what to study next.',
+              tags: ['29 TOPICS', 'STRUCTURED PATH', 'MATH + CODE'],
+              badge: 'PREMIUM',
+              clip: { name: 'course', address: 'epi-gram.app/curriculum', label: 'Moving through a topic in the 4-Week Intensive' },
+            },
+            {
+              num: '04',
               title: 'Practice under real conditions',
               body: 'Timed 30-minute sessions with real interview difficulty and an immediate full debrief — tracking your progress and exposing the gaps that only show up under real conditions.',
               tags: ['TIMED', 'REAL INTERVIEW DIFFICULTY', 'INSTANT FEEDBACK'],
               badge: null,
+              clip: { name: 'mock', address: 'epi-gram.app/mock-interview', label: 'A timed mock interview session' },
             },
-          ].map(({ num, title, body, tags, badge }, i, arr) => (
-            <div key={num} style={{ padding: '40px 48px', borderBottom: i < arr.length - 1 ? '1px solid rgb(220,218,210)' : 'none', background: '#faf9f5' }}>
-              <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+          ].map(({ num, title, body, tags, badge, clip }, i) => (
+            <div key={num} className="grid items-center gap-8 md:gap-12 md:grid-cols-2" style={{ padding: '40px', border: '1px solid rgb(220,218,210)', borderRadius: '16px', background: '#faf9f5' }}>
+              <div className={i % 2 ? 'md:order-2' : undefined} style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
                 <span style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: '32px', fontWeight: 700, color: 'rgba(161,98,7,0.25)', lineHeight: 1, flexShrink: 0, marginTop: '2px' }}>{num}</span>
                 <div>
-                  <p style={{ fontSize: '18px', fontWeight: 700, color: '#141310', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <p style={{ fontSize: '18px', fontWeight: 700, color: '#141310', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     {title}
                     {badge && (
                       <span style={{ fontSize: '10px', fontWeight: 600, background: 'rgba(161,98,7,0.12)', color: '#a16207', padding: '2px 8px', borderRadius: '20px', letterSpacing: '0.5px' }}>
@@ -468,6 +480,7 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
+              <DemoClip src={`/demo/${clip.name}.mp4`} poster={`/demo/${clip.name}.jpg`} label={clip.label} address={clip.address} />
             </div>
           ))}
         </div>
