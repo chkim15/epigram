@@ -19,6 +19,7 @@ const NAV_TABS = [
   { label: "Notebooks", href: "/notebooks", match: "/notebooks" },
   { label: "Projects", href: "/projects", match: "/projects" },
   { label: "Mock Interview", href: "/mock-interview", match: "/mock-interview" },
+  { label: "Jobs", href: "/jobs", match: "/jobs" },
   { label: "Tutoring", href: "/tutoring", match: "/tutoring" },
 ] as const;
 

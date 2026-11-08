@@ -93,10 +93,17 @@ export const auth = {
     return { session, error };
   },
 
-  // Reset password
+  // Reset password (sends a recovery email that links to /auth/reset-password)
   async resetPassword(email: string) {
+    // In development, link back to the local server so the flow can be tested end to end
+    // (NEXT_PUBLIC_APP_URL in .env.local points at production).
+    const appUrl = (
+      process.env.NODE_ENV === 'development'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+    ).replace(/\/+$/, '');
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: `${appUrl}/auth/reset-password`,
     });
     return { data, error };
   },
