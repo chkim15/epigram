@@ -80,7 +80,7 @@ export default function ProblemsListView({
   onToggleBookmark,
 }: ProblemsListViewProps) {
   const router = useRouter();
-  const { isPro } = useSubscriptionStore();
+  const { isPro, isLoading: isPlanLoading } = useSubscriptionStore();
   const [topicsExpanded, setTopicsExpanded] = useState(false);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
@@ -294,7 +294,8 @@ export default function ProblemsListView({
             const isBookmarked = bookmarkedSet.has(problem.id);
             const diffColor = DIFFICULTY_COLORS[problem.difficulty || ''] || 'var(--muted-foreground)';
             const diffLabel = DIFFICULTY_LABELS[problem.difficulty || ''] || problem.difficulty || '—';
-            const isLocked = !isPro && !problem.is_free;
+            // Only lock once the plan is known; the problem page applies its own check after that.
+            const isLocked = !isPro && !isPlanLoading && !problem.is_free;
 
             return (
               <div

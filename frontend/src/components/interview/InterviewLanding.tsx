@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import SubscribeModal from "@/components/subscription/SubscribeModal";
 
@@ -12,7 +12,8 @@ interface InterviewLandingProps {
 }
 
 export default function InterviewLanding({ onStart, onViewHistory }: InterviewLandingProps) {
-  const { isPro } = useSubscriptionStore();
+  // Until the plan has loaded, isPro is false even for Premium users: wait rather than show Subscribe.
+  const { isPro, isLoading: isPlanLoading } = useSubscriptionStore();
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
   return (
@@ -64,13 +65,24 @@ export default function InterviewLanding({ onStart, onViewHistory }: InterviewLa
 
         <Button
           onClick={() => isPro ? onStart() : setShowSubscribeModal(true)}
-          className="w-full py-6 text-base font-semibold rounded-xl cursor-pointer"
+          disabled={isPlanLoading}
+          aria-busy={isPlanLoading}
+          className="w-full py-6 text-base font-semibold rounded-xl cursor-pointer disabled:cursor-wait disabled:opacity-60"
           style={{ backgroundColor: "#141310", color: "#ffffff" }}
           onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
         >
-          Start Interview
-          <ChevronRight className="ml-2 h-5 w-5" />
+          {isPlanLoading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Checking your plan…
+            </>
+          ) : (
+            <>
+              Start Interview
+              <ChevronRight className="ml-2 h-5 w-5" />
+            </>
+          )}
         </Button>
         <button
           onClick={onViewHistory}
