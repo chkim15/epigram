@@ -413,7 +413,9 @@ export default function LandingPage() {
       </section>
 
       {/* What's Inside Section */}
-      <section id="features" style={{ background: '#e9e6dc', padding: '100px 16%' }}>
+      {/* The cards run wider than the other sections so the product clips are large; the heading keeps the usual 16% inset. */}
+      <section id="features" style={{ background: '#e9e6dc', padding: '100px 6%' }}>
+        <div style={{ padding: '0 10vw' }}>
         <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '20px' }}>
           What&apos;s Inside
         </p>
@@ -424,6 +426,7 @@ export default function LandingPage() {
         <p style={{ fontSize: '17px', color: '#6b7280', lineHeight: 1.7, marginBottom: '56px', maxWidth: '720px' }}>
           The ones that appear in top fund interviews, at the difficulty they appear at, in the sequence that builds the right <span style={{ whiteSpace: 'nowrap' }}>mental models.</span>
         </p>
+        </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {[
@@ -460,8 +463,13 @@ export default function LandingPage() {
               clip: { name: 'mock', address: 'epi-gram.app/mock-interview', label: 'A timed mock interview session' },
             },
           ].map(({ num, title, body, tags, badge, clip }, i) => (
-            <div key={num} className="grid items-center gap-8 md:gap-12 md:grid-cols-2" style={{ padding: '40px', border: '1px solid rgb(220,218,210)', borderRadius: '16px', background: '#faf9f5' }}>
-              <div className={i % 2 ? 'md:order-2' : undefined} style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+            <div
+              key={num}
+              // Clip gets 3/5 of the card from 1024px up; below that the text sits above a full-width clip.
+              className={`grid items-center gap-8 lg:gap-12 ${i % 2 ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]' : 'lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'}`}
+              style={{ padding: 'clamp(20px, 2.5vw, 32px)', border: '1px solid rgb(220,218,210)', borderRadius: '16px', background: '#faf9f5' }}
+            >
+              <div className={i % 2 ? 'lg:order-2' : undefined} style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
                 <span style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: '32px', fontWeight: 700, color: 'rgba(161,98,7,0.25)', lineHeight: 1, flexShrink: 0, marginTop: '2px' }}>{num}</span>
                 <div>
                   <p style={{ fontSize: '18px', fontWeight: 700, color: '#141310', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
