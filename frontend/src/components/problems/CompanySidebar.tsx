@@ -86,7 +86,7 @@ export default function CompanySidebar({
 }: CompanySidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
-  const { isPro } = useSubscriptionStore();
+  const { isPro, isLoading: isPlanLoading } = useSubscriptionStore();
 
   const filteredTags = companyTags.filter((tag) =>
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -126,7 +126,7 @@ export default function CompanySidebar({
         <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
           Companies
         </h3>
-        {!isPro && <Lock size={12} style={{ color: 'var(--muted-foreground)' }} />}
+        {!isPro && !isPlanLoading && <Lock size={12} style={{ color: 'var(--muted-foreground)' }} />}
       </div>
 
       {/* Search */}
@@ -155,7 +155,11 @@ export default function CompanySidebar({
           return (
             <button
               key={tag.name}
-              onClick={() => isPro ? onSelectCompany(isActive ? null : tag.name) : setShowSubscribeModal(true)}
+              onClick={() => {
+                if (isPlanLoading) return; // wait for the plan rather than prompt a Premium user to subscribe
+                if (isPro) onSelectCompany(isActive ? null : tag.name);
+                else setShowSubscribeModal(true);
+              }}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm rounded-xl border cursor-pointer transition-colors"
               style={{
                 backgroundColor: isActive ? 'var(--foreground)' : 'transparent',

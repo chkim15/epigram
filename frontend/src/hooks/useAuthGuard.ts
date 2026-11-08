@@ -19,12 +19,14 @@ export function useAuthGuard(options?: { requireAuth?: boolean }) {
     checkAuth();
   }, [checkAuth]);
 
-  // Load subscription whenever we have an authenticated user
+  // Load subscription whenever we have an authenticated user. Once auth has settled with no user,
+  // still run it: it resolves straight away as "no subscription", so pages that wait for the plan
+  // (subscription isLoading) show signed-out visitors their locks instead of waiting forever.
   useEffect(() => {
-    if (user) {
+    if (user || !authLoading) {
       useSubscriptionStore.getState().fetchSubscription();
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   // Identify user in PostHog when authenticated
   useEffect(() => {

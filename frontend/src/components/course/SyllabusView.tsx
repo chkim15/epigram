@@ -13,7 +13,9 @@ function isPremiumTopic(weekNum: number, topicNum: number) {
 export default function SyllabusView() {
   const router = useRouter();
   const { getTopicStatus, getWeekProgress } = useCourseProgress();
-  const { isPro } = useSubscriptionStore();
+  const { isPro, isLoading: isPlanLoading } = useSubscriptionStore();
+  // Free until proven otherwise would flash locks at Premium users; wait for the plan instead.
+  const showLocks = !isPro && !isPlanLoading;
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -130,7 +132,7 @@ export default function SyllabusView() {
                 <div className="space-y-1">
                   {week.topics.map((topic, idx) => {
                     const status = getTopicStatus(week.weekNum, topic.topicNum);
-                    const locked = !isPro && isPremiumTopic(week.weekNum, topic.topicNum);
+                    const locked = showLocks && isPremiumTopic(week.weekNum, topic.topicNum);
 
                     return (
                       <button
@@ -192,7 +194,7 @@ export default function SyllabusView() {
               borderColor: "var(--border)",
               backgroundColor: "var(--background)",
             }}
-            onClick={() => isPro ? router.push("/curriculum/departing") : router.push("/upgrade")}
+            onClick={() => { if (isPlanLoading) return; router.push(isPro ? "/curriculum/departing" : "/upgrade"); }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.backgroundColor = "var(--sidebar-background)")
             }
@@ -212,11 +214,11 @@ export default function SyllabusView() {
               </span>
               <h2
                 className="text-lg font-semibold"
-                style={{ color: isPro ? "var(--foreground)" : "var(--muted-foreground)" }}
+                style={{ color: showLocks ? "var(--muted-foreground)" : "var(--foreground)" }}
               >
                 Interview Day
               </h2>
-              {!isPro && <Lock size={14} strokeWidth={2} style={{ color: "var(--muted-foreground)" }} />}
+              {showLocks && <Lock size={14} strokeWidth={2} style={{ color: "var(--muted-foreground)" }} />}
             </div>
             <p
               className="text-sm mt-2"
