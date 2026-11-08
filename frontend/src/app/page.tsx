@@ -9,6 +9,7 @@ import Image from "next/image";
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 import { Faq } from "@/components/marketing/Faq";
 import NewsletterModal from "@/components/marketing/NewsletterModal";
+import DemoClip from "@/components/marketing/DemoClip";
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
@@ -412,7 +413,9 @@ export default function LandingPage() {
       </section>
 
       {/* What's Inside Section */}
-      <section id="features" style={{ background: '#e9e6dc', padding: '100px 16%' }}>
+      {/* The cards run wider than the other sections so the product clips are large; the heading keeps the usual 16% inset. */}
+      <section id="features" style={{ background: '#e9e6dc', padding: '100px 6%' }}>
+        <div style={{ padding: '0 10vw' }}>
         <p style={{ fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500, color: '#a16207', marginBottom: '20px' }}>
           What&apos;s Inside
         </p>
@@ -423,8 +426,9 @@ export default function LandingPage() {
         <p style={{ fontSize: '17px', color: '#6b7280', lineHeight: 1.7, marginBottom: '56px', maxWidth: '720px' }}>
           The ones that appear in top fund interviews, at the difficulty they appear at, in the sequence that builds the right <span style={{ whiteSpace: 'nowrap' }}>mental models.</span>
         </p>
+        </div>
 
-        <div style={{ border: '1px solid rgb(220,218,210)', borderRadius: '16px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {[
             {
               num: '01',
@@ -432,6 +436,7 @@ export default function LandingPage() {
               body: 'Actual quant interview questions from 15+ top firms — exclusive, not on Glassdoor or Reddit — organized across 29 of the most frequently-tested topics.',
               tags: ['UP-TO-DATE', 'REAL INTERVIEW QUESTIONS', 'ALL KEY TECHNIQUES COVERED'],
               badge: null,
+              clip: { name: 'problems', address: 'epi-gram.app/problems', label: 'Filtering the problem library by topic, then searching for and opening a problem' },
             },
             {
               num: '02',
@@ -439,27 +444,43 @@ export default function LandingPage() {
               body: 'Every human-verified solution is a full walkthrough with multiple approaches and the exact intuition interviewers look for.',
               tags: ['FULL WALKTHROUGHS', 'MULTIPLE SOLUTION PATHS', 'VERIFIED BY EXPERTS'],
               badge: null,
+              clip: { name: 'solutions', address: 'epi-gram.app/problems', label: 'Rating an attempt to unlock a full step-by-step solution' },
             },
             {
               num: '03',
+              title: 'A four-week path from foundations to firm-ready',
+              body: 'The 4-Week Intensive takes you through 29 topics in order — concepts, worked examples, interview problems and code — so you always know what to study next.',
+              tags: ['29 TOPICS', 'STRUCTURED PATH', 'MATH + CODE'],
+              badge: 'PREMIUM',
+              clip: { name: 'course', address: 'epi-gram.app/curriculum', label: 'Moving through a topic in the 4-Week Intensive' },
+            },
+            {
+              num: '04',
               title: 'Practice under real conditions',
               body: 'Timed 30-minute sessions with real interview difficulty and an immediate full debrief — tracking your progress and exposing the gaps that only show up under real conditions.',
               tags: ['TIMED', 'REAL INTERVIEW DIFFICULTY', 'INSTANT FEEDBACK'],
               badge: null,
+              clip: { name: 'mock', address: 'epi-gram.app/mock-interview', label: 'A timed mock interview session' },
             },
             {
-              num: '04',
+              num: '05',
               title: 'Roles that fit you, found every day',
               body: 'Upload your CV once. Every morning we check current quant openings from 38 trading firms, funds and banks, and score each one out of 100 against your skills, experience and preferences, showing which skills match and which are missing. You always apply on the firm’s own site.',
               tags: ['DAILY UPDATES', 'CV MATCHING', 'OFFICIAL JOB BOARDS'],
               badge: 'PREMIUM',
+              clip: { name: 'jobs', address: 'epi-gram.app/jobs', label: 'Daily job matches for an uploaded CV, each with a fit score out of 100' },
             },
-          ].map(({ num, title, body, tags, badge }, i, arr) => (
-            <div key={num} style={{ padding: '40px 48px', borderBottom: i < arr.length - 1 ? '1px solid rgb(220,218,210)' : 'none', background: '#faf9f5' }}>
-              <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+          ].map(({ num, title, body, tags, badge, clip }, i) => (
+            <div
+              key={num}
+              // Clip gets 3/5 of the card from 1024px up; below that the text sits above a full-width clip.
+              className={`grid items-center gap-8 lg:gap-12 ${i % 2 ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]' : 'lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'}`}
+              style={{ padding: 'clamp(20px, 2.5vw, 32px)', border: '1px solid rgb(220,218,210)', borderRadius: '16px', background: '#faf9f5' }}
+            >
+              <div className={i % 2 ? 'lg:order-2' : undefined} style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
                 <span style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: '32px', fontWeight: 700, color: 'rgba(161,98,7,0.25)', lineHeight: 1, flexShrink: 0, marginTop: '2px' }}>{num}</span>
                 <div>
-                  <p style={{ fontSize: '18px', fontWeight: 700, color: '#141310', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <p style={{ fontSize: '18px', fontWeight: 700, color: '#141310', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     {title}
                     {badge && (
                       <span style={{ fontSize: '10px', fontWeight: 600, background: 'rgba(161,98,7,0.12)', color: '#a16207', padding: '2px 8px', borderRadius: '20px', letterSpacing: '0.5px' }}>
@@ -475,6 +496,7 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
+              <DemoClip src={`/demo/${clip.name}.mp4`} poster={`/demo/${clip.name}.jpg`} label={clip.label} address={clip.address} />
             </div>
           ))}
         </div>
