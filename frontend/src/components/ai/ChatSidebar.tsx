@@ -13,6 +13,8 @@ import { useAuthStore } from "@/stores/authStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import SubscribeModal from "@/components/subscription/SubscribeModal";
 import ActiveLearningPrompt from "@/components/problems/ActiveLearningPrompt";
+import { useProblemTranslation } from "@/hooks/useProblemTranslation";
+import { translatedSolution } from "@/lib/translations";
 import { NotesTab } from '@/components/notes/NotesTab';
 
 interface MathFieldElement extends HTMLElement {
@@ -55,6 +57,8 @@ function SolutionsTab({
   const [loading, setLoading] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState<'solutions' | 'comments'>('solutions');
   const { user } = useAuthStore();
+  // Translated solution and comment text follow the language tabs on the problem (English when none exists).
+  const { tr } = useProblemTranslation(currentProblem?.id);
 
   // Update solutions when parent provides them
   useEffect(() => {
@@ -269,7 +273,7 @@ function SolutionsTab({
                   <div>
                     <div className="prose max-w-none dark:prose-invert">
                       <MathContent 
-                        content={problemSolutions[selectedProblemSolution]?.solution_text || ''} 
+                        content={translatedSolution(tr?.solution_text, tr?.extra_solutions, selectedProblemSolution) || problemSolutions[selectedProblemSolution]?.solution_text || ''} 
                         documentId={currentDocument?.document_id} 
                       />
                     </div>
@@ -322,7 +326,7 @@ function SolutionsTab({
                       )}
                       <div className="prose max-w-none dark:prose-invert">
                         <MathContent 
-                          content={solutions[selectedIndex]?.solution_text || ''} 
+                          content={translatedSolution(tr?.subproblems?.[key]?.solution_text, tr?.subproblems?.[key]?.extra_solutions, selectedIndex) || solutions[selectedIndex]?.solution_text || ''} 
                           documentId={currentDocument?.document_id} 
                         />
                       </div>
@@ -336,7 +340,7 @@ function SolutionsTab({
           <div className="p-4 space-y-6">
             {currentProblem?.comment && (
               <div className="prose max-w-none dark:prose-invert">
-                <MathContent content={currentProblem.comment} documentId={currentDocument?.document_id} />
+                <MathContent content={tr?.comment || currentProblem.comment} documentId={currentDocument?.document_id} />
               </div>
             )}
             {currentSubproblems.length > 0 && currentSubproblems.some(sp => sp.comment) && (
@@ -347,7 +351,7 @@ function SolutionsTab({
                       {subproblem.key}.
                     </h3>
                     <div className="prose max-w-none dark:prose-invert">
-                      <MathContent content={subproblem.comment || ''} documentId={currentDocument?.document_id} />
+                      <MathContent content={tr?.subproblems?.[subproblem.key]?.comment || subproblem.comment || ''} documentId={currentDocument?.document_id} />
                     </div>
                   </div>
                 ))}

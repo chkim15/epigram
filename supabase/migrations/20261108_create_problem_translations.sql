@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS public.problem_translations (
   correct_answer TEXT,
   comment        TEXT,
   hint           TEXT,
-  solution_text  TEXT,
+  solution_text  TEXT,                                 -- the first solution (lowest solution_order)
+  extra_solutions JSONB NOT NULL DEFAULT '[]'::jsonb,   -- later solutions: [{"solution_index": 1, "solution_text": "..."}]
   hints          JSONB NOT NULL DEFAULT '[]'::jsonb,   -- [{"hint_order": 0, "hint_text": "..."}]
   subproblems    JSONB NOT NULL DEFAULT '{}'::jsonb,   -- {"a": {problem_text, correct_answer, comment, hint, solution_text, hints:[...]}}
 

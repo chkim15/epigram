@@ -39,7 +39,8 @@ import ProblemFeedback from "@/components/problems/ProblemFeedback";
 import SubscribeModal from "@/components/subscription/SubscribeModal";
 import LanguageTabs from "@/components/problems/LanguageTabs";
 import { useLanguageStore } from "@/stores/languageStore";
-import { fetchProblemTranslation, translatedHint, type ProblemTranslation } from "@/lib/translations";
+import { translatedHint } from "@/lib/translations";
+import { useProblemTranslation } from "@/hooks/useProblemTranslation";
 
 interface ProblemViewerProps {
   specificProblemId?: string;
@@ -105,30 +106,12 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
   const [showCompaniesModal, setShowCompaniesModal] = useState(false);
   const { user } = useAuthStore();
   const { isPro, isLoading: isSubscriptionLoading } = useSubscriptionStore();
-  const { locale, setLocale, hydrate: hydrateLocale } = useLanguageStore();
-  const [translation, setTranslation] = useState<ProblemTranslation | null>(null);
-  const [translationLoading, setTranslationLoading] = useState(false);
+  const { setLocale, hydrate: hydrateLocale } = useLanguageStore();
+  // Stored translation of the current problem in the chosen language (shared with the solutions panel).
+  const { tr, loading: translationLoading, locale } = useProblemTranslation(currentProblem?.id);
 
-  // Restore the saved language once, then load the stored translation of the current problem.
+  // Restore the saved language once.
   useEffect(() => { hydrateLocale(); }, [hydrateLocale]);
-  useEffect(() => {
-    const problemId = currentProblem?.id;
-    if (!problemId || locale === 'en') {
-      setTranslation(null);
-      setTranslationLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setTranslationLoading(true);
-    fetchProblemTranslation(problemId, locale).then((row) => {
-      if (cancelled) return;
-      setTranslation(row);
-      setTranslationLoading(false);
-    });
-    return () => { cancelled = true; };
-  }, [currentProblem?.id, locale]);
-  // Only use a translation of the problem on screen in the chosen language (never a stale one from the previous problem or language).
-  const tr = locale !== 'en' && translation && translation.problem_id === currentProblem?.id && translation.locale === locale ? translation : null;
   const answerContentEditableRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Fetch quant_topics for current problem
