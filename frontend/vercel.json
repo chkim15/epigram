@@ -4,6 +4,10 @@
       "maxDuration": 60
     }
   },
+  "crons": [
+    { "path": "/api/jobs/refresh?group=trading", "schedule": "0 9 * * *" },
+    { "path": "/api/jobs/refresh?group=banks", "schedule": "0 10 * * *" }
+  ],
   "regions": ["iad1"],
   "github": {
     "enabled": true
