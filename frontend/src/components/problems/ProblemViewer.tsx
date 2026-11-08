@@ -37,6 +37,9 @@ import { useAuthStore } from "@/stores/authStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import ProblemFeedback from "@/components/problems/ProblemFeedback";
 import SubscribeModal from "@/components/subscription/SubscribeModal";
+import LanguageTabs from "@/components/problems/LanguageTabs";
+import { useLanguageStore } from "@/stores/languageStore";
+import { fetchProblemTranslation, translatedHint, type ProblemTranslation } from "@/lib/translations";
 
 interface ProblemViewerProps {
   specificProblemId?: string;
@@ -102,6 +105,30 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
   const [showCompaniesModal, setShowCompaniesModal] = useState(false);
   const { user } = useAuthStore();
   const { isPro, isLoading: isSubscriptionLoading } = useSubscriptionStore();
+  const { locale, setLocale, hydrate: hydrateLocale } = useLanguageStore();
+  const [translation, setTranslation] = useState<ProblemTranslation | null>(null);
+  const [translationLoading, setTranslationLoading] = useState(false);
+
+  // Restore the saved language once, then load the stored translation of the current problem.
+  useEffect(() => { hydrateLocale(); }, [hydrateLocale]);
+  useEffect(() => {
+    const problemId = currentProblem?.id;
+    if (!problemId || locale === 'en') {
+      setTranslation(null);
+      setTranslationLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setTranslationLoading(true);
+    fetchProblemTranslation(problemId, locale).then((row) => {
+      if (cancelled) return;
+      setTranslation(row);
+      setTranslationLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [currentProblem?.id, locale]);
+  // Only use a translation of the problem on screen in the chosen language (never a stale one from the previous problem or language).
+  const tr = locale !== 'en' && translation && translation.problem_id === currentProblem?.id && translation.locale === locale ? translation : null;
   const answerContentEditableRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Fetch quant_topics for current problem
@@ -1318,7 +1345,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                     <div className="flex flex-col gap-1">
                       <span className="flex items-baseline gap-1">
                         <span>{currentProblemIndex + 1}.</span>
-                        <MathContent content={currentProblem.problem_name ?? `Problem ${currentProblemIndex + 1}`} documentId={currentDocument?.document_id} />
+                        <MathContent content={tr?.problem_name || (currentProblem.problem_name ?? `Problem ${currentProblemIndex + 1}`)} documentId={currentDocument?.document_id} />
                       </span>
                       {currentProblem.difficulty && (
                         <span
@@ -1426,9 +1453,12 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  <div className="mb-4">
+                    <LanguageTabs locale={locale} onChange={setLocale} loading={translationLoading} missing={!translationLoading && !tr} />
+                  </div>
                   {currentProblem.problem_text && (
                     <div className="prose max-w-none dark:prose-invert mb-6 overflow-hidden break-words">
-                      <MathContent content={currentProblem.problem_text} documentId={currentDocument?.document_id} />
+                      <MathContent content={tr?.problem_text || currentProblem.problem_text} documentId={currentDocument?.document_id} />
                     </div>
                   )}
                   
@@ -1465,7 +1495,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                             ) : (
                               <div className="p-4 rounded-xl border" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--card)' }}>
                                 <div className="prose max-w-none dark:prose-invert text-sm">
-                                  <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
+                                  <MathContent content={translatedHint(tr?.hints, index, hint.hint_text)} documentId={currentDocument?.document_id} />
                                 </div>
                               </div>
                             )}
@@ -1503,7 +1533,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                       {expandedHints['main'] && (
                         <div className="mt-2 p-4 rounded-xl border" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--card)' }}>
                           <div className="prose max-w-none dark:prose-invert text-sm">
-                            <MathContent content={currentProblem.hint} documentId={currentDocument?.document_id} />
+                            <MathContent content={translatedHint(tr?.hints, 0, currentProblem.hint)} documentId={currentDocument?.document_id} />
                           </div>
                         </div>
                       )}
@@ -1606,7 +1636,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                               {subproblem.key}.
                             </div>
                             <div className="prose max-w-none dark:prose-invert overflow-hidden break-words">
-                              <MathContent content={subproblem.problem_text || ''} documentId={currentDocument?.document_id} />
+                              <MathContent content={tr?.subproblems?.[subproblem.key]?.problem_text || subproblem.problem_text || ''} documentId={currentDocument?.document_id} />
                             </div>
                             
                             {/* Progressive hints for subproblem */}
@@ -1643,7 +1673,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                                       ) : (
                                         <div className="p-4 rounded-xl border" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--card)' }}>
                                           <div className="prose max-w-none dark:prose-invert text-sm">
-                                            <MathContent content={hint.hint_text} documentId={currentDocument?.document_id} />
+                                            <MathContent content={translatedHint(tr?.subproblems?.[subproblem.key]?.hints, index, hint.hint_text)} documentId={currentDocument?.document_id} />
                                           </div>
                                         </div>
                                       )}
@@ -1681,7 +1711,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
                                 {expandedHints[`sub_${subproblem.key}`] && (
                                   <div className="mt-2 p-4 rounded-xl border" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--card)' }}>
                                     <div className="prose max-w-none dark:prose-invert text-sm">
-                                      <MathContent content={subproblem.hint} documentId={currentDocument?.document_id} />
+                                      <MathContent content={translatedHint(tr?.subproblems?.[subproblem.key]?.hints, 0, subproblem.hint)} documentId={currentDocument?.document_id} />
                                     </div>
                                   </div>
                                 )}
