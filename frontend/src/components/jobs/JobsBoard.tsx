@@ -249,6 +249,18 @@ export default function JobsBoard() {
         <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ backgroundColor: "var(--background)" }}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
             <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--foreground)" }}>Current Job Openings</h1>
+            <div className="flex flex-col gap-3 text-sm leading-relaxed mb-4" style={{ color: "var(--muted-foreground)" }}>
+              <p>
+                Quant roles are spread across dozens of career sites, and the good ones fill fast. This page brings
+                together openings from the official career pages of top trading firms, hedge funds and banks, and
+                refreshes them every day, so you don&apos;t have to check each site yourself.
+              </p>
+              <p>
+                Under <strong>For you</strong>, upload your CV and every opening is scored out of 100 for how well it
+                fits your experience, skills and preferences, so you can start with the roles worth applying to. Your
+                CV is stored privately, used only for matching, and you can delete it at any time.
+              </p>
+            </div>
             <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--muted-foreground)" }}>
               {jobs.length} quant openings from {state.feed.firms.filter((f) => f.ok).length} trading firms, funds and banks. Updated{" "}
               {new Date(state.feed.fetchedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.

@@ -35,12 +35,21 @@ export default function InterviewLanding({ onStart, onViewHistory }: InterviewLa
           >
             Mock Interview
           </h1>
-          <p
-            className="text-sm leading-relaxed"
+          <div
+            className="flex flex-col gap-3 text-sm leading-relaxed"
             style={{ color: "var(--foreground)", opacity: 0.7 }}
           >
-            Simulate a real quant interview: 3 problems, 30 minutes.
-          </p>
+            <p>
+              Solving a problem at your desk is not the same as solving it with the clock running and someone
+              waiting for your answer. Real quant interviews give you a few hard problems and little time, and the
+              pressure is where most candidates slip: they freeze, rush the algebra or run out of time.
+            </p>
+            <p>
+              A mock interview recreates those conditions: 3 problems, 30 minutes, no pausing. When you finish you
+              see the full solutions, check your answers, and keep every session in your interview history, so you
+              can see where you lose time and how you improve.
+            </p>
+          </div>
         </div>
 
         <div
