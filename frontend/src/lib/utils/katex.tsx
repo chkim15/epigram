@@ -20,6 +20,13 @@ export function renderMath(text: string, documentId?: string): string {
   
   // Start with a clean copy of the text
   let processed = text;
+
+  // Rendered KaTeX HTML is set aside behind placeholders until the end. Later passes
+  // (\textbf{...}, \\, markdown *...*) use simple regexes, and KaTeX's HTML carries a hidden
+  // copy of the TeX source, braces and all; letting those passes see it corrupts the output
+  // (e.g. \textbf{... $\rho_{12}$ ...} would close at the brace in \rho_{12}).
+  const mathStore: string[] = [];
+  const stash = (html: string) => `\uE000${mathStore.push(html) - 1}\uE001`;
   
   // First, decode HTML entities like &gt; to > (only in browser context)
   if (typeof document !== 'undefined') {
@@ -37,11 +44,11 @@ export function renderMath(text: string, documentId?: string): string {
   // Process display math first - $$...$$ (including multi-line content)
   processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
     try {
-      return katex.renderToString(math.trim(), {
+      return stash(katex.renderToString(math.trim(), {
         throwOnError: false,
         displayMode: true,
         trust: true,
-      });
+      }));
     } catch (e) {
       console.error('KaTeX error (display $$):', e);
       return match;
@@ -51,11 +58,11 @@ export function renderMath(text: string, documentId?: string): string {
   // Process display math \[...\]
   processed = processed.replace(/\\\[([\s\S]*?)\\\]/g, (match, math) => {
     try {
-      return katex.renderToString(math.trim(), {
+      return stash(katex.renderToString(math.trim(), {
         throwOnError: false,
         displayMode: true,
         trust: true,
-      });
+      }));
     } catch (e) {
       console.error('KaTeX error (display \\[\\]):', e);
       return match;
@@ -65,11 +72,11 @@ export function renderMath(text: string, documentId?: string): string {
   // Process inline math \(...\) - handle multi-line content
   processed = processed.replace(/\\\(([\s\S]*?)\\\)/g, (match, math) => {
     try {
-      return katex.renderToString(math.trim(), {
+      return stash(katex.renderToString(math.trim(), {
         throwOnError: false,
         displayMode: false,
         trust: true,
-      });
+      }));
     } catch (e) {
       console.error('KaTeX error (inline \\(\\)):', e, 'Math content:', math);
       return match;
@@ -91,11 +98,11 @@ export function renderMath(text: string, documentId?: string): string {
     }
     
     try {
-      return katex.renderToString(math.trim(), {
+      return stash(katex.renderToString(math.trim(), {
         throwOnError: false,
         displayMode: false,
         trust: true,
-      });
+      }));
     } catch (e) {
       console.error('KaTeX error (inline $):', e);
       return match;
@@ -154,11 +161,11 @@ export function renderMath(text: string, documentId?: string): string {
       if (!cleanedLine) return '';
 
       try {
-        return katex.renderToString(cleanedLine, {
+        return stash(katex.renderToString(cleanedLine, {
           throwOnError: false,
           displayMode: true,
           trust: true,
-        });
+        }));
       } catch (e) {
         console.error('KaTeX error (align line):', e);
         return `<div style="text-align: center; margin: 10px 0;">${cleanedLine}</div>`;
@@ -181,11 +188,11 @@ export function renderMath(text: string, documentId?: string): string {
       if (!cleanedLine) return '';
 
       try {
-        return katex.renderToString(cleanedLine, {
+        return stash(katex.renderToString(cleanedLine, {
           throwOnError: false,
           displayMode: true,
           trust: true,
-        });
+        }));
       } catch (e) {
         console.error('KaTeX error (align* line):', e);
         return `<div style="text-align: center; margin: 10px 0;">${cleanedLine}</div>`;
@@ -281,15 +288,18 @@ export function renderMath(text: string, documentId?: string): string {
   // Handle infinity symbol (∞) - convert to \infty
   processed = processed.replace(/∞/g, () => {
     try {
-      return katex.renderToString('\\infty', {
+      return stash(katex.renderToString('\\infty', {
         throwOnError: false,
         displayMode: false,
         trust: true,
-      });
+      }));
     } catch {
       return '∞';
     }
   });
+
+  // Put the rendered math back (nested placeholders cannot occur: each block is rendered once).
+  processed = processed.replace(/\uE000(\d+)\uE001/g, (_m, i) => mathStore[Number(i)]);
 
   return processed;
 }
