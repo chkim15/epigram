@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Lock } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
@@ -22,11 +22,16 @@ interface LibraryIndexProps {
   intro: string[];
 }
 
+// Loads the visitor's plan (signed-out visitors can still browse the list). It reads search params,
+// so it sits in its own Suspense boundary and the rest of the page still prerenders.
+function LoadPlan() {
+  useAuthGuard({ requireAuth: false });
+  return null;
+}
+
 export default function LibraryIndex({ section, heading, intro }: LibraryIndexProps) {
   const [items, setItems] = useState<LibrarySummary[] | null>(null);
   const [failed, setFailed] = useState(false);
-  // Loads the visitor's plan (signed-out visitors can still browse the list).
-  useAuthGuard({ requireAuth: false });
   const { isPro, isLoading: isPlanLoading } = useSubscriptionStore();
   // Premium members can open everything, so they see no locks or "Free sample" tags. Wait for the plan
   // before showing locks, so a Premium member never sees them flash.
@@ -44,6 +49,9 @@ export default function LibraryIndex({ section, heading, intro }: LibraryIndexPr
 
   return (
     <AppShell>
+      <Suspense>
+        <LoadPlan />
+      </Suspense>
       <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ backgroundColor: "var(--background)" }}>
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
           <h1 className="text-3xl font-bold mb-3" style={{ color: "var(--foreground)" }}>{heading}</h1>
