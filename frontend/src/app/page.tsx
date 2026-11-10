@@ -152,8 +152,8 @@ export default function LandingPage() {
             marginBottom: '28px',
           }}
         >
-          Fewer, harder problems.<br />
-          <em style={{ color: '#a16207', fontStyle: 'italic' }}>The ones top funds<br />actually ask.</em>
+          Stop piecing together quant interview prep.<br />
+          <em style={{ color: '#a16207', fontStyle: 'italic' }}>Start with a plan.</em>
         </motion.h1>
 
         {/* Subtext */}

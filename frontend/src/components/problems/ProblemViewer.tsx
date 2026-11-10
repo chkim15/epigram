@@ -1914,7 +1914,7 @@ export default function ProblemViewer({ specificProblemId, problemSlug, selected
               Previous
             </Button>
             <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-              Problem {currentProblemIndex + 1} of {problemList.length}
+              Problem {currentProblemIndex + 1}
             </span>
             <Button
               variant="outline"
